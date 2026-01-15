@@ -1,0 +1,406 @@
+package com.bind
+
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.os.Build
+import android.util.Log
+import androidx.core.app.NotificationCompat
+import org.json.JSONObject
+
+/**
+ * BroadcastReceiver that handles scheduled preset alarms.
+ * When an alarm fires, this receiver checks if the preset should be activated.
+ */
+class ScheduledPresetReceiver : BroadcastReceiver() {
+
+    companion object {
+        private const val TAG = "ScheduledPresetReceiver"
+        const val ACTION_ACTIVATE_PRESET = "com.bind.ACTION_ACTIVATE_PRESET"
+        const val ACTION_END_PRESET = "com.bind.ACTION_END_PRESET"
+        const val EXTRA_PRESET_ID = "preset_id"
+
+        // Notification channel for schedule alerts (high priority, heads-up)
+        private const val ALERT_CHANNEL_ID = "scute_schedule_alerts"
+        private const val ACTIVATION_NOTIFICATION_ID = 2001
+        private const val DEACTIVATION_NOTIFICATION_ID = 2002
+    }
+
+    override fun onReceive(context: Context, intent: Intent) {
+        Log.d(TAG, "Received broadcast: ${intent.action}")
+
+        when (intent.action) {
+            ACTION_ACTIVATE_PRESET -> {
+                val presetId = intent.getStringExtra(EXTRA_PRESET_ID)
+                if (presetId != null) {
+                    activateScheduledPreset(context, presetId)
+                }
+            }
+            ACTION_END_PRESET -> {
+                val presetId = intent.getStringExtra(EXTRA_PRESET_ID)
+                if (presetId != null) {
+                    deactivateScheduledPreset(context, presetId)
+                }
+            }
+            Intent.ACTION_BOOT_COMPLETED -> {
+                // Reschedule all alarms after device reboot
+                ScheduleManager.rescheduleAllPresets(context)
+            }
+        }
+    }
+
+    private fun deactivateScheduledPreset(context: Context, presetId: String) {
+        try {
+            Log.d(TAG, "Deactivating scheduled preset: $presetId")
+
+            val sessionPrefs = context.getSharedPreferences(
+                UninstallBlockerService.PREFS_NAME,
+                Context.MODE_PRIVATE
+            )
+
+            // Check if this preset is the currently active one
+            val activePresetId = sessionPrefs.getString("active_preset_id", null)
+            if (activePresetId != presetId) {
+                Log.d(TAG, "Preset $presetId is not the active preset, skipping deactivation")
+                return
+            }
+
+            // Get the preset name before clearing it
+            val presetName = sessionPrefs.getString("active_preset_name", null) ?: "Preset"
+
+            // Clear the session
+            sessionPrefs.edit()
+                .putBoolean(UninstallBlockerService.KEY_SESSION_ACTIVE, false)
+                .remove("active_preset_id")
+                .remove("active_preset_name")
+                .remove("is_scheduled_preset")
+                .apply()
+
+            // Stop the foreground service
+            val serviceIntent = Intent(context, UninstallBlockerService::class.java)
+            context.stopService(serviceIntent)
+
+            // Show high-priority notification that blocking has ended
+            showDeactivationNotification(context, presetName)
+
+            Log.d(TAG, "Scheduled preset deactivated: $presetId")
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error deactivating scheduled preset", e)
+        }
+    }
+
+    private fun activateScheduledPreset(context: Context, presetId: String) {
+        try {
+            Log.d(TAG, "Activating scheduled preset: $presetId")
+
+            // Check if this preset is already active to avoid duplicate activations
+            val sessionPrefs = context.getSharedPreferences(
+                UninstallBlockerService.PREFS_NAME,
+                Context.MODE_PRIVATE
+            )
+            val currentActiveId = sessionPrefs.getString("active_preset_id", null)
+            val isSessionActive = sessionPrefs.getBoolean(UninstallBlockerService.KEY_SESSION_ACTIVE, false)
+
+            if (isSessionActive && currentActiveId == presetId) {
+                Log.d(TAG, "Preset $presetId is already active, skipping duplicate activation")
+                return
+            }
+
+            val prefs = context.getSharedPreferences(ScheduleManager.PREFS_NAME, Context.MODE_PRIVATE)
+            val presetsJson = prefs.getString(ScheduleManager.KEY_SCHEDULED_PRESETS, null)
+
+            if (presetsJson == null) {
+                Log.w(TAG, "No scheduled presets found")
+                return
+            }
+
+            val presetsArray = org.json.JSONArray(presetsJson)
+            var targetPreset: JSONObject? = null
+
+            for (i in 0 until presetsArray.length()) {
+                val preset = presetsArray.getJSONObject(i)
+                if (preset.getString("id") == presetId) {
+                    targetPreset = preset
+                    break
+                }
+            }
+
+            if (targetPreset == null) {
+                Log.w(TAG, "Preset not found: $presetId")
+                return
+            }
+
+            // Check if preset is still active (toggled on)
+            if (!targetPreset.optBoolean("isActive", false)) {
+                Log.d(TAG, "Preset is not active, skipping activation")
+                return
+            }
+
+            // Check if we're within the schedule window
+            val now = System.currentTimeMillis()
+            val startDate = targetPreset.optString("scheduleStartDate", null)
+            val endDate = targetPreset.optString("scheduleEndDate", null)
+
+            if (startDate != null && endDate != null) {
+                val startTime = parseIsoDate(startDate)
+                val endTime = parseIsoDate(endDate)
+
+                if (now < startTime || now >= endTime) {
+                    Log.d(TAG, "Current time is outside schedule window")
+                    return
+                }
+            }
+
+            // Extract preset config
+            val mode = targetPreset.optString("mode", "specific")
+            val selectedApps = mutableSetOf<String>()
+            val blockedWebsites = mutableSetOf<String>()
+
+            val appsArray = targetPreset.optJSONArray("selectedApps")
+            if (appsArray != null) {
+                for (i in 0 until appsArray.length()) {
+                    selectedApps.add(appsArray.getString(i))
+                }
+            }
+
+            // Handle "all" mode - get all installed apps to block
+            if (mode == "all") {
+                try {
+                    val pm = context.packageManager
+                    val mainIntent = android.content.Intent(android.content.Intent.ACTION_MAIN, null)
+                    mainIntent.addCategory(android.content.Intent.CATEGORY_LAUNCHER)
+                    val resolvedInfos = pm.queryIntentActivities(mainIntent, 0)
+
+                    for (resolveInfo in resolvedInfos) {
+                        val packageName = resolveInfo.activityInfo.packageName
+                        // Skip our own app
+                        if (packageName != context.packageName) {
+                            selectedApps.add(packageName)
+                        }
+                    }
+                    Log.d(TAG, "Mode 'all': blocking ${selectedApps.size} apps")
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to get installed apps for 'all' mode", e)
+                }
+            }
+
+            val websitesArray = targetPreset.optJSONArray("blockedWebsites")
+            if (websitesArray != null) {
+                for (i in 0 until websitesArray.length()) {
+                    blockedWebsites.add(websitesArray.getString(i))
+                }
+            }
+
+            val blockSettings = targetPreset.optBoolean("blockSettings", false)
+            if (blockSettings) {
+                // Add all known system settings packages for different device manufacturers
+                selectedApps.add("com.android.settings")
+                selectedApps.add("com.samsung.android.settings")
+                selectedApps.add("com.miui.securitycenter")
+                selectedApps.add("com.coloros.settings")
+                selectedApps.add("com.oppo.settings")
+                selectedApps.add("com.vivo.settings")
+                selectedApps.add("com.huawei.systemmanager")
+                selectedApps.add("com.oneplus.settings")
+                selectedApps.add("com.google.android.settings.intelligence")
+            }
+
+            // Calculate end time
+            val noTimeLimit = targetPreset.optBoolean("noTimeLimit", false)
+            val endTime = if (endDate != null && !noTimeLimit) {
+                parseIsoDate(endDate)
+            } else {
+                System.currentTimeMillis() + Long.MAX_VALUE / 2
+            }
+
+            // Save to session prefs (reusing sessionPrefs from earlier check)
+            sessionPrefs.edit()
+                .putStringSet(UninstallBlockerService.KEY_BLOCKED_APPS, selectedApps)
+                .putStringSet("blocked_websites", blockedWebsites)
+                .putBoolean(UninstallBlockerService.KEY_SESSION_ACTIVE, true)
+                .putLong(UninstallBlockerService.KEY_SESSION_END_TIME, endTime)
+                .putBoolean("no_time_limit", noTimeLimit)
+                .putString("active_preset_id", presetId)
+                .putString("active_preset_name", targetPreset.optString("name", "Scheduled Preset"))
+                .putBoolean("is_scheduled_preset", true) // Mark as scheduled so TimerPresetReceiver knows to skip
+                .apply()
+
+            // Start the foreground service
+            val serviceIntent = Intent(context, UninstallBlockerService::class.java)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(serviceIntent)
+            } else {
+                context.startService(serviceIntent)
+            }
+
+            Log.d(TAG, "Scheduled preset activated: ${targetPreset.optString("name")}")
+
+            // Show a high-priority notification to alert the user
+            showActivationNotification(
+                context,
+                targetPreset.optString("name", "Scheduled Preset"),
+                presetId
+            )
+
+            // Launch the app and bring it to foreground (locked home screen)
+            try {
+                val launchIntent = context.packageManager.getLaunchIntentForPackage(context.packageName)
+                if (launchIntent != null) {
+                    launchIntent.addFlags(
+                        Intent.FLAG_ACTIVITY_NEW_TASK or
+                        Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                        Intent.FLAG_ACTIVITY_SINGLE_TOP or
+                        Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+                    )
+                    // Pass extra to indicate this was launched from a scheduled preset alarm
+                    launchIntent.putExtra("scheduled_preset_activated", true)
+                    launchIntent.putExtra("preset_id", presetId)
+                    launchIntent.putExtra("preset_name", targetPreset.optString("name", "Scheduled Preset"))
+                    context.startActivity(launchIntent)
+                    Log.d(TAG, "Launched app to locked home screen for preset: ${targetPreset.optString("name")}")
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to launch app", e)
+            }
+
+            // Schedule the end alarm to stop blocking
+            if (endDate != null && !noTimeLimit) {
+                ScheduleManager.schedulePresetEnd(context, presetId, parseIsoDate(endDate))
+            }
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error activating scheduled preset", e)
+        }
+    }
+
+    /**
+     * Show a high-priority heads-up notification when a scheduled preset activates.
+     * This ensures the user is notified even when the phone was off or the screen is locked.
+     */
+    private fun showActivationNotification(context: Context, presetName: String, presetId: String) {
+        try {
+            val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+            // Create the high-priority notification channel (Android 8+)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val channel = NotificationChannel(
+                    ALERT_CHANNEL_ID,
+                    "Schedule Alerts",
+                    NotificationManager.IMPORTANCE_HIGH
+                ).apply {
+                    description = "Alerts when scheduled blocking presets activate"
+                    enableVibration(true)
+                    enableLights(true)
+                    setShowBadge(true)
+                }
+                notificationManager.createNotificationChannel(channel)
+            }
+
+            // Create intent to open the app when notification is tapped
+            val launchIntent = context.packageManager.getLaunchIntentForPackage(context.packageName)?.apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                putExtra("scheduled_preset_activated", true)
+                putExtra("preset_id", presetId)
+            }
+            val pendingIntent = PendingIntent.getActivity(
+                context,
+                ACTIVATION_NOTIFICATION_ID,
+                launchIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+
+            // Build the notification with high priority for heads-up display
+            val notification = NotificationCompat.Builder(context, ALERT_CHANNEL_ID)
+                .setContentTitle("Scheduled Blocking Active")
+                .setContentText("\"$presetName\" has started. Your apps are now blocked.")
+                .setSmallIcon(android.R.drawable.ic_lock_lock)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setCategory(NotificationCompat.CATEGORY_ALARM)
+                .setAutoCancel(true)
+                .setContentIntent(pendingIntent)
+                .setDefaults(NotificationCompat.DEFAULT_ALL) // Sound, vibrate, lights
+                .build()
+
+            notificationManager.notify(ACTIVATION_NOTIFICATION_ID, notification)
+            Log.d(TAG, "Showed activation notification for preset: $presetName")
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to show activation notification", e)
+        }
+    }
+
+    /**
+     * Show a high-priority heads-up notification when a preset ends/times out.
+     * This ensures the user knows they're unlocked even if they're away from their phone.
+     */
+    private fun showDeactivationNotification(context: Context, presetName: String) {
+        try {
+            val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+            // Create the high-priority notification channel (Android 8+)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val channel = NotificationChannel(
+                    ALERT_CHANNEL_ID,
+                    "Schedule Alerts",
+                    NotificationManager.IMPORTANCE_HIGH
+                ).apply {
+                    description = "Alerts when scheduled blocking presets activate or end"
+                    enableVibration(true)
+                    enableLights(true)
+                    setShowBadge(true)
+                }
+                notificationManager.createNotificationChannel(channel)
+            }
+
+            // Create intent to open the app when notification is tapped
+            val launchIntent = context.packageManager.getLaunchIntentForPackage(context.packageName)?.apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            }
+            val pendingIntent = PendingIntent.getActivity(
+                context,
+                DEACTIVATION_NOTIFICATION_ID,
+                launchIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+
+            // Build the notification with high priority for heads-up display
+            val notification = NotificationCompat.Builder(context, ALERT_CHANNEL_ID)
+                .setContentTitle("Session Ended")
+                .setContentText("\"$presetName\" has ended. Tap to unlock.")
+                .setSmallIcon(android.R.drawable.ic_lock_idle_lock)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setCategory(NotificationCompat.CATEGORY_ALARM)
+                .setAutoCancel(true)
+                .setContentIntent(pendingIntent)
+                .setDefaults(NotificationCompat.DEFAULT_ALL) // Sound, vibrate, lights
+                .build()
+
+            notificationManager.notify(DEACTIVATION_NOTIFICATION_ID, notification)
+            Log.d(TAG, "Showed deactivation notification for preset: $presetName")
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to show deactivation notification", e)
+        }
+    }
+
+    private fun parseIsoDate(isoDate: String): Long {
+        return try {
+            java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", java.util.Locale.US).apply {
+                timeZone = java.util.TimeZone.getTimeZone("UTC")
+            }.parse(isoDate)?.time ?: System.currentTimeMillis()
+        } catch (e: Exception) {
+            try {
+                java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", java.util.Locale.US).apply {
+                    timeZone = java.util.TimeZone.getTimeZone("UTC")
+                }.parse(isoDate)?.time ?: System.currentTimeMillis()
+            } catch (e2: Exception) {
+                Log.e(TAG, "Failed to parse date: $isoDate", e2)
+                System.currentTimeMillis()
+            }
+        }
+    }
+}

@@ -1,0 +1,111 @@
+import React, { memo, useState } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Modal,
+} from 'react-native';
+import { useTheme } from '../context/ThemeContext';
+
+interface AppSelectionInfoModalProps {
+  visible: boolean;
+  onClose: (dontShowAgain: boolean) => void;
+}
+
+function AppSelectionInfoModal({ visible, onClose }: AppSelectionInfoModalProps) {
+  const { colors } = useTheme();
+  const [dontShowAgain, setDontShowAgain] = useState(false);
+
+  const handleConfirm = () => {
+    onClose(dontShowAgain);
+    setDontShowAgain(false); // Reset for next time
+  };
+
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={handleConfirm}
+    >
+      <View className="flex-1 bg-black/70 justify-center items-center px-6">
+        <View style={{ backgroundColor: colors.card }} className="w-full rounded-2xl overflow-hidden">
+          {/* Content */}
+          <View className="p-6">
+            <Text style={{ color: colors.text }} className="text-xl font-nunito-bold text-center mb-4">
+              App Selection
+            </Text>
+
+            <Text style={{ color: colors.textSecondary }} className="text-base font-nunito mb-4">
+              For your safety, certain essential apps cannot be blocked:
+            </Text>
+
+            <View className="space-y-3">
+              <View className="flex-row">
+                <Text style={{ color: colors.green }} className="mr-2">•</Text>
+                <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito flex-1">
+                  Phone & Dialer - Emergency calls always remain accessible
+                </Text>
+              </View>
+
+              <View className="flex-row">
+                <Text style={{ color: colors.green }} className="mr-2">•</Text>
+                <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito flex-1">
+                  Messages - For emergency SMS communication
+                </Text>
+              </View>
+
+              <View className="flex-row">
+                <Text style={{ color: colors.green }} className="mr-2">•</Text>
+                <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito flex-1">
+                  Camera - For important moments and emergencies
+                </Text>
+              </View>
+            </View>
+
+            <Text style={{ color: colors.textMuted }} className="text-xs font-nunito mt-4">
+              Settings can be blocked separately using the toggle in preset options.
+            </Text>
+
+            {/* Don't show again checkbox */}
+            <TouchableOpacity
+              onPress={() => setDontShowAgain(!dontShowAgain)}
+              activeOpacity={0.7}
+              className="flex-row items-center mt-5"
+            >
+              <View
+                style={{
+                  backgroundColor: dontShowAgain ? colors.green : 'transparent',
+                  borderColor: dontShowAgain ? colors.green : colors.textSecondary,
+                }}
+                className="w-5 h-5 rounded border-2 items-center justify-center mr-3"
+              >
+                {dontShowAgain && (
+                  <View className="w-2 h-3 border-r-2 border-b-2 border-black rotate-45 -mt-0.5" />
+                )}
+              </View>
+              <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">
+                Don't show this again
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Button */}
+          <View style={{ borderTopColor: colors.border }} className="border-t">
+            <TouchableOpacity
+              onPress={handleConfirm}
+              activeOpacity={0.7}
+              className="py-4 items-center"
+            >
+              <Text style={{ color: colors.green }} className="text-base font-nunito-semibold">
+                Got it
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+export default memo(AppSelectionInfoModal);

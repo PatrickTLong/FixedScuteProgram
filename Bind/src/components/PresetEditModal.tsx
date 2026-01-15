@@ -1,0 +1,1084 @@
+import React, { useState, useEffect, memo, useCallback, useMemo, useRef } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Modal,
+  TextInput,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  Switch,
+  NativeModules,
+  FlatList,
+  Image,
+  ActivityIndicator,
+  Animated,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import Svg, { Path, Rect } from 'react-native-svg';
+import TimerPicker from './TimerPicker';
+import DatePickerModal from './DatePickerModal';
+import ScheduleInfoModal from './ScheduleInfoModal';
+import InfoModal from './InfoModal';
+import { Preset } from './PresetCard';
+import { getEmergencyTapoutStatus, setEmergencyTapoutEnabled } from '../services/cardApi';
+import { lightTap, mediumTap } from '../utils/haptics';
+import { useTheme } from '../context/ThemeContext';
+
+const SCHEDULE_INFO_DISMISSED_KEY = 'schedule_info_dismissed';
+
+// ============ Installed Apps Cache ============
+// Cache installed apps globally to avoid reloading on every modal open
+let cachedInstalledApps: InstalledApp[] | null = null;
+let installedAppsLoadPromise: Promise<InstalledApp[]> | null = null;
+
+// Settings app package - excluded from app selection (has its own toggle)
+const SETTINGS_PACKAGE = 'com.android.settings';
+
+async function loadInstalledAppsOnce(): Promise<InstalledApp[]> {
+  // Return cached apps if available (already filtered)
+  if (cachedInstalledApps) {
+    return cachedInstalledApps;
+  }
+
+  // If already loading, wait for existing promise
+  if (installedAppsLoadPromise) {
+    return installedAppsLoadPromise;
+  }
+
+  // Start loading
+  installedAppsLoadPromise = (async () => {
+    try {
+      let apps: InstalledApp[] = [];
+      if (InstalledAppsModule) {
+        apps = await InstalledAppsModule.getInstalledApps();
+      } else {
+        // Fallback mock data
+        apps = [
+          { id: 'com.instagram.android', name: 'Instagram' },
+          { id: 'com.zhiliaoapp.musically', name: 'TikTok' },
+          { id: 'com.google.android.youtube', name: 'YouTube' },
+          { id: 'com.twitter.android', name: 'X (Twitter)' },
+          { id: 'com.facebook.katana', name: 'Facebook' },
+          { id: 'com.snapchat.android', name: 'Snapchat' },
+          { id: 'com.whatsapp', name: 'WhatsApp' },
+          { id: 'com.reddit.frontpage', name: 'Reddit' },
+          { id: 'com.discord', name: 'Discord' },
+          { id: 'com.spotify.music', name: 'Spotify' },
+        ];
+      }
+      // Filter out Settings app - it has its own toggle in the preset settings
+      apps = apps.filter(app => app.id !== SETTINGS_PACKAGE);
+      cachedInstalledApps = apps;
+      return apps;
+    } catch (error) {
+      console.error('Failed to load installed apps:', error);
+      return [];
+    } finally {
+      installedAppsLoadPromise = null;
+    }
+  })();
+
+  return installedAppsLoadPromise;
+}
+
+// Calendar icon matching the project's icon style
+const CalendarIcon = ({ color = '#ffffff', size = 24 }: { color?: string; size?: number }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Rect
+      x="3"
+      y="4"
+      width="18"
+      height="18"
+      rx="2"
+      stroke={color}
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M16 2v4M8 2v4M3 10h18"
+      stroke={color}
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+const { InstalledAppsModule } = NativeModules;
+
+interface InstalledApp {
+  id: string;
+  name: string;
+  icon?: string;
+}
+
+interface PresetEditModalProps {
+  visible: boolean;
+  preset: Preset | null;
+  onClose: () => void;
+  onSave: (preset: Preset) => Promise<void> | void;
+  email: string;
+  existingPresets?: Preset[];
+}
+
+type TabType = 'apps' | 'websites';
+
+function PresetEditModal({ visible, preset, onClose, onSave, email, existingPresets = [] }: PresetEditModalProps) {
+  const { colors } = useTheme();
+  const [name, setName] = useState('');
+  const [selectedApps, setSelectedApps] = useState<string[]>([]);
+  const [blockedWebsites, setBlockedWebsites] = useState<string[]>([]);
+  const [websiteInput, setWebsiteInput] = useState('');
+  const [blockSettings, setBlockSettings] = useState(false);
+  const [noTimeLimit, setNoTimeLimit] = useState(true);
+  const [timerDays, setTimerDays] = useState(0);
+  const [timerHours, setTimerHours] = useState(0);
+  const [timerMinutes, setTimerMinutes] = useState(0);
+  const [timerSeconds, setTimerSeconds] = useState(0);
+
+  const [activeTab, setActiveTab] = useState<TabType>('apps');
+  const [displayedTab, setDisplayedTab] = useState<TabType>('apps');
+  const [installedApps, setInstalledApps] = useState<InstalledApp[]>([]);
+  const [loadingApps, setLoadingApps] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showFinalStep, setShowFinalStep] = useState(false);
+  const [displayedStep, setDisplayedStep] = useState<'first' | 'final'>('first');
+
+  // Animation refs
+  const stepFadeAnim = useRef(new Animated.Value(1)).current;
+  const tabFadeAnim = useRef(new Animated.Value(1)).current;
+  const durationFadeAnim = useRef(new Animated.Value(noTimeLimit ? 0 : 1)).current;
+  const isStepTransitioning = useRef(false);
+  const isTabTransitioning = useRef(false);
+
+  // Animated step transition (first step <-> final step)
+  const animateToStep = useCallback((toFinal: boolean) => {
+    if (isStepTransitioning.current) return;
+    isStepTransitioning.current = true;
+
+    Animated.timing(stepFadeAnim, {
+      toValue: 0,
+      duration: 80,
+      useNativeDriver: true,
+    }).start(() => {
+      setDisplayedStep(toFinal ? 'final' : 'first');
+      setShowFinalStep(toFinal);
+      requestAnimationFrame(() => {
+        Animated.timing(stepFadeAnim, {
+          toValue: 1,
+          duration: 80,
+          useNativeDriver: true,
+        }).start(() => {
+          isStepTransitioning.current = false;
+        });
+      });
+    });
+  }, [stepFadeAnim]);
+
+  // Animated tab transition (apps <-> websites)
+  const animateToTab = useCallback((newTab: TabType) => {
+    if (newTab === activeTab || isTabTransitioning.current) return;
+    isTabTransitioning.current = true;
+    setActiveTab(newTab);
+
+    Animated.timing(tabFadeAnim, {
+      toValue: 0,
+      duration: 80,
+      useNativeDriver: true,
+    }).start(() => {
+      setDisplayedTab(newTab);
+      requestAnimationFrame(() => {
+        Animated.timing(tabFadeAnim, {
+          toValue: 1,
+          duration: 80,
+          useNativeDriver: true,
+        }).start(() => {
+          isTabTransitioning.current = false;
+        });
+      });
+    });
+  }, [activeTab, tabFadeAnim]);
+  const [isSaving, setIsSaving] = useState(false);
+  const [targetDate, setTargetDate] = useState<Date | null>(null);
+  const [datePickerVisible, setDatePickerVisible] = useState(false);
+
+  // Emergency tapout feature (per-preset toggle)
+  const [allowEmergencyTapout, setAllowEmergencyTapout] = useState(false);
+  const [noTapoutsModalVisible, setNoTapoutsModalVisible] = useState(false);
+
+  // Duplicate name modal
+  const [duplicateNameModalVisible, setDuplicateNameModalVisible] = useState(false);
+
+  // Handler to toggle emergency tapout - optimistic UI update, then validate
+  const handleEmergencyTapoutToggle = useCallback((value: boolean) => {
+    mediumTap();
+    // Optimistic update - toggle immediately for responsive feel
+    setAllowEmergencyTapout(value);
+
+    // If enabling, validate that user has tapouts remaining
+    if (value && email) {
+      getEmergencyTapoutStatus(email).then((status) => {
+        if (status.remaining <= 0) {
+          // Revert the toggle and show modal
+          setAllowEmergencyTapout(false);
+          setNoTapoutsModalVisible(true);
+        }
+      }).catch((error) => {
+        console.error('Failed to check emergency tapout status:', error);
+      });
+    }
+  }, [email]);
+
+  // Scheduling feature
+  const [isScheduled, setIsScheduled] = useState(false);
+  const [scheduleStartDate, setScheduleStartDate] = useState<Date | null>(null);
+  const [scheduleEndDate, setScheduleEndDate] = useState<Date | null>(null);
+  const [scheduleInfoVisible, setScheduleInfoVisible] = useState(false);
+  const [startDatePickerVisible, setStartDatePickerVisible] = useState(false);
+  const [endDatePickerVisible, setEndDatePickerVisible] = useState(false);
+
+  // Define loadInstalledApps before the useEffect that uses it
+  // Uses global cache to avoid reloading apps on every modal open
+  const loadInstalledApps = useCallback(async (presetMode?: 'all' | 'specific') => {
+    // Check if we have cached apps - show them instantly without loading state
+    if (cachedInstalledApps) {
+      setInstalledApps(cachedInstalledApps);
+      // If editing a preset with mode 'all', select all apps
+      if (presetMode === 'all' && cachedInstalledApps.length > 0) {
+        setSelectedApps(cachedInstalledApps.map(app => app.id));
+      }
+      return;
+    }
+
+    // No cache - show loading and fetch
+    setLoadingApps(true);
+    try {
+      const apps = await loadInstalledAppsOnce();
+      setInstalledApps(apps);
+
+      // If editing a preset with mode 'all', select all apps
+      if (presetMode === 'all' && apps.length > 0) {
+        setSelectedApps(apps.map(app => app.id));
+      }
+    } catch (error) {
+      console.error('Failed to load apps:', error);
+    } finally {
+      setLoadingApps(false);
+    }
+  }, []);
+
+  // Initialize from preset when opened
+  useEffect(() => {
+    if (visible) {
+      if (preset) {
+        setName(preset.name);
+        setBlockedWebsites(preset.blockedWebsites);
+        setBlockSettings(preset.blockSettings);
+        setNoTimeLimit(preset.noTimeLimit);
+        setTimerDays(preset.timerDays);
+        setTimerHours(preset.timerHours);
+        setTimerMinutes(preset.timerMinutes);
+        setTimerSeconds(preset.timerSeconds ?? 0);
+        setTargetDate(preset.targetDate ? new Date(preset.targetDate) : null);
+        // Emergency tapout feature
+        setAllowEmergencyTapout(preset.allowEmergencyTapout ?? false);
+        // Scheduling feature
+        setIsScheduled(preset.isScheduled ?? false);
+        setScheduleStartDate(preset.scheduleStartDate ? new Date(preset.scheduleStartDate) : null);
+        setScheduleEndDate(preset.scheduleEndDate ? new Date(preset.scheduleEndDate) : null);
+        // For 'all' mode presets, we'll select all apps after loading
+        // For 'specific' mode, use the existing selectedApps
+        if (preset.mode === 'all') {
+          // Will be populated after loadInstalledApps
+          setSelectedApps([]);
+        } else {
+          setSelectedApps(preset.selectedApps);
+        }
+      } else {
+        // New preset defaults
+        setName('');
+        setSelectedApps([]);
+        setBlockedWebsites([]);
+        setBlockSettings(false);
+        setNoTimeLimit(true);
+        setTimerDays(0);
+        setTimerHours(0);
+        setTimerMinutes(0);
+        setTimerSeconds(0);
+        setTargetDate(null);
+        // Emergency tapout feature
+        setAllowEmergencyTapout(false);
+        // Scheduling feature
+        setIsScheduled(false);
+        setScheduleStartDate(null);
+        setScheduleEndDate(null);
+      }
+      setActiveTab('apps');
+      setDisplayedTab('apps');
+      setShowFinalStep(false);
+      setDisplayedStep('first');
+      stepFadeAnim.setValue(1);
+      tabFadeAnim.setValue(1);
+      // Set duration animation based on noTimeLimit state
+      durationFadeAnim.setValue(preset?.noTimeLimit !== false ? 0 : 1);
+      loadInstalledApps(preset?.mode);
+    }
+  }, [visible, preset, loadInstalledApps, stepFadeAnim, tabFadeAnim, durationFadeAnim]);
+
+  const toggleApp = useCallback((appId: string) => {
+    lightTap();
+    setSelectedApps(prev =>
+      prev.includes(appId)
+        ? prev.filter(id => id !== appId)
+        : [...prev, appId]
+    );
+  }, []);
+
+  const addWebsite = useCallback(() => {
+    const trimmed = websiteInput.trim().toLowerCase();
+    if (trimmed && !blockedWebsites.includes(trimmed)) {
+      // Basic validation
+      if (trimmed.includes('.')) {
+        lightTap();
+        setBlockedWebsites(prev => [...prev, trimmed]);
+        setWebsiteInput('');
+      }
+    }
+  }, [websiteInput, blockedWebsites]);
+
+  const removeWebsite = useCallback((site: string) => {
+    lightTap();
+    setBlockedWebsites(prev => prev.filter(s => s !== site));
+  }, []);
+
+  // Filter selectedApps to only count apps that are still installed
+  const installedSelectedApps = useMemo(() => {
+    const installedIds = new Set(installedApps.map(app => app.id));
+    return selectedApps.filter(id => installedIds.has(id));
+  }, [selectedApps, installedApps]);
+
+  // Check if preset can proceed (has name and at least one installed app or website)
+  const canContinue = useMemo(() =>
+    name.trim() && (installedSelectedApps.length > 0 || blockedWebsites.length > 0),
+    [name, installedSelectedApps.length, blockedWebsites.length]
+  );
+
+  // Check if timer has any value set (not all zeros)
+  const hasTimerValue = useMemo(() =>
+    timerDays > 0 || timerHours > 0 || timerMinutes > 0 || timerSeconds > 0,
+    [timerDays, timerHours, timerMinutes, timerSeconds]
+  );
+
+  // Check if a target date is set
+  const hasTargetDate = useMemo(() => targetDate !== null, [targetDate]);
+
+  // Check if scheduled dates are valid
+  const hasValidSchedule = useMemo(() =>
+    isScheduled &&
+    scheduleStartDate !== null &&
+    scheduleEndDate !== null &&
+    scheduleEndDate > scheduleStartDate,
+    [isScheduled, scheduleStartDate, scheduleEndDate]
+  );
+
+  // Can save if noTimeLimit is on, OR if timer has a value, OR if target date is set, OR if scheduled with valid dates
+  const canSave = useMemo(() =>
+    noTimeLimit || hasTimerValue || hasTargetDate || hasValidSchedule,
+    [noTimeLimit, hasTimerValue, hasTargetDate, hasValidSchedule]
+  );
+
+  const handleContinue = useCallback(() => {
+    if (!canContinue) {
+      return;
+    }
+    lightTap();
+    animateToStep(true);
+  }, [canContinue, animateToStep]);
+
+  const handleSave = useCallback(async () => {
+    if (!name.trim() || isSaving || !canSave) return;
+
+    // Check for duplicate preset name (case-insensitive)
+    const trimmedName = name.trim().toLowerCase();
+    const duplicateExists = existingPresets.some(
+      p => p.name.toLowerCase() === trimmedName && p.id !== preset?.id
+    );
+
+    if (duplicateExists) {
+      setDuplicateNameModalVisible(true);
+      return;
+    }
+
+    setIsSaving(true);
+
+    const newPreset: Preset = {
+      id: preset?.id || '',
+      name: name.trim(),
+      mode: installedSelectedApps.length === 0 && blockedWebsites.length === 0 ? 'all' : 'specific',
+      selectedApps: installedSelectedApps, // Only save apps that are still installed
+      blockedWebsites,
+      blockSettings,
+      noTimeLimit, // Can be true even for scheduled presets
+      timerDays,
+      timerHours,
+      timerMinutes,
+      timerSeconds,
+      targetDate: isScheduled ? null : (targetDate ? targetDate.toISOString() : null),
+      isDefault: preset?.isDefault ?? false,
+      isActive: preset?.isActive ?? false,
+      // Emergency tapout feature
+      allowEmergencyTapout,
+      // Scheduling feature
+      isScheduled,
+      scheduleStartDate: isScheduled && scheduleStartDate ? scheduleStartDate.toISOString() : null,
+      scheduleEndDate: isScheduled && scheduleEndDate ? scheduleEndDate.toISOString() : null,
+    };
+
+    try {
+      await onSave(newPreset);
+    } finally {
+      setIsSaving(false);
+    }
+  }, [name, isSaving, canSave, preset, installedSelectedApps, blockedWebsites, blockSettings, noTimeLimit, timerDays, timerHours, timerMinutes, timerSeconds, targetDate, onSave, allowEmergencyTapout, isScheduled, scheduleStartDate, scheduleEndDate, existingPresets]);
+
+  // Memoize filtered apps to avoid recalculation on every render
+  const filteredApps = useMemo(() =>
+    installedApps.filter(app =>
+      app.name.toLowerCase().includes(searchQuery.toLowerCase())
+    ),
+    [installedApps, searchQuery]
+  );
+
+  const renderAppItem = useCallback(({ item }: { item: InstalledApp }) => {
+    const isSelected = selectedApps.includes(item.id);
+
+    return (
+      <TouchableOpacity
+        onPress={() => toggleApp(item.id)}
+        activeOpacity={0.7}
+        style={{ backgroundColor: colors.card }}
+        className="flex-row items-center py-3 px-4 rounded-xl mb-2"
+      >
+        {/* App Icon */}
+        <View style={{ backgroundColor: colors.cardLight }} className="w-10 h-10 rounded-full items-center justify-center mr-3 overflow-hidden">
+          {item.icon ? (
+            <Image
+              source={{ uri: item.icon }}
+              style={{ width: 32, height: 32, borderRadius: 16 }}
+              resizeMode="cover"
+            />
+          ) : (
+            <Text style={{ color: colors.textSecondary }} className="text-lg font-nunito-bold">
+              {item.name.charAt(0)}
+            </Text>
+          )}
+        </View>
+
+        {/* App Name */}
+        <Text style={{ color: colors.text }} className="flex-1 text-base font-nunito">{item.name}</Text>
+
+        {/* Checkbox with checkmark */}
+        <View style={isSelected ? { backgroundColor: colors.green } : { borderWidth: 2, borderColor: colors.border }} className="w-6 h-6 rounded items-center justify-center">
+          {isSelected && (
+            <View className="w-2.5 h-4 border-r-2 border-b-2 border-black rotate-45 -mt-1" />
+          )}
+        </View>
+      </TouchableOpacity>
+    );
+  }, [selectedApps, toggleApp, colors]);
+
+  const keyExtractor = useCallback((item: InstalledApp) => item.id, []);
+
+  const ListHeaderComponent = useMemo(() =>
+    installedSelectedApps.length > 0 ? (
+      <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito mb-3">
+        {installedSelectedApps.length} app{installedSelectedApps.length !== 1 ? 's' : ''} selected
+      </Text>
+    ) : null,
+    [installedSelectedApps.length, colors]
+  );
+
+  if (displayedStep === 'final') {
+    return (
+      <Modal
+        visible={visible}
+        animationType="fade"
+        presentationStyle="pageSheet"
+      >
+        <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
+          <Animated.View style={{ flex: 1, opacity: stepFadeAnim }}>
+            {/* Header */}
+            <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between px-4 py-3">
+              <TouchableOpacity onPress={() => animateToStep(false)} disabled={isSaving} className="px-2">
+                <Text style={{ color: isSaving ? colors.textMuted : colors.green }} className="text-base font-nunito">Back</Text>
+              </TouchableOpacity>
+              <Text style={{ color: colors.text }} className="text-lg font-nunito-semibold">Final Settings</Text>
+              <TouchableOpacity onPress={handleSave} disabled={isSaving || !canSave} className="px-2 min-w-[50px] items-end">
+                {isSaving ? (
+                  <ActivityIndicator size="small" color={colors.green} />
+                ) : (
+                  <Text style={{ color: canSave ? colors.green : colors.textMuted }} className="text-base font-nunito-semibold">Save</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView className="flex-1 px-6 pt-6">
+            {/* No Time Limit Toggle */}
+            <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between py-4">
+              <View>
+                <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">No Time Limit</Text>
+                <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">Block until manually unlocked</Text>
+              </View>
+              <Switch
+                value={noTimeLimit}
+                onValueChange={(value) => {
+                  mediumTap();
+                  // Optimistic animation - start immediately before state update
+                  Animated.timing(durationFadeAnim, {
+                    toValue: value ? 0 : 1,
+                    duration: 150,
+                    useNativeDriver: true,
+                  }).start();
+                  setNoTimeLimit(value);
+                  if (value) {
+                    // Disable scheduling when enabling no time limit
+                    setIsScheduled(false);
+                    setScheduleStartDate(null);
+                    setScheduleEndDate(null);
+                  }
+                }}
+                trackColor={{ false: colors.border, true: colors.greenDark }}
+                thumbColor={noTimeLimit ? colors.green : colors.textMuted}
+              />
+            </View>
+
+            {/* Block Settings Toggle */}
+            <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between py-4">
+              <View>
+                <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">Block Settings App</Text>
+                <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">WiFi settings remain accessible</Text>
+              </View>
+              <Switch
+                value={blockSettings}
+                onValueChange={(value) => { mediumTap(); setBlockSettings(value); }}
+                trackColor={{ false: colors.border, true: colors.greenDark }}
+                thumbColor={blockSettings ? colors.green : colors.textMuted}
+              />
+            </View>
+
+            {/* Emergency Tapout Toggle - available for timed presets */}
+            {!noTimeLimit && (
+              <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between py-4">
+                <View className="flex-1">
+                  <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">Allow Emergency Tapout</Text>
+                  <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">Use your emergency tapouts for this preset</Text>
+                </View>
+                <Switch
+                  value={allowEmergencyTapout}
+                  onValueChange={handleEmergencyTapoutToggle}
+                  trackColor={{ false: colors.border, true: colors.greenDark }}
+                  thumbColor={allowEmergencyTapout ? colors.green : colors.textMuted}
+                />
+              </View>
+            )}
+
+            {/* Schedule for Later Toggle */}
+            <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between py-4">
+              <View className="flex-1">
+                <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">Schedule for Later</Text>
+                <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">Set a future start and end time</Text>
+              </View>
+              <Switch
+                value={isScheduled}
+                onValueChange={async (value) => {
+                  mediumTap();
+                  setIsScheduled(value);
+                  if (value) {
+                    // Disable no time limit when enabling scheduling
+                    setNoTimeLimit(false);
+                    // Check if we should show info modal
+                    const dismissed = await AsyncStorage.getItem(SCHEDULE_INFO_DISMISSED_KEY);
+                    if (dismissed !== 'true') {
+                      setScheduleInfoVisible(true);
+                    }
+                    // Clear timer values (scheduled presets use schedule dates)
+                    setTimerDays(0);
+                    setTimerHours(0);
+                    setTimerMinutes(0);
+                    setTimerSeconds(0);
+                    setTargetDate(null);
+                  } else {
+                    // Clear schedule dates when disabling
+                    setScheduleStartDate(null);
+                    setScheduleEndDate(null);
+                  }
+                }}
+                trackColor={{ false: colors.border, true: colors.greenDark }}
+                thumbColor={isScheduled ? colors.green : colors.textMuted}
+              />
+            </View>
+
+            {/* Schedule Date Pickers */}
+            {isScheduled && (
+              <View className="mt-4">
+                <Text style={{ color: colors.textMuted }} className="text-xs font-nunito uppercase tracking-wider mb-4">
+                  Schedule
+                </Text>
+
+                {/* Start Date */}
+                <TouchableOpacity
+                  onPress={() => setStartDatePickerVisible(true)}
+                  activeOpacity={0.7}
+                  style={{ backgroundColor: colors.card }}
+                  className="flex-row items-center py-3 px-4 rounded-xl mb-3"
+                >
+                  <View style={{ backgroundColor: colors.cardLight }} className="w-10 h-10 rounded-lg items-center justify-center mr-3">
+                    <CalendarIcon color={colors.green} size={22} />
+                  </View>
+                  <View className="flex-1">
+                    <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">
+                      {scheduleStartDate ? 'Start Date' : 'Pick Start Date'}
+                    </Text>
+                    {scheduleStartDate && (
+                      <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">
+                        {scheduleStartDate.toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                        })} at {scheduleStartDate.toLocaleTimeString('en-US', {
+                          hour: 'numeric',
+                          minute: '2-digit',
+                          hour12: true,
+                        })}
+                      </Text>
+                    )}
+                  </View>
+                  {scheduleStartDate ? (
+                    <TouchableOpacity
+                      onPress={() => setScheduleStartDate(null)}
+                      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                    >
+                      <Text style={{ color: colors.textSecondary }} className="text-lg">✕</Text>
+                    </TouchableOpacity>
+                  ) : (
+                    <Text style={{ color: colors.textSecondary }} className="text-xl">›</Text>
+                  )}
+                </TouchableOpacity>
+
+                {/* End Date */}
+                <TouchableOpacity
+                  onPress={() => setEndDatePickerVisible(true)}
+                  activeOpacity={0.7}
+                  style={{ backgroundColor: colors.card }}
+                  className="flex-row items-center py-3 px-4 rounded-xl"
+                >
+                  <View style={{ backgroundColor: colors.cardLight }} className="w-10 h-10 rounded-lg items-center justify-center mr-3">
+                    <CalendarIcon color={colors.red} size={22} />
+                  </View>
+                  <View className="flex-1">
+                    <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">
+                      {scheduleEndDate ? 'End Date' : 'Pick End Date'}
+                    </Text>
+                    {scheduleEndDate && (
+                      <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">
+                        {scheduleEndDate.toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                        })} at {scheduleEndDate.toLocaleTimeString('en-US', {
+                          hour: 'numeric',
+                          minute: '2-digit',
+                          hour12: true,
+                        })}
+                      </Text>
+                    )}
+                  </View>
+                  {scheduleEndDate ? (
+                    <TouchableOpacity
+                      onPress={() => setScheduleEndDate(null)}
+                      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                    >
+                      <Text style={{ color: colors.textSecondary }} className="text-lg">✕</Text>
+                    </TouchableOpacity>
+                  ) : (
+                    <Text style={{ color: colors.textSecondary }} className="text-xl">›</Text>
+                  )}
+                </TouchableOpacity>
+
+                {/* Schedule Validation Message */}
+                {scheduleStartDate && scheduleEndDate && scheduleEndDate <= scheduleStartDate && (
+                  <Text style={{ color: colors.red }} className="text-sm font-nunito mt-2">
+                    End date must be after start date
+                  </Text>
+                )}
+              </View>
+            )}
+
+            {/* Timer Picker (if time limit enabled and not scheduled) - always rendered with animation for optimistic UI */}
+            {!isScheduled && (
+              <Animated.View style={{ opacity: durationFadeAnim, display: noTimeLimit ? 'none' : 'flex' }} className="mt-6">
+                <Text style={{ color: colors.textMuted }} className="text-xs font-nunito uppercase tracking-wider mb-4">
+                  Duration
+                </Text>
+                <TimerPicker
+                  days={timerDays}
+                  hours={timerHours}
+                  minutes={timerMinutes}
+                  seconds={timerSeconds}
+                  onDaysChange={(val) => {
+                    setTimerDays(val);
+                    if (val > 0) setTargetDate(null);
+                  }}
+                  onHoursChange={(val) => {
+                    setTimerHours(val);
+                    if (val > 0) setTargetDate(null);
+                  }}
+                  onMinutesChange={(val) => {
+                    setTimerMinutes(val);
+                    if (val > 0) setTargetDate(null);
+                  }}
+                  onSecondsChange={(val) => {
+                    setTimerSeconds(val);
+                    if (val > 0) setTargetDate(null);
+                  }}
+                />
+
+                {/* Or Pick a Date Divider */}
+                <View className="flex-row items-center my-6">
+                  <View style={{ backgroundColor: colors.border }} className="flex-1 h-px" />
+                  <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito px-4">or</Text>
+                  <View style={{ backgroundColor: colors.border }} className="flex-1 h-px" />
+                </View>
+
+                {/* Pick a Date Button */}
+                <TouchableOpacity
+                  onPress={() => {
+                    // Reset timer when opening date picker
+                    setTimerDays(0);
+                    setTimerHours(0);
+                    setTimerMinutes(0);
+                    setTimerSeconds(0);
+                    setDatePickerVisible(true);
+                  }}
+                  activeOpacity={0.7}
+                  style={{ backgroundColor: colors.card }}
+                  className="flex-row items-center py-3 px-4 rounded-xl"
+                >
+                  <View style={{ backgroundColor: colors.cardLight }} className="w-10 h-10 rounded-lg items-center justify-center mr-3">
+                    <CalendarIcon color={colors.text} size={22} />
+                  </View>
+                  <View className="flex-1">
+                    <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">
+                      {targetDate ? 'Change Date' : 'Pick a Date'}
+                    </Text>
+                    {targetDate && (
+                      <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">
+                        Until {targetDate.toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                        })} at {targetDate.toLocaleTimeString('en-US', {
+                          hour: 'numeric',
+                          minute: '2-digit',
+                          hour12: true,
+                        })}
+                      </Text>
+                    )}
+                  </View>
+                  {targetDate ? (
+                    <TouchableOpacity
+                      onPress={() => setTargetDate(null)}
+                      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                    >
+                      <Text style={{ color: colors.textSecondary }} className="text-lg">✕</Text>
+                    </TouchableOpacity>
+                  ) : (
+                    <Text style={{ color: colors.textSecondary }} className="text-xl">›</Text>
+                  )}
+                </TouchableOpacity>
+              </Animated.View>
+            )}
+          </ScrollView>
+
+          {/* Date Picker Modal */}
+          <DatePickerModal
+            visible={datePickerVisible}
+            selectedDate={targetDate}
+            onClose={() => setDatePickerVisible(false)}
+            onSelect={(date) => {
+              setTargetDate(date);
+              if (date) {
+                setTimerDays(0);
+                setTimerHours(0);
+                setTimerMinutes(0);
+                setTimerSeconds(0);
+              }
+            }}
+          />
+
+          {/* Schedule Start Date Picker */}
+          <DatePickerModal
+            visible={startDatePickerVisible}
+            selectedDate={scheduleStartDate}
+            onClose={() => setStartDatePickerVisible(false)}
+            onSelect={(date) => {
+              setScheduleStartDate(date);
+              // If end date is before new start date, clear it
+              if (date && scheduleEndDate && scheduleEndDate <= date) {
+                setScheduleEndDate(null);
+              }
+            }}
+          />
+
+          {/* Schedule End Date Picker */}
+          <DatePickerModal
+            visible={endDatePickerVisible}
+            selectedDate={scheduleEndDate}
+            onClose={() => setEndDatePickerVisible(false)}
+            minimumDate={scheduleStartDate} // End date must be after start date
+            onSelect={(date) => {
+              setScheduleEndDate(date);
+            }}
+          />
+
+          {/* Schedule Info Modal */}
+          <ScheduleInfoModal
+            visible={scheduleInfoVisible}
+            onClose={async (dontShowAgain) => {
+              setScheduleInfoVisible(false);
+              if (dontShowAgain) {
+                await AsyncStorage.setItem(SCHEDULE_INFO_DISMISSED_KEY, 'true');
+              }
+            }}
+          />
+
+          </Animated.View>
+
+          {/* No Tapouts Remaining Modal */}
+          <InfoModal
+            visible={noTapoutsModalVisible}
+            title="No Tapouts Remaining"
+            message="You have no emergency tapouts remaining. You cannot enable this feature until you have tapouts available."
+            onClose={() => setNoTapoutsModalVisible(false)}
+          />
+
+          {/* Duplicate Name Modal */}
+          <InfoModal
+            visible={duplicateNameModalVisible}
+            title="Preset Exists"
+            message="A preset with the same name already exists. Please choose a different name."
+            onClose={() => setDuplicateNameModalVisible(false)}
+          />
+        </SafeAreaView>
+      </Modal>
+    );
+  }
+
+  return (
+    <Modal
+      visible={visible}
+      animationType="fade"
+      presentationStyle="pageSheet"
+    >
+      <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
+        <Animated.View style={{ flex: 1, opacity: stepFadeAnim }}>
+          {/* Header */}
+          <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between px-4 py-3">
+            <TouchableOpacity onPress={onClose} className="px-2">
+              <Text style={{ color: colors.green }} className="text-base font-nunito">Cancel</Text>
+            </TouchableOpacity>
+            <Text style={{ color: colors.text }} className="text-lg font-nunito-semibold">
+              {preset ? 'Edit Preset' : 'New Preset'}
+            </Text>
+            <TouchableOpacity
+              onPress={handleContinue}
+              disabled={!canContinue}
+              className="px-2"
+            >
+              <Text style={{ color: canContinue ? colors.green : colors.textMuted }} className="text-base font-nunito-semibold">
+                Next
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            className="flex-1"
+          >
+          {/* Preset Name Input */}
+          <View className="px-6 py-4">
+            <TextInput
+              placeholder="Preset Name"
+              placeholderTextColor={colors.textMuted}
+              value={name}
+              onChangeText={setName}
+              maxLength={20}
+              style={{ backgroundColor: colors.card, borderColor: colors.border, color: colors.text }}
+              className="border rounded-xl px-4 py-3 text-base font-nunito"
+            />
+          </View>
+
+          {/* Tabs */}
+          <View className="flex-row mx-6 mb-4">
+            <TouchableOpacity
+              onPress={() => { lightTap(); animateToTab('apps'); }}
+              style={{ backgroundColor: activeTab === 'apps' ? colors.text : colors.card }}
+              className="flex-1 py-2 rounded-full items-center"
+            >
+              <Text style={{ color: activeTab === 'apps' ? colors.bg : colors.text }} className="text-base font-nunito-semibold">
+                Apps
+              </Text>
+            </TouchableOpacity>
+            <View className="w-2" />
+            <TouchableOpacity
+              onPress={() => { lightTap(); animateToTab('websites'); }}
+              style={{ backgroundColor: activeTab === 'websites' ? colors.text : colors.card }}
+              className="flex-1 py-2 rounded-full items-center"
+            >
+              <Text style={{ color: activeTab === 'websites' ? colors.bg : colors.text }} className="text-base font-nunito-semibold">
+                Websites
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <Animated.View style={{ flex: 1, opacity: tabFadeAnim }}>
+            {displayedTab === 'apps' ? (
+              <>
+                {/* Search */}
+                <View className="px-6 mb-4">
+                  <TextInput
+                    placeholder="Search apps..."
+                    placeholderTextColor={colors.textMuted}
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
+                    style={{ backgroundColor: colors.card, borderColor: colors.border, color: colors.text }}
+                    className="border rounded-xl px-4 py-3 text-base font-nunito"
+                  />
+                </View>
+
+                {/* Select All / Deselect All Buttons */}
+                {!loadingApps && filteredApps.length > 0 && (
+                  <View className="flex-row px-6 mb-3">
+                    <TouchableOpacity
+                      onPress={() => {
+                        lightTap();
+                        // Select all currently filtered apps
+                        const filteredIds = filteredApps.map(app => app.id);
+                        setSelectedApps(prev => {
+                          const newSet = new Set(prev);
+                          filteredIds.forEach(id => newSet.add(id));
+                          return Array.from(newSet);
+                        });
+                      }}
+                      style={{ backgroundColor: colors.card }}
+                      className="flex-1 py-2 rounded-xl items-center mr-2"
+                    >
+                      <Text style={{ color: colors.green }} className="text-sm font-nunito-semibold">
+                        Select All
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => {
+                        lightTap();
+                        // Deselect all currently filtered apps
+                        const filteredIds = new Set(filteredApps.map(app => app.id));
+                        setSelectedApps(prev => prev.filter(id => !filteredIds.has(id)));
+                      }}
+                      style={{ backgroundColor: colors.card }}
+                      className="flex-1 py-2 rounded-xl items-center"
+                    >
+                      <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito-semibold">
+                        Deselect All
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+
+                {/* Apps List */}
+                {loadingApps ? (
+                  <View className="flex-1 items-center justify-center">
+                    <ActivityIndicator size="large" color={colors.green} />
+                  </View>
+                ) : (
+                  <FlatList
+                    data={filteredApps}
+                    renderItem={renderAppItem}
+                    keyExtractor={keyExtractor}
+                    contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 24 }}
+                    ListHeaderComponent={ListHeaderComponent}
+                    removeClippedSubviews={true}
+                    maxToRenderPerBatch={15}
+                    windowSize={10}
+                    initialNumToRender={15}
+                  />
+                )}
+              </>
+            ) : (
+              <ScrollView className="flex-1 px-6">
+                {/* Website Input */}
+                <View className="flex-row items-center mb-4">
+                  <TextInput
+                    placeholder="e.g. instagram.com"
+                    placeholderTextColor={colors.textMuted}
+                    value={websiteInput}
+                    onChangeText={setWebsiteInput}
+                    autoCapitalize="none"
+                    keyboardType="url"
+                    style={{ backgroundColor: colors.card, borderColor: colors.border, color: colors.text }}
+                    className="flex-1 border rounded-xl px-4 h-12 text-base font-nunito mr-2"
+                  />
+                  <TouchableOpacity
+                    onPress={addWebsite}
+                    style={{ backgroundColor: colors.green }}
+                    className="w-12 h-12 rounded-xl items-center justify-center"
+                  >
+                    <Text className="text-black text-2xl font-nunito-light">+</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <Text style={{ color: colors.textMuted }} className="text-xs font-nunito mb-4">
+                  Enter URLs like: instagram.com, reddit.com, etc
+                </Text>
+
+                {/* Website List */}
+                {blockedWebsites.map((site) => (
+                  <View
+                    key={site}
+                    style={{ backgroundColor: colors.card }}
+                    className="flex-row items-center py-3 px-4 rounded-xl mb-2"
+                  >
+                    <View style={{ backgroundColor: colors.cardLight }} className="w-10 h-10 rounded-lg items-center justify-center mr-3">
+                      <Text style={{ color: colors.textSecondary }} className="text-lg font-nunito-bold">
+                        {site.charAt(0).toUpperCase()}
+                      </Text>
+                    </View>
+                    <Text style={{ color: colors.text }} className="flex-1 text-base font-nunito">{site}</Text>
+                    <TouchableOpacity
+                      onPress={() => removeWebsite(site)}
+                      className="p-2"
+                    >
+                      <Text style={{ color: colors.red }} className="text-lg">✕</Text>
+                    </TouchableOpacity>
+                  </View>
+                ))}
+
+                {blockedWebsites.length === 0 && (
+                  <Text style={{ color: colors.textSecondary }} className="text-center text-base font-nunito py-8">
+                    No websites blocked yet
+                  </Text>
+                )}
+              </ScrollView>
+            )}
+          </Animated.View>
+        </KeyboardAvoidingView>
+        </Animated.View>
+      </SafeAreaView>
+    </Modal>
+  );
+}
+
+export default memo(PresetEditModal);

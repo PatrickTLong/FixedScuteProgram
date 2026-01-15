@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Scute</string>
+    <string name="device_admin_description">Scute uses device admin to prevent uninstalling blocked apps during your focus sessions. This helps you stay committed to your goals.</string>
+    <string name="accessibility_service_description">Scute uses accessibility to monitor and block distracting apps during your focus sessions.</string>
+</resources>

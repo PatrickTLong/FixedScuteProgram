@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx react-native run-android)",
+      "Bash(npx react-native start --reset-cache)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(taskkill:*)",
+      "Bash(npm install:*)",
+      "Bash(npm cache clean:*)",
+      "Bash(del \"c:\\\\Users\\\\Shado\\\\OneDrive\\\\Desktop\\\\BindReal\\\\Bind\\\\src\\\\screens\\\\RegisterCardScreen.tsx\")",
+      "Bash(cat:*)",
+      "Bash(timeout:*)",
+      "Bash(adb logcat:*)",
+      "Bash(dir:*)",
+      "Bash(npx tsc:*)",
+      "Bash(ls -la \"c:\\\\Users\\\\Shado\\\\OneDrive\\\\Desktop\\\\BindReal\\\\Bind\\\\android\\\\app\\\\src\\\\main\\\\assets\\\\fonts\"\" 2>/dev/null || echo \"Fonts directory not found \")",
+      "Bash(dir /s \"c:\\\\Users\\\\Shado\\\\OneDrive\\\\Desktop\\\\BindReal\")",
+      "Bash(./gradlew assembleDebug:*)",
+      "Bash(grep:*)",
+      "Bash(copy:*)"
+    ]
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.71.2",
+    "nativewind": "^4.2.1"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.19"
+  }
+}

@@ -1,0 +1,604 @@
+import './global.css';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { View, Vibration, NativeModules, AppState, Animated, ActivityIndicator } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { ThemeProvider, useTheme } from './src/context/ThemeContext';
+import LandingScreen from './src/screens/LandingScreen';
+import SignInScreen from './src/screens/SignInScreen';
+import GetStartedScreen from './src/screens/GetStartedScreen';
+import ForgotPasswordScreen from './src/screens/ForgotPasswordScreen';
+import PermissionsChecklistScreen from './src/screens/PermissionsChecklistScreen';
+import HomeScreen from './src/screens/HomeScreen';
+import PresetsScreen from './src/screens/PresetsScreen';
+import SettingsScreen from './src/screens/SettingsScreen';
+import BottomTabBar from './src/components/BottomTabBar';
+import InfoModal from './src/components/InfoModal';
+import EmergencyTapoutModal from './src/components/EmergencyTapoutModal';
+import { unregisterCard, deleteAccount, updateLockStatus, getLockStatus, getPresets, resetPresets, getEmergencyTapoutStatus, useEmergencyTapout, savePreset, Preset, EmergencyTapoutStatus, invalidateUserCaches, saveUserTheme } from './src/services/cardApi';
+
+const { BlockingModule, PermissionsModule, ScheduleModule } = NativeModules;
+
+// Track which scheduled preset we've already navigated for (to avoid repeat navigations)
+let lastNavigatedScheduledPresetId: string | null = null;
+
+type Screen = 'landing' | 'signin' | 'getstarted' | 'forgotpassword' | 'permissions' | 'main';
+type TabName = 'home' | 'presets' | 'settings';
+
+function App() {
+  const { colors, setTheme } = useTheme();
+  const [currentScreen, setCurrentScreen] = useState<Screen>('landing');
+  const [activeTab, setActiveTab] = useState<TabName>('home');
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userEmail, setUserEmail] = useState('');
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalTitle, setModalTitle] = useState('');
+  const [modalMessage, setModalMessage] = useState('');
+  const [isInitializing, setIsInitializing] = useState(true); // Show loading until we determine which screen
+
+  // Emergency tapout modal state
+  const [emergencyTapoutModalVisible, setEmergencyTapoutModalVisible] = useState(false);
+  const [tapoutStatus, setTapoutStatus] = useState<EmergencyTapoutStatus | null>(null);
+  const [activePresetForTapout, setActivePresetForTapout] = useState<Preset | null>(null);
+  const [tapoutLoading, setTapoutLoading] = useState(false);
+  const [lockEndsAtForTapout, setLockEndsAtForTapout] = useState<string | null>(null);
+
+  // Force re-render trigger for child components
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  // Screen transition animation
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+  const [displayedScreen, setDisplayedScreen] = useState<Screen>('landing');
+  const isTransitioning = useRef(false);
+
+  // Tab transition animation
+  const tabFadeAnim = useRef(new Animated.Value(1)).current;
+  const [displayedTab, setDisplayedTab] = useState<TabName>('home');
+  const isTabTransitioning = useRef(false);
+
+  // Ref to track scheduled preset check interval
+  const scheduledCheckIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const showModal = useCallback((title: string, message: string) => {
+    setModalTitle(title);
+    setModalMessage(message);
+    setModalVisible(true);
+  }, []);
+
+
+  // Animated screen transition for auth screens
+  const changeScreen = useCallback((newScreen: Screen) => {
+    // Auth screens that should animate
+    const authScreens: Screen[] = ['landing', 'signin', 'getstarted', 'forgotpassword'];
+    const isAuthTransition = authScreens.includes(currentScreen) && authScreens.includes(newScreen);
+
+    if (isAuthTransition && !isTransitioning.current) {
+      isTransitioning.current = true;
+      // Fade out, swap screen while invisible, then fade in
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 120,
+        useNativeDriver: true,
+      }).start(() => {
+        // Update both states synchronously while fully transparent
+        setDisplayedScreen(newScreen);
+        setCurrentScreen(newScreen);
+        // Small delay to ensure render completes before fading in
+        requestAnimationFrame(() => {
+          Animated.timing(fadeAnim, {
+            toValue: 1,
+            duration: 120,
+            useNativeDriver: true,
+          }).start(() => {
+            isTransitioning.current = false;
+          });
+        });
+      });
+    } else {
+      setDisplayedScreen(newScreen);
+      setCurrentScreen(newScreen);
+    }
+  }, [currentScreen, fadeAnim]);
+
+  // Animated tab transition for main tabs
+  const changeTab = useCallback((newTab: TabName) => {
+    if (newTab === activeTab || isTabTransitioning.current) return;
+
+    isTabTransitioning.current = true;
+    setActiveTab(newTab);
+
+    // Fade out, swap tab while invisible, then fade in (same as auth screens)
+    Animated.timing(tabFadeAnim, {
+      toValue: 0,
+      duration: 120,
+      useNativeDriver: true,
+    }).start(() => {
+      setDisplayedTab(newTab);
+      requestAnimationFrame(() => {
+        Animated.timing(tabFadeAnim, {
+          toValue: 1,
+          duration: 120,
+          useNativeDriver: true,
+        }).start(() => {
+          isTabTransitioning.current = false;
+        });
+      });
+    });
+  }, [activeTab, tabFadeAnim]);
+
+  // Handle using emergency tapout from NFC modal
+  const handleUseEmergencyTapout = useCallback(async () => {
+    // Check if active preset allows emergency tapout
+    if (!activePresetForTapout?.allowEmergencyTapout) {
+      showModal('Not Available', 'Emergency tapout is not enabled for this preset.');
+      setEmergencyTapoutModalVisible(false);
+      return;
+    }
+
+    if ((tapoutStatus?.remaining ?? 0) <= 0) {
+      showModal('No Tapouts Left', 'You have no emergency tapouts remaining.');
+      setEmergencyTapoutModalVisible(false);
+      return;
+    }
+
+    setTapoutLoading(true);
+    try {
+      const result = await useEmergencyTapout(userEmail);
+      if (result.success) {
+        // Unlock was successful
+        setEmergencyTapoutModalVisible(false);
+
+        // Clear native blocking
+        if (BlockingModule) {
+          await BlockingModule.forceUnlock();
+        }
+
+        // Deactivate the active preset so it doesn't automatically re-lock
+        if (activePresetForTapout) {
+          const deactivatedPreset = { ...activePresetForTapout, isActive: false };
+          await savePreset(userEmail, deactivatedPreset);
+          console.log('[App] Deactivated preset after emergency tapout:', activePresetForTapout.name);
+
+          // If it's a scheduled preset, cancel its alarm
+          if (activePresetForTapout.isScheduled && ScheduleModule) {
+            try {
+              await ScheduleModule.cancelPresetAlarm(activePresetForTapout.id);
+              console.log('[App] Cancelled scheduled alarm for preset:', activePresetForTapout.id);
+            } catch (e) {
+              console.error('[App] Failed to cancel preset alarm:', e);
+            }
+          }
+        }
+
+        // Update database
+        await updateLockStatus(userEmail, false, null);
+
+        // Invalidate caches so screens get fresh data
+        invalidateUserCaches(userEmail);
+
+        Vibration.vibrate(100);
+        showModal('Unlocked', `Phone unlocked. You have ${result.remaining} emergency tapout${result.remaining !== 1 ? 's' : ''} remaining.`);
+
+        // Trigger refresh
+        setRefreshTrigger(prev => prev + 1);
+      } else {
+        showModal('Failed', 'Could not use emergency tapout. Please try again.');
+      }
+    } catch (error) {
+      console.error('[App] Failed to use emergency tapout:', error);
+      showModal('Error', 'Something went wrong. Please try again.');
+    } finally {
+      setTapoutLoading(false);
+    }
+  }, [userEmail, tapoutStatus, activePresetForTapout, showModal]);
+
+  useEffect(() => {
+    checkLoginStatus();
+    checkScheduledPresetLaunch();
+  }, []);
+
+  // Check if any scheduled preset is currently active and navigate to home if so
+  const checkActiveScheduledPreset = useCallback(async () => {
+    // Only check if user is logged in and on main screen
+    if (!userEmail || currentScreen !== 'main') return;
+
+    try {
+      const presets = await getPresets(userEmail);
+      const now = Date.now();
+
+      // Find any scheduled preset that's currently in its active window
+      for (const preset of presets) {
+        if (!preset.isScheduled || !preset.isActive) continue;
+        if (!preset.scheduleStartDate || !preset.scheduleEndDate) continue;
+
+        const startTime = new Date(preset.scheduleStartDate).getTime();
+        const endTime = new Date(preset.scheduleEndDate).getTime();
+
+        // Is current time within the schedule window?
+        if (now >= startTime && now < endTime) {
+          // Only navigate if we haven't already for this preset
+          if (lastNavigatedScheduledPresetId !== preset.id) {
+            console.log('[App] Scheduled preset is now active:', preset.name, '- navigating to home');
+            lastNavigatedScheduledPresetId = preset.id;
+
+            // Invalidate caches to ensure HomeScreen gets fresh data
+            invalidateUserCaches(userEmail);
+
+            // Navigate to home tab and trigger refresh
+            setActiveTab('home'); setDisplayedTab('home');
+            setRefreshTrigger(prev => prev + 1);
+          }
+          return; // Found an active preset, no need to check more
+        }
+      }
+
+      // No active scheduled preset found - clear the tracker so we can navigate again for future presets
+      lastNavigatedScheduledPresetId = null;
+    } catch (error) {
+      console.error('[App] Error checking active scheduled preset:', error);
+    }
+  }, [userEmail, currentScreen]);
+
+  // Check if app was launched from a scheduled preset alarm
+  const checkScheduledPresetLaunch = useCallback(async () => {
+    try {
+      if (!ScheduleModule) return;
+
+      const launchData = await ScheduleModule.getScheduledLaunchData();
+      if (launchData?.launched) {
+        console.log('[App] Launched from scheduled preset alarm:', launchData.presetName);
+
+        // Clear the launch data so we don't process it again
+        await ScheduleModule.clearScheduledLaunchData();
+
+        // Invalidate caches to get fresh data
+        if (userEmail) {
+          invalidateUserCaches(userEmail);
+        }
+
+        // If user is logged in and on main screen, ensure we're on home tab with fresh data
+        if (currentScreen === 'main') {
+          setActiveTab('home'); setDisplayedTab('home');
+          setRefreshTrigger(prev => prev + 1); // Trigger refresh
+        }
+      }
+    } catch (error) {
+      console.error('[App] Error checking scheduled launch:', error);
+    }
+  }, [currentScreen, userEmail]);
+
+  // Check permissions when app comes to foreground
+  const checkPermissionsOnForeground = useCallback(async () => {
+    // Only check if user is logged in and on main screen
+    if (!userEmail || currentScreen !== 'main') return;
+
+    try {
+      if (PermissionsModule) {
+        const states = await PermissionsModule.checkAllPermissions();
+        // Check if any required permission is missing
+        const requiredPermissions = ['notification', 'accessibility', 'usageAccess', 'displayOverlay', 'deviceAdmin', 'postNotifications'];
+        const missingPermission = requiredPermissions.some(perm => !states[perm]);
+
+        if (missingPermission) {
+          // Navigate to permissions screen
+          setDisplayedScreen('permissions');
+          setCurrentScreen('permissions');
+        }
+      }
+    } catch (error) {
+      console.error('[App] Failed to check permissions:', error);
+    }
+  }, [userEmail, currentScreen]);
+
+  // Listen for app state changes to check permissions and scheduled launches
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextAppState) => {
+      if (nextAppState === 'active') {
+        checkPermissionsOnForeground();
+        // Check if app was brought to foreground by a scheduled preset alarm
+        checkScheduledPresetLaunch();
+        // Check if any scheduled preset is now active
+        checkActiveScheduledPreset();
+      }
+    });
+
+    return () => subscription.remove();
+  }, [checkPermissionsOnForeground, checkScheduledPresetLaunch, checkActiveScheduledPreset]);
+
+  // Periodic check for scheduled preset activation (handles in-app scenario)
+  // This runs every 5 seconds to detect when a preset becomes active while user is in-app
+  useEffect(() => {
+    // Only run when user is logged in and on main screen
+    if (!userEmail || currentScreen !== 'main') {
+      // Clear any existing interval
+      if (scheduledCheckIntervalRef.current) {
+        clearInterval(scheduledCheckIntervalRef.current);
+        scheduledCheckIntervalRef.current = null;
+      }
+      return;
+    }
+
+    // Check immediately on mount/screen change
+    checkActiveScheduledPreset();
+
+    // Then check every 5 seconds
+    scheduledCheckIntervalRef.current = setInterval(() => {
+      checkActiveScheduledPreset();
+    }, 5000);
+
+    return () => {
+      if (scheduledCheckIntervalRef.current) {
+        clearInterval(scheduledCheckIntervalRef.current);
+        scheduledCheckIntervalRef.current = null;
+      }
+    };
+  }, [userEmail, currentScreen, checkActiveScheduledPreset]);
+
+  async function checkLoginStatus() {
+    const email = await AsyncStorage.getItem('user_email');
+
+    if (email) {
+      setIsLoggedIn(true);
+      setUserEmail(email);
+
+      // Check if all permissions are already granted before showing permissions screen
+      try {
+        if (PermissionsModule) {
+          const states = await PermissionsModule.checkAllPermissions();
+          const requiredPermissions = ['notification', 'accessibility', 'usageAccess', 'displayOverlay', 'deviceAdmin', 'postNotifications', 'exactAlarm'];
+          const allGranted = requiredPermissions.every(perm => states[perm]);
+
+          if (allGranted) {
+            // All permissions granted, go directly to main screen
+            setDisplayedScreen('main');
+            setCurrentScreen('main');
+            setIsInitializing(false);
+            return;
+          }
+        }
+      } catch (error) {
+        console.error('[App] Error checking permissions:', error);
+      }
+
+      // Permissions not all granted or check failed, show permissions screen
+      setDisplayedScreen('permissions');
+      setCurrentScreen('permissions');
+    }
+    setIsInitializing(false);
+  }
+
+  const handleLogin = useCallback(async (email: string) => {
+    setUserEmail(email);
+    setIsLoggedIn(true);
+    await AsyncStorage.setItem('user_email', email);
+
+    // Check if all permissions are already granted before showing permissions screen
+    try {
+      if (PermissionsModule) {
+        const states = await PermissionsModule.checkAllPermissions();
+        const requiredPermissions = ['notification', 'accessibility', 'usageAccess', 'displayOverlay', 'deviceAdmin', 'postNotifications', 'exactAlarm'];
+        const allGranted = requiredPermissions.every(perm => states[perm]);
+
+        if (allGranted) {
+          // All permissions granted, go directly to main screen
+          setDisplayedScreen('main');
+          setCurrentScreen('main');
+          return;
+        }
+      }
+    } catch (error) {
+      console.error('[App] Error checking permissions:', error);
+    }
+
+    // Permissions not all granted or check failed, show permissions screen
+    setDisplayedScreen('permissions');
+    setCurrentScreen('permissions');
+  }, []);
+
+  const handlePermissionsComplete = useCallback(() => {
+    setDisplayedScreen('main');
+    setCurrentScreen('main');
+  }, []);
+
+  const handleLogout = useCallback(async () => {
+    await AsyncStorage.removeItem('user_email');
+    setIsLoggedIn(false);
+    setUserEmail('');
+    setDisplayedScreen('landing');
+    setCurrentScreen('landing');
+    setActiveTab('home'); setDisplayedTab('home');
+  }, []);
+
+  const handleResetAccount = useCallback(async (): Promise<{ success: boolean; error?: string }> => {
+    // Reset presets and settings but keep user logged in
+    try {
+      // Call API to delete all presets and recreate defaults (Supabase is source of truth)
+      const result = await resetPresets(userEmail);
+      if (!result.success) {
+        return { success: false, error: result.error || 'Failed to reset presets' };
+      }
+
+      // Reset theme to dark (default)
+      await saveUserTheme(userEmail, 'dark');
+      setTheme('dark');
+
+      return { success: true };
+    } catch (error) {
+      console.error('Failed to reset account:', error);
+      return { success: false, error: 'Failed to reset account' };
+    }
+  }, [userEmail, setTheme]);
+
+  const handleUnregisterScute = useCallback(async (): Promise<{ success: boolean; error?: string }> => {
+    // Unregister the Scute card but keep user logged in
+    // This only clears user_cards data in Supabase, NOT the whitelist (valid_scute_uids)
+    try {
+      const result = await unregisterCard(userEmail);
+      if (!result.success) {
+        return { success: false, error: result.error || 'Failed to unregister Scute' };
+      }
+      return { success: true };
+    } catch (error) {
+      console.error('Failed to unregister Scute:', error);
+      return { success: false, error: 'Failed to unregister Scute' };
+    }
+  }, [userEmail]);
+
+  const handleDeleteAccount = useCallback(async (): Promise<{ success: boolean; error?: string }> => {
+    // Delete account from Supabase and clear everything locally
+    // This deletes from users and user_cards tables, NOT the whitelist
+    try {
+      const result = await deleteAccount(userEmail);
+      if (!result.success) {
+        return { success: false, error: result.error || 'Failed to delete account' };
+      }
+      // Clear all local storage and return to onboarding
+      await AsyncStorage.clear();
+      setIsLoggedIn(false);
+      setUserEmail('');
+      setDisplayedScreen('landing');
+      setCurrentScreen('landing');
+      setActiveTab('home'); setDisplayedTab('home');
+      return { success: true };
+    } catch (error) {
+      console.error('Failed to delete account:', error);
+      return { success: false, error: 'Failed to delete account' };
+    }
+  }, [userEmail]);
+
+  const renderScreen = () => {
+    // Show loading screen while checking login status and permissions
+    if (isInitializing) {
+      return (
+        <View style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }}>
+          <ActivityIndicator size="large" color={colors.green} />
+        </View>
+      );
+    }
+
+    // Auth screens use animated transitions
+    const authScreens: Screen[] = ['landing', 'signin', 'getstarted', 'forgotpassword'];
+    const isAuthScreen = authScreens.includes(displayedScreen);
+
+    const screenContent = (() => {
+      switch (displayedScreen) {
+        case 'landing':
+          return (
+            <LandingScreen
+              onSignIn={() => changeScreen('signin')}
+              onGetStarted={() => changeScreen('getstarted')}
+            />
+          );
+        case 'signin':
+          return (
+            <SignInScreen
+              onBack={() => changeScreen('landing')}
+              onSuccess={handleLogin}
+              onForgotPassword={() => changeScreen('forgotpassword')}
+            />
+          );
+        case 'getstarted':
+          return (
+            <GetStartedScreen
+              onBack={() => changeScreen('landing')}
+              onSuccess={handleLogin}
+              onSignIn={() => changeScreen('signin')}
+            />
+          );
+          case 'forgotpassword':
+          return (
+            <ForgotPasswordScreen
+              onBack={() => changeScreen('signin')}
+              onSuccess={() => changeScreen('signin')}
+            />
+          );
+        case 'permissions':
+          return (
+            <PermissionsChecklistScreen
+              onComplete={handlePermissionsComplete}
+            />
+          );
+        case 'main':
+          return (
+            <View style={{ flex: 1, backgroundColor: colors.bg }}>
+              <Animated.View style={{ flex: 1, backgroundColor: colors.bg, opacity: tabFadeAnim }}>
+                {displayedTab === 'home' && (
+                  <HomeScreen
+                    email={userEmail}
+                    onNavigateToPresets={() => changeTab('presets')}
+                    refreshTrigger={refreshTrigger}
+                  />
+                )}
+                {displayedTab === 'presets' && (
+                  <PresetsScreen
+                    userEmail={userEmail}
+                  />
+                )}
+                {displayedTab === 'settings' && (
+                  <SettingsScreen
+                    email={userEmail}
+                    onLogout={handleLogout}
+                    onResetAccount={handleResetAccount}
+                    onUnregisterScute={handleUnregisterScute}
+                    onDeleteAccount={handleDeleteAccount}
+                  />
+                )}
+              </Animated.View>
+              <BottomTabBar
+                activeTab={activeTab}
+                onTabPress={changeTab}
+              />
+            </View>
+          );
+        default:
+          return <LandingScreen onSignIn={() => {}} onGetStarted={() => {}} />;
+      }
+    })();
+
+    // Wrap auth screens with animated view for smooth transitions
+    // Use themed background color so transitions look correct in both light and dark mode
+    if (isAuthScreen) {
+      return (
+        <View style={{ flex: 1, backgroundColor: colors.bg }}>
+          <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
+            {screenContent}
+          </Animated.View>
+        </View>
+      );
+    }
+
+    return screenContent;
+  };
+
+  return (
+    <SafeAreaProvider>
+      {renderScreen()}
+      <InfoModal
+        visible={modalVisible}
+        title={modalTitle}
+        message={modalMessage}
+        onClose={() => setModalVisible(false)}
+      />
+      <EmergencyTapoutModal
+        visible={emergencyTapoutModalVisible}
+        onClose={() => setEmergencyTapoutModalVisible(false)}
+        onUseTapout={handleUseEmergencyTapout}
+        presetAllowsTapout={!!activePresetForTapout?.allowEmergencyTapout}
+        tapoutsRemaining={tapoutStatus?.remaining ?? 0}
+        isLoading={tapoutLoading}
+        lockEndsAt={lockEndsAtForTapout}
+      />
+    </SafeAreaProvider>
+  );
+}
+
+// Wrap App with ThemeProvider
+function AppWithTheme() {
+  return (
+    <ThemeProvider>
+      <App />
+    </ThemeProvider>
+  );
+}
+
+export default AppWithTheme;
