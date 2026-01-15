@@ -16,14 +16,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import BlockNowButton from '../components/BlockNowButton';
 import InfoModal from '../components/InfoModal';
 import EmergencyTapoutModal from '../components/EmergencyTapoutModal';
-import AnimatedGradientImage from '../components/AnimatedGradientImage';
-import AnimatedGradientText from '../components/AnimatedGradientText';
-import { getPresets, getLockStatus, updateLockStatus, Preset, getEmergencyTapoutStatus, useEmergencyTapout, EmergencyTapoutStatus, activatePreset, getUserCardData, invalidateUserCaches, isFirstLoad, markInitialLoadComplete, clearAllCaches } from '../services/cardApi';
+import { getPresets, getLockStatus, updateLockStatus, Preset, getEmergencyTapoutStatus, useEmergencyTapout, EmergencyTapoutStatus, activatePreset, invalidateUserCaches, isFirstLoad, markInitialLoadComplete, clearAllCaches } from '../services/cardApi';
 import { useTheme } from '../context/ThemeContext';
 
 const scuteLogo = require('../frontassets/scutelogo.png');
 
-const { BlockingModule } = NativeModules;
+const { BlockingModule, PermissionsModule } = NativeModules;
 
 
 interface Props {
@@ -38,13 +36,11 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
   const [currentPreset, setCurrentPreset] = useState<string | null>(null);
   const [activePreset, setActivePreset] = useState<Preset | null>(null);
   const [scheduledPresets, setScheduledPresets] = useState<Preset[]>([]);
-  const [isRegistered, setIsRegistered] = useState(false);
   const [isLocked, setIsLocked] = useState(false);
   const [lockEndsAt, setLockEndsAt] = useState<string | null>(null);
   const [lockStartedAt, setLockStartedAt] = useState<string | null>(null);
   const [timeRemaining, setTimeRemaining] = useState<string | null>(null);
   const [elapsedTime, setElapsedTime] = useState<string | null>(null);
-  const [showRegisterModal, setShowRegisterModal] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [modalTitle, setModalTitle] = useState('');
   const [modalMessage, setModalMessage] = useState('');
@@ -58,9 +54,6 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
   // Scheduled presets expandable modal
   const [scheduledPresetsModalVisible, setScheduledPresetsModalVisible] = useState(false);
 
-  // Tap to unlock modal (shown when timer expired)
-  const [tapToUnlockModalVisible, setTapToUnlockModalVisible] = useState(false);
-
   // Shake animation for locked card
   const shakeAnim = useRef(new Animated.Value(0)).current;
 
@@ -69,6 +62,10 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
   const lockedOpacity = useRef(new Animated.Value(0)).current;
   const unlockedOpacity = useRef(new Animated.Value(0)).current;
   const hasInitializedLogoRef = useRef(false);
+
+  // Fast pulsating glow for preset text when actively locking
+  const presetGlowOpacity = useRef(new Animated.Value(0)).current;
+  const presetGlowAnimationRef = useRef<Animated.CompositeAnimation | null>(null);
 
   // Shake animation when tapping locked card
   const triggerShakeAnimation = useCallback(() => {
@@ -98,16 +95,6 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
     setModalMessage(message);
     setModalVisible(true);
   }, []);
-
-  const checkRegistration = useCallback(async () => {
-    try {
-      // Check Supabase for registered card (source of truth)
-      const userData = await getUserCardData(email);
-      setIsRegistered(!!userData?.uid);
-    } catch (error) {
-      console.error('Failed to check registration:', error);
-    }
-  }, [email]);
 
   // Track which scheduled preset we're currently activating to prevent duplicates
   const activatingPresetRef = useRef<string | null>(null);
@@ -225,7 +212,10 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
           if (BlockingModule) {
             await BlockingModule.forceUnlock();
           }
+          // Deactivate the no-time-limit preset in the backend
+          await activatePreset(email, null);
           await updateLockStatus(email, false, null);
+          invalidateUserCaches(email);
         }
 
         await activateScheduledPreset(preset);
@@ -246,7 +236,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
       const now = new Date();
 
       // If we're locked, check if there's a scheduled preset that was blocking (even if expired)
-      // This keeps the preset showing until user taps their NFC card to unlock
+      // This keeps the preset showing until user unlocks
       if (lockStatus.isLocked) {
         // First check for a currently active scheduled preset
         const currentlyBlockingScheduled = activeScheduled.find(p => {
@@ -367,7 +357,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
       } else {
         invalidateUserCaches(email);
       }
-      await Promise.all([loadStats(true), checkRegistration()]);
+      await loadStats(true);
       setLoading(false);
     }
     init();
@@ -393,23 +383,22 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
       subscription.remove();
       clearInterval(scheduleInterval);
     };
-  }, [loadStats, checkRegistration, email]);
+  }, [loadStats, email]);
 
-  // Reload when refreshTrigger changes (e.g., after NFC unlock or scheduled preset from App.tsx)
+  // Reload when refreshTrigger changes (e.g., after scheduled preset from App.tsx)
   useEffect(() => {
     if (refreshTrigger && refreshTrigger > 0) {
       console.log('[HomeScreen] Refresh triggered by parent');
-      // Close any open modals (user tapped their card to unlock)
+      // Close any open modals
       setEmergencyTapoutModalVisible(false);
-      setTapToUnlockModalVisible(false);
       // Show loading spinner and fetch fresh data
       setLoading(true);
       invalidateUserCaches(email);
-      Promise.all([loadStats(true), checkRegistration()]).finally(() => {
+      loadStats(true).finally(() => {
         setLoading(false);
       });
     }
-  }, [refreshTrigger, loadStats, checkRegistration, email]);
+  }, [refreshTrigger, loadStats, email]);
 
 
   // Countdown timer effect (for timed locks)
@@ -511,6 +500,42 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
     }
   }, [isActivelyLocked, lockedOpacity, unlockedOpacity, loading]);
 
+  // Fast pulsating glow animation for preset text when actively locked
+  useEffect(() => {
+    if (isActivelyLocked) {
+      // Start fast pulsating animation (800ms cycle - faster and more pulsating)
+      presetGlowAnimationRef.current = Animated.loop(
+        Animated.sequence([
+          Animated.timing(presetGlowOpacity, {
+            toValue: 1,
+            duration: 400,
+            useNativeDriver: false,
+          }),
+          Animated.timing(presetGlowOpacity, {
+            toValue: 0,
+            duration: 400,
+            useNativeDriver: false,
+          }),
+        ])
+      );
+      presetGlowAnimationRef.current.start();
+    } else {
+      // Stop animation
+      if (presetGlowAnimationRef.current) {
+        presetGlowAnimationRef.current.stop();
+        presetGlowAnimationRef.current = null;
+      }
+      presetGlowOpacity.setValue(0);
+    }
+
+    return () => {
+      if (presetGlowAnimationRef.current) {
+        presetGlowAnimationRef.current.stop();
+        presetGlowAnimationRef.current = null;
+      }
+    };
+  }, [isActivelyLocked, presetGlowOpacity]);
+
   // Elapsed time effect (for no-time-limit locks)
   useEffect(() => {
     if (!isLocked || lockEndsAt || !lockStartedAt) {
@@ -572,35 +597,41 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
     }
   }, [isLocked, handleLockedCardPress, onNavigateToPresets]);
 
-  const handleRegisterPress = useCallback(() => {
-    setShowRegisterModal(true);
+  // Memoize unlock press handler for timed presets (shows emergency tapout modal)
+  const handleUnlockPress = useCallback(() => {
+    // Timed preset - show emergency tapout modal
+    setEmergencyTapoutModalVisible(true);
   }, []);
 
-  const handleRegistrationSuccess = useCallback(async () => {
-    // Close the modal immediately
-    setShowRegisterModal(false);
+  // Handle slide to unlock for no-time-limit presets (called directly from BlockNowButton)
+  const handleSlideUnlock = useCallback(async () => {
+    try {
+      // Update database lock status to unlocked
+      await updateLockStatus(email, false, null);
 
-    // Invalidate cache and reload all user data after registration
-    invalidateUserCaches(email);
-    setLoading(true);
-    await Promise.all([loadStats(true), checkRegistration()]);
-    setLoading(false);
-  }, [email, loadStats, checkRegistration]);
+      // Clear native blocking
+      if (BlockingModule) {
+        await BlockingModule.forceUnlock();
+      }
 
-  // Memoize unlock press handler to prevent BlockNowButton re-renders
-  const handleUnlockPress = useCallback(() => {
-    if (timeRemaining) {
-      // Timed preset still active - show emergency tapout modal
-      setEmergencyTapoutModalVisible(true);
-    } else {
-      // No time limit preset or timer expired - show tap scute modal
-      setTapToUnlockModalVisible(true);
+      // Update local state
+      setIsLocked(false);
+      setLockEndsAt(null);
+      setLockStartedAt(null);
+
+      Vibration.vibrate(100);
+      showModal('Unlocked', 'Your phone has been unlocked.');
+
+      // Refresh to get updated state
+      await loadStats(true);
+    } catch (error) {
+      console.error('[HomeScreen] Failed to unlock:', error);
+      showModal('Error', 'Failed to unlock. Please try again.');
     }
-  }, [timeRemaining]);
+  }, [email, loadStats, showModal]);
 
   const handleBlockNow = useCallback(async () => {
     console.log('[HomeScreen] handleBlockNow called');
-    console.log('[HomeScreen] isRegistered:', isRegistered);
     console.log('[HomeScreen] activePreset:', activePreset);
 
     try {
@@ -611,6 +642,23 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
           'Please toggle a preset in the Presets tab before you can start blocking.'
         );
         return;
+      }
+
+      // Check if Accessibility Service is enabled before starting blocking
+      if (PermissionsModule) {
+        try {
+          const isAccessibilityEnabled = await PermissionsModule.isAccessibilityServiceEnabled();
+          if (!isAccessibilityEnabled) {
+            showModal(
+              'Permission Required',
+              'Accessibility Service is not enabled. Please enable it in Settings to block apps.'
+            );
+            return;
+          }
+        } catch (permError) {
+          console.warn('[HomeScreen] Failed to check accessibility permission:', permError);
+          // Continue anyway if we can't check - native module might still work
+        }
       }
 
       console.log('[HomeScreen] Attempting to start blocking with preset:', activePreset.name);
@@ -751,11 +799,16 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
         Vibration.vibrate(50);
         showModal('Blocking Started', `${activePreset.name} is now active.`);
       }
+
+      // Refresh to ensure UI is in sync with locked state
+      setLoading(true);
+      await loadStats(true);
+      setLoading(false);
     } catch (error) {
       console.error('[HomeScreen] Failed to start blocking:', error);
       showModal('Error', 'Failed to start blocking session.');
     }
-  }, [activePreset, email, isRegistered, showModal, scheduledPresets, formatScheduleDate]);
+  }, [activePreset, email, showModal, scheduledPresets, formatScheduleDate, loadStats]);
 
   // Helper to get active settings display
   const getActiveSettingsDisplay = useCallback(() => {
@@ -779,7 +832,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
     return settings;
   }, [activePreset]);
 
-  if (loading && !showRegisterModal) {
+  if (loading) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }} edges={['top']}>
         <ActivityIndicator size="large" color={colors.green} />
@@ -848,13 +901,16 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
                 resizeMode="contain"
               />
             </Animated.View>
-            {/* Locked logo with gradient - fades in when actively locked */}
+            {/* Locked logo - fades in when actively locked */}
             <Animated.View style={{ opacity: lockedOpacity }}>
-              <AnimatedGradientImage
+              <Image
                 source={scuteLogo}
-                width={200}
-                height={200}
-                glow
+                style={{
+                  width: 200,
+                  height: 200,
+                  tintColor: colors.logoTint,
+                }}
+                resizeMode="contain"
               />
             </Animated.View>
           </Animated.View>
@@ -862,73 +918,63 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
 
         {/* Preset info - fixed height section */}
         <View style={{ minHeight: 100 }} className="items-center">
-          {isRegistered ? (
-            <>
-              <View className="items-center justify-center">
-                {/* Show gradient only when actively locked (has countdown or elapsed time) */}
-                {isLocked && (timeRemaining || elapsedTime) ? (
-                  <AnimatedGradientText
-                    text={`Preset: ${currentPreset || 'None Selected'}`}
-                    fontSize={18}
-                    fontFamily="Nunito-SemiBold"
-                    glow
-                  />
-                ) : (
-                  <Text
-                    style={{ color: colors.text }}
-                    className="text-xl font-nunito-semibold text-center"
-                  >
-                    Preset: {currentPreset || 'None Selected'}
-                  </Text>
-                )}
-              </View>
+          <View className="items-center justify-center">
+            <Animated.Text
+              style={{
+                color: colors.text,
+                textShadowColor: '#ffffff',
+                textShadowOffset: { width: 0, height: 0 },
+                textShadowRadius: isActivelyLocked ? presetGlowOpacity.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0, 20],
+                }) : 0,
+              }}
+              className="text-xl font-nunito-semibold text-center"
+            >
+              Preset: {currentPreset || 'None Selected'}
+            </Animated.Text>
+          </View>
 
-              {/* Active settings display */}
-              {activePreset && getActiveSettingsDisplay().length > 0 && (
-                <Text style={{ color: colors.textSecondary }} className="text-base font-nunito mt-2">
-                  Blocking {getActiveSettingsDisplay().join(', ')}
-                </Text>
-              )}
-
-              {/* Scheduled Presets Button - matte style */}
-              {scheduledPresets.length > 0 && (
-                <TouchableOpacity
-                  onPress={() => setScheduledPresetsModalVisible(true)}
-                  activeOpacity={0.7}
-                  className="mt-6 px-5 py-2.5 rounded-full flex-row items-center"
-                  style={{
-                    backgroundColor: colors.card,
-                  }}
-                >
-                  <View style={{
-                    backgroundColor: (() => {
-                      const now = new Date();
-                      // Check if any is currently active
-                      const hasActive = scheduledPresets.some(p => {
-                        const start = new Date(p.scheduleStartDate!);
-                        const end = new Date(p.scheduleEndDate!);
-                        return now >= start && now < end;
-                      });
-                      if (hasActive) return colors.green;
-                      // Check if any is pending
-                      const hasPending = scheduledPresets.some(p => {
-                        const start = new Date(p.scheduleStartDate!);
-                        return now < start;
-                      });
-                      if (hasPending) return colors.cyan;
-                      return colors.textSecondary;
-                    })()
-                  }} className="w-2 h-2 rounded-full mr-2" />
-                  <Text style={{ color: colors.text }} className="text-sm font-nunito-semibold">
-                    {scheduledPresets.length} Scheduled
-                  </Text>
-                </TouchableOpacity>
-              )}
-            </>
-          ) : (
-            <Text style={{ color: colors.text }} className="text-xl font-nunito-semibold">
-              Not Registered
+          {/* Active settings display */}
+          {activePreset && getActiveSettingsDisplay().length > 0 && (
+            <Text style={{ color: colors.textSecondary }} className="text-base font-nunito mt-2">
+              Blocking {getActiveSettingsDisplay().join(', ')}
             </Text>
+          )}
+
+          {/* Scheduled Presets Button - matte style */}
+          {scheduledPresets.length > 0 && (
+            <TouchableOpacity
+              onPress={() => setScheduledPresetsModalVisible(true)}
+              activeOpacity={0.7}
+              className="mt-6 px-5 py-2.5 rounded-full flex-row items-center"
+              style={{
+                backgroundColor: colors.card,
+              }}
+            >
+              <View style={{
+                backgroundColor: (() => {
+                  const now = new Date();
+                  // Check if any is currently active
+                  const hasActive = scheduledPresets.some(p => {
+                    const start = new Date(p.scheduleStartDate!);
+                    const end = new Date(p.scheduleEndDate!);
+                    return now >= start && now < end;
+                  });
+                  if (hasActive) return colors.green;
+                  // Check if any is pending
+                  const hasPending = scheduledPresets.some(p => {
+                    const start = new Date(p.scheduleStartDate!);
+                    return now < start;
+                  });
+                  if (hasPending) return colors.cyan;
+                  return colors.textSecondary;
+                })()
+              }} className="w-2 h-2 rounded-full mr-2" />
+              <Text style={{ color: colors.text }} className="text-sm font-nunito-semibold">
+                {scheduledPresets.length} Scheduled
+              </Text>
+            </TouchableOpacity>
           )}
         </View>
 
@@ -938,12 +984,13 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
         {/* Action Button - clean matte style */}
         <View className="mb-10">
           <BlockNowButton
-            onActivate={isRegistered ? handleBlockNow : handleRegisterPress}
+            onActivate={handleBlockNow}
             onUnlockPress={handleUnlockPress}
-            disabled={isRegistered && !currentPreset}
-            isRegistered={isRegistered}
+            onSlideUnlock={handleSlideUnlock}
+            disabled={!currentPreset}
             isLocked={isLocked}
-            hasActiveTimer={!!(timeRemaining || elapsedTime)}
+            hasActiveTimer={!!timeRemaining}
+            hasReadyPreset={!!currentPreset && !isLocked}
           />
         </View>
       </View>
@@ -967,49 +1014,6 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
         isLoading={tapoutLoading}
         lockEndsAt={lockEndsAt}
       />
-
-      {/* Tap Scute to Unlock Modal */}
-      <Modal
-        visible={tapToUnlockModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setTapToUnlockModalVisible(false)}
-      >
-        <TouchableOpacity
-          activeOpacity={1}
-          onPress={() => setTapToUnlockModalVisible(false)}
-          className="flex-1 bg-black/70 justify-center items-center px-6"
-        >
-          <View style={{ backgroundColor: colors.card }} className="w-full rounded-2xl overflow-hidden">
-            <View className="p-6 items-center">
-              <View style={{ backgroundColor: `${colors.green}33` }} className="w-16 h-16 rounded-full items-center justify-center mb-4">
-                <Image
-                  source={scuteLogo}
-                  style={{ width: 40, height: 40, tintColor: colors.green }}
-                  resizeMode="contain"
-                />
-              </View>
-              <Text style={{ color: colors.text }} className="text-xl font-nunito-bold text-center">
-                Tap Scute to Unlock
-              </Text>
-              <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito text-center mt-2">
-                Hold your Scute card to the back of your phone to unlock.
-              </Text>
-            </View>
-            <View style={{ borderTopColor: colors.border }} className="border-t">
-              <TouchableOpacity
-                onPress={() => setTapToUnlockModalVisible(false)}
-                activeOpacity={0.7}
-                className="py-4 items-center"
-              >
-                <Text style={{ color: colors.textSecondary }} className="text-base font-nunito-semibold">
-                  Dismiss
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </TouchableOpacity>
-      </Modal>
 
       {/* Scheduled Presets Modal */}
       <Modal

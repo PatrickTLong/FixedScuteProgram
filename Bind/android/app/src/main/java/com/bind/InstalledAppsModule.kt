@@ -1,6 +1,9 @@
 package com.bind
 
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -14,12 +17,80 @@ import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.WritableArray
+import com.facebook.react.modules.core.DeviceEventManagerModule
 import java.io.ByteArrayOutputStream
 
 class InstalledAppsModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
 
+    private var appChangeReceiver: BroadcastReceiver? = null
+
     override fun getName(): String {
         return "InstalledAppsModule"
+    }
+
+    override fun initialize() {
+        super.initialize()
+        registerAppChangeReceiver()
+    }
+
+    override fun invalidate() {
+        super.invalidate()
+        unregisterAppChangeReceiver()
+    }
+
+    private fun registerAppChangeReceiver() {
+        if (appChangeReceiver != null) return
+
+        appChangeReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                val action = intent?.action ?: return
+                val packageName = intent.data?.schemeSpecificPart ?: return
+
+                // Don't emit for our own app
+                if (packageName == reactApplicationContext.packageName) return
+
+                when (action) {
+                    Intent.ACTION_PACKAGE_ADDED -> {
+                        sendEvent("onAppsChanged", "installed")
+                    }
+                    Intent.ACTION_PACKAGE_REMOVED -> {
+                        // Check if it's a full uninstall (not just an update)
+                        val replacing = intent.getBooleanExtra(Intent.EXTRA_REPLACING, false)
+                        if (!replacing) {
+                            sendEvent("onAppsChanged", "uninstalled")
+                        }
+                    }
+                }
+            }
+        }
+
+        val filter = IntentFilter().apply {
+            addAction(Intent.ACTION_PACKAGE_ADDED)
+            addAction(Intent.ACTION_PACKAGE_REMOVED)
+            addDataScheme("package")
+        }
+
+        reactApplicationContext.registerReceiver(appChangeReceiver, filter)
+    }
+
+    private fun unregisterAppChangeReceiver() {
+        appChangeReceiver?.let {
+            try {
+                reactApplicationContext.unregisterReceiver(it)
+            } catch (e: Exception) {
+                // Receiver might not be registered
+            }
+            appChangeReceiver = null
+        }
+    }
+
+    private fun sendEvent(eventName: String, changeType: String) {
+        val params = Arguments.createMap()
+        params.putString("type", changeType)
+
+        reactApplicationContext
+            .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+            .emit(eventName, params)
     }
 
     // Common/popular apps that should appear first

@@ -19,11 +19,10 @@ import {
   activatePreset,
   getLockStatus,
   invalidateUserCaches,
-  getUserCardData,
 } from '../services/cardApi';
 import { useTheme } from '../context/ThemeContext';
 
-const { NfcConfigModule, InstalledAppsModule, ScheduleModule } = NativeModules;
+const { InstalledAppsModule, ScheduleModule } = NativeModules;
 
 // Cache installed apps for the session (apps don't change often)
 let cachedInstalledApps: { id: string }[] | null = null;
@@ -64,24 +63,11 @@ function PresetsScreen({ userEmail }: Props) {
   const [scheduleVerifyModalVisible, setScheduleVerifyModalVisible] = useState(false);
   const [pendingScheduledPreset, setPendingScheduledPreset] = useState<Preset | null>(null);
 
-  // Registration check for scheduled presets
-  const [isRegistered, setIsRegistered] = useState<boolean | null>(null);
-  const [registerModalVisible, setRegisterModalVisible] = useState(false);
 
   const checkLockStatus = useCallback(async () => {
     const status = await getLockStatus(userEmail);
     setIsLocked(status.isLocked);
     setLockChecked(true);
-  }, [userEmail]);
-
-  const checkRegistrationStatus = useCallback(async () => {
-    try {
-      const userData = await getUserCardData(userEmail);
-      setIsRegistered(!!userData?.uid);
-    } catch (error) {
-      console.error('[PresetsScreen] Failed to check registration:', error);
-      setIsRegistered(false);
-    }
   }, [userEmail]);
 
   // Background orphan cleanup - doesn't block UI
@@ -149,66 +135,20 @@ function PresetsScreen({ userEmail }: Props) {
     }
   }, [userEmail, runOrphanCleanup]);
 
-  // Check lock status, registration status, and load presets in parallel on initial mount
+  // Check lock status and load presets in parallel on initial mount
   useEffect(() => {
     async function init() {
       // Load presets with cache on first render - HomeScreen handles cache invalidation on app restart
-      await Promise.all([checkLockStatus(), checkRegistrationStatus(), loadPresets(false)]);
+      await Promise.all([checkLockStatus(), loadPresets(false)]);
       setLoading(false);
     }
     init();
-  }, [checkLockStatus, checkRegistrationStatus, loadPresets, userEmail]);
+  }, [checkLockStatus, loadPresets, userEmail]);
 
 
   // Disable interactions until lock status is checked, or if locked
   const isDisabled = !lockChecked || isLocked === true;
 
-  const syncToNativeModule = useCallback(async (preset: Preset) => {
-    try {
-      const totalMinutes = preset.timerDays * 24 * 60 + preset.timerHours * 60 + preset.timerMinutes;
-      const effectiveNoTimeLimit = preset.noTimeLimit || totalMinutes === 0;
-      const durationMs = effectiveNoTimeLimit ? Number.MAX_SAFE_INTEGER : totalMinutes * 60 * 1000;
-
-      // Get installed apps for "all" mode
-      let appsToBlock = preset.selectedApps;
-      if (preset.mode === 'all') {
-        const apps = await getInstalledAppsCached();
-        if (apps.length > 0) {
-          appsToBlock = apps.map((app: { id: string }) => app.id);
-        }
-      }
-
-      // All known system settings packages for different device manufacturers
-      const settingsPackages = [
-        'com.android.settings',
-        'com.samsung.android.settings',
-        'com.miui.securitycenter',
-        'com.coloros.settings',
-        'com.oppo.settings',
-        'com.vivo.settings',
-        'com.huawei.systemmanager',
-        'com.oneplus.settings',
-        'com.google.android.settings.intelligence',
-      ];
-
-      // Add Settings apps if blockSettings is enabled
-      const finalApps = preset.blockSettings
-        ? [...appsToBlock, ...settingsPackages]
-        : appsToBlock;
-
-      const nativeConfig = {
-        blockedApps: finalApps,
-        blockedWebsites: preset.blockedWebsites,
-        durationMs,
-        noTimeLimit: effectiveNoTimeLimit,
-      };
-
-      await NfcConfigModule?.setTapConfig(JSON.stringify(nativeConfig));
-      console.log('[PresetsScreen] Synced native config, apps count:', finalApps.length);
-    } catch (e) {
-      console.error('[PresetsScreen] Failed to sync native config:', e);
-    }
-  }, []);
 
   // Sync all scheduled presets to native module for background activation
   const syncScheduledPresetsToNative = useCallback(async (allPresets: Preset[]) => {
@@ -285,12 +225,6 @@ function PresetsScreen({ userEmail }: Props) {
   const handleTogglePreset = useCallback(async (preset: Preset, value: boolean) => {
     if (value) {
       if (preset.isScheduled) {
-        // Check if user has a registered Scute before enabling scheduled preset
-        if (!isRegistered) {
-          setRegisterModalVisible(true);
-          return;
-        }
-
         // Scheduled preset - check for overlaps with other active scheduled presets
         const otherScheduledPresets = presets.filter(
           p => p.isScheduled && p.isActive && p.id !== preset.id
@@ -315,6 +249,46 @@ function PresetsScreen({ userEmail }: Props) {
         setScheduleVerifyModalVisible(true);
       } else {
         // Non-scheduled preset - only one can be active
+        // If this is a TIMED preset (not no-time-limit), check for overlap with active scheduled presets
+        if (!preset.noTimeLimit) {
+          // Calculate end time for this timed preset
+          const now = new Date();
+          let presetEndTime: Date | null = null;
+
+          if (preset.targetDate) {
+            presetEndTime = new Date(preset.targetDate);
+          } else {
+            // Calculate from timer values
+            const totalMs =
+              (preset.timerDays * 24 * 60 * 60 * 1000) +
+              (preset.timerHours * 60 * 60 * 1000) +
+              (preset.timerMinutes * 60 * 1000) +
+              (preset.timerSeconds * 1000);
+            if (totalMs > 0) {
+              presetEndTime = new Date(now.getTime() + totalMs);
+            }
+          }
+
+          if (presetEndTime) {
+            // Check if this timed preset overlaps with any active scheduled preset
+            const activeScheduledPresets = presets.filter(p => p.isScheduled && p.isActive);
+
+            for (const scheduled of activeScheduledPresets) {
+              if (dateRangesOverlap(
+                now.toISOString(),
+                presetEndTime.toISOString(),
+                scheduled.scheduleStartDate,
+                scheduled.scheduleEndDate
+              )) {
+                // Show overlap modal
+                setOverlapPresetName(scheduled.name);
+                setOverlapModalVisible(true);
+                return; // Don't activate
+              }
+            }
+          }
+        }
+
         // OPTIMISTIC UPDATE - update UI immediately
         setActivePresetId(preset.id);
         setPresets(prev => prev.map(p => ({
@@ -327,8 +301,6 @@ function PresetsScreen({ userEmail }: Props) {
           if (result.success) {
             // Invalidate cache so other screens get fresh data
             invalidateUserCaches(userEmail);
-            // Sync to native module for background NFC handling
-            await syncToNativeModule(preset);
           } else {
             // Revert on error
             setActivePresetId(null);
@@ -381,10 +353,6 @@ function PresetsScreen({ userEmail }: Props) {
           if (result.success) {
             // Invalidate cache so other screens get fresh data
             invalidateUserCaches(userEmail);
-            // Clear native config
-            NfcConfigModule?.setTapConfig(null).catch((e: any) => {
-              console.log('Failed to clear native config:', e);
-            });
           } else {
             // Revert on error - re-activate this preset
             setActivePresetId(preset.id);
@@ -396,7 +364,7 @@ function PresetsScreen({ userEmail }: Props) {
         });
       }
     }
-  }, [userEmail, syncToNativeModule, syncScheduledPresetsToNative, presets, dateRangesOverlap, isRegistered]);
+  }, [userEmail, syncScheduledPresetsToNative, presets, dateRangesOverlap]);
 
   const handleAddPreset = useCallback(() => {
     setEditingPreset(null);
@@ -435,14 +403,9 @@ function PresetsScreen({ userEmail }: Props) {
     // Delete in background - revert on error
     deletePresetApi(userEmail, presetId).then(async result => {
       if (result.success) {
-        // If deleting an active non-scheduled preset, clear active and native config
+        // If deleting an active non-scheduled preset, clear active
         if (wasActiveNonScheduled) {
           await activatePreset(userEmail, null);
-          try {
-            await NfcConfigModule?.setTapConfig(null);
-          } catch (e) {
-            console.log('Failed to clear native config:', e);
-          }
         }
 
         // If deleting a scheduled preset, sync to native
@@ -529,10 +492,8 @@ function PresetsScreen({ userEmail }: Props) {
         setPresets(updatedPresets);
 
         // If this is the active non-scheduled preset, also update user_cards settings
-        // Scheduled presets don't sync to native module the same way
         if (presetToSave.isActive && !presetToSave.isScheduled) {
           await activatePreset(userEmail, presetToSave.id);
-          await syncToNativeModule(presetToSave);
         }
       } else {
         updatedPresets = [...presets, presetToSave];
@@ -551,7 +512,7 @@ function PresetsScreen({ userEmail }: Props) {
     setEditModalVisible(false);
     setEditingPreset(null);
     setIsSaving(false);
-  }, [isSaving, editingPreset, userEmail, syncToNativeModule, syncScheduledPresetsToNative, presets, dateRangesOverlap]);
+  }, [isSaving, editingPreset, userEmail, syncScheduledPresetsToNative, presets, dateRangesOverlap]);
 
   const handleCloseEditModal = useCallback(() => {
     setEditModalVisible(false);
@@ -589,12 +550,6 @@ function PresetsScreen({ userEmail }: Props) {
           ...p,
           isActive: p.isScheduled ? p.isActive : false,
         })));
-        // Clear native config
-        try {
-          await NfcConfigModule?.setTapConfig(null);
-        } catch (e) {
-          console.log('Failed to clear native config:', e);
-        }
       }
     }
   }, [activePresetId, userEmail, presets, syncScheduledPresetsToNative]);
@@ -738,15 +693,6 @@ function PresetsScreen({ userEmail }: Props) {
         onCancel={handleScheduleVerifyCancel}
       />
 
-      {/* Registration Required Modal */}
-      <ConfirmationModal
-        visible={registerModalVisible}
-        title="Registration Required"
-        message="Please register your Scute before enabling scheduled presets."
-        confirmText="OK"
-        onConfirm={() => setRegisterModalVisible(false)}
-        onCancel={() => setRegisterModalVisible(false)}
-      />
     </SafeAreaView>
   );
 }

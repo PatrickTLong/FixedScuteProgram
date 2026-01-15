@@ -69,7 +69,13 @@ class ScuteAccessibilityService : AccessibilityService() {
         super.onServiceConnected()
         isRunning = true
         instance = this
-        Log.d(TAG, "Accessibility service connected")
+        Log.d(TAG, "Accessibility service connected and RUNNING")
+
+        // Log current blocking state
+        val prefs = getSharedPreferences(UninstallBlockerService.PREFS_NAME, Context.MODE_PRIVATE)
+        val isActive = prefs.getBoolean(UninstallBlockerService.KEY_SESSION_ACTIVE, false)
+        val blockedApps = prefs.getStringSet(UninstallBlockerService.KEY_BLOCKED_APPS, emptySet())
+        Log.d(TAG, "Current blocking state: isActive=$isActive, blockedAppsCount=${blockedApps?.size ?: 0}")
 
         // Check scheduled presets immediately when service connects
         // This handles the case where app was closed but schedule should be active
@@ -396,15 +402,22 @@ class ScuteAccessibilityService : AccessibilityService() {
 
         // Check if session is active
         val isActive = prefs.getBoolean(UninstallBlockerService.KEY_SESSION_ACTIVE, false)
-        if (!isActive) return false
+        if (!isActive) {
+            Log.d(TAG, "shouldBlockApp($packageName): session NOT active")
+            return false
+        }
 
         // Check if session has expired
         val endTime = prefs.getLong(UninstallBlockerService.KEY_SESSION_END_TIME, 0)
-        if (System.currentTimeMillis() > endTime) return false
+        if (System.currentTimeMillis() > endTime) {
+            Log.d(TAG, "shouldBlockApp($packageName): session EXPIRED (endTime=$endTime, now=${System.currentTimeMillis()})")
+            return false
+        }
 
         // Check if this package is in the blocked list
         val blockedApps = prefs.getStringSet(UninstallBlockerService.KEY_BLOCKED_APPS, emptySet())
         val isBlocked = blockedApps?.contains(packageName) == true
+        Log.d(TAG, "shouldBlockApp($packageName): isBlocked=$isBlocked, blockedAppsCount=${blockedApps?.size ?: 0}")
 
         // Special case: Allow WiFi settings even if Settings app is blocked
         if (isBlocked && isSettingsApp(packageName)) {

@@ -2,6 +2,7 @@ package com.bind
 
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
 import android.util.Log
 import com.facebook.react.bridge.Promise
@@ -45,13 +46,8 @@ class BlockingModule(reactContext: ReactApplicationContext) :
                 }
             }
 
-            // Handle "all" mode - if no specific apps selected, we need all apps
             val mode = config.getString("mode") ?: "specific"
-            if (mode == "all" && appSet.isEmpty()) {
-                // In "all" mode with no apps selected, we'll block based on mode flag
-                // The AccessibilityService will need to handle this
-                Log.d(TAG, "Mode is 'all' - all apps will be blocked")
-            }
+            Log.d(TAG, "Mode: $mode, selectedApps count: ${appSet.size}")
 
             // Get blocked websites
             val websiteSet = mutableSetOf<String>()

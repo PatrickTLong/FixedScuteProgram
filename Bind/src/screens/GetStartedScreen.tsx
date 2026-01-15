@@ -14,7 +14,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import ProgressBar from '../components/ProgressBar';
 import BackButton from '../components/BackButton';
 import InfoModal from '../components/InfoModal';
+import OTPInput from '../components/OTPInput';
 import { useTheme } from '../context/ThemeContext';
+import { setAuthToken } from '../services/cardApi';
 
 const API_URL = 'http://10.0.0.252:3000';
 
@@ -101,6 +103,10 @@ function GetStartedScreen({ onBack, onSuccess, onSignIn }: Props) {
       const data = await response.json();
 
       if (response.ok) {
+        // Store JWT token for authenticated API requests
+        if (data.token) {
+          await setAuthToken(data.token);
+        }
         await AsyncStorage.setItem('user_email', email);
         showModal('Success!', 'Your account has been created');
         // Delay navigation to allow user to see success message
@@ -231,17 +237,12 @@ function GetStartedScreen({ onBack, onSuccess, onSignIn }: Props) {
 
                 {/* Code Input */}
                 <View className="mb-8">
-                  <TextInput
-                    placeholder="Enter code"
-                    placeholderTextColor={colors.textMuted}
+                  <OTPInput
                     value={code}
-                    onChangeText={setCode}
-                    keyboardType="number-pad"
-                    maxLength={6}
+                    onChange={setCode}
+                    length={6}
+                    disabled={loading}
                     autoFocus
-                    editable={!loading}
-                    style={{ fontFamily: 'Nunito-SemiBold', backgroundColor: colors.bg, borderColor: colors.border, color: colors.text }}
-                    className="border rounded-full px-5 py-4 text-center text-2xl tracking-widest"
                   />
                 </View>
 

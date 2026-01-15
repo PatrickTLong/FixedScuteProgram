@@ -10,6 +10,7 @@ import {
   Platform,
   Switch,
   NativeModules,
+  NativeEventEmitter,
   FlatList,
   Image,
   ActivityIndicator,
@@ -22,20 +23,59 @@ import TimerPicker from './TimerPicker';
 import DatePickerModal from './DatePickerModal';
 import ScheduleInfoModal from './ScheduleInfoModal';
 import InfoModal from './InfoModal';
+import ExcludedAppsInfoModal from './ExcludedAppsInfoModal';
+import DisableTapoutWarningModal from './DisableTapoutWarningModal';
+import BlockSettingsWarningModal from './BlockSettingsWarningModal';
 import { Preset } from './PresetCard';
 import { getEmergencyTapoutStatus, setEmergencyTapoutEnabled } from '../services/cardApi';
 import { lightTap, mediumTap } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
 
 const SCHEDULE_INFO_DISMISSED_KEY = 'schedule_info_dismissed';
+const EXCLUDED_APPS_INFO_DISMISSED_KEY = 'excluded_apps_info_dismissed';
+const DISABLE_TAPOUT_WARNING_DISMISSED_KEY = 'disable_tapout_warning_dismissed';
+const BLOCK_SETTINGS_WARNING_DISMISSED_KEY = 'block_settings_warning_dismissed';
 
 // ============ Installed Apps Cache ============
 // Cache installed apps globally to avoid reloading on every modal open
 let cachedInstalledApps: InstalledApp[] | null = null;
 let installedAppsLoadPromise: Promise<InstalledApp[]> | null = null;
 
-// Settings app package - excluded from app selection (has its own toggle)
-const SETTINGS_PACKAGE = 'com.android.settings';
+// Function to invalidate the cache (called when apps are installed/uninstalled)
+function invalidateInstalledAppsCache() {
+  cachedInstalledApps = null;
+  installedAppsLoadPromise = null;
+}
+
+// Set up listener for app install/uninstall events
+const { InstalledAppsModule } = NativeModules;
+if (InstalledAppsModule) {
+  const installedAppsEmitter = new NativeEventEmitter(InstalledAppsModule);
+  installedAppsEmitter.addListener('onAppsChanged', (event) => {
+    console.log('[PresetEditModal] App change detected:', event?.type);
+    invalidateInstalledAppsCache();
+  });
+}
+
+// System apps excluded from app selection
+const EXCLUDED_PACKAGES = [
+  'com.android.settings',           // Settings (has its own toggle)
+  'com.android.dialer',             // Phone/Dialer
+  'com.google.android.dialer',      // Google Phone
+  'com.samsung.android.dialer',     // Samsung Phone
+  'com.android.phone',              // Phone
+  'com.android.camera',             // Camera
+  'com.android.camera2',            // Camera
+  'com.google.android.GoogleCamera',// Google Camera
+  'com.samsung.android.camera',     // Samsung Camera
+  'com.android.mms',                // Messaging
+  'com.google.android.apps.messaging', // Google Messages
+  'com.samsung.android.messaging',  // Samsung Messages
+  'com.android.emergency',          // Emergency
+  'com.android.sos',                // Emergency SOS
+  'com.google.android.apps.safetyhub', // Google Safety/Emergency
+  'com.samsung.android.emergencymode', // Samsung Emergency
+];
 
 async function loadInstalledAppsOnce(): Promise<InstalledApp[]> {
   // Return cached apps if available (already filtered)
@@ -69,8 +109,8 @@ async function loadInstalledAppsOnce(): Promise<InstalledApp[]> {
           { id: 'com.spotify.music', name: 'Spotify' },
         ];
       }
-      // Filter out Settings app - it has its own toggle in the preset settings
-      apps = apps.filter(app => app.id !== SETTINGS_PACKAGE);
+      // Filter out system apps (phone, camera, messaging, emergency, settings)
+      apps = apps.filter(app => !EXCLUDED_PACKAGES.includes(app.id));
       cachedInstalledApps = apps;
       return apps;
     } catch (error) {
@@ -107,8 +147,6 @@ const CalendarIcon = ({ color = '#ffffff', size = 24 }: { color?: string; size?:
     />
   </Svg>
 );
-
-const { InstalledAppsModule } = NativeModules;
 
 interface InstalledApp {
   id: string;
@@ -213,23 +251,43 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
   // Duplicate name modal
   const [duplicateNameModalVisible, setDuplicateNameModalVisible] = useState(false);
 
-  // Handler to toggle emergency tapout - optimistic UI update, then validate
-  const handleEmergencyTapoutToggle = useCallback((value: boolean) => {
-    mediumTap();
-    // Optimistic update - toggle immediately for responsive feel
-    setAllowEmergencyTapout(value);
+  // Excluded apps info modal
+  const [excludedAppsInfoVisible, setExcludedAppsInfoVisible] = useState(false);
 
-    // If enabling, validate that user has tapouts remaining
-    if (value && email) {
-      getEmergencyTapoutStatus(email).then((status) => {
-        if (status.remaining <= 0) {
-          // Revert the toggle and show modal
-          setAllowEmergencyTapout(false);
-          setNoTapoutsModalVisible(true);
+  // Disable tapout warning modal
+  const [disableTapoutWarningVisible, setDisableTapoutWarningVisible] = useState(false);
+
+  // Block settings warning modal
+  const [blockSettingsWarningVisible, setBlockSettingsWarningVisible] = useState(false);
+
+  // Handler to toggle emergency tapout - optimistic UI update, then validate
+  const handleEmergencyTapoutToggle = useCallback(async (value: boolean) => {
+    mediumTap();
+
+    if (value) {
+      // Enabling - validate that user has tapouts remaining
+      setAllowEmergencyTapout(true);
+      if (email) {
+        try {
+          const status = await getEmergencyTapoutStatus(email);
+          if (status.remaining <= 0) {
+            // Revert the toggle and show modal
+            setAllowEmergencyTapout(false);
+            setNoTapoutsModalVisible(true);
+          }
+        } catch (error) {
+          console.error('Failed to check emergency tapout status:', error);
         }
-      }).catch((error) => {
-        console.error('Failed to check emergency tapout status:', error);
-      });
+      }
+    } else {
+      // Disabling - check if we should show warning
+      const dismissed = await AsyncStorage.getItem(DISABLE_TAPOUT_WARNING_DISMISSED_KEY);
+      if (dismissed !== 'true') {
+        setDisableTapoutWarningVisible(true);
+      } else {
+        // Warning already dismissed, just disable
+        setAllowEmergencyTapout(false);
+      }
     }
   }, [email]);
 
@@ -310,8 +368,8 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
         setTimerMinutes(0);
         setTimerSeconds(0);
         setTargetDate(null);
-        // Emergency tapout feature
-        setAllowEmergencyTapout(false);
+        // Emergency tapout feature - enabled by default for safety
+        setAllowEmergencyTapout(true);
         // Scheduling feature
         setIsScheduled(false);
         setScheduleStartDate(null);
@@ -326,6 +384,12 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
       // Set duration animation based on noTimeLimit state
       durationFadeAnim.setValue(preset?.noTimeLimit !== false ? 0 : 1);
       loadInstalledApps(preset?.mode);
+      // Check if we should show excluded apps info modal
+      AsyncStorage.getItem(EXCLUDED_APPS_INFO_DISMISSED_KEY).then((dismissed) => {
+        if (dismissed !== 'true') {
+          setExcludedAppsInfoVisible(true);
+        }
+      });
     }
   }, [visible, preset, loadInstalledApps, stepFadeAnim, tabFadeAnim, durationFadeAnim]);
 
@@ -564,7 +628,21 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               </View>
               <Switch
                 value={blockSettings}
-                onValueChange={(value) => { mediumTap(); setBlockSettings(value); }}
+                onValueChange={async (value) => {
+                  mediumTap();
+                  if (value) {
+                    // Enabling - check if we should show warning
+                    const dismissed = await AsyncStorage.getItem(BLOCK_SETTINGS_WARNING_DISMISSED_KEY);
+                    if (dismissed !== 'true') {
+                      setBlockSettingsWarningVisible(true);
+                    } else {
+                      setBlockSettings(true);
+                    }
+                  } else {
+                    // Disabling - just disable
+                    setBlockSettings(false);
+                  }
+                }}
                 trackColor={{ false: colors.border, true: colors.greenDark }}
                 thumbColor={blockSettings ? colors.green : colors.textMuted}
               />
@@ -600,6 +678,12 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                   if (value) {
                     // Disable no time limit when enabling scheduling
                     setNoTimeLimit(false);
+                    // Animate duration section to show
+                    Animated.timing(durationFadeAnim, {
+                      toValue: 1,
+                      duration: 150,
+                      useNativeDriver: true,
+                    }).start();
                     // Check if we should show info modal
                     const dismissed = await AsyncStorage.getItem(SCHEDULE_INFO_DISMISSED_KEY);
                     if (dismissed !== 'true') {
@@ -615,6 +699,14 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                     // Clear schedule dates when disabling
                     setScheduleStartDate(null);
                     setScheduleEndDate(null);
+                    // Show duration picker since schedule is disabled and noTimeLimit is still false
+                    if (!noTimeLimit) {
+                      Animated.timing(durationFadeAnim, {
+                        toValue: 1,
+                        duration: 150,
+                        useNativeDriver: true,
+                      }).start();
+                    }
                   }
                 }}
                 trackColor={{ false: colors.border, true: colors.greenDark }}
@@ -873,6 +965,32 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
             message="A preset with the same name already exists. Please choose a different name."
             onClose={() => setDuplicateNameModalVisible(false)}
           />
+
+          {/* Disable Tapout Warning Modal */}
+          <DisableTapoutWarningModal
+            visible={disableTapoutWarningVisible}
+            onConfirm={async (dontShowAgain) => {
+              setDisableTapoutWarningVisible(false);
+              setAllowEmergencyTapout(false);
+              if (dontShowAgain) {
+                await AsyncStorage.setItem(DISABLE_TAPOUT_WARNING_DISMISSED_KEY, 'true');
+              }
+            }}
+            onCancel={() => setDisableTapoutWarningVisible(false)}
+          />
+
+          {/* Block Settings Warning Modal */}
+          <BlockSettingsWarningModal
+            visible={blockSettingsWarningVisible}
+            onConfirm={async (dontShowAgain) => {
+              setBlockSettingsWarningVisible(false);
+              setBlockSettings(true);
+              if (dontShowAgain) {
+                await AsyncStorage.setItem(BLOCK_SETTINGS_WARNING_DISMISSED_KEY, 'true');
+              }
+            }}
+            onCancel={() => setBlockSettingsWarningVisible(false)}
+          />
         </SafeAreaView>
       </Modal>
     );
@@ -1076,6 +1194,17 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
           </Animated.View>
         </KeyboardAvoidingView>
         </Animated.View>
+
+        {/* Excluded Apps Info Modal */}
+        <ExcludedAppsInfoModal
+          visible={excludedAppsInfoVisible}
+          onClose={async (dontShowAgain) => {
+            setExcludedAppsInfoVisible(false);
+            if (dontShowAgain) {
+              await AsyncStorage.setItem(EXCLUDED_APPS_INFO_DISMISSED_KEY, 'true');
+            }
+          }}
+        />
       </SafeAreaView>
     </Modal>
   );

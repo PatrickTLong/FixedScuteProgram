@@ -3,10 +3,10 @@ import {
   View,
   Text,
   TouchableOpacity,
-  Switch,
 } from 'react-native';
 import { lightTap, mediumTap } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
+import AnimatedSwitch from './AnimatedSwitch';
 
 export interface Preset {
   id: string;
@@ -253,13 +253,14 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, disabled
         </View>
 
         {/* Toggle Switch */}
-        <Switch
+        <AnimatedSwitch
           value={isActive && !isExpired}
           onValueChange={handleToggle}
           disabled={disabled || isExpired}
-          trackColor={{ false: colors.border, true: '#16a34a' }}
-          thumbColor={(isActive && !isExpired) ? colors.green : colors.textMuted}
-          ios_backgroundColor={colors.border}
+          trackColorFalse={colors.border}
+          trackColorTrue="#16a34a"
+          thumbColorOn={colors.green}
+          thumbColorOff={colors.textMuted}
         />
       </View>
     </TouchableOpacity>

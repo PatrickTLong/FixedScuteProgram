@@ -1,52 +1,196 @@
-import React, { useState, useRef, useCallback, useMemo, memo } from 'react';
+import React, { useState, useRef, useCallback, useMemo, memo, useEffect } from 'react';
 import {
   View,
   Text,
   Animated,
   PanResponder,
   TouchableOpacity,
+  Dimensions,
 } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
+import Svg, { Path, Text as SvgText, Defs, Filter, FeGaussianBlur } from 'react-native-svg';
 import { lightTap, mediumTap, successTap } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
 
+// Glowing text component using SVG blur filter
+interface GlowTextProps {
+  text: string;
+  color: string;
+  glowOpacity: Animated.Value;
+  fontSize?: number;
+}
+
+function GlowText({ text, color, glowOpacity, fontSize = 16 }: GlowTextProps) {
+  const [opacity, setOpacity] = useState(0);
+
+  useEffect(() => {
+    const listenerId = glowOpacity.addListener(({ value }) => {
+      setOpacity(value);
+    });
+    return () => glowOpacity.removeListener(listenerId);
+  }, [glowOpacity]);
+
+  // Estimate text width (rough approximation)
+  const textWidth = text.length * fontSize * 0.6;
+  const svgWidth = textWidth + 40; // padding for glow
+  const svgHeight = fontSize + 30;
+
+  return (
+    <View style={{ width: svgWidth, height: svgHeight, alignItems: 'center', justifyContent: 'center' }}>
+      <Svg width={svgWidth} height={svgHeight} style={{ position: 'absolute' }}>
+        <Defs>
+          <Filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+            <FeGaussianBlur in="SourceGraphic" stdDeviation="6" />
+          </Filter>
+        </Defs>
+        {/* Glow layer */}
+        <SvgText
+          x={svgWidth / 2}
+          y={svgHeight / 2 + fontSize / 3}
+          textAnchor="middle"
+          fontSize={fontSize}
+          fontFamily="Nunito-SemiBold"
+          fill="#ffffff"
+          opacity={opacity}
+          filter="url(#glow)"
+        >
+          {text}
+        </SvgText>
+        {/* Main text layer */}
+        <SvgText
+          x={svgWidth / 2}
+          y={svgHeight / 2 + fontSize / 3}
+          textAnchor="middle"
+          fontSize={fontSize}
+          fontFamily="Nunito-SemiBold"
+          fill={color}
+        >
+          {text}
+        </SvgText>
+      </Svg>
+    </View>
+  );
+}
+
 const HOLD_DURATION = 3000; // 3 seconds
+const SCREEN_WIDTH = Dimensions.get('window').width;
+const BUTTON_HORIZONTAL_PADDING = 48; // px-6 = 24px * 2 from parent
 
 interface BlockNowButtonProps {
   onActivate: () => void;
   onUnlockPress?: () => void;
+  onSlideUnlock?: () => Promise<void>;
   disabled?: boolean;
-  isRegistered?: boolean;
   isLocked?: boolean;
   hasActiveTimer?: boolean; // true when there's a countdown or elapsed time showing
+  hasReadyPreset?: boolean; // true when there's a preset ready to lock (enables glow)
 }
 
-function BlockNowButton({ onActivate, onUnlockPress, disabled = false, isRegistered = false, isLocked = false, hasActiveTimer = false }: BlockNowButtonProps) {
+function BlockNowButton({
+  onActivate,
+  onUnlockPress,
+  onSlideUnlock,
+  disabled = false,
+  isLocked = false,
+  hasActiveTimer = false,
+  hasReadyPreset = false,
+}: BlockNowButtonProps) {
   const { colors } = useTheme();
   const [isPressed, setIsPressed] = useState(false);
   const fillAnimation = useRef(new Animated.Value(0)).current;
   const animationRef = useRef<Animated.CompositeAnimation | null>(null);
   const hapticIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Can activate only when registered, not disabled, and not locked
-  const canActivate = !disabled && isRegistered && !isLocked;
+  // Pulsating glow animation
+  const glowOpacity = useRef(new Animated.Value(0)).current;
+  const glowAnimationRef = useRef<Animated.CompositeAnimation | null>(null);
 
-  // Store canActivate in ref for PanResponder to avoid dependency changes
+  // Slide to unlock state
+  const [isSliding, setIsSliding] = useState(false);
+  const [isUnlocking, setIsUnlocking] = useState(false);
+  const slidePosition = useRef(new Animated.Value(0)).current;
+  const [buttonWidth, setButtonWidth] = useState(SCREEN_WIDTH - BUTTON_HORIZONTAL_PADDING);
+  const hapticTriggeredRef = useRef({ first: false, second: false, third: false });
+
+  // Can activate only when not disabled and not locked
+  const canActivate = !disabled && !isLocked;
+
+  // Store refs for PanResponder to avoid dependency changes
   const canActivateRef = useRef(canActivate);
   canActivateRef.current = canActivate;
 
-  // Store onActivate in ref to avoid dependency changes in PanResponder
   const onActivateRef = useRef(onActivate);
   onActivateRef.current = onActivate;
 
+  const onSlideUnlockRef = useRef(onSlideUnlock);
+  onSlideUnlockRef.current = onSlideUnlock;
+
+  const buttonWidthRef = useRef(buttonWidth);
+  useEffect(() => {
+    buttonWidthRef.current = buttonWidth;
+  }, [buttonWidth]);
+
+  const isUnlockingRef = useRef(isUnlocking);
+  useEffect(() => {
+    isUnlockingRef.current = isUnlocking;
+  }, [isUnlocking]);
+
+  // Determine if we should show slide-to-unlock (locked but no active timer)
+  const showSlideToUnlock = isLocked && !hasActiveTimer;
+
+  // Slow pulsating glow for ready preset (hold to lock) and slide to unlock
+  const shouldShowSlowGlow = (hasReadyPreset && !isLocked) || showSlideToUnlock;
+
+  useEffect(() => {
+    if (shouldShowSlowGlow && !isPressed) {
+      // Start slow pulsating animation (2 second cycle)
+      glowAnimationRef.current = Animated.loop(
+        Animated.sequence([
+          Animated.timing(glowOpacity, {
+            toValue: 1,
+            duration: 1000,
+            useNativeDriver: false,
+          }),
+          Animated.timing(glowOpacity, {
+            toValue: 0,
+            duration: 1000,
+            useNativeDriver: false,
+          }),
+        ])
+      );
+      glowAnimationRef.current.start();
+    } else {
+      // Stop animation
+      if (glowAnimationRef.current) {
+        glowAnimationRef.current.stop();
+        glowAnimationRef.current = null;
+      }
+      glowOpacity.setValue(0);
+    }
+
+    return () => {
+      if (glowAnimationRef.current) {
+        glowAnimationRef.current.stop();
+        glowAnimationRef.current = null;
+      }
+    };
+  }, [shouldShowSlowGlow, isPressed, glowOpacity]);
+
+  // Reset slide position when switching modes
+  useEffect(() => {
+    if (!showSlideToUnlock) {
+      slidePosition.setValue(0);
+      hapticTriggeredRef.current = { first: false, second: false, third: false };
+    }
+  }, [showSlideToUnlock, slidePosition]);
+
+  // Hold-to-lock animation functions
   const startAnimation = useCallback(() => {
     if (!canActivateRef.current) return;
 
-    mediumTap(); // Haptic on press start
+    mediumTap();
     setIsPressed(true);
     fillAnimation.setValue(0);
 
-    // Start per-second haptic feedback
     hapticIntervalRef.current = setInterval(() => {
       lightTap();
     }, 1000);
@@ -58,18 +202,15 @@ function BlockNowButton({ onActivate, onUnlockPress, disabled = false, isRegiste
     });
 
     animationRef.current.start(({ finished }) => {
-      // Clear haptic interval
       if (hapticIntervalRef.current) {
         clearInterval(hapticIntervalRef.current);
         hapticIntervalRef.current = null;
       }
 
       if (finished) {
-        // Successfully held for 3 seconds - activate blocking
-        successTap(); // Success haptic
+        successTap();
         onActivateRef.current();
         setIsPressed(false);
-        // Reset the fill animation
         fillAnimation.setValue(0);
       }
     });
@@ -80,7 +221,6 @@ function BlockNowButton({ onActivate, onUnlockPress, disabled = false, isRegiste
       animationRef.current.stop();
     }
 
-    // Clear haptic interval
     if (hapticIntervalRef.current) {
       clearInterval(hapticIntervalRef.current);
       hapticIntervalRef.current = null;
@@ -88,7 +228,6 @@ function BlockNowButton({ onActivate, onUnlockPress, disabled = false, isRegiste
 
     setIsPressed(false);
 
-    // Animate back to 0
     Animated.timing(fillAnimation, {
       toValue: 0,
       duration: 150,
@@ -96,14 +235,47 @@ function BlockNowButton({ onActivate, onUnlockPress, disabled = false, isRegiste
     }).start();
   }, [fillAnimation]);
 
-  // Create panResponder with useMemo - use refs to avoid dependency changes
-  // This prevents recreation on every parent re-render (timer updates)
-  const panResponder = useMemo(
+  // Slide-to-unlock functions
+  const resetSlider = useCallback(() => {
+    hapticTriggeredRef.current = { first: false, second: false, third: false };
+    setIsSliding(false);
+    Animated.spring(slidePosition, {
+      toValue: 0,
+      useNativeDriver: false,
+      friction: 5,
+    }).start();
+  }, [slidePosition]);
+
+  const handleSlideComplete = useCallback(async () => {
+    setIsUnlocking(true);
+    isUnlockingRef.current = true;
+    successTap();
+    try {
+      if (onSlideUnlockRef.current) {
+        await onSlideUnlockRef.current();
+      }
+    } finally {
+      setIsUnlocking(false);
+      isUnlockingRef.current = false;
+      setIsSliding(false);
+      slidePosition.setValue(0);
+      hapticTriggeredRef.current = { first: false, second: false, third: false };
+    }
+  }, [slidePosition]);
+
+  const handleSlideCompleteRef = useRef(handleSlideComplete);
+  const resetSliderRef = useRef(resetSlider);
+
+  useEffect(() => {
+    handleSlideCompleteRef.current = handleSlideComplete;
+    resetSliderRef.current = resetSlider;
+  }, [handleSlideComplete, resetSlider]);
+
+  // Hold-to-lock PanResponder
+  const holdPanResponder = useMemo(
     () =>
       PanResponder.create({
-        onStartShouldSetPanResponder: () => {
-          return canActivateRef.current;
-        },
+        onStartShouldSetPanResponder: () => canActivateRef.current,
         onMoveShouldSetPanResponder: () => false,
         onPanResponderGrant: () => {
           startAnimation();
@@ -118,46 +290,83 @@ function BlockNowButton({ onActivate, onUnlockPress, disabled = false, isRegiste
     [startAnimation, cancelAnimation]
   );
 
-  // Interpolate fill width
+  // Slide-to-unlock PanResponder
+  const slidePanResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => !isUnlockingRef.current,
+      onMoveShouldSetPanResponder: (_, gestureState) => {
+        // Only respond to horizontal movement
+        return !isUnlockingRef.current && Math.abs(gestureState.dx) > 5;
+      },
+      onPanResponderGrant: () => {
+        mediumTap();
+        setIsSliding(true);
+        hapticTriggeredRef.current = { first: false, second: false, third: false };
+      },
+      onPanResponderMove: (_, gestureState) => {
+        const maxSlide = buttonWidthRef.current;
+        const newPosition = Math.max(0, Math.min(gestureState.dx, maxSlide));
+        slidePosition.setValue(newPosition);
+
+        // Calculate progress percentage
+        const progress = newPosition / maxSlide;
+
+        // Haptic feedback at 33%, 66%, and 90% thresholds
+        if (progress >= 0.33 && !hapticTriggeredRef.current.first) {
+          hapticTriggeredRef.current.first = true;
+          lightTap();
+        }
+        if (progress >= 0.66 && !hapticTriggeredRef.current.second) {
+          hapticTriggeredRef.current.second = true;
+          lightTap();
+        }
+        if (progress >= 0.90 && !hapticTriggeredRef.current.third) {
+          hapticTriggeredRef.current.third = true;
+          mediumTap();
+        }
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        const maxSlide = buttonWidthRef.current;
+        const currentPosition = Math.max(0, Math.min(gestureState.dx, maxSlide));
+
+        if (currentPosition >= maxSlide * 0.85) {
+          // Slid far enough - unlock
+          handleSlideCompleteRef.current();
+        } else {
+          // Not far enough - reset
+          resetSliderRef.current();
+        }
+      },
+      onPanResponderTerminate: () => {
+        resetSliderRef.current();
+      },
+    })
+  ).current;
+
+  // Interpolate fill width for hold-to-lock
   const fillWidth = fillAnimation.interpolate({
     inputRange: [0, 1],
     outputRange: ['0%', '100%'],
   });
 
-  // Green color for fill when registered
+  // Interpolate slide fill width
+  const slideFillWidth = slidePosition.interpolate({
+    inputRange: [0, buttonWidth],
+    outputRange: ['0%', '100%'],
+    extrapolate: 'clamp',
+  });
+
   const fillColor = colors.green;
 
   const getTextColor = () => {
-    if (!isRegistered) return colors.text; // white/dark for register button
-    if (isLocked) return colors.text; // normal text when locked
-    if (!canActivate) return colors.textMuted; // muted when disabled (no preset)
-    if (isPressed) return colors.text; // white in dark mode, dark in light mode during hold
-    return colors.text; // clean text color
+    if (isLocked) return colors.text;
+    if (!canActivate) return colors.textMuted;
+    if (isPressed) return colors.text;
+    return colors.text;
   };
 
-  // If not registered, render a simple TouchableOpacity for tapping
-  if (!isRegistered) {
-    return (
-      <TouchableOpacity
-        onPress={() => { lightTap(); onActivate(); }}
-        activeOpacity={0.7}
-        className="h-14 rounded-2xl overflow-hidden"
-        style={{ backgroundColor: colors.card }}
-      >
-        <View className="flex-1 flex-row items-center justify-center">
-          <Text
-            style={{ color: getTextColor() }}
-            className="text-base font-nunito-semibold"
-          >
-            Register Scute
-          </Text>
-        </View>
-      </TouchableOpacity>
-    );
-  }
-
-  // When locked, render a tappable button to show unlock modal
-  if (isLocked) {
+  // When locked with active timer, show tappable "Locked" button
+  if (isLocked && hasActiveTimer) {
     return (
       <TouchableOpacity
         onPress={() => {
@@ -171,7 +380,6 @@ function BlockNowButton({ onActivate, onUnlockPress, disabled = false, isRegiste
         }}
       >
         <View className="flex-1 flex-row items-center justify-center">
-          {/* Lock Icon */}
           <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" style={{ marginRight: 8 }}>
             <Path
               d="M19 11H5a2 2 0 00-2 2v7a2 2 0 002 2h14a2 2 0 002-2v-7a2 2 0 00-2-2zM7 11V7a5 5 0 0110 0v4"
@@ -185,16 +393,53 @@ function BlockNowButton({ onActivate, onUnlockPress, disabled = false, isRegiste
             style={{ color: colors.text }}
             className="text-base font-nunito-semibold"
           >
-            {hasActiveTimer ? 'Locked' : 'Tap to Unlock'}
+            Locked
           </Text>
         </View>
       </TouchableOpacity>
     );
   }
 
+  // When locked without timer (no time limit), show slide-to-unlock
+  if (showSlideToUnlock) {
+    return (
+      <View
+        onLayout={(e) => setButtonWidth(e.nativeEvent.layout.width)}
+        {...slidePanResponder.panHandlers}
+        className="h-14 rounded-2xl overflow-hidden"
+        style={{
+          backgroundColor: colors.card,
+        }}
+      >
+        {/* Slide fill animation - same style as hold-to-lock */}
+        <Animated.View
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            bottom: 0,
+            width: slideFillWidth,
+            backgroundColor: fillColor,
+            borderRadius: 16,
+          }}
+        />
+
+        {/* Button Content */}
+        <View className="flex-1 flex-row items-center justify-center">
+          <GlowText
+            text={isUnlocking ? 'Unlocking...' : isSliding ? 'Slide...' : 'Slide to Unlock'}
+            color={colors.text}
+            glowOpacity={glowOpacity}
+          />
+        </View>
+      </View>
+    );
+  }
+
+  // Default: Hold to begin locking
   return (
     <View
-      {...(canActivate ? panResponder.panHandlers : {})}
+      {...(canActivate ? holdPanResponder.panHandlers : {})}
       className="h-14 rounded-2xl overflow-hidden"
       style={{
         backgroundColor: colors.card,
@@ -218,12 +463,20 @@ function BlockNowButton({ onActivate, onUnlockPress, disabled = false, isRegiste
 
       {/* Button Content */}
       <View className="flex-1 flex-row items-center justify-center">
-        <Text
-          style={{ color: getTextColor() }}
-          className="text-base font-nunito-semibold"
-        >
-          {isPressed ? 'Hold...' : 'Hold to Begin Locking'}
-        </Text>
+        {shouldShowSlowGlow ? (
+          <GlowText
+            text={isPressed ? 'Hold...' : 'Hold to Begin Locking'}
+            color={getTextColor()}
+            glowOpacity={glowOpacity}
+          />
+        ) : (
+          <Text
+            style={{ color: getTextColor() }}
+            className="text-base font-nunito-semibold"
+          >
+            {isPressed ? 'Hold...' : 'Hold to Begin Locking'}
+          </Text>
+        )}
       </View>
     </View>
   );
@@ -233,10 +486,11 @@ function BlockNowButton({ onActivate, onUnlockPress, disabled = false, isRegiste
 export default memo(BlockNowButton, (prevProps, nextProps) => {
   return (
     prevProps.disabled === nextProps.disabled &&
-    prevProps.isRegistered === nextProps.isRegistered &&
     prevProps.isLocked === nextProps.isLocked &&
     prevProps.hasActiveTimer === nextProps.hasActiveTimer &&
+    prevProps.hasReadyPreset === nextProps.hasReadyPreset &&
     prevProps.onActivate === nextProps.onActivate &&
-    prevProps.onUnlockPress === nextProps.onUnlockPress
+    prevProps.onUnlockPress === nextProps.onUnlockPress &&
+    prevProps.onSlideUnlock === nextProps.onSlideUnlock
   );
 });

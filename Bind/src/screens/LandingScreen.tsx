@@ -1,13 +1,12 @@
-import React, { memo } from 'react';
+import React, { memo, useEffect, useRef } from 'react';
 import {
   Text,
   View,
   TouchableOpacity,
-  Linking,
   Image,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import AnimatedGradientText from '../components/AnimatedGradientText';
 import { useTheme } from '../context/ThemeContext';
 
 interface Props {
@@ -18,9 +17,31 @@ interface Props {
 function LandingScreen({ onSignIn, onGetStarted }: Props) {
   const { colors } = useTheme();
 
-  const handleScuteLink = () => {
-    Linking.openURL('https://scuteapp.com');
-  };
+  // Pulsating glow animation for "Scute!" text
+  const glowOpacity = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    // Start pulsating animation (800ms cycle)
+    const animation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(glowOpacity, {
+          toValue: 1,
+          duration: 400,
+          useNativeDriver: false,
+        }),
+        Animated.timing(glowOpacity, {
+          toValue: 0,
+          duration: 400,
+          useNativeDriver: false,
+        }),
+      ])
+    );
+    animation.start();
+
+    return () => {
+      animation.stop();
+    };
+  }, [glowOpacity]);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
@@ -36,7 +57,20 @@ function LandingScreen({ onSignIn, onGetStarted }: Props) {
         {/* Title */}
         <View className="flex-row items-baseline justify-center mb-4">
           <Text style={{ color: colors.text }} className="text-3xl font-nunito-bold">This is </Text>
-          <AnimatedGradientText text="Scute!" />
+          <Animated.Text
+            style={{
+              color: colors.text,
+              textShadowColor: '#ffffff',
+              textShadowOffset: { width: 0, height: 0 },
+              textShadowRadius: glowOpacity.interpolate({
+                inputRange: [0, 1],
+                outputRange: [0, 20],
+              }),
+            }}
+            className="text-3xl font-nunito-bold"
+          >
+            Scute!
+          </Animated.Text>
         </View>
 
         {/* Subtitle */}
@@ -59,16 +93,12 @@ function LandingScreen({ onSignIn, onGetStarted }: Props) {
           </Text>
         </TouchableOpacity>
 
-        {/* Still need a Scute link */}
-        <TouchableOpacity
-          onPress={handleScuteLink}
-          activeOpacity={0.7}
-          className="items-center py-2"
-        >
-          <Text style={{ color: colors.textSecondary }} className="text-base font-nunito">
-            Still need a Scute?
+        {/* Spacer to maintain button position */}
+        <View className="items-center py-2">
+          <Text className="text-base font-nunito" style={{ opacity: 0 }}>
+            Placeholder
           </Text>
-        </TouchableOpacity>
+        </View>
       </View>
     </SafeAreaView>
   );

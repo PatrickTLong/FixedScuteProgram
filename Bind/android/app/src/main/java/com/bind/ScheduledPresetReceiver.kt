@@ -110,6 +110,29 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
                 return
             }
 
+            // Check if a no-time-limit preset is currently active - if so, cancel it so scheduled can take over
+            if (isSessionActive) {
+                val isNoTimeLimit = sessionPrefs.getBoolean("no_time_limit", false)
+                val isScheduledPreset = sessionPrefs.getBoolean("is_scheduled_preset", false)
+
+                if (isNoTimeLimit && !isScheduledPreset) {
+                    // A no-time-limit manual preset is active - cancel it to let scheduled preset activate
+                    Log.d(TAG, "Cancelling active no-time-limit preset to activate scheduled preset $presetId")
+
+                    // Stop the current session
+                    sessionPrefs.edit()
+                        .putBoolean(UninstallBlockerService.KEY_SESSION_ACTIVE, false)
+                        .remove("active_preset_id")
+                        .remove("active_preset_name")
+                        .remove("no_time_limit")
+                        .apply()
+
+                    // Stop the foreground service briefly
+                    val stopServiceIntent = Intent(context, UninstallBlockerService::class.java)
+                    context.stopService(stopServiceIntent)
+                }
+            }
+
             val prefs = context.getSharedPreferences(ScheduleManager.PREFS_NAME, Context.MODE_PRIVATE)
             val presetsJson = prefs.getString(ScheduleManager.KEY_SCHEDULED_PRESETS, null)
 

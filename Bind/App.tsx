@@ -12,17 +12,18 @@ import PermissionsChecklistScreen from './src/screens/PermissionsChecklistScreen
 import HomeScreen from './src/screens/HomeScreen';
 import PresetsScreen from './src/screens/PresetsScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
+import TermsAcceptScreen from './src/screens/TermsAcceptScreen';
 import BottomTabBar from './src/components/BottomTabBar';
 import InfoModal from './src/components/InfoModal';
 import EmergencyTapoutModal from './src/components/EmergencyTapoutModal';
-import { unregisterCard, deleteAccount, updateLockStatus, getLockStatus, getPresets, resetPresets, getEmergencyTapoutStatus, useEmergencyTapout, savePreset, Preset, EmergencyTapoutStatus, invalidateUserCaches, saveUserTheme } from './src/services/cardApi';
+import { deleteAccount, updateLockStatus, getLockStatus, getPresets, resetPresets, getEmergencyTapoutStatus, useEmergencyTapout, savePreset, Preset, EmergencyTapoutStatus, invalidateUserCaches, saveUserTheme, clearAuthToken } from './src/services/cardApi';
 
 const { BlockingModule, PermissionsModule, ScheduleModule } = NativeModules;
 
 // Track which scheduled preset we've already navigated for (to avoid repeat navigations)
 let lastNavigatedScheduledPresetId: string | null = null;
 
-type Screen = 'landing' | 'signin' | 'getstarted' | 'forgotpassword' | 'permissions' | 'main';
+type Screen = 'landing' | 'signin' | 'getstarted' | 'forgotpassword' | 'terms' | 'permissions' | 'main';
 type TabName = 'home' | 'presets' | 'settings';
 
 function App() {
@@ -341,6 +342,16 @@ function App() {
       setIsLoggedIn(true);
       setUserEmail(email);
 
+      // Check if ToS has been accepted
+      const tosAccepted = await AsyncStorage.getItem('tos_accepted');
+      if (tosAccepted !== 'true') {
+        // Show Terms of Service screen first
+        setDisplayedScreen('terms');
+        setCurrentScreen('terms');
+        setIsInitializing(false);
+        return;
+      }
+
       // Check if all permissions are already granted before showing permissions screen
       try {
         if (PermissionsModule) {
@@ -372,7 +383,40 @@ function App() {
     setIsLoggedIn(true);
     await AsyncStorage.setItem('user_email', email);
 
+    // Check if ToS has been accepted
+    const tosAccepted = await AsyncStorage.getItem('tos_accepted');
+    if (tosAccepted !== 'true') {
+      // Show Terms of Service screen first
+      setDisplayedScreen('terms');
+      setCurrentScreen('terms');
+      return;
+    }
+
     // Check if all permissions are already granted before showing permissions screen
+    try {
+      if (PermissionsModule) {
+        const states = await PermissionsModule.checkAllPermissions();
+        const requiredPermissions = ['notification', 'accessibility', 'usageAccess', 'displayOverlay', 'deviceAdmin', 'postNotifications', 'exactAlarm'];
+        const allGranted = requiredPermissions.every(perm => states[perm]);
+
+        if (allGranted) {
+          // All permissions granted, go directly to main screen
+          setDisplayedScreen('main');
+          setCurrentScreen('main');
+          return;
+        }
+      }
+    } catch (error) {
+      console.error('[App] Error checking permissions:', error);
+    }
+
+    // Permissions not all granted or check failed, show permissions screen
+    setDisplayedScreen('permissions');
+    setCurrentScreen('permissions');
+  }, []);
+
+  const handleTermsAccepted = useCallback(async () => {
+    // ToS accepted, now check permissions
     try {
       if (PermissionsModule) {
         const states = await PermissionsModule.checkAllPermissions();
@@ -402,6 +446,7 @@ function App() {
 
   const handleLogout = useCallback(async () => {
     await AsyncStorage.removeItem('user_email');
+    await clearAuthToken(); // Clear JWT token on logout
     setIsLoggedIn(false);
     setUserEmail('');
     setDisplayedScreen('landing');
@@ -428,21 +473,6 @@ function App() {
       return { success: false, error: 'Failed to reset account' };
     }
   }, [userEmail, setTheme]);
-
-  const handleUnregisterScute = useCallback(async (): Promise<{ success: boolean; error?: string }> => {
-    // Unregister the Scute card but keep user logged in
-    // This only clears user_cards data in Supabase, NOT the whitelist (valid_scute_uids)
-    try {
-      const result = await unregisterCard(userEmail);
-      if (!result.success) {
-        return { success: false, error: result.error || 'Failed to unregister Scute' };
-      }
-      return { success: true };
-    } catch (error) {
-      console.error('Failed to unregister Scute:', error);
-      return { success: false, error: 'Failed to unregister Scute' };
-    }
-  }, [userEmail]);
 
   const handleDeleteAccount = useCallback(async (): Promise<{ success: boolean; error?: string }> => {
     // Delete account from Supabase and clear everything locally
@@ -512,6 +542,12 @@ function App() {
               onSuccess={() => changeScreen('signin')}
             />
           );
+        case 'terms':
+          return (
+            <TermsAcceptScreen
+              onAccept={handleTermsAccepted}
+            />
+          );
         case 'permissions':
           return (
             <PermissionsChecklistScreen
@@ -539,7 +575,6 @@ function App() {
                     email={userEmail}
                     onLogout={handleLogout}
                     onResetAccount={handleResetAccount}
-                    onUnregisterScute={handleUnregisterScute}
                     onDeleteAccount={handleDeleteAccount}
                   />
                 )}

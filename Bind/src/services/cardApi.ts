@@ -1,13 +1,62 @@
 /**
- * Card API Service
- * Handles Supabase-based UID whitelist validation for Scute cards
- *
- * Database Tables:
- * - valid_scute_uids: List of valid Scute card UIDs (added by admin before shipping)
- * - user_cards: Links users to their registered cards and settings
+ * API Service
+ * Handles user data, presets, and app blocking functionality
  */
 
-import supabase from '../config/supabase';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+// ============ JWT Token Management ============
+const TOKEN_KEY = '@scute_auth_token';
+let cachedToken: string | null = null;
+
+/**
+ * Store JWT token securely
+ */
+export async function setAuthToken(token: string): Promise<void> {
+  cachedToken = token;
+  await AsyncStorage.setItem(TOKEN_KEY, token);
+  console.log('[CardAPI] Auth token stored');
+}
+
+/**
+ * Get stored JWT token
+ */
+export async function getAuthToken(): Promise<string | null> {
+  if (cachedToken) return cachedToken;
+  cachedToken = await AsyncStorage.getItem(TOKEN_KEY);
+  return cachedToken;
+}
+
+/**
+ * Clear JWT token (on logout)
+ */
+export async function clearAuthToken(): Promise<void> {
+  cachedToken = null;
+  await AsyncStorage.removeItem(TOKEN_KEY);
+  console.log('[CardAPI] Auth token cleared');
+}
+
+/**
+ * Check if user is authenticated
+ */
+export async function isAuthenticated(): Promise<boolean> {
+  const token = await getAuthToken();
+  return token !== null;
+}
+
+/**
+ * Get authorization headers for API requests
+ */
+async function getAuthHeaders(): Promise<Record<string, string>> {
+  const token = await getAuthToken();
+  if (!token) {
+    return { 'Content-Type': 'application/json' };
+  }
+  return {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`,
+  };
+}
 
 // ============ API Cache Layer ============
 interface CacheEntry<T> {
@@ -21,7 +70,6 @@ const cache: Map<string, CacheEntry<any>> = new Map();
 const CACHE_TTL = {
   presets: 30000,      // 30 seconds - presets change rarely
   lockStatus: 10000,   // 10 seconds - balance between freshness and performance
-  userCardData: 30000, // 30 seconds
 };
 
 function getCached<T>(key: string, ttl: number): T | null {
@@ -55,7 +103,6 @@ export function invalidateUserCaches(email: string): void {
   const normalizedEmail = email.toLowerCase();
   invalidateCache(`presets:${normalizedEmail}`);
   invalidateCache(`lockStatus:${normalizedEmail}`);
-  invalidateCache(`userCardData:${normalizedEmail}`);
 }
 
 // Track users who have already been initialized this session to prevent duplicate calls
@@ -108,12 +155,6 @@ function deduplicatedRequest<T>(key: string, requestFn: () => Promise<T>): Promi
   return promise;
 }
 
-export interface UserCardData {
-  uid: string | null;
-  settings: TapSettings | null;
-  registered_at: string | null;
-}
-
 export interface TapSettings {
   mode: 'all' | 'specific';
   selectedApps: string[];
@@ -126,308 +167,29 @@ export interface TapSettings {
   noTimeLimit?: boolean;
 }
 
-export interface CardRegistrationResult {
-  success: boolean;
-  error?: string;
-  errorCode?: 'NOT_FOUND' | 'ALREADY_REGISTERED' | 'EMAIL_HAS_CARD' | 'NETWORK_ERROR' | 'SERVER_ERROR';
-}
-
-export interface CardAddResult {
-  success: boolean;
-  error?: string;
-  alreadyExists?: boolean;
-}
-
-export interface CardEntry {
-  uid: string;
-  email: string | null;
-  registered_at: string | null;
-}
-
-// ============ Helper functions ============
-
-/**
- * Normalize UID format (remove colons, uppercase)
- */
-function normalizeUid(uid: string): string {
-  return uid.replace(/:/g, '').toUpperCase();
-}
-
-/**
- * Format UID for display (with colons)
- */
-export function formatUidForDisplay(uid: string): string {
-  const normalized = normalizeUid(uid);
-  return normalized.match(/.{1,2}/g)?.join(':') || normalized;
-}
-
-// ============ User Card Functions ============
-
-/**
- * Initialize user data when they register their email
- * Creates an entry with null UID and null settings
- */
-export async function initializeUserData(email: string): Promise<void> {
-  const normalizedEmail = email.toLowerCase();
-
-  try {
-    // Check if already exists
-    const { data: existing } = await supabase
-      .from('user_cards')
-      .select('email')
-      .eq('email', normalizedEmail)
-      .single();
-
-    if (!existing) {
-      const { error } = await supabase
-        .from('user_cards')
-        .insert({
-          email: normalizedEmail,
-          uid: null,
-          settings: null,
-          registered_at: null,
-        });
-
-      if (error && !error.message.includes('duplicate')) {
-        console.error('[CardAPI] Error initializing user data:', error);
-      } else {
-        console.log('[CardAPI] Initialized user data for:', normalizedEmail);
-      }
-    }
-  } catch (error) {
-    console.error('[CardAPI] Error initializing user data:', error);
-  }
-}
-
 // Backend API URL
 const API_URL = 'http://10.0.0.252:3000';
-
-/**
- * Get user card data via backend API (cached)
- */
-export async function getUserCardData(email: string, skipCache = false): Promise<UserCardData | null> {
-  const normalizedEmail = email.toLowerCase();
-  const cacheKey = `userCardData:${normalizedEmail}`;
-
-  // Check cache first
-  if (!skipCache) {
-    const cached = getCached<UserCardData>(cacheKey, CACHE_TTL.userCardData);
-    if (cached) return cached;
-  }
-
-  try {
-    const response = await fetch(`${API_URL}/api/user-card-data?email=${encodeURIComponent(normalizedEmail)}`);
-    const data = await response.json();
-
-    if (!response.ok || data.error) {
-      return null;
-    }
-
-    const result: UserCardData = {
-      uid: data.uid,
-      settings: data.settings as TapSettings | null,
-      registered_at: data.registered_at,
-    };
-
-    setCache(cacheKey, result);
-    return result;
-  } catch (error) {
-    console.error('[CardAPI] Error getting user card data:', error);
-    return null;
-  }
-}
 
 /**
  * Save user settings via backend API
  */
 export async function saveUserSettings(email: string, settings: TapSettings): Promise<void> {
-  const normalizedEmail = email.toLowerCase();
-
   try {
+    const headers = await getAuthHeaders();
     const response = await fetch(`${API_URL}/api/save-settings`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: normalizedEmail, settings }),
+      headers,
+      body: JSON.stringify({ settings }),
     });
 
     if (!response.ok) {
       const data = await response.json();
       console.error('[CardAPI] Error saving settings:', data.error);
     } else {
-      console.log('[CardAPI] Saved settings for:', normalizedEmail);
+      console.log('[CardAPI] Saved settings for:', email);
     }
   } catch (error) {
     console.error('[CardAPI] Error saving settings:', error);
-  }
-}
-
-// ============ Card Registration Functions ============
-
-/**
- * Register a card to a user's email via backend API
- */
-export async function registerCard(uid: string, email: string): Promise<CardRegistrationResult> {
-  const normalizedUid = normalizeUid(uid);
-  const normalizedEmail = email.toLowerCase();
-
-  console.log('[CardAPI] registerCard called:');
-  console.log('[CardAPI]   Raw UID:', uid);
-  console.log('[CardAPI]   Normalized UID:', normalizedUid);
-  console.log('[CardAPI]   Email:', normalizedEmail);
-  console.log('[CardAPI]   API URL:', `${API_URL}/api/register-card`);
-
-  try {
-    const response = await fetch(`${API_URL}/api/register-card`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ uid: normalizedUid, email: normalizedEmail }),
-    });
-
-    const data = await response.json();
-    console.log('[CardAPI] Response status:', response.status);
-    console.log('[CardAPI] Response data:', JSON.stringify(data));
-
-    if (!response.ok) {
-      console.log('[CardAPI] Registration rejected:', data.error, 'errorCode:', data.errorCode);
-      return {
-        success: false,
-        error: data.error || 'Failed to register card',
-        errorCode: data.errorCode || 'SERVER_ERROR'
-      };
-    }
-
-    // Invalidate user card data cache so fresh data is fetched
-    invalidateCache(`userCardData:${normalizedEmail}`);
-    console.log('[CardAPI] Card registered:', { uid: normalizedUid, email: normalizedEmail });
-    return { success: true };
-  } catch (error) {
-    console.error('[CardAPI] Error registering card:', error);
-    return { success: false, error: 'Network error', errorCode: 'NETWORK_ERROR' };
-  }
-}
-
-/**
- * Add a new card UID to the whitelist (admin only)
- * This calls the backend API since only service role can insert to valid_scute_uids
- */
-export async function addCardToWhitelist(uid: string, adminEmail?: string): Promise<CardAddResult> {
-  const normalizedUid = normalizeUid(uid);
-
-  try {
-    const response = await fetch(`${API_URL}/api/add-card-to-whitelist`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ uid: normalizedUid, adminEmail }),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      console.error('[CardAPI] Error adding to whitelist:', data.error);
-      return { success: false, error: data.error || 'Failed to add card' };
-    }
-
-    if (data.alreadyExists) {
-      console.log('[CardAPI] UID already in whitelist:', normalizedUid);
-      return { success: false, error: 'Card already exists in database', alreadyExists: true };
-    }
-
-    console.log('[CardAPI] UID added to whitelist:', normalizedUid);
-    return { success: true };
-  } catch (error) {
-    console.error('[CardAPI] Error adding to whitelist:', error);
-    return { success: false, error: 'Network error' };
-  }
-}
-
-/**
- * Check if a UID exists in the whitelist
- */
-export async function checkCardExists(uid: string): Promise<{ exists: boolean; registered: boolean; email?: string }> {
-  const normalizedUid = normalizeUid(uid);
-
-  try {
-    // Check if in valid UIDs list
-    const { data: validUid } = await supabase
-      .from('valid_scute_uids')
-      .select('uid')
-      .eq('uid', normalizedUid)
-      .single();
-
-    if (!validUid) {
-      return { exists: false, registered: false };
-    }
-
-    // Check if registered to any user
-    const { data: userCard } = await supabase
-      .from('user_cards')
-      .select('email')
-      .eq('uid', normalizedUid)
-      .single();
-
-    if (userCard) {
-      return { exists: true, registered: true, email: userCard.email };
-    }
-
-    return { exists: true, registered: false };
-  } catch (error) {
-    console.error('[CardAPI] Error checking card:', error);
-    return { exists: false, registered: false };
-  }
-}
-
-/**
- * Check if an email already has a card registered
- */
-export async function checkEmailHasCard(email: string): Promise<{ hasCard: boolean; uid?: string }> {
-  const normalizedEmail = email.toLowerCase();
-
-  try {
-    const { data } = await supabase
-      .from('user_cards')
-      .select('uid')
-      .eq('email', normalizedEmail)
-      .single();
-
-    if (data?.uid) {
-      return { hasCard: true, uid: data.uid };
-    }
-
-    return { hasCard: false };
-  } catch (error) {
-    console.error('[CardAPI] Error checking email:', error);
-    return { hasCard: false };
-  }
-}
-
-/**
- * Unregister a card via backend API
- * Note: This only clears the user's card registration, NOT the whitelist
- */
-export async function unregisterCard(email: string): Promise<{ success: boolean; error?: string }> {
-  const normalizedEmail = email.toLowerCase();
-
-  try {
-    const response = await fetch(`${API_URL}/api/unregister-card`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: normalizedEmail }),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      console.error('[CardAPI] Error unregistering card:', data.error);
-      return { success: false, error: data.error || 'Failed to unregister card' };
-    }
-
-    // Invalidate user card data cache
-    invalidateCache(`userCardData:${normalizedEmail}`);
-    console.log('[CardAPI] Card unregistered for:', normalizedEmail);
-    return { success: true };
-  } catch (error) {
-    console.error('[CardAPI] Error unregistering card:', error);
-    return { success: false, error: 'Network error' };
   }
 }
 
@@ -439,10 +201,11 @@ export async function deleteAccount(email: string): Promise<{ success: boolean; 
   const normalizedEmail = email.toLowerCase();
 
   try {
+    const headers = await getAuthHeaders();
     const response = await fetch(`${API_URL}/api/delete-account`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: normalizedEmail }),
+      headers,
+      body: JSON.stringify({}),
     });
 
     const data = await response.json();
@@ -456,127 +219,15 @@ export async function deleteAccount(email: string): Promise<{ success: boolean; 
     invalidateCache(`userCardData:${normalizedEmail}`);
     invalidateCache(`presets:${normalizedEmail}`);
     invalidateCache(`lockStatus:${normalizedEmail}`);
+
+    // Clear auth token on account deletion
+    await clearAuthToken();
+
     console.log('[CardAPI] Account deleted:', normalizedEmail);
     return { success: true };
   } catch (error) {
     console.error('[CardAPI] Error deleting account:', error);
     return { success: false, error: 'Network error' };
-  }
-}
-
-/**
- * Get all cards in the database (admin only)
- */
-export async function getAllCards(): Promise<CardEntry[]> {
-  try {
-    // Get all valid UIDs
-    const { data: validUids, error: uidsError } = await supabase
-      .from('valid_scute_uids')
-      .select('uid');
-
-    if (uidsError || !validUids) {
-      console.error('[CardAPI] Error getting valid UIDs:', uidsError);
-      return [];
-    }
-
-    // Get all user cards
-    const { data: userCards, error: cardsError } = await supabase
-      .from('user_cards')
-      .select('email, uid, registered_at')
-      .not('uid', 'is', null);
-
-    if (cardsError) {
-      console.error('[CardAPI] Error getting user cards:', cardsError);
-    }
-
-    // Build map of UID -> user data
-    const uidToUser: { [uid: string]: { email: string; registered_at: string | null } } = {};
-    if (userCards) {
-      for (const card of userCards) {
-        if (card.uid) {
-          uidToUser[normalizeUid(card.uid)] = {
-            email: card.email,
-            registered_at: card.registered_at,
-          };
-        }
-      }
-    }
-
-    // Return all valid UIDs with registration status
-    return validUids.map((item: { uid: string }) => {
-      const normalizedUid = normalizeUid(item.uid);
-      const userData = uidToUser[normalizedUid];
-      return {
-        uid: formatUidForDisplay(item.uid),
-        email: userData?.email || null,
-        registered_at: userData?.registered_at || null,
-      };
-    });
-  } catch (error) {
-    console.error('[CardAPI] Error getting all cards:', error);
-    return [];
-  }
-}
-
-/**
- * Get all valid UIDs (admin only)
- */
-export async function getValidUidsList(): Promise<string[]> {
-  try {
-    const { data, error } = await supabase
-      .from('valid_scute_uids')
-      .select('uid');
-
-    if (error || !data) {
-      console.error('[CardAPI] Error getting valid UIDs:', error);
-      return [];
-    }
-
-    return data.map((item: { uid: string }) => formatUidForDisplay(item.uid));
-  } catch (error) {
-    console.error('[CardAPI] Error getting valid UIDs:', error);
-    return [];
-  }
-}
-
-/**
- * Clear the entire database (admin only)
- */
-export async function clearDatabase(): Promise<{ success: boolean; count: number; error?: string }> {
-  try {
-    // Get count before clearing
-    const { data: validUids } = await supabase
-      .from('valid_scute_uids')
-      .select('uid');
-
-    const count = validUids?.length || 0;
-
-    // Clear valid UIDs
-    const { error: uidsError } = await supabase
-      .from('valid_scute_uids')
-      .delete()
-      .neq('uid', ''); // Delete all
-
-    if (uidsError) {
-      console.error('[CardAPI] Error clearing valid UIDs:', uidsError);
-      return { success: false, count: 0, error: 'Failed to clear database' };
-    }
-
-    // Clear all user card UIDs and settings
-    const { error: cardsError } = await supabase
-      .from('user_cards')
-      .update({ uid: null, settings: null, registered_at: null })
-      .neq('email', ''); // Update all
-
-    if (cardsError) {
-      console.error('[CardAPI] Error clearing user cards:', cardsError);
-    }
-
-    console.log('[CardAPI] Database cleared, removed', count, 'valid UIDs');
-    return { success: true, count };
-  } catch (error) {
-    console.error('[CardAPI] Clear database error:', error);
-    return { success: false, count: 0, error: 'Failed to clear database' };
   }
 }
 
@@ -621,7 +272,8 @@ export async function getPresets(email: string, skipCache = false): Promise<Pres
   // Use deduplication to prevent multiple simultaneous requests
   return deduplicatedRequest(cacheKey, async () => {
     try {
-      const response = await fetch(`${API_URL}/api/presets?email=${encodeURIComponent(normalizedEmail)}`);
+      const headers = await getAuthHeaders();
+      const response = await fetch(`${API_URL}/api/presets`, { headers });
       const data = await response.json();
 
       if (!response.ok || data.error) {
@@ -646,10 +298,11 @@ export async function savePreset(email: string, preset: Preset): Promise<{ succe
   const normalizedEmail = email.toLowerCase();
 
   try {
+    const headers = await getAuthHeaders();
     const response = await fetch(`${API_URL}/api/presets`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: normalizedEmail, preset }),
+      headers,
+      body: JSON.stringify({ preset }),
     });
 
     const data = await response.json();
@@ -676,10 +329,11 @@ export async function deletePreset(email: string, presetId: string): Promise<{ s
   const normalizedEmail = email.toLowerCase();
 
   try {
+    const headers = await getAuthHeaders();
     const response = await fetch(`${API_URL}/api/presets`, {
       method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: normalizedEmail, presetId }),
+      headers,
+      body: JSON.stringify({ presetId }),
     });
 
     const data = await response.json();
@@ -706,10 +360,11 @@ export async function activatePreset(email: string, presetId: string | null): Pr
   const normalizedEmail = email.toLowerCase();
 
   try {
+    const headers = await getAuthHeaders();
     const response = await fetch(`${API_URL}/api/presets/activate`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: normalizedEmail, presetId }),
+      headers,
+      body: JSON.stringify({ presetId }),
     });
 
     const data = await response.json();
@@ -746,10 +401,11 @@ export async function initDefaultPresets(email: string): Promise<{ success: bool
   const key = `initDefaults:${normalizedEmail}`;
   return deduplicatedRequest(key, async () => {
     try {
+      const headers = await getAuthHeaders();
       const response = await fetch(`${API_URL}/api/presets/init-defaults`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: normalizedEmail }),
+        headers,
+        body: JSON.stringify({}),
       });
 
       const data = await response.json();
@@ -782,10 +438,11 @@ export async function resetPresets(email: string): Promise<{ success: boolean; e
   const normalizedEmail = email.toLowerCase();
 
   try {
+    const headers = await getAuthHeaders();
     const response = await fetch(`${API_URL}/api/presets/reset`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: normalizedEmail }),
+      headers,
+      body: JSON.stringify({}),
     });
 
     const data = await response.json();
@@ -824,10 +481,11 @@ export async function updateLockStatus(
   const normalizedEmail = email.toLowerCase();
 
   try {
+    const headers = await getAuthHeaders();
     const response = await fetch(`${API_URL}/api/lock-status`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: normalizedEmail, isLocked, lockEndsAt }),
+      headers,
+      body: JSON.stringify({ isLocked, lockEndsAt }),
     });
 
     const data = await response.json();
@@ -863,7 +521,8 @@ export async function getLockStatus(email: string, skipCache = false): Promise<L
   // Use deduplication to prevent multiple simultaneous requests
   return deduplicatedRequest(cacheKey, async () => {
     try {
-      const response = await fetch(`${API_URL}/api/lock-status?email=${encodeURIComponent(normalizedEmail)}`);
+      const headers = await getAuthHeaders();
+      const response = await fetch(`${API_URL}/api/lock-status`, { headers });
       const data = await response.json();
 
       if (!response.ok || data.error) {
@@ -896,10 +555,9 @@ export interface EmergencyTapoutStatus {
  * Gradual refill system: +1 tapout every 2 weeks until back to 3
  */
 export async function getEmergencyTapoutStatus(email: string): Promise<EmergencyTapoutStatus> {
-  const normalizedEmail = email.toLowerCase();
-
   try {
-    const response = await fetch(`${API_URL}/api/emergency-tapout?email=${encodeURIComponent(normalizedEmail)}`);
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_URL}/api/emergency-tapout`, { headers });
     const data = await response.json();
 
     if (!response.ok || data.error) {
@@ -920,13 +578,12 @@ export async function getEmergencyTapoutStatus(email: string): Promise<Emergency
  * Update emergency tapout enabled setting
  */
 export async function setEmergencyTapoutEnabled(email: string, enabled: boolean): Promise<{ success: boolean }> {
-  const normalizedEmail = email.toLowerCase();
-
   try {
+    const headers = await getAuthHeaders();
     const response = await fetch(`${API_URL}/api/emergency-tapout/toggle`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: normalizedEmail, enabled }),
+      headers,
+      body: JSON.stringify({ enabled }),
     });
 
     const data = await response.json();
@@ -946,10 +603,11 @@ export async function useEmergencyTapout(email: string, presetId?: string): Prom
   const normalizedEmail = email.toLowerCase();
 
   try {
+    const headers = await getAuthHeaders();
     const response = await fetch(`${API_URL}/api/emergency-tapout/use`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: normalizedEmail, presetId }),
+      headers,
+      body: JSON.stringify({ presetId }),
     });
 
     const data = await response.json();
@@ -976,10 +634,9 @@ export type ThemeType = 'dark' | 'light';
  * Get user's theme preference
  */
 export async function getUserTheme(email: string): Promise<ThemeType> {
-  const normalizedEmail = email.toLowerCase();
-
   try {
-    const response = await fetch(`${API_URL}/api/user-theme?email=${encodeURIComponent(normalizedEmail)}`);
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_URL}/api/user-theme`, { headers });
     const data = await response.json();
 
     if (!response.ok || data.error) {
@@ -997,13 +654,12 @@ export async function getUserTheme(email: string): Promise<ThemeType> {
  * Save user's theme preference
  */
 export async function saveUserTheme(email: string, theme: ThemeType): Promise<{ success: boolean; error?: string }> {
-  const normalizedEmail = email.toLowerCase();
-
   try {
+    const headers = await getAuthHeaders();
     const response = await fetch(`${API_URL}/api/user-theme`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: normalizedEmail, theme }),
+      headers,
+      body: JSON.stringify({ theme }),
     });
 
     const data = await response.json();
@@ -1022,19 +678,14 @@ export async function saveUserTheme(email: string, theme: ThemeType): Promise<{ 
 }
 
 export default {
-  registerCard,
-  addCardToWhitelist,
-  checkCardExists,
-  checkEmailHasCard,
-  unregisterCard,
+  // Auth token functions
+  setAuthToken,
+  getAuthToken,
+  clearAuthToken,
+  isAuthenticated,
+  // Account functions
   deleteAccount,
-  getAllCards,
-  clearDatabase,
-  formatUidForDisplay,
-  initializeUserData,
-  getUserCardData,
   saveUserSettings,
-  getValidUidsList,
   // Preset functions
   getPresets,
   savePreset,
