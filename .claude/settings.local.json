@@ -18,7 +18,11 @@
       "Bash(dir /s \"c:\\\\Users\\\\Shado\\\\OneDrive\\\\Desktop\\\\BindReal\")",
       "Bash(./gradlew assembleDebug:*)",
       "Bash(grep:*)",
-      "Bash(copy:*)"
+      "Bash(copy:*)",
+      "Bash(git branch:*)",
+      "Bash(git remote add:*)",
+      "Bash(git push:*)",
+      "Bash(tree:*)"
     ]
   }
 }

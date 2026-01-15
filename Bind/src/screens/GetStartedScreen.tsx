@@ -17,8 +17,7 @@ import InfoModal from '../components/InfoModal';
 import OTPInput from '../components/OTPInput';
 import { useTheme } from '../context/ThemeContext';
 import { setAuthToken } from '../services/cardApi';
-
-const API_URL = 'http://10.0.0.252:3000';
+import { API_URL } from '../config/api';
 
 interface Props {
   onBack: () => void;

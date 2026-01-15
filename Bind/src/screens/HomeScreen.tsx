@@ -13,6 +13,7 @@ import {
   Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Svg, { Text as SvgText, Defs, Filter, FeGaussianBlur } from 'react-native-svg';
 import BlockNowButton from '../components/BlockNowButton';
 import InfoModal from '../components/InfoModal';
 import EmergencyTapoutModal from '../components/EmergencyTapoutModal';
@@ -22,6 +23,83 @@ import { useTheme } from '../context/ThemeContext';
 const scuteLogo = require('../frontassets/scutelogo.png');
 
 const { BlockingModule, PermissionsModule } = NativeModules;
+
+// Glowing text component using SVG blur filter for rounded glow
+// Uses invisible Text for layout so it matches the non-glowing version exactly
+interface GlowTextProps {
+  text: string;
+  color: string;
+  glowOpacity: Animated.Value;
+  fontSize?: number;
+}
+
+function GlowText({ text, color, glowOpacity, fontSize = 20 }: GlowTextProps) {
+  const [opacity, setOpacity] = useState(0);
+
+  useEffect(() => {
+    const listenerId = glowOpacity.addListener(({ value }) => {
+      setOpacity(value);
+    });
+    return () => glowOpacity.removeListener(listenerId);
+  }, [glowOpacity]);
+
+  const glowPadding = 20;
+  const textWidth = text.length * fontSize * 0.55;
+  const svgWidth = textWidth + glowPadding * 2;
+  const svgHeight = fontSize * 1.5 + glowPadding * 2;
+
+  return (
+    <View style={{ position: 'relative' }}>
+      {/* Invisible text for exact layout matching */}
+      <Text
+        style={{ opacity: 0 }}
+        className="text-xl font-nunito-semibold text-center"
+      >
+        {text}
+      </Text>
+      {/* SVG overlay - absolutely positioned, doesn't affect layout */}
+      <Svg
+        width={svgWidth}
+        height={svgHeight}
+        style={{
+          position: 'absolute',
+          top: -glowPadding,
+          left: -glowPadding,
+        }}
+      >
+        <Defs>
+          <Filter id="presetGlow" x="-50%" y="-50%" width="200%" height="200%">
+            <FeGaussianBlur in="SourceGraphic" stdDeviation="6" />
+          </Filter>
+        </Defs>
+        {/* Glow layer */}
+        <SvgText
+          x={glowPadding}
+          y={glowPadding + fontSize}
+          textAnchor="start"
+          fontSize={fontSize}
+          fontFamily="Nunito-SemiBold"
+          fill="#ffffff"
+          opacity={opacity}
+          filter="url(#presetGlow)"
+        >
+          {text}
+        </SvgText>
+        {/* Main text layer */}
+        <SvgText
+          x={glowPadding}
+          y={glowPadding + fontSize}
+          textAnchor="start"
+          fontSize={fontSize}
+          fontFamily="Nunito-SemiBold"
+          fill={color}
+        >
+          {text}
+        </SvgText>
+      </Svg>
+    </View>
+  );
+}
 
 
 interface Props {
@@ -329,8 +407,11 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
           await BlockingModule.forceUnlock();
         }
 
-        // Refresh status to get updated preset list
+        // Show loading spinner and refresh status to get updated preset list
+        setLoading(true);
+        invalidateUserCaches(email);
         await loadStats(true);
+        setLoading(false);
 
         Vibration.vibrate(100);
         showModal('Unlocked', `Phone unlocked. You have ${result.remaining} emergency tapout${result.remaining !== 1 ? 's' : ''} remaining.`);
@@ -606,6 +687,9 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
   // Handle slide to unlock for no-time-limit presets (called directly from BlockNowButton)
   const handleSlideUnlock = useCallback(async () => {
     try {
+      // Show loading spinner during unlock
+      setLoading(true);
+
       // Update database lock status to unlocked
       await updateLockStatus(email, false, null);
 
@@ -623,10 +707,13 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
       showModal('Unlocked', 'Your phone has been unlocked.');
 
       // Refresh to get updated state
+      invalidateUserCaches(email);
       await loadStats(true);
     } catch (error) {
       console.error('[HomeScreen] Failed to unlock:', error);
       showModal('Error', 'Failed to unlock. Please try again.');
+    } finally {
+      setLoading(false);
     }
   }, [email, loadStats, showModal]);
 
@@ -919,20 +1006,21 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
         {/* Preset info - fixed height section */}
         <View style={{ minHeight: 100 }} className="items-center">
           <View className="items-center justify-center">
-            <Animated.Text
-              style={{
-                color: colors.text,
-                textShadowColor: '#ffffff',
-                textShadowOffset: { width: 0, height: 0 },
-                textShadowRadius: isActivelyLocked ? presetGlowOpacity.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [0, 20],
-                }) : 0,
-              }}
-              className="text-xl font-nunito-semibold text-center"
-            >
-              Preset: {currentPreset || 'None Selected'}
-            </Animated.Text>
+            {isActivelyLocked ? (
+              <GlowText
+                text={`Preset: ${currentPreset || 'None Selected'}`}
+                color={colors.text}
+                glowOpacity={presetGlowOpacity}
+                fontSize={20}
+              />
+            ) : (
+              <Text
+                style={{ color: colors.text }}
+                className="text-xl font-nunito-semibold text-center"
+              >
+                Preset: {currentPreset || 'None Selected'}
+              </Text>
+            )}
           </View>
 
           {/* Active settings display */}

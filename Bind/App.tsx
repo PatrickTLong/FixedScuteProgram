@@ -522,7 +522,7 @@ function App() {
         case 'signin':
           return (
             <SignInScreen
-              onBack={() => changeScreen('landing')}
+              onBack={() => changeScreen('getstarted')}
               onSuccess={handleLogin}
               onForgotPassword={() => changeScreen('forgotpassword')}
             />

@@ -15,8 +15,7 @@ import BackButton from '../components/BackButton';
 import InfoModal from '../components/InfoModal';
 import OTPInput from '../components/OTPInput';
 import { useTheme } from '../context/ThemeContext';
-
-const API_URL = 'http://10.0.0.252:3000';
+import { API_URL } from '../config/api';
 
 interface Props {
   onBack: () => void;

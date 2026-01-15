@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useRef } from 'react';
+import React, { memo, useEffect, useRef, useState } from 'react';
 import {
   Text,
   View,
@@ -7,7 +7,61 @@ import {
   Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Svg, { Text as SvgText, Defs, Filter, FeGaussianBlur } from 'react-native-svg';
 import { useTheme } from '../context/ThemeContext';
+
+// Glowing "Scute!" text - uses invisible Text for layout + absolute SVG for glow effect
+function GlowingScuteText({ color, glowOpacity }: { color: string; glowOpacity: Animated.Value }) {
+  const [opacity, setOpacity] = useState(0);
+
+  useEffect(() => {
+    const listenerId = glowOpacity.addListener(({ value }) => {
+      setOpacity(value);
+    });
+    return () => glowOpacity.removeListener(listenerId);
+  }, [glowOpacity]);
+
+  return (
+    <View style={{ position: 'relative' }}>
+      {/* Invisible text for proper baseline alignment and layout */}
+      <Text style={{ opacity: 0 }} className="text-3xl font-nunito-bold">Scute!</Text>
+      {/* SVG overlay with glow effect - positioned absolutely over the text */}
+      <Svg
+        style={{ position: 'absolute', top: -13.5, left: -12 }}
+        width={130}
+        height={60}
+      >
+        <Defs>
+          <Filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+            <FeGaussianBlur in="SourceGraphic" stdDeviation="5" />
+          </Filter>
+        </Defs>
+        {/* Glow layer */}
+        <SvgText
+          x={12}
+          y={38}
+          fontSize={30}
+          fontFamily="Nunito-Bold"
+          fill="#ffffff"
+          opacity={opacity}
+          filter="url(#glow)"
+        >
+          Scute!
+        </SvgText>
+        {/* Main text layer */}
+        <SvgText
+          x={12}
+          y={38}
+          fontSize={30}
+          fontFamily="Nunito-Bold"
+          fill={color}
+        >
+          Scute!
+        </SvgText>
+      </Svg>
+    </View>
+  );
+}
 
 interface Props {
   onSignIn: () => void;
@@ -15,7 +69,8 @@ interface Props {
 }
 
 function LandingScreen({ onSignIn, onGetStarted }: Props) {
-  const { colors } = useTheme();
+  const { colors, theme } = useTheme();
+  const isDark = theme === 'dark';
 
   // Pulsating glow animation for "Scute!" text
   const glowOpacity = useRef(new Animated.Value(0)).current;
@@ -57,20 +112,11 @@ function LandingScreen({ onSignIn, onGetStarted }: Props) {
         {/* Title */}
         <View className="flex-row items-baseline justify-center mb-4">
           <Text style={{ color: colors.text }} className="text-3xl font-nunito-bold">This is </Text>
-          <Animated.Text
-            style={{
-              color: colors.text,
-              textShadowColor: '#ffffff',
-              textShadowOffset: { width: 0, height: 0 },
-              textShadowRadius: glowOpacity.interpolate({
-                inputRange: [0, 1],
-                outputRange: [0, 20],
-              }),
-            }}
-            className="text-3xl font-nunito-bold"
-          >
-            Scute!
-          </Animated.Text>
+          {isDark ? (
+            <GlowingScuteText color={colors.text} glowOpacity={glowOpacity} />
+          ) : (
+            <Text style={{ color: colors.text }} className="text-3xl font-nunito-bold">Scute!</Text>
+          )}
         </View>
 
         {/* Subtitle */}
@@ -80,7 +126,7 @@ function LandingScreen({ onSignIn, onGetStarted }: Props) {
       </View>
 
       {/* Bottom Section */}
-      <View className="px-6 pb-8">
+      <View className="px-6 pb-12">
         {/* Get Started Button */}
         <TouchableOpacity
           onPress={onGetStarted}

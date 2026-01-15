@@ -8,7 +8,6 @@ import {
   ActivityIndicator,
   Modal,
   Switch,
-  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
@@ -360,6 +359,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
   const isDisabled = !lockChecked || isLocked === true;
 
   // Show full-screen loading for initial load or any action in progress
+  // Also show full-screen loading during active lock session
   if (!lockChecked || isResetting || isDeleting) {
     let loadingMessage = '';
     if (!lockChecked) {
@@ -380,23 +380,17 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
     );
   }
 
+  // Show full-screen loading spinner when locked (active session)
+  if (isLocked === true) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }} edges={['top']}>
+        <ActivityIndicator size="large" color={colors.green} />
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }} edges={['top']}>
-      {/* Locked Overlay */}
-      {isLocked === true && (
-        <View style={{ backgroundColor: colors.bg + 'F2' }} className="absolute inset-0 z-50 items-center justify-center">
-          <Image
-            source={require('../frontassets/scutelogo.png')}
-            style={{ width: 120, height: 120, tintColor: colors.logoTint, marginBottom: 24 }}
-            resizeMode="contain"
-          />
-          <Text style={{ color: colors.text }} className="text-xl font-nunito-bold mb-2">Phone is Locked</Text>
-          <Text style={{ color: colors.textSecondary }} className="text-center font-nunito px-8">
-            Settings cannot be changed while blocking is active.
-          </Text>
-        </View>
-      )}
-
       <ScrollView
         className="flex-1"
         contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 32 }}

@@ -3,6 +3,7 @@ const express = require('express');
 const sgMail = require('@sendgrid/mail');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const { createClient } = require('@supabase/supabase-js');
 
 const app = express();
@@ -21,6 +22,49 @@ if (!supabaseUrl || !supabaseServiceKey) {
   console.error('Please add SUPABASE_URL and SUPABASE_SERVICE_KEY to your .env file');
 }
 
+// JWT Configuration
+const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_EXPIRES_IN = '30d'; // Tokens expire in 30 days
+
+if (!JWT_SECRET) {
+  console.error('ERROR: Missing JWT_SECRET in .env file');
+  console.error('Please add JWT_SECRET to your .env file');
+}
+
+// Generate JWT token for a user
+function generateToken(email) {
+  return jwt.sign({ email: email.toLowerCase() }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+}
+
+// Verify JWT token and extract email
+function verifyToken(token) {
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    return { valid: true, email: decoded.email };
+  } catch (error) {
+    return { valid: false, error: error.message };
+  }
+}
+
+// Authentication middleware - protects routes that require login
+function authenticateToken(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+
+  if (!token) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+
+  const result = verifyToken(token);
+  if (!result.valid) {
+    return res.status(403).json({ error: 'Invalid or expired token' });
+  }
+
+  // Attach authenticated email to request
+  req.userEmail = result.email;
+  next();
+}
+
 app.use(cors());
 app.use(express.json());
 
@@ -31,8 +75,10 @@ function generateCode() {
 // POST /api/send-code - Send verification code (signup only)
 app.post('/api/send-code', async (req, res) => {
   const { email } = req.body;
+  console.log('[send-code] Request received');
 
   if (!email || !email.includes('@')) {
+    console.log('[send-code] Validation failed: Invalid email format');
     return res.status(400).json({ error: 'Invalid email address' });
   }
 
@@ -142,12 +188,15 @@ app.post('/api/send-code', async (req, res) => {
 // POST /api/verify-and-register - Verify code and create account with password
 app.post('/api/verify-and-register', async (req, res) => {
   const { email, code, password } = req.body;
+  console.log('[verify-and-register] Request received');
 
   if (!email || !code || !password) {
+    console.log('[verify-and-register] Validation failed: Missing required fields');
     return res.status(400).json({ error: 'Email, code, and password required' });
   }
 
   if (password.length < 6) {
+    console.log('[verify-and-register] Validation failed: Password too short');
     return res.status(400).json({ error: 'Password must be at least 6 characters' });
   }
 
@@ -200,9 +249,7 @@ app.post('/api/verify-and-register', async (req, res) => {
       .from('user_cards')
       .insert({
         email: normalizedEmail,
-        uid: null,
         settings: null,
-        registered_at: null,
       });
 
     if (cardError && !cardError.message.includes('duplicate')) {
@@ -212,8 +259,11 @@ app.post('/api/verify-and-register', async (req, res) => {
     // Delete verification code
     await supabase.from('verification_codes').delete().eq('email', normalizedEmail);
 
+    // Generate JWT token for authenticated session
+    const token = generateToken(normalizedEmail);
+
     console.log(`User registered: ${email}`);
-    res.json({ success: true, message: 'Account created successfully' });
+    res.json({ success: true, message: 'Account created successfully', token });
   } catch (error) {
     console.error('Registration error:', error);
     res.status(500).json({ error: 'Failed to create account' });
@@ -223,8 +273,10 @@ app.post('/api/verify-and-register', async (req, res) => {
 // POST /api/signin - Sign in with email and password
 app.post('/api/signin', async (req, res) => {
   const { email, password } = req.body;
+  console.log('[signin] Request received');
 
   if (!email || !password) {
+    console.log('[signin] Validation failed: Missing email or password');
     return res.status(400).json({ error: 'Email and password required' });
   }
 
@@ -334,8 +386,10 @@ app.post('/api/signin', async (req, res) => {
 // POST /api/verify-signin - Verify sign-in code
 app.post('/api/verify-signin', async (req, res) => {
   const { email, code } = req.body;
+  console.log('[verify-signin] Request received');
 
   if (!email || !code) {
+    console.log('[verify-signin] Validation failed: Missing email or code');
     return res.status(400).json({ error: 'Email and code required' });
   }
 
@@ -362,154 +416,47 @@ app.post('/api/verify-signin', async (req, res) => {
       return res.status(400).json({ error: 'Invalid code' });
     }
 
+    // Ensure user_cards entry exists (for users who registered before this was added)
+    const { data: existingCard } = await supabase
+      .from('user_cards')
+      .select('email')
+      .eq('email', normalizedEmail)
+      .single();
+
+    if (!existingCard) {
+      await supabase
+        .from('user_cards')
+        .insert({
+          email: normalizedEmail,
+          settings: null,
+        });
+      console.log(`Created missing user_cards entry for: ${normalizedEmail}`);
+    }
+
     // Delete verification code
     await supabase.from('verification_codes').delete().eq('email', normalizedEmail);
 
+    // Generate JWT token for authenticated session
+    const token = generateToken(normalizedEmail);
+
     console.log(`User signed in: ${email}`);
-    res.json({ success: true, message: 'Sign in successful' });
+    res.json({ success: true, message: 'Sign in successful', token });
   } catch (error) {
     console.error('Verify sign-in error:', error);
     res.status(500).json({ error: 'Verification failed' });
   }
 });
 
-// POST /api/add-card-to-whitelist - Add a valid UID to the whitelist (admin only)
-app.post('/api/add-card-to-whitelist', async (req, res) => {
-  const { uid, adminEmail } = req.body;
+// POST /api/save-settings - Save user settings (PROTECTED)
+app.post('/api/save-settings', authenticateToken, async (req, res) => {
+  const { settings } = req.body;
+  const normalizedEmail = req.userEmail; // Get email from verified token
+  console.log('[save-settings] Request received for user:', normalizedEmail);
 
-  // Admin email check
-  const ADMIN_EMAIL = 'longpatrick3317@gmail.com';
-  if (!adminEmail || adminEmail.toLowerCase() !== ADMIN_EMAIL) {
-    return res.status(403).json({ error: 'Unauthorized - admin only' });
+  if (!settings) {
+    console.log('[save-settings] Validation failed: No settings provided');
+    return res.status(400).json({ error: 'Settings required' });
   }
-
-  if (!uid) {
-    return res.status(400).json({ error: 'UID required' });
-  }
-
-  // Normalize UID (remove colons, uppercase)
-  const normalizedUid = uid.replace(/:/g, '').toUpperCase();
-
-  try {
-    // Check if UID already exists
-    const { data: existing } = await supabase
-      .from('valid_scute_uids')
-      .select('uid')
-      .eq('uid', normalizedUid)
-      .single();
-
-    if (existing) {
-      return res.json({ success: true, alreadyExists: true, message: 'UID already in whitelist' });
-    }
-
-    // Insert new UID
-    const { error } = await supabase
-      .from('valid_scute_uids')
-      .insert({
-        uid: normalizedUid,
-        added_by: adminEmail,
-      });
-
-    if (error) {
-      console.error('Error adding UID to whitelist:', error);
-      return res.status(500).json({ error: 'Failed to add UID to whitelist' });
-    }
-
-    console.log(`UID added to whitelist: ${normalizedUid} by ${adminEmail}`);
-    res.json({ success: true, message: 'UID added to whitelist' });
-  } catch (error) {
-    console.error('Add to whitelist error:', error);
-    res.status(500).json({ error: 'Failed to add UID' });
-  }
-});
-
-// POST /api/register-card - Register a card UID to a user's email
-app.post('/api/register-card', async (req, res) => {
-  const { uid, email } = req.body;
-
-  if (!uid || !email) {
-    return res.status(400).json({ error: 'UID and email required' });
-  }
-
-  const normalizedUid = uid.replace(/:/g, '').toUpperCase();
-  const normalizedEmail = email.toLowerCase();
-
-  try {
-    // Check if UID is in valid UIDs list
-    const { data: validUid, error: validError } = await supabase
-      .from('valid_scute_uids')
-      .select('uid')
-      .eq('uid', normalizedUid)
-      .single();
-
-    if (validError || !validUid) {
-      return res.status(404).json({ error: 'Not a valid Scute card', errorCode: 'NOT_FOUND' });
-    }
-
-    // Check if UID is already registered to another user
-    const { data: existingCard } = await supabase
-      .from('user_cards')
-      .select('email')
-      .eq('uid', normalizedUid)
-      .single();
-
-    if (existingCard && existingCard.email !== normalizedEmail) {
-      return res.status(409).json({ error: 'Card already registered to another account', errorCode: 'ALREADY_REGISTERED' });
-    }
-
-    // Check if user_cards row exists for this email
-    const { data: existingUserCard } = await supabase
-      .from('user_cards')
-      .select('email')
-      .eq('email', normalizedEmail)
-      .single();
-
-    let updateError;
-    if (existingUserCard) {
-      // Update existing row
-      const result = await supabase
-        .from('user_cards')
-        .update({
-          uid: normalizedUid,
-          registered_at: new Date().toISOString(),
-        })
-        .eq('email', normalizedEmail);
-      updateError = result.error;
-    } else {
-      // Insert new row (user_cards entry was never created)
-      const result = await supabase
-        .from('user_cards')
-        .insert({
-          email: normalizedEmail,
-          uid: normalizedUid,
-          settings: null,
-          registered_at: new Date().toISOString(),
-        });
-      updateError = result.error;
-    }
-
-    if (updateError) {
-      console.error('Error registering card:', updateError);
-      return res.status(500).json({ error: 'Failed to register card', errorCode: 'SERVER_ERROR' });
-    }
-
-    console.log(`Card registered: ${normalizedUid} to ${normalizedEmail}`);
-    res.json({ success: true });
-  } catch (error) {
-    console.error('Register card error:', error);
-    res.status(500).json({ error: 'Failed to register card', errorCode: 'SERVER_ERROR' });
-  }
-});
-
-// POST /api/save-settings - Save user tap settings
-app.post('/api/save-settings', async (req, res) => {
-  const { email, settings } = req.body;
-
-  if (!email || !settings) {
-    return res.status(400).json({ error: 'Email and settings required' });
-  }
-
-  const normalizedEmail = email.toLowerCase();
 
   try {
     // Check if user_cards row exists
@@ -533,9 +480,7 @@ app.post('/api/save-settings', async (req, res) => {
         .from('user_cards')
         .insert({
           email: normalizedEmail,
-          uid: null,
           settings: settings,
-          registered_at: null,
         });
       error = result.error;
     }
@@ -553,72 +498,14 @@ app.post('/api/save-settings', async (req, res) => {
   }
 });
 
-// POST /api/unregister-card - Unregister a card from a user
-app.post('/api/unregister-card', async (req, res) => {
-  const { uid, email } = req.body;
-
-  if (!email) {
-    return res.status(400).json({ error: 'Email required' });
-  }
-
-  const normalizedEmail = email.toLowerCase();
-
-  try {
-    const { error } = await supabase
-      .from('user_cards')
-      .update({
-        uid: null,
-        settings: null,
-        registered_at: null,
-      })
-      .eq('email', normalizedEmail);
-
-    if (error) {
-      console.error('Error unregistering card:', error);
-      return res.status(500).json({ error: 'Failed to unregister card' });
-    }
-
-    console.log(`Card unregistered for: ${normalizedEmail}`);
-    res.json({ success: true });
-  } catch (error) {
-    console.error('Unregister card error:', error);
-    res.status(500).json({ error: 'Failed to unregister card' });
-  }
-});
-
-// GET /api/user-card-data - Get user's card data and settings
-app.get('/api/user-card-data', async (req, res) => {
-  const { email } = req.query;
-
-  if (!email) {
-    return res.status(400).json({ error: 'Email required' });
-  }
-
-  const normalizedEmail = email.toString().toLowerCase();
-
-  try {
-    const { data, error } = await supabase
-      .from('user_cards')
-      .select('uid, settings, registered_at')
-      .eq('email', normalizedEmail)
-      .single();
-
-    if (error || !data) {
-      return res.json({ uid: null, settings: null, registered_at: null });
-    }
-
-    res.json(data);
-  } catch (error) {
-    console.error('Get user card data error:', error);
-    res.status(500).json({ error: 'Failed to get user data' });
-  }
-});
 
 // POST /api/reset-password-request - Request password reset code
 app.post('/api/reset-password-request', async (req, res) => {
   const { email } = req.body;
+  console.log('[reset-password-request] Request received');
 
   if (!email || !email.includes('@')) {
+    console.log('[reset-password-request] Validation failed: Invalid email format');
     return res.status(400).json({ error: 'Invalid email address' });
   }
 
@@ -725,12 +612,15 @@ app.post('/api/reset-password-request', async (req, res) => {
 // POST /api/reset-password - Reset password with code
 app.post('/api/reset-password', async (req, res) => {
   const { email, code, newPassword } = req.body;
+  console.log('[reset-password] Request received');
 
   if (!email || !code || !newPassword) {
+    console.log('[reset-password] Validation failed: Missing required fields');
     return res.status(400).json({ error: 'Email, code, and new password required' });
   }
 
   if (newPassword.length < 6) {
+    console.log('[reset-password] Validation failed: Password too short');
     return res.status(400).json({ error: 'Password must be at least 6 characters' });
   }
 
@@ -782,17 +672,11 @@ app.post('/api/reset-password', async (req, res) => {
   }
 });
 
-// POST /api/delete-account - Delete user account completely
+// POST /api/delete-account - Delete user account completely (PROTECTED)
 // Deletes all user data: presets, user_cards, users table entries
 // Does NOT delete from valid_scute_uids (whitelist) - the Scute card remains valid for future registration
-app.post('/api/delete-account', async (req, res) => {
-  const { email } = req.body;
-
-  if (!email) {
-    return res.status(400).json({ error: 'Email required' });
-  }
-
-  const normalizedEmail = email.toLowerCase();
+app.post('/api/delete-account', authenticateToken, async (req, res) => {
+  const normalizedEmail = req.userEmail; // Get email from verified token
 
   try {
     // 1. Delete all user presets
@@ -842,15 +726,9 @@ app.post('/api/delete-account', async (req, res) => {
 
 // ============ PRESET ENDPOINTS ============
 
-// GET /api/presets - Get all presets for a user
-app.get('/api/presets', async (req, res) => {
-  const { email } = req.query;
-
-  if (!email) {
-    return res.status(400).json({ error: 'Email required' });
-  }
-
-  const normalizedEmail = email.toString().toLowerCase();
+// GET /api/presets - Get all presets for a user (PROTECTED)
+app.get('/api/presets', authenticateToken, async (req, res) => {
+  const normalizedEmail = req.userEmail; // Get email from verified token
 
   try {
     const { data, error } = await supabase
@@ -895,15 +773,16 @@ app.get('/api/presets', async (req, res) => {
   }
 });
 
-// POST /api/presets - Create or update a preset
-app.post('/api/presets', async (req, res) => {
-  const { email, preset } = req.body;
+// POST /api/presets - Create or update a preset (PROTECTED)
+app.post('/api/presets', authenticateToken, async (req, res) => {
+  const { preset } = req.body;
+  const normalizedEmail = req.userEmail; // Get email from verified token
+  console.log('[presets:save] Request received for user:', normalizedEmail);
 
-  if (!email || !preset) {
-    return res.status(400).json({ error: 'Email and preset required' });
+  if (!preset) {
+    console.log('[presets:save] Validation failed: No preset provided');
+    return res.status(400).json({ error: 'Preset required' });
   }
-
-  const normalizedEmail = email.toLowerCase();
 
   try {
     // Check if preset already exists
@@ -968,15 +847,16 @@ app.post('/api/presets', async (req, res) => {
   }
 });
 
-// DELETE /api/presets - Delete a preset
-app.delete('/api/presets', async (req, res) => {
-  const { email, presetId } = req.body;
+// DELETE /api/presets - Delete a preset (PROTECTED)
+app.delete('/api/presets', authenticateToken, async (req, res) => {
+  const { presetId } = req.body;
+  const normalizedEmail = req.userEmail; // Get email from verified token
+  console.log('[presets:delete] Request received for user:', normalizedEmail, 'presetId:', presetId);
 
-  if (!email || !presetId) {
-    return res.status(400).json({ error: 'Email and presetId required' });
+  if (!presetId) {
+    console.log('[presets:delete] Validation failed: No presetId provided');
+    return res.status(400).json({ error: 'PresetId required' });
   }
-
-  const normalizedEmail = email.toLowerCase();
 
   try {
     const { error } = await supabase
@@ -998,15 +878,10 @@ app.delete('/api/presets', async (req, res) => {
   }
 });
 
-// POST /api/presets/activate - Activate a non-scheduled preset (deactivates other non-scheduled presets only)
-app.post('/api/presets/activate', async (req, res) => {
-  const { email, presetId } = req.body;
-
-  if (!email) {
-    return res.status(400).json({ error: 'Email required' });
-  }
-
-  const normalizedEmail = email.toLowerCase();
+// POST /api/presets/activate - Activate a non-scheduled preset (PROTECTED)
+app.post('/api/presets/activate', authenticateToken, async (req, res) => {
+  const { presetId } = req.body;
+  const normalizedEmail = req.userEmail; // Get email from verified token
 
   try {
     // Only deactivate NON-SCHEDULED presets for this user
@@ -1083,15 +958,9 @@ app.post('/api/presets/activate', async (req, res) => {
   }
 });
 
-// POST /api/presets/init-defaults - Initialize default presets for a user
-app.post('/api/presets/init-defaults', async (req, res) => {
-  const { email } = req.body;
-
-  if (!email) {
-    return res.status(400).json({ error: 'Email required' });
-  }
-
-  const normalizedEmail = email.toLowerCase();
+// POST /api/presets/init-defaults - Initialize default presets for a user (PROTECTED)
+app.post('/api/presets/init-defaults', authenticateToken, async (req, res) => {
+  const normalizedEmail = req.userEmail; // Get email from verified token
 
   try {
     // Check if user already has presets
@@ -1110,15 +979,9 @@ app.post('/api/presets/init-defaults', async (req, res) => {
   }
 });
 
-// POST /api/presets/reset - Delete all presets and recreate defaults
-app.post('/api/presets/reset', async (req, res) => {
-  const { email } = req.body;
-
-  if (!email) {
-    return res.status(400).json({ error: 'Email required' });
-  }
-
-  const normalizedEmail = email.toLowerCase();
+// POST /api/presets/reset - Delete all presets and recreate defaults (PROTECTED)
+app.post('/api/presets/reset', authenticateToken, async (req, res) => {
+  const normalizedEmail = req.userEmail; // Get email from verified token
 
   try {
     // Delete all existing presets for this user
@@ -1143,15 +1006,10 @@ app.post('/api/presets/reset', async (req, res) => {
 
 // ============ LOCK STATUS ENDPOINTS ============
 
-// POST /api/lock-status - Update user's lock status
-app.post('/api/lock-status', async (req, res) => {
-  const { email, isLocked, lockEndsAt } = req.body;
-
-  if (!email) {
-    return res.status(400).json({ error: 'Email required' });
-  }
-
-  const normalizedEmail = email.toLowerCase();
+// POST /api/lock-status - Update user's lock status (PROTECTED)
+app.post('/api/lock-status', authenticateToken, async (req, res) => {
+  const { isLocked, lockEndsAt } = req.body;
+  const normalizedEmail = req.userEmail; // Get email from verified token
 
   try {
     const updateData = {
@@ -1184,15 +1042,9 @@ app.post('/api/lock-status', async (req, res) => {
   }
 });
 
-// GET /api/lock-status - Get user's lock status
-app.get('/api/lock-status', async (req, res) => {
-  const { email } = req.query;
-
-  if (!email) {
-    return res.status(400).json({ error: 'Email required' });
-  }
-
-  const normalizedEmail = email.toString().toLowerCase();
+// GET /api/lock-status - Get user's lock status (PROTECTED)
+app.get('/api/lock-status', authenticateToken, async (req, res) => {
+  const normalizedEmail = req.userEmail; // Get email from verified token
 
   try {
     const { data, error } = await supabase
@@ -1216,16 +1068,10 @@ app.get('/api/lock-status', async (req, res) => {
   }
 });
 
-// GET /api/emergency-tapout - Get user's emergency tapout status
+// GET /api/emergency-tapout - Get user's emergency tapout status (PROTECTED)
 // Gradual refill system: +1 tapout every 2 weeks until back to 3
-app.get('/api/emergency-tapout', async (req, res) => {
-  const { email } = req.query;
-
-  if (!email) {
-    return res.status(400).json({ error: 'Email required' });
-  }
-
-  const normalizedEmail = email.toString().toLowerCase();
+app.get('/api/emergency-tapout', authenticateToken, async (req, res) => {
+  const normalizedEmail = req.userEmail; // Get email from verified token
 
   try {
     const { data, error } = await supabase
@@ -1278,15 +1124,10 @@ app.get('/api/emergency-tapout', async (req, res) => {
   }
 });
 
-// POST /api/emergency-tapout/toggle - Enable/disable emergency tapout
-app.post('/api/emergency-tapout/toggle', async (req, res) => {
-  const { email, enabled } = req.body;
-
-  if (!email) {
-    return res.status(400).json({ error: 'Email required' });
-  }
-
-  const normalizedEmail = email.toLowerCase();
+// POST /api/emergency-tapout/toggle - Enable/disable emergency tapout (PROTECTED)
+app.post('/api/emergency-tapout/toggle', authenticateToken, async (req, res) => {
+  const { enabled } = req.body;
+  const normalizedEmail = req.userEmail; // Get email from verified token
 
   try {
     const updateData = {
@@ -1325,18 +1166,13 @@ app.post('/api/emergency-tapout/toggle', async (req, res) => {
   }
 });
 
-// POST /api/emergency-tapout/use - Use one emergency tapout
+// POST /api/emergency-tapout/use - Use one emergency tapout (PROTECTED)
 // Note: Emergency tapout is now enabled per-preset via allowEmergencyTapout field.
 // The frontend checks preset.allowEmergencyTapout before calling this endpoint.
 // This endpoint validates remaining tapouts count and deactivates the preset.
-app.post('/api/emergency-tapout/use', async (req, res) => {
-  const { email, presetId } = req.body;
-
-  if (!email) {
-    return res.status(400).json({ error: 'Email required' });
-  }
-
-  const normalizedEmail = email.toLowerCase();
+app.post('/api/emergency-tapout/use', authenticateToken, async (req, res) => {
+  const { presetId } = req.body;
+  const normalizedEmail = req.userEmail; // Get email from verified token
 
   try {
     // Get current status
@@ -1424,15 +1260,9 @@ app.post('/api/emergency-tapout/use', async (req, res) => {
 
 // ============ THEME ENDPOINTS ============
 
-// GET /api/user-theme - Get user's theme preference
-app.get('/api/user-theme', async (req, res) => {
-  const { email } = req.query;
-
-  if (!email) {
-    return res.status(400).json({ error: 'Email required' });
-  }
-
-  const normalizedEmail = email.toString().toLowerCase();
+// GET /api/user-theme - Get user's theme preference (PROTECTED)
+app.get('/api/user-theme', authenticateToken, async (req, res) => {
+  const normalizedEmail = req.userEmail; // Get email from verified token
 
   try {
     const { data, error } = await supabase
@@ -1452,19 +1282,21 @@ app.get('/api/user-theme', async (req, res) => {
   }
 });
 
-// POST /api/user-theme - Save user's theme preference
-app.post('/api/user-theme', async (req, res) => {
-  const { email, theme } = req.body;
+// POST /api/user-theme - Save user's theme preference (PROTECTED)
+app.post('/api/user-theme', authenticateToken, async (req, res) => {
+  const { theme } = req.body;
+  const normalizedEmail = req.userEmail; // Get email from verified token
+  console.log('[user-theme] Request received for user:', normalizedEmail, 'theme:', theme);
 
-  if (!email || !theme) {
-    return res.status(400).json({ error: 'Email and theme required' });
+  if (!theme) {
+    console.log('[user-theme] Validation failed: No theme provided');
+    return res.status(400).json({ error: 'Theme required' });
   }
 
   if (theme !== 'dark' && theme !== 'light') {
+    console.log('[user-theme] Validation failed: Invalid theme value:', theme);
     return res.status(400).json({ error: 'Theme must be "dark" or "light"' });
   }
-
-  const normalizedEmail = email.toLowerCase();
 
   try {
     const { error } = await supabase
