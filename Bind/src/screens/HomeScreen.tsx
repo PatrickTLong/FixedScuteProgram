@@ -913,7 +913,11 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
     }
 
     if (activePreset.blockSettings) {
-      settings.push('Settings');
+      settings.push('Blocking Settings');
+    }
+
+    if (activePreset.allowEmergencyTapout && !activePreset.noTimeLimit) {
+      settings.push('Emergency Tapout');
     }
 
     return settings;
@@ -1025,7 +1029,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
 
           {/* Active settings display */}
           {activePreset && getActiveSettingsDisplay().length > 0 && (
-            <Text style={{ color: colors.textSecondary }} className="text-base font-nunito mt-2">
+            <Text style={{ color: colors.textSecondary }} className="text-base font-nunito mt-2 text-center px-4">
               Blocking {getActiveSettingsDisplay().join(', ')}
             </Text>
           )}
