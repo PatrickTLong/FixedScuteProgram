@@ -42,35 +42,35 @@ function ExcludedAppsInfoModal({ visible, onClose }: ExcludedAppsInfoModalProps)
 
             <View className="space-y-4">
               <View className="flex-row">
-                <Text style={{ color: colors.green }} className="mr-2 mt-0.5">•</Text>
+                <Text style={{ color: colors.textSecondary }} className="mr-2 mt-0.5">•</Text>
                 <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito flex-1 leading-5">
                   <Text style={{ color: colors.text }} className="font-nunito-semibold">Phone</Text> - Always available so you can make and receive important calls, even during a blocking session
                 </Text>
               </View>
 
               <View className="flex-row">
-                <Text style={{ color: colors.green }} className="mr-2 mt-0.5">•</Text>
+                <Text style={{ color: colors.textSecondary }} className="mr-2 mt-0.5">•</Text>
                 <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito flex-1 leading-5">
                   <Text style={{ color: colors.text }} className="font-nunito-semibold">Camera</Text> - Kept accessible for capturing important moments, documenting incidents, or emergency situations
                 </Text>
               </View>
 
               <View className="flex-row">
-                <Text style={{ color: colors.green }} className="mr-2 mt-0.5">•</Text>
+                <Text style={{ color: colors.textSecondary }} className="mr-2 mt-0.5">•</Text>
                 <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito flex-1 leading-5">
                   <Text style={{ color: colors.text }} className="font-nunito-semibold">Messaging</Text> - Ensures you can always send and receive text messages for essential communication
                 </Text>
               </View>
 
               <View className="flex-row">
-                <Text style={{ color: colors.green }} className="mr-2 mt-0.5">•</Text>
+                <Text style={{ color: colors.textSecondary }} className="mr-2 mt-0.5">•</Text>
                 <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito flex-1 leading-5">
                   <Text style={{ color: colors.text }} className="font-nunito-semibold">Emergency</Text> - Critical apps like emergency dialer remain unblocked to ensure your safety at all times
                 </Text>
               </View>
 
               <View className="flex-row">
-                <Text style={{ color: colors.green }} className="mr-2 mt-0.5">•</Text>
+                <Text style={{ color: colors.textSecondary }} className="mr-2 mt-0.5">•</Text>
                 <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito flex-1 leading-5">
                   <Text style={{ color: colors.text }} className="font-nunito-semibold">Settings</Text> - Not shown here because it has a dedicated toggle in your preset options
                 </Text>

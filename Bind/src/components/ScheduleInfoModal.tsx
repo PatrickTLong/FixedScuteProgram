@@ -42,28 +42,28 @@ function ScheduleInfoModal({ visible, onClose }: ScheduleInfoModalProps) {
 
             <View className="space-y-3">
               <View className="flex-row">
-                <Text style={{ color: colors.green }} className="mr-2">•</Text>
+                <Text style={{ color: colors.textSecondary }} className="mr-2">•</Text>
                 <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito flex-1">
                   You can have multiple scheduled presets as long as their dates don't overlap
                 </Text>
               </View>
 
               <View className="flex-row">
-                <Text style={{ color: colors.green }} className="mr-2">•</Text>
+                <Text style={{ color: colors.textSecondary }} className="mr-2">•</Text>
                 <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito flex-1">
                   Scheduled presets work alongside your current active preset
                 </Text>
               </View>
 
               <View className="flex-row">
-                <Text style={{ color: colors.green }} className="mr-2">•</Text>
+                <Text style={{ color: colors.textSecondary }} className="mr-2">•</Text>
                 <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito flex-1">
                   The preset will automatically activate when the start time arrives
                 </Text>
               </View>
 
               <View className="flex-row">
-                <Text style={{ color: colors.green }} className="mr-2">•</Text>
+                <Text style={{ color: colors.textSecondary }} className="mr-2">•</Text>
                 <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito flex-1">
                   Tap a scheduled preset to edit its dates
                 </Text>

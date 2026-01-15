@@ -76,17 +76,17 @@ function LandingScreen({ onSignIn, onGetStarted }: Props) {
   const glowOpacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // Start pulsating animation (800ms cycle)
+    // Start slow pulsating animation (2 second cycle - matches Hold to Begin Locking)
     const animation = Animated.loop(
       Animated.sequence([
         Animated.timing(glowOpacity, {
           toValue: 1,
-          duration: 400,
+          duration: 1000,
           useNativeDriver: false,
         }),
         Animated.timing(glowOpacity, {
           toValue: 0,
-          duration: 400,
+          duration: 1000,
           useNativeDriver: false,
         }),
       ])

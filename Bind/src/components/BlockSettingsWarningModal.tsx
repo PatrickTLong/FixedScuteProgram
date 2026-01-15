@@ -48,21 +48,21 @@ function BlockSettingsWarningModal({ visible, onConfirm, onCancel }: BlockSettin
 
             <View className="space-y-3">
               <View className="flex-row">
-                <Text style={{ color: colors.red }} className="mr-2">•</Text>
+                <Text style={{ color: colors.textSecondary }} className="mr-2">•</Text>
                 <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito flex-1">
                   WiFi settings will remain accessible via quick settings panel
                 </Text>
               </View>
 
               <View className="flex-row">
-                <Text style={{ color: colors.red }} className="mr-2">•</Text>
+                <Text style={{ color: colors.textSecondary }} className="mr-2">•</Text>
                 <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito flex-1">
                   Basic toggles (Bluetooth, Airplane mode, etc.) stay available in quick settings
                 </Text>
               </View>
 
               <View className="flex-row">
-                <Text style={{ color: colors.red }} className="mr-2">•</Text>
+                <Text style={{ color: colors.textSecondary }} className="mr-2">•</Text>
                 <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito flex-1">
                   You won't be able to access app permissions, accounts, or other system settings
                 </Text>
