@@ -29,10 +29,10 @@ export interface Preset {
   isScheduled?: boolean;
   scheduleStartDate?: string | null; // ISO date string - when blocking starts
   scheduleEndDate?: string | null; // ISO date string - when blocking ends
-  // Recurring schedule feature (maps to DB columns: repeat_enabled, repeat_unit, repeat_interval)
-  repeatEnabled?: boolean;
-  repeatUnit?: 'minutes' | 'hours' | 'days' | 'weeks' | 'months';
-  repeatInterval?: number;
+  // Recurring schedule feature (DB columns)
+  repeat_enabled?: boolean;
+  repeat_unit?: 'minutes' | 'hours' | 'days' | 'weeks' | 'months';
+  repeat_interval?: number;
 }
 
 interface PresetCardProps {
@@ -235,12 +235,23 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, disabled
                   Expired
                 </Text>
               </View>
-            ) : preset.isScheduled && (
-              <View style={{ backgroundColor: `${colors.cyan}33` }} className="ml-2 px-2 py-0.5 rounded">
-                <Text style={{ color: colors.cyan }} className="text-xs font-nunito-semibold">
-                  Scheduled
-                </Text>
-              </View>
+            ) : (
+              <>
+                {preset.isScheduled && (
+                  <View style={{ backgroundColor: `${colors.cyan}33` }} className="ml-2 px-2 py-0.5 rounded">
+                    <Text style={{ color: colors.cyan }} className="text-xs font-nunito-semibold">
+                      Scheduled
+                    </Text>
+                  </View>
+                )}
+                {preset.repeat_enabled && (
+                  <View style={{ backgroundColor: '#a855f733' }} className="ml-2 px-2 py-0.5 rounded">
+                    <Text style={{ color: '#a855f7' }} className="text-xs font-nunito-semibold">
+                      Recurring
+                    </Text>
+                  </View>
+                )}
+              </>
             )}
           </View>
 

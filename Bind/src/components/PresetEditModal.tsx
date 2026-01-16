@@ -406,6 +406,15 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
         setIsScheduled(preset.isScheduled ?? false);
         setScheduleStartDate(preset.scheduleStartDate ? new Date(preset.scheduleStartDate) : null);
         setScheduleEndDate(preset.scheduleEndDate ? new Date(preset.scheduleEndDate) : null);
+        // Recurring schedule feature
+        console.log('[PresetEditModal] Loading preset recurring data:', {
+          repeat_enabled: preset.repeat_enabled,
+          repeat_unit: preset.repeat_unit,
+          repeat_interval: preset.repeat_interval,
+        });
+        setIsRecurring(preset.repeat_enabled ?? false);
+        setRecurringValue(preset.repeat_interval?.toString() ?? '1');
+        setRecurringUnit(preset.repeat_unit ?? 'hours');
         // For 'all' mode presets, we'll select all apps after loading
         // For 'specific' mode, use the existing selectedApps
         if (preset.mode === 'all') {
@@ -561,10 +570,17 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
       scheduleStartDate: isScheduled && scheduleStartDate ? scheduleStartDate.toISOString() : null,
       scheduleEndDate: isScheduled && scheduleEndDate ? scheduleEndDate.toISOString() : null,
       // Recurring schedule feature (only enabled if scheduled and recurring toggle is on)
-      repeatEnabled: isScheduled && isRecurring ? true : false,
-      repeatUnit: isScheduled && isRecurring ? recurringUnit : undefined,
-      repeatInterval: isScheduled && isRecurring ? finalRecurringInterval : undefined,
+      repeat_enabled: isScheduled && isRecurring ? true : false,
+      repeat_unit: isScheduled && isRecurring ? recurringUnit : undefined,
+      repeat_interval: isScheduled && isRecurring ? finalRecurringInterval : undefined,
     };
+
+    // Log recurring data for debugging
+    console.log('[PresetEditModal] Saving preset with recurring data:', {
+      repeat_enabled: newPreset.repeat_enabled,
+      repeat_unit: newPreset.repeat_unit,
+      repeat_interval: newPreset.repeat_interval,
+    });
 
     try {
       await onSave(newPreset);

@@ -764,6 +764,10 @@ app.get('/api/presets', authenticateToken, async (req, res) => {
       isScheduled: p.is_scheduled || false,
       scheduleStartDate: p.schedule_start_date || null,
       scheduleEndDate: p.schedule_end_date || null,
+      // Recurring schedule feature
+      repeat_enabled: p.repeat_enabled || false,
+      repeat_unit: p.repeat_unit || null,
+      repeat_interval: p.repeat_interval || null,
     }));
 
     res.json({ presets });
@@ -815,7 +819,17 @@ app.post('/api/presets', authenticateToken, async (req, res) => {
       is_scheduled: preset.isScheduled || false,
       schedule_start_date: preset.scheduleStartDate || null,
       schedule_end_date: preset.scheduleEndDate || null,
+      // Recurring schedule feature
+      repeat_enabled: preset.repeat_enabled || false,
+      repeat_unit: preset.repeat_unit || null,
+      repeat_interval: preset.repeat_interval || null,
     };
+
+    console.log('[presets:save] Recurring data:', {
+      repeat_enabled: preset.repeat_enabled,
+      repeat_unit: preset.repeat_unit,
+      repeat_interval: preset.repeat_interval,
+    });
 
     let error;
     if (existing) {

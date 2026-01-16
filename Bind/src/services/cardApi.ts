@@ -254,10 +254,10 @@ export interface Preset {
   isScheduled?: boolean;
   scheduleStartDate?: string | null;
   scheduleEndDate?: string | null;
-  // Recurring schedule feature (maps to DB columns: repeat_enabled, repeat_unit, repeat_interval)
-  repeatEnabled?: boolean;
-  repeatUnit?: 'minutes' | 'hours' | 'days' | 'weeks' | 'months';
-  repeatInterval?: number;
+  // Recurring schedule feature (DB columns)
+  repeat_enabled?: boolean;
+  repeat_unit?: 'minutes' | 'hours' | 'days' | 'weeks' | 'months';
+  repeat_interval?: number;
 }
 
 /**
