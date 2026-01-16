@@ -535,6 +535,10 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
 
     setIsSaving(true);
 
+    // Parse recurring value, default to 1 if empty/invalid
+    const parsedRecurringValue = parseInt(recurringValue, 10);
+    const finalRecurringInterval = isNaN(parsedRecurringValue) || parsedRecurringValue <= 0 ? 1 : parsedRecurringValue;
+
     const newPreset: Preset = {
       id: preset?.id || '',
       name: name.trim(),
@@ -556,6 +560,10 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
       isScheduled,
       scheduleStartDate: isScheduled && scheduleStartDate ? scheduleStartDate.toISOString() : null,
       scheduleEndDate: isScheduled && scheduleEndDate ? scheduleEndDate.toISOString() : null,
+      // Recurring schedule feature (only enabled if scheduled and recurring toggle is on)
+      repeatEnabled: isScheduled && isRecurring ? true : false,
+      repeatUnit: isScheduled && isRecurring ? recurringUnit : undefined,
+      repeatInterval: isScheduled && isRecurring ? finalRecurringInterval : undefined,
     };
 
     try {
@@ -563,7 +571,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
     } finally {
       setIsSaving(false);
     }
-  }, [name, isSaving, canSave, preset, installedSelectedApps, blockedWebsites, blockSettings, noTimeLimit, timerDays, timerHours, timerMinutes, timerSeconds, targetDate, onSave, allowEmergencyTapout, isScheduled, scheduleStartDate, scheduleEndDate, existingPresets]);
+  }, [name, isSaving, canSave, preset, installedSelectedApps, blockedWebsites, blockSettings, noTimeLimit, timerDays, timerHours, timerMinutes, timerSeconds, targetDate, onSave, allowEmergencyTapout, isScheduled, scheduleStartDate, scheduleEndDate, existingPresets, isRecurring, recurringValue, recurringUnit]);
 
   // Calculate next recurring occurrence based on your specified logic:
   // - Minutes/Hours: Add interval to END time → new START = END + interval, new END = new START + duration

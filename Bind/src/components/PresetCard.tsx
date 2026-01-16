@@ -29,6 +29,10 @@ export interface Preset {
   isScheduled?: boolean;
   scheduleStartDate?: string | null; // ISO date string - when blocking starts
   scheduleEndDate?: string | null; // ISO date string - when blocking ends
+  // Recurring schedule feature (maps to DB columns: repeat_enabled, repeat_unit, repeat_interval)
+  repeatEnabled?: boolean;
+  repeatUnit?: 'minutes' | 'hours' | 'days' | 'weeks' | 'months';
+  repeatInterval?: number;
 }
 
 interface PresetCardProps {
