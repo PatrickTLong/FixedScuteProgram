@@ -406,8 +406,9 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
       return;
     }
 
-    // Store preset ID before starting - we'll re-activate it after unlock
+    // Store preset info before starting
     const presetIdToKeep = activePreset?.id;
+    const isScheduledPreset = activePreset?.isScheduled;
 
     setTapoutLoading(true);
     setLoading(true); // Show loading spinner like normal unlock
@@ -429,8 +430,15 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
           await BlockingModule.forceUnlock();
         }
 
-        // Explicitly re-activate the preset to ensure it stays active in backend
-        if (presetIdToKeep) {
+        // For scheduled presets: fully deactivate/clear (same as when schedule ends)
+        // For regular presets: re-activate to keep it ready for quick re-lock
+        if (isScheduledPreset) {
+          console.log('[HomeScreen] Clearing scheduled preset after emergency tapout:', presetIdToKeep);
+          // Deactivate the preset - same as when a scheduled preset ends naturally
+          await activatePreset(email, null);
+          setCurrentPreset(null);
+          setActivePreset(null);
+        } else if (presetIdToKeep) {
           console.log('[HomeScreen] Re-activating preset after emergency tapout:', presetIdToKeep);
           await activatePreset(email, presetIdToKeep);
         }

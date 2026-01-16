@@ -359,6 +359,7 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
     /**
      * Show a high-priority heads-up notification when a preset ends/times out.
      * This ensures the user knows they're unlocked even if they're away from their phone.
+     * Uses fullScreenIntent to auto-launch the app (same as TimerPresetReceiver).
      */
     private fun showDeactivationNotification(context: Context, presetName: String) {
         try {
@@ -382,6 +383,7 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
             // Create intent to open the app when notification is tapped
             val launchIntent = context.packageManager.getLaunchIntentForPackage(context.packageName)?.apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                putExtra("scheduled_preset_ended", true)
             }
             val pendingIntent = PendingIntent.getActivity(
                 context,
@@ -390,7 +392,24 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
 
-            // Build the notification with high priority for heads-up display
+            // Create a full-screen intent for launching the app from background
+            // This is the key to making the app launch even when killed (same as TimerPresetReceiver)
+            val fullScreenIntent = context.packageManager.getLaunchIntentForPackage(context.packageName)?.apply {
+                addFlags(
+                    Intent.FLAG_ACTIVITY_NEW_TASK or
+                    Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                    Intent.FLAG_ACTIVITY_SINGLE_TOP
+                )
+                putExtra("scheduled_preset_ended", true)
+            }
+            val fullScreenPendingIntent = PendingIntent.getActivity(
+                context,
+                DEACTIVATION_NOTIFICATION_ID + 1000, // Different request code
+                fullScreenIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+
+            // Build the notification with high priority and fullScreenIntent for background launch
             val notification = NotificationCompat.Builder(context, ALERT_CHANNEL_ID)
                 .setContentTitle("Session Ended")
                 .setContentText("\"$presetName\" has ended. Tap to unlock.")
@@ -399,10 +418,30 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
                 .setCategory(NotificationCompat.CATEGORY_ALARM)
                 .setAutoCancel(true)
                 .setContentIntent(pendingIntent)
+                .setFullScreenIntent(fullScreenPendingIntent, true) // This launches app from background
                 .setDefaults(NotificationCompat.DEFAULT_ALL) // Sound, vibrate, lights
                 .build()
 
             notificationManager.notify(DEACTIVATION_NOTIFICATION_ID, notification)
+
+            // Also try direct launch as backup (works when app has foreground permission)
+            try {
+                val appLaunchIntent = context.packageManager.getLaunchIntentForPackage(context.packageName)
+                if (appLaunchIntent != null) {
+                    appLaunchIntent.addFlags(
+                        Intent.FLAG_ACTIVITY_NEW_TASK or
+                        Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                        Intent.FLAG_ACTIVITY_SINGLE_TOP or
+                        Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+                    )
+                    appLaunchIntent.putExtra("scheduled_preset_ended", true)
+                    context.startActivity(appLaunchIntent)
+                    Log.d(TAG, "Launched app for scheduled preset end via direct startActivity")
+                }
+            } catch (e: Exception) {
+                Log.d(TAG, "Direct startActivity failed (expected on Android 10+), fullScreenIntent will handle it", e)
+            }
+
             Log.d(TAG, "Showed deactivation notification for preset: $presetName")
 
         } catch (e: Exception) {
