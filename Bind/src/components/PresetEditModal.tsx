@@ -124,8 +124,8 @@ async function loadInstalledAppsOnce(): Promise<InstalledApp[]> {
   return installedAppsLoadPromise;
 }
 
-// Calendar icon matching the project's icon style
-const CalendarIcon = ({ color = '#ffffff', size = 24 }: { color?: string; size?: number }) => (
+// Calendar icon - white with thicker strokes
+const CalendarIcon = ({ size = 24 }: { size?: number }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Rect
       x="3"
@@ -133,15 +133,28 @@ const CalendarIcon = ({ color = '#ffffff', size = 24 }: { color?: string; size?:
       width="18"
       height="18"
       rx="2"
-      stroke={color}
-      strokeWidth={2}
+      stroke="#FFFFFF"
+      strokeWidth={2.5}
       strokeLinecap="round"
       strokeLinejoin="round"
     />
     <Path
       d="M16 2v4M8 2v4M3 10h18"
-      stroke={color}
-      strokeWidth={2}
+      stroke="#FFFFFF"
+      strokeWidth={2.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+// Flag icon - white with thicker strokes (for end date)
+const FlagIcon = ({ size = 24 }: { size?: number }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1zM4 22v-7"
+      stroke="#FFFFFF"
+      strokeWidth={2.5}
       strokeLinecap="round"
       strokeLinejoin="round"
     />
@@ -723,7 +736,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                   className="flex-row items-center py-3 px-4 rounded-xl mb-3"
                 >
                   <View style={{ backgroundColor: colors.cardLight }} className="w-10 h-10 rounded-lg items-center justify-center mr-3">
-                    <CalendarIcon color={colors.green} size={22} />
+                    <CalendarIcon size={22} />
                   </View>
                   <View className="flex-1">
                     <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">
@@ -763,7 +776,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                   className="flex-row items-center py-3 px-4 rounded-xl"
                 >
                   <View style={{ backgroundColor: colors.cardLight }} className="w-10 h-10 rounded-lg items-center justify-center mr-3">
-                    <CalendarIcon color={colors.red} size={22} />
+                    <FlagIcon size={22} />
                   </View>
                   <View className="flex-1">
                     <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">
@@ -855,7 +868,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                   className="flex-row items-center py-3 px-4 rounded-xl"
                 >
                   <View style={{ backgroundColor: colors.cardLight }} className="w-10 h-10 rounded-lg items-center justify-center mr-3">
-                    <CalendarIcon color={colors.text} size={22} />
+                    <CalendarIcon size={22} />
                   </View>
                   <View className="flex-1">
                     <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">

@@ -22,173 +22,173 @@ interface Props {
   onDeleteAccount: () => Promise<{ success: boolean; error?: string }>;
 }
 
-// Icons - now accept color prop
-const MailIcon = ({ color }: { color: string }) => (
+// Icons - white with thicker strokes
+const MailIcon = () => (
   <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
     <Path
       d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
-      stroke={color}
-      strokeWidth={2}
+      stroke="#FFFFFF"
+      strokeWidth={2.5}
       strokeLinecap="round"
       strokeLinejoin="round"
     />
     <Path
       d="M22 6l-10 7L2 6"
-      stroke={color}
-      strokeWidth={2}
+      stroke="#FFFFFF"
+      strokeWidth={2.5}
       strokeLinecap="round"
       strokeLinejoin="round"
     />
   </Svg>
 );
 
-const LogoutIcon = ({ color }: { color: string }) => (
+const LogoutIcon = () => (
   <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
     <Path
       d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"
-      stroke={color}
-      strokeWidth={2}
+      stroke="#FFFFFF"
+      strokeWidth={2.5}
       strokeLinecap="round"
       strokeLinejoin="round"
     />
   </Svg>
 );
 
-const RefreshIcon = ({ color }: { color: string }) => (
+const RefreshIcon = () => (
   <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
     <Path
       d="M23 4v6h-6M1 20v-6h6"
-      stroke={color}
-      strokeWidth={2}
+      stroke="#FFFFFF"
+      strokeWidth={2.5}
       strokeLinecap="round"
       strokeLinejoin="round"
     />
     <Path
       d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"
-      stroke={color}
-      strokeWidth={2}
+      stroke="#FFFFFF"
+      strokeWidth={2.5}
       strokeLinecap="round"
       strokeLinejoin="round"
     />
   </Svg>
 );
 
-const CardIcon = ({ color }: { color: string }) => (
+const CardIcon = () => (
   <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
     <Path
       d="M20 4H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V6a2 2 0 00-2-2zM2 10h20"
-      stroke={color}
-      strokeWidth={2}
+      stroke="#FFFFFF"
+      strokeWidth={2.5}
       strokeLinecap="round"
       strokeLinejoin="round"
     />
   </Svg>
 );
 
-const TrashIcon = ({ color }: { color: string }) => (
+const TrashIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
   <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
     <Path
       d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"
       stroke={color}
-      strokeWidth={2}
+      strokeWidth={2.5}
       strokeLinecap="round"
       strokeLinejoin="round"
     />
   </Svg>
 );
 
-const MessageIcon = ({ color }: { color: string }) => (
+const MessageIcon = () => (
   <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
     <Path
       d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2v10z"
-      stroke={color}
-      strokeWidth={2}
+      stroke="#FFFFFF"
+      strokeWidth={2.5}
       strokeLinecap="round"
       strokeLinejoin="round"
     />
   </Svg>
 );
 
-const BugIcon = ({ color }: { color: string }) => (
+const BugIcon = () => (
   <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
     <Path
       d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0zM12 9v4M12 17h.01"
-      stroke={color}
-      strokeWidth={2}
+      stroke="#FFFFFF"
+      strokeWidth={2.5}
       strokeLinecap="round"
       strokeLinejoin="round"
     />
   </Svg>
 );
 
-const SunIcon = ({ color }: { color: string }) => (
+const SunIcon = () => (
   <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
     <Path
       d="M12 17a5 5 0 100-10 5 5 0 000 10zM12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"
-      stroke={color}
-      strokeWidth={2}
+      stroke="#FFFFFF"
+      strokeWidth={2.5}
       strokeLinecap="round"
       strokeLinejoin="round"
     />
   </Svg>
 );
 
-const UnlockIcon = ({ color }: { color: string }) => (
+const UnlockIcon = () => (
   <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
     <Path
       d="M19 11H5a2 2 0 00-2 2v7a2 2 0 002 2h14a2 2 0 002-2v-7a2 2 0 00-2-2z"
-      stroke={color}
-      strokeWidth={2}
+      stroke="#FFFFFF"
+      strokeWidth={2.5}
       strokeLinecap="round"
       strokeLinejoin="round"
     />
     <Path
       d="M7 11V7a5 5 0 019.9-1"
-      stroke={color}
-      strokeWidth={2}
+      stroke="#FFFFFF"
+      strokeWidth={2.5}
       strokeLinecap="round"
       strokeLinejoin="round"
     />
   </Svg>
 );
 
-const ShieldIcon = ({ color }: { color: string }) => (
+const ShieldIcon = () => (
   <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
     <Path
       d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"
-      stroke={color}
-      strokeWidth={2}
+      stroke="#FFFFFF"
+      strokeWidth={2.5}
       strokeLinecap="round"
       strokeLinejoin="round"
     />
   </Svg>
 );
 
-const FileTextIcon = ({ color }: { color: string }) => (
+const FileTextIcon = () => (
   <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
     <Path
       d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"
-      stroke={color}
-      strokeWidth={2}
+      stroke="#FFFFFF"
+      strokeWidth={2.5}
       strokeLinecap="round"
       strokeLinejoin="round"
     />
     <Path
       d="M14 2v6h6M16 13H8M16 17H8M10 9H8"
-      stroke={color}
-      strokeWidth={2}
+      stroke="#FFFFFF"
+      strokeWidth={2.5}
       strokeLinecap="round"
       strokeLinejoin="round"
     />
   </Svg>
 );
 
-const TapoutIcon = ({ color }: { color: string }) => (
+const TapoutIcon = () => (
   <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
     <Path
       d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0zM12 9v4M12 17h.01"
-      stroke={color}
-      strokeWidth={2}
+      stroke="#FFFFFF"
+      strokeWidth={2.5}
       strokeLinecap="round"
       strokeLinejoin="round"
     />
@@ -407,14 +407,14 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
         </Text>
         <View style={{ backgroundColor: colors.card }} className="rounded-2xl px-4 mb-6">
           <SettingsRow
-            icon={<MailIcon color={colors.textSecondary} />}
+            icon={<MailIcon />}
             label={email}
             showArrow={false}
             labelColor={colors.text}
             borderColor={colors.border}
           />
           <SettingsRow
-            icon={<LogoutIcon color={colors.textSecondary} />}
+            icon={<LogoutIcon />}
             label="Log Out"
             onPress={isDisabled ? undefined : () => setLogoutModalVisible(true)}
             labelColor={colors.text}
@@ -440,7 +440,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
         )}
         <View style={{ backgroundColor: colors.card }} className="rounded-2xl px-4 mb-6">
           <SettingsRow
-            icon={<RefreshIcon color={colors.textSecondary} />}
+            icon={<RefreshIcon />}
             label="Reset Account"
             onPress={isDisabled ? undefined : () => setResetModalVisible(true)}
             labelColor={colors.text}
@@ -469,7 +469,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
             className="flex-row items-center py-4"
           >
             <View className="mr-4">
-              <TapoutIcon color={colors.green} />
+              <TapoutIcon />
             </View>
             <View className="flex-1">
               <Text style={{ color: colors.text }} className="text-base font-nunito">Tapouts Remaining</Text>
@@ -486,7 +486,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
           {tapoutStatus && getTimeUntilRefill() && (
             <View className="flex-row items-center justify-between py-4">
               <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">Next Refill</Text>
-              <Text style={{ color: colors.green }} className="text-sm font-nunito-semibold">
+              <Text style={{ color: '#FFFFFF' }} className="text-sm font-nunito-semibold">
                 {getTimeUntilRefill()}
               </Text>
             </View>
@@ -499,7 +499,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
         </Text>
         <View style={{ backgroundColor: colors.card }} className="rounded-2xl px-4">
           <SettingsRow
-            icon={<MessageIcon color={colors.textSecondary} />}
+            icon={<MessageIcon />}
             label="Contact Support"
             onPress={isDisabled ? undefined : handleContactSupport}
             labelColor={colors.text}
@@ -507,7 +507,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
             arrowColor={colors.textSecondary}
           />
           <SettingsRow
-            icon={<BugIcon color={colors.textSecondary} />}
+            icon={<BugIcon />}
             label="Bug Report"
             onPress={isDisabled ? undefined : handleBugReport}
             labelColor={colors.text}
@@ -515,7 +515,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
             arrowColor={colors.textSecondary}
           />
           <SettingsRow
-            icon={<ShieldIcon color={colors.textSecondary} />}
+            icon={<ShieldIcon />}
             label="Privacy Policy"
             onPress={() => setPrivacyModalVisible(true)}
             labelColor={colors.text}
@@ -523,7 +523,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
             arrowColor={colors.textSecondary}
           />
           <SettingsRow
-            icon={<FileTextIcon color={colors.textSecondary} />}
+            icon={<FileTextIcon />}
             label="Terms of Service"
             onPress={() => setTermsModalVisible(true)}
             labelColor={colors.text}

@@ -259,7 +259,7 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, disabled
           trackColorFalse={colors.border}
           trackColorTrue="#16a34a"
           thumbColorOn={colors.green}
-          thumbColorOff={colors.textMuted}
+          thumbColorOff="#9ca3af"
         />
       </View>
     </Pressable>
