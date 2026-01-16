@@ -71,6 +71,111 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
             // Get the preset name before clearing it
             val presetName = sessionPrefs.getString("active_preset_name", null) ?: "Preset"
 
+            // Check if this is a recurring preset and handle renewal
+            val prefs = context.getSharedPreferences(ScheduleManager.PREFS_NAME, Context.MODE_PRIVATE)
+            val presetsJson = prefs.getString(ScheduleManager.KEY_SCHEDULED_PRESETS, null)
+            var isRecurring = false
+            var presetRenewed = false
+
+            if (presetsJson != null) {
+                val presetsArray = org.json.JSONArray(presetsJson)
+                for (i in 0 until presetsArray.length()) {
+                    val preset = presetsArray.getJSONObject(i)
+                    if (preset.getString("id") == presetId) {
+                        val repeatEnabled = preset.optBoolean("repeat_enabled", false)
+                        val repeatUnit = preset.optString("repeat_unit", null)
+                        val repeatInterval = preset.optInt("repeat_interval", 0)
+                        val startDateStr = preset.optString("scheduleStartDate", null)
+                        val endDateStr = preset.optString("scheduleEndDate", null)
+
+                        Log.d(TAG, "RECURRING check: repeat_enabled=$repeatEnabled, unit=$repeatUnit, interval=$repeatInterval")
+
+                        if (repeatEnabled && repeatUnit != null && repeatInterval > 0 && startDateStr != null && endDateStr != null) {
+                            isRecurring = true
+                            Log.d(TAG, "RECURRING preset detected, calculating next occurrence...")
+
+                            // Calculate next occurrence
+                            val startTime = parseIsoDate(startDateStr)
+                            val endTime = parseIsoDate(endDateStr)
+                            val duration = endTime - startTime
+
+                            val nextStart: Long
+                            val nextEnd: Long
+
+                            when (repeatUnit) {
+                                "minutes" -> {
+                                    val intervalMs = repeatInterval * 60 * 1000L
+                                    nextStart = endTime + intervalMs
+                                    nextEnd = nextStart + duration
+                                }
+                                "hours" -> {
+                                    val intervalMs = repeatInterval * 60 * 60 * 1000L
+                                    nextStart = endTime + intervalMs
+                                    nextEnd = nextStart + duration
+                                }
+                                "days" -> {
+                                    val calendar = java.util.Calendar.getInstance()
+                                    calendar.timeInMillis = startTime
+                                    calendar.add(java.util.Calendar.DAY_OF_MONTH, repeatInterval)
+                                    nextStart = calendar.timeInMillis
+                                    calendar.timeInMillis = endTime
+                                    calendar.add(java.util.Calendar.DAY_OF_MONTH, repeatInterval)
+                                    nextEnd = calendar.timeInMillis
+                                }
+                                "weeks" -> {
+                                    val calendar = java.util.Calendar.getInstance()
+                                    calendar.timeInMillis = startTime
+                                    calendar.add(java.util.Calendar.WEEK_OF_YEAR, repeatInterval)
+                                    nextStart = calendar.timeInMillis
+                                    calendar.timeInMillis = endTime
+                                    calendar.add(java.util.Calendar.WEEK_OF_YEAR, repeatInterval)
+                                    nextEnd = calendar.timeInMillis
+                                }
+                                "months" -> {
+                                    val calendar = java.util.Calendar.getInstance()
+                                    calendar.timeInMillis = startTime
+                                    calendar.add(java.util.Calendar.MONTH, repeatInterval)
+                                    nextStart = calendar.timeInMillis
+                                    calendar.timeInMillis = endTime
+                                    calendar.add(java.util.Calendar.MONTH, repeatInterval)
+                                    nextEnd = calendar.timeInMillis
+                                }
+                                else -> {
+                                    nextStart = startTime
+                                    nextEnd = endTime
+                                }
+                            }
+
+                            // Format dates back to ISO string
+                            val dateFormat = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", java.util.Locale.US)
+                            dateFormat.timeZone = java.util.TimeZone.getTimeZone("UTC")
+                            val nextStartStr = dateFormat.format(java.util.Date(nextStart))
+                            val nextEndStr = dateFormat.format(java.util.Date(nextEnd))
+
+                            Log.d(TAG, "RECURRING: Next occurrence - start=$nextStartStr, end=$nextEndStr")
+
+                            // Update the preset in the JSON array
+                            preset.put("scheduleStartDate", nextStartStr)
+                            preset.put("scheduleEndDate", nextEndStr)
+
+                            // Save updated presets back to SharedPreferences
+                            prefs.edit()
+                                .putString(ScheduleManager.KEY_SCHEDULED_PRESETS, presetsArray.toString())
+                                .apply()
+
+                            Log.d(TAG, "RECURRING: Updated preset JSON with new dates")
+
+                            // Schedule the next start alarm
+                            ScheduleManager.schedulePresetStart(context, presetId, nextStart)
+                            Log.d(TAG, "RECURRING: Scheduled next start alarm at ${java.util.Date(nextStart)}")
+
+                            presetRenewed = true
+                        }
+                        break
+                    }
+                }
+            }
+
             // Clear the session
             sessionPrefs.edit()
                 .putBoolean(UninstallBlockerService.KEY_SESSION_ACTIVE, false)
@@ -83,13 +188,114 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
             val serviceIntent = Intent(context, UninstallBlockerService::class.java)
             context.stopService(serviceIntent)
 
-            // Show high-priority notification that blocking has ended
-            showDeactivationNotification(context, presetName)
+            // Show notification - different message for recurring vs non-recurring
+            if (isRecurring && presetRenewed) {
+                // Store launch data so React Native can detect this and sync to backend
+                val launchPrefs = context.getSharedPreferences("scute_launch_prefs", Context.MODE_PRIVATE)
+                launchPrefs.edit()
+                    .putBoolean("recurring_preset_paused", true)
+                    .putLong("recurring_launch_time", System.currentTimeMillis())
+                    .apply()
+                Log.d(TAG, "Stored recurring preset pause launch data")
 
-            Log.d(TAG, "Scheduled preset deactivated: $presetId")
+                showRecurringPausedNotification(context, presetName)
+            } else {
+                showDeactivationNotification(context, presetName)
+            }
+
+            Log.d(TAG, "Scheduled preset deactivated: $presetId (recurring=$isRecurring, renewed=$presetRenewed)")
 
         } catch (e: Exception) {
             Log.e(TAG, "Error deactivating scheduled preset", e)
+        }
+    }
+
+    /**
+     * Show notification when a recurring preset pauses until next occurrence.
+     */
+    private fun showRecurringPausedNotification(context: Context, presetName: String) {
+        try {
+            val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+            // Create the high-priority notification channel (Android 8+)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val channel = NotificationChannel(
+                    ALERT_CHANNEL_ID,
+                    "Schedule Alerts",
+                    NotificationManager.IMPORTANCE_HIGH
+                ).apply {
+                    description = "Alerts when scheduled blocking presets activate or end"
+                    enableVibration(true)
+                    enableLights(true)
+                    setShowBadge(true)
+                }
+                notificationManager.createNotificationChannel(channel)
+            }
+
+            // Create intent to open the app
+            val launchIntent = context.packageManager.getLaunchIntentForPackage(context.packageName)?.apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                putExtra("recurring_preset_paused", true)
+            }
+            val pendingIntent = PendingIntent.getActivity(
+                context,
+                DEACTIVATION_NOTIFICATION_ID + 2000,
+                launchIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+
+            // Create full screen intent for launching app
+            val fullScreenIntent = context.packageManager.getLaunchIntentForPackage(context.packageName)?.apply {
+                addFlags(
+                    Intent.FLAG_ACTIVITY_NEW_TASK or
+                    Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                    Intent.FLAG_ACTIVITY_SINGLE_TOP
+                )
+                putExtra("recurring_preset_paused", true)
+            }
+            val fullScreenPendingIntent = PendingIntent.getActivity(
+                context,
+                DEACTIVATION_NOTIFICATION_ID + 3000,
+                fullScreenIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+
+            val notification = NotificationCompat.Builder(context, ALERT_CHANNEL_ID)
+                .setContentTitle("Recurring Block Paused")
+                .setContentText("\"$presetName\" will resume at the next scheduled time.")
+                .setSmallIcon(android.R.drawable.ic_lock_idle_lock)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setCategory(NotificationCompat.CATEGORY_ALARM)
+                .setAutoCancel(true)
+                .setContentIntent(pendingIntent)
+                .setFullScreenIntent(fullScreenPendingIntent, true)
+                .setDefaults(NotificationCompat.DEFAULT_ALL)
+                .build()
+
+            notificationManager.notify(DEACTIVATION_NOTIFICATION_ID, notification)
+
+            // Also try direct launch
+            try {
+                val appLaunchIntent = context.packageManager.getLaunchIntentForPackage(context.packageName)
+                if (appLaunchIntent != null) {
+                    appLaunchIntent.addFlags(
+                        Intent.FLAG_ACTIVITY_NEW_TASK or
+                        Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                        Intent.FLAG_ACTIVITY_SINGLE_TOP or
+                        Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+                    )
+                    appLaunchIntent.putExtra("recurring_preset_paused", true)
+                    context.startActivity(appLaunchIntent)
+                    Log.d(TAG, "Launched app for recurring preset pause via direct startActivity")
+                }
+            } catch (e: Exception) {
+                Log.d(TAG, "Direct startActivity failed, fullScreenIntent will handle it", e)
+            }
+
+            Log.d(TAG, "Showed recurring paused notification for preset: $presetName")
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to show recurring paused notification", e)
         }
     }
 
