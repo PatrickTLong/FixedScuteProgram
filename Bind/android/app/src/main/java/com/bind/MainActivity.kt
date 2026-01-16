@@ -41,6 +41,8 @@ class MainActivity : ReactActivity() {
         }
         // Check if launched from scheduled preset alarm
         checkScheduledPresetLaunch(intent)
+        // Check if launched from blocked overlay (tap to dismiss)
+        checkBlockedOverlayLaunch(intent)
 
         // CRITICAL: Re-register all scheduled preset alarms on app launch
         // This ensures alarms persist even if they were cancelled when the app was
@@ -70,12 +72,31 @@ class MainActivity : ReactActivity() {
         }
     }
 
+    /**
+     * Check if the app was launched from the blocked overlay (tap to dismiss)
+     * and store the launch data so React Native can redirect to home
+     */
+    private fun checkBlockedOverlayLaunch(intent: Intent?) {
+        if (intent?.getBooleanExtra("from_blocked_overlay", false) == true) {
+            Log.d(TAG, "App launched from blocked overlay - signaling to redirect to home")
+
+            // Store in SharedPreferences so React Native can read it
+            val prefs = getSharedPreferences("scute_launch_prefs", Context.MODE_PRIVATE)
+            prefs.edit()
+                .putBoolean("from_blocked_overlay", true)
+                .putLong("blocked_overlay_launch_time", System.currentTimeMillis())
+                .apply()
+        }
+    }
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
 
         // Check if launched from scheduled preset alarm
         checkScheduledPresetLaunch(intent)
+        // Check if launched from blocked overlay (tap to dismiss)
+        checkBlockedOverlayLaunch(intent)
 
         // Check if this is an NFC intent
         val isNfcIntent = intent.action == NfcAdapter.ACTION_TAG_DISCOVERED ||

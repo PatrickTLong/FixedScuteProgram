@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { useTheme } from '../context/ThemeContext';
+import { mediumTap } from '../utils/haptics';
 
 interface EmergencyTapoutModalProps {
   visible: boolean;
@@ -133,7 +134,10 @@ function EmergencyTapoutModal({
               </Text>
 
               <TouchableOpacity
-                onPress={onUseTapout}
+                onPress={() => {
+                  mediumTap();
+                  onUseTapout();
+                }}
                 disabled={!canUseTapout || isLoading}
                 activeOpacity={0.7}
                 style={{ backgroundColor: canUseTapout ? colors.green : `${colors.textMuted}80` }}

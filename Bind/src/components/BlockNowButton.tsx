@@ -11,7 +11,7 @@ import Svg, { Path, Text as SvgText, Defs, Filter, FeGaussianBlur } from 'react-
 import { lightTap, mediumTap, successTap } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
 
-// Glowing text component using SVG blur filter
+// Glowing text component using SVG blur filter (animated)
 interface GlowTextProps {
   text: string;
   color: string;
@@ -52,6 +52,57 @@ function GlowText({ text, color, glowOpacity, fontSize = 16 }: GlowTextProps) {
           fill="#ffffff"
           opacity={opacity}
           filter="url(#glow)"
+        >
+          {text}
+        </SvgText>
+        {/* Main text layer */}
+        <SvgText
+          x={svgWidth / 2}
+          y={svgHeight / 2 + fontSize / 3}
+          textAnchor="middle"
+          fontSize={fontSize}
+          fontFamily="Nunito-SemiBold"
+          fill={color}
+        >
+          {text}
+        </SvgText>
+      </Svg>
+    </View>
+  );
+}
+
+// Static glow text component (no animation, constant glow)
+interface StaticGlowTextProps {
+  text: string;
+  color: string;
+  fontSize?: number;
+  glowOpacity?: number;
+}
+
+function StaticGlowText({ text, color, fontSize = 16, glowOpacity = 1 }: StaticGlowTextProps) {
+  // Estimate text width (rough approximation)
+  const textWidth = text.length * fontSize * 0.6;
+  const svgWidth = textWidth + 40; // padding for glow
+  const svgHeight = fontSize + 30;
+
+  return (
+    <View style={{ width: svgWidth, height: svgHeight, alignItems: 'center', justifyContent: 'center' }}>
+      <Svg width={svgWidth} height={svgHeight} style={{ position: 'absolute' }}>
+        <Defs>
+          <Filter id="staticGlow" x="-50%" y="-50%" width="200%" height="200%">
+            <FeGaussianBlur in="SourceGraphic" stdDeviation="6" />
+          </Filter>
+        </Defs>
+        {/* Glow layer */}
+        <SvgText
+          x={svgWidth / 2}
+          y={svgHeight / 2 + fontSize / 3}
+          textAnchor="middle"
+          fontSize={fontSize}
+          fontFamily="Nunito-SemiBold"
+          fill="#ffffff"
+          opacity={glowOpacity}
+          filter="url(#staticGlow)"
         >
           {text}
         </SvgText>
@@ -365,7 +416,7 @@ function BlockNowButton({
     return colors.text;
   };
 
-  // When locked with active timer, show tappable "Locked" button
+  // When locked with active timer, show tappable "Locked" button with static glow and dimmed background
   if (isLocked && hasActiveTimer) {
     return (
       <TouchableOpacity
@@ -377,24 +428,11 @@ function BlockNowButton({
         className="h-14 rounded-2xl overflow-hidden"
         style={{
           backgroundColor: colors.card,
+          opacity: 0.6,
         }}
       >
         <View className="flex-1 flex-row items-center justify-center">
-          <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" style={{ marginRight: 8 }}>
-            <Path
-              d="M19 11H5a2 2 0 00-2 2v7a2 2 0 002 2h14a2 2 0 002-2v-7a2 2 0 00-2-2zM7 11V7a5 5 0 0110 0v4"
-              stroke={colors.text}
-              strokeWidth={2}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </Svg>
-          <Text
-            style={{ color: colors.text }}
-            className="text-base font-nunito-semibold"
-          >
-            Locked
-          </Text>
+          <StaticGlowText text="Locked" color={colors.text} />
         </View>
       </TouchableOpacity>
     );

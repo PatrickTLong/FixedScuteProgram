@@ -92,6 +92,8 @@ class BlockedActivity : Activity() {
         intent?.let {
             it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             it.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            // Signal that we came from the blocked overlay so app redirects to home
+            it.putExtra("from_blocked_overlay", true)
             startActivity(it)
         }
     }

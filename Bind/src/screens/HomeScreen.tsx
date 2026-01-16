@@ -313,6 +313,41 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
       // Determine currently blocking preset
       const now = new Date();
 
+      // AUTO-UNLOCK: If we're locked with a timer that has expired, auto-unlock
+      // This handles the case when app was closed/killed while timer ran out
+      if (lockStatus.isLocked && lockStatus.lockEndsAt) {
+        const lockEndTime = new Date(lockStatus.lockEndsAt).getTime();
+        if (lockEndTime <= now.getTime()) {
+          console.log('[HomeScreen] Lock has expired - auto-unlocking on load');
+          // Lock has expired - auto-unlock but keep preset active
+          try {
+            await updateLockStatus(email, false, null);
+            if (BlockingModule) {
+              await BlockingModule.forceUnlock();
+            }
+            // NOTE: Don't deactivate the preset - keep it selected so user can lock again easily
+            invalidateUserCaches(email);
+            Vibration.vibrate(100);
+
+            // Set unlocked state but keep the preset showing
+            setIsLocked(false);
+            setLockEndsAt(null);
+            setLockStartedAt(null);
+            // Keep preset active - set it from the active preset found
+            if (active) {
+              setCurrentPreset(active.name);
+              setActivePreset(active);
+            }
+            setScheduledPresets(activeScheduled);
+            setTapoutStatus(tapout);
+            return; // Exit early, state is set
+          } catch (error) {
+            console.error('[HomeScreen] Failed to auto-unlock expired lock:', error);
+            // Continue with normal flow if auto-unlock fails
+          }
+        }
+      }
+
       // If we're locked, check if there's a scheduled preset that was blocking (even if expired)
       // This keeps the preset showing until user unlocks
       if (lockStatus.isLocked) {
@@ -327,28 +362,14 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
           // A scheduled preset is currently in its window and blocking
           setCurrentPreset(currentlyBlockingScheduled.name);
           setActivePreset(currentlyBlockingScheduled);
+        } else if (active) {
+          // Regular active preset is blocking (no-time-limit preset)
+          setCurrentPreset(active.name);
+          setActivePreset(active);
         } else {
-          // Check if there's an expired scheduled preset that was blocking
-          // (lockEndsAt would match the scheduleEndDate)
-          const expiredScheduled = presets.find(p =>
-            p.isScheduled && p.isActive && p.scheduleEndDate &&
-            new Date(p.scheduleEndDate) <= now &&
-            lockStatus.lockEndsAt === p.scheduleEndDate
-          );
-
-          if (expiredScheduled) {
-            // Keep showing the expired scheduled preset until user taps to unlock
-            setCurrentPreset(expiredScheduled.name);
-            setActivePreset(expiredScheduled);
-          } else if (active) {
-            // Regular active preset is blocking
-            setCurrentPreset(active.name);
-            setActivePreset(active);
-          } else {
-            // Locked but no matching preset found (edge case)
-            setCurrentPreset(null);
-            setActivePreset(null);
-          }
+          // Locked but no matching preset found (edge case)
+          setCurrentPreset(null);
+          setActivePreset(null);
         }
       } else {
         // Not locked - show the active preset if any
@@ -385,19 +406,20 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
       return;
     }
 
+    // Store preset ID before starting - we'll re-activate it after unlock
+    const presetIdToKeep = activePreset?.id;
+
     setTapoutLoading(true);
+    setLoading(true); // Show loading spinner like normal unlock
     try {
-      // Pass the active preset ID so the backend can deactivate it
-      // This prevents scheduled/timed presets from immediately re-activating
-      const result = await useEmergencyTapout(email, activePreset?.id);
+      // Don't pass preset ID - we want to keep the preset active in backend after unlock
+      const result = await useEmergencyTapout(email);
       if (result.success) {
-        // Unlock was successful - refresh state
+        // Unlock was successful - close modal immediately
         setEmergencyTapoutModalVisible(false);
         setIsLocked(false);
-
-        // Clear active preset since it was deactivated
-        setActivePreset(null);
-        setCurrentPreset(null);
+        setLockEndsAt(null);
+        setLockStartedAt(null);
 
         // Update database lock status to unlocked (already done by backend, but ensure local state is synced)
         await updateLockStatus(email, false, null);
@@ -407,14 +429,21 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
           await BlockingModule.forceUnlock();
         }
 
-        // Show loading spinner and refresh status to get updated preset list
-        setLoading(true);
-        invalidateUserCaches(email);
-        await loadStats(true);
-        setLoading(false);
+        // Explicitly re-activate the preset to ensure it stays active in backend
+        if (presetIdToKeep) {
+          console.log('[HomeScreen] Re-activating preset after emergency tapout:', presetIdToKeep);
+          await activatePreset(email, presetIdToKeep);
+        }
+
+        // Update tapout status locally
+        setTapoutStatus(prev => prev ? { ...prev, remaining: result.remaining } : null);
 
         Vibration.vibrate(100);
-        showModal('Unlocked', `Phone unlocked. You have ${result.remaining} emergency tapout${result.remaining !== 1 ? 's' : ''} remaining.`);
+        // No modal - just unlock silently
+
+        // Refresh to get updated state (like normal unlock does)
+        invalidateUserCaches(email);
+        await loadStats(true);
       } else {
         showModal('Failed', 'Could not use emergency tapout. Please try again.');
       }
@@ -423,8 +452,9 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
       showModal('Error', 'Something went wrong. Please try again.');
     } finally {
       setTapoutLoading(false);
+      setLoading(false); // Hide loading spinner after loadStats completes
     }
-  }, [email, tapoutStatus, activePreset, loadStats, showModal]);
+  }, [email, tapoutStatus, activePreset, showModal, loadStats]);
 
   // Load data on mount
   useEffect(() => {
@@ -481,6 +511,32 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
     }
   }, [refreshTrigger, loadStats, email]);
 
+  // Auto-unlock when timer expires (called from countdown effect)
+  const handleTimerExpired = useCallback(async () => {
+    console.log('[HomeScreen] Timer expired - auto-unlocking');
+    try {
+      // Update database lock status to unlocked
+      await updateLockStatus(email, false, null);
+
+      // Clear native blocking (native side should already be cleared by TimerPresetReceiver,
+      // but call this to ensure sync)
+      if (BlockingModule) {
+        await BlockingModule.forceUnlock();
+      }
+
+      // Update local state - keep preset active, just unlock
+      setIsLocked(false);
+      setLockEndsAt(null);
+      setLockStartedAt(null);
+      setTimeRemaining(null);
+      // NOTE: Don't deactivate the preset - keep it selected so user can lock again easily
+
+      Vibration.vibrate(100);
+      invalidateUserCaches(email);
+    } catch (error) {
+      console.error('[HomeScreen] Failed to auto-unlock on timer expiry:', error);
+    }
+  }, [email]);
 
   // Countdown timer effect (for timed locks)
   useEffect(() => {
@@ -496,9 +552,8 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
 
       if (diff <= 0) {
         setTimeRemaining(null);
-        // Native TimerPresetReceiver and ScheduledPresetReceiver now handle all notifications
-        // via AlarmManager, so we don't need to trigger notifications from JS anymore.
-        // This prevents duplicate notifications when navigating back to this screen.
+        // Auto-unlock when timer reaches 0
+        handleTimerExpired();
         return;
       }
 
@@ -524,7 +579,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
     return () => {
       clearInterval(interval);
     };
-  }, [isLocked, lockEndsAt, activePreset?.isScheduled]);
+  }, [isLocked, lockEndsAt, activePreset?.isScheduled, handleTimerExpired]);
 
   // Logo transition animation when lock state changes
   // Only show animated gradient when actively locked (has countdown or elapsed time)
@@ -704,7 +759,6 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
       setLockStartedAt(null);
 
       Vibration.vibrate(100);
-      showModal('Unlocked', 'Your phone has been unlocked.');
 
       // Refresh to get updated state
       invalidateUserCaches(email);
@@ -880,11 +934,9 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
 
         console.log('[HomeScreen] BlockingModule.startBlocking completed');
         Vibration.vibrate(50);
-        showModal('Blocking Started', `${activePreset.name} is now active.`);
       } else {
         console.log('[HomeScreen] BlockingModule is null/undefined - fallback mode');
         Vibration.vibrate(50);
-        showModal('Blocking Started', `${activePreset.name} is now active.`);
       }
 
       // Refresh to ensure UI is in sync with locked state

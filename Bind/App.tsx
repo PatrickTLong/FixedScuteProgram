@@ -196,6 +196,7 @@ function App() {
   useEffect(() => {
     checkLoginStatus();
     checkScheduledPresetLaunch();
+    checkBlockedOverlayLaunch();
   }, []);
 
   // Check if any scheduled preset is currently active and navigate to home if so
@@ -268,6 +269,26 @@ function App() {
     }
   }, [currentScreen, userEmail]);
 
+  // Check if app was launched from blocked overlay (tap to dismiss)
+  const checkBlockedOverlayLaunch = useCallback(async () => {
+    try {
+      if (!ScheduleModule) return;
+
+      const launchData = await ScheduleModule.getBlockedOverlayLaunchData();
+      if (launchData?.fromBlockedOverlay) {
+        console.log('[App] Launched from blocked overlay - redirecting to home');
+
+        // If user is logged in and on main screen, ensure we're on home tab
+        if (currentScreen === 'main') {
+          setActiveTab('home'); setDisplayedTab('home');
+          setRefreshTrigger(prev => prev + 1); // Trigger refresh
+        }
+      }
+    } catch (error) {
+      console.error('[App] Error checking blocked overlay launch:', error);
+    }
+  }, [currentScreen]);
+
   // Check permissions when app comes to foreground
   const checkPermissionsOnForeground = useCallback(async () => {
     // Only check if user is logged in and on main screen
@@ -298,13 +319,15 @@ function App() {
         checkPermissionsOnForeground();
         // Check if app was brought to foreground by a scheduled preset alarm
         checkScheduledPresetLaunch();
+        // Check if app was brought to foreground from blocked overlay (tap to dismiss)
+        checkBlockedOverlayLaunch();
         // Check if any scheduled preset is now active
         checkActiveScheduledPreset();
       }
     });
 
     return () => subscription.remove();
-  }, [checkPermissionsOnForeground, checkScheduledPresetLaunch, checkActiveScheduledPreset]);
+  }, [checkPermissionsOnForeground, checkScheduledPresetLaunch, checkBlockedOverlayLaunch, checkActiveScheduledPreset]);
 
   // Periodic check for scheduled preset activation (handles in-app scenario)
   // This runs every 5 seconds to detect when a preset becomes active while user is in-app

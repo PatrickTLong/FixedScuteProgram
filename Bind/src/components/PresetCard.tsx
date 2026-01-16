@@ -2,7 +2,7 @@ import React, { memo, useEffect, useState, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
-  TouchableOpacity,
+  Pressable,
 } from 'react-native';
 import { lightTap, mediumTap } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
@@ -211,11 +211,10 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, disabled
   }, [disabled, isExpired, onToggle]);
 
   return (
-    <TouchableOpacity
+    <Pressable
       onPress={handlePress}
       onLongPress={handleLongPress}
       delayLongPress={500}
-      activeOpacity={disabled ? 1 : 0.7}
       style={{ backgroundColor: colors.card }}
       className="rounded-2xl p-4 mb-3"
     >
@@ -263,7 +262,7 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, disabled
           thumbColorOff={colors.textMuted}
         />
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 

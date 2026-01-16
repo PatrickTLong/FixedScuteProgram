@@ -8,7 +8,6 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  Switch,
   NativeModules,
   NativeEventEmitter,
   FlatList,
@@ -16,6 +15,7 @@ import {
   ActivityIndicator,
   Animated,
 } from 'react-native';
+import AnimatedSwitch from './AnimatedSwitch';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Svg, { Path, Rect } from 'react-native-svg';
@@ -189,7 +189,6 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
   // Animation refs
   const stepFadeAnim = useRef(new Animated.Value(1)).current;
   const tabFadeAnim = useRef(new Animated.Value(1)).current;
-  const durationFadeAnim = useRef(new Animated.Value(noTimeLimit ? 0 : 1)).current;
   const isStepTransitioning = useRef(false);
   const isTabTransitioning = useRef(false);
 
@@ -381,8 +380,6 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
       setDisplayedStep('first');
       stepFadeAnim.setValue(1);
       tabFadeAnim.setValue(1);
-      // Set duration animation based on noTimeLimit state
-      durationFadeAnim.setValue(preset?.noTimeLimit !== false ? 0 : 1);
       loadInstalledApps(preset?.mode);
       // Check if we should show excluded apps info modal
       AsyncStorage.getItem(EXCLUDED_APPS_INFO_DISMISSED_KEY).then((dismissed) => {
@@ -391,7 +388,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
         }
       });
     }
-  }, [visible, preset, loadInstalledApps, stepFadeAnim, tabFadeAnim, durationFadeAnim]);
+  }, [visible, preset, loadInstalledApps, stepFadeAnim, tabFadeAnim]);
 
   const toggleApp = useCallback((appId: string) => {
     lightTap();
@@ -597,26 +594,26 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                 <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">No Time Limit</Text>
                 <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">Block until manually unlocked</Text>
               </View>
-              <Switch
+              <AnimatedSwitch
                 value={noTimeLimit}
-                onValueChange={(value) => {
-                  mediumTap();
-                  // Optimistic animation - start immediately before state update
-                  Animated.timing(durationFadeAnim, {
-                    toValue: value ? 0 : 1,
-                    duration: 150,
-                    useNativeDriver: true,
-                  }).start();
+                onValueChange={(value: boolean) => {
+                  // Update visibility state immediately
                   setNoTimeLimit(value);
-                  if (value) {
-                    // Disable scheduling when enabling no time limit
-                    setIsScheduled(false);
-                    setScheduleStartDate(null);
-                    setScheduleEndDate(null);
-                  }
+                  // Defer other state updates to allow render
+                  requestAnimationFrame(() => {
+                    if (value) {
+                      setIsScheduled(false);
+                      setScheduleStartDate(null);
+                      setScheduleEndDate(null);
+                    }
+                    mediumTap();
+                  });
                 }}
-                trackColor={{ false: colors.border, true: colors.greenDark }}
-                thumbColor={noTimeLimit ? colors.green : colors.textMuted}
+                trackColorFalse={colors.border}
+                trackColorTrue={colors.greenDark}
+                thumbColorOn={colors.green}
+                thumbColorOff={colors.textMuted}
+                size="small"
               />
             </View>
 
@@ -626,9 +623,9 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                 <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">Block Settings App</Text>
                 <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">WiFi settings remain accessible</Text>
               </View>
-              <Switch
+              <AnimatedSwitch
                 value={blockSettings}
-                onValueChange={async (value) => {
+                onValueChange={async (value: boolean) => {
                   mediumTap();
                   if (value) {
                     // Enabling - check if we should show warning
@@ -643,23 +640,29 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                     setBlockSettings(false);
                   }
                 }}
-                trackColor={{ false: colors.border, true: colors.greenDark }}
-                thumbColor={blockSettings ? colors.green : colors.textMuted}
+                trackColorFalse={colors.border}
+                trackColorTrue={colors.greenDark}
+                thumbColorOn={colors.green}
+                thumbColorOff={colors.textMuted}
+                size="small"
               />
             </View>
 
             {/* Emergency Tapout Toggle - available for timed presets */}
-            {!noTimeLimit && (
+            {!noTimeLimit && !isScheduled && (
               <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between py-4">
                 <View className="flex-1">
                   <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">Allow Emergency Tapout</Text>
                   <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">Use your emergency tapouts for this preset</Text>
                 </View>
-                <Switch
+                <AnimatedSwitch
                   value={allowEmergencyTapout}
                   onValueChange={handleEmergencyTapoutToggle}
-                  trackColor={{ false: colors.border, true: colors.greenDark }}
-                  thumbColor={allowEmergencyTapout ? colors.green : colors.textMuted}
+                  trackColorFalse={colors.border}
+                  trackColorTrue={colors.greenDark}
+                  thumbColorOn={colors.green}
+                  thumbColorOff={colors.textMuted}
+                  size="small"
                 />
               </View>
             )}
@@ -670,47 +673,38 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                 <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">Schedule for Later</Text>
                 <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">Set a future start and end time</Text>
               </View>
-              <Switch
+              <AnimatedSwitch
                 value={isScheduled}
-                onValueChange={async (value) => {
-                  mediumTap();
+                onValueChange={(value: boolean) => {
+                  // Update visibility state immediately
                   setIsScheduled(value);
-                  if (value) {
-                    // Disable no time limit when enabling scheduling
-                    setNoTimeLimit(false);
-                    // Animate duration section to show
-                    Animated.timing(durationFadeAnim, {
-                      toValue: 1,
-                      duration: 150,
-                      useNativeDriver: true,
-                    }).start();
-                    // Check if we should show info modal
-                    const dismissed = await AsyncStorage.getItem(SCHEDULE_INFO_DISMISSED_KEY);
-                    if (dismissed !== 'true') {
-                      setScheduleInfoVisible(true);
+                  // Defer other state updates to allow render
+                  requestAnimationFrame(() => {
+                    if (value) {
+                      setNoTimeLimit(false);
+                      setTimerDays(0);
+                      setTimerHours(0);
+                      setTimerMinutes(0);
+                      setTimerSeconds(0);
+                      setTargetDate(null);
+                      mediumTap();
+                      AsyncStorage.getItem(SCHEDULE_INFO_DISMISSED_KEY).then(dismissed => {
+                        if (dismissed !== 'true') {
+                          setScheduleInfoVisible(true);
+                        }
+                      });
+                    } else {
+                      setScheduleStartDate(null);
+                      setScheduleEndDate(null);
+                      mediumTap();
                     }
-                    // Clear timer values (scheduled presets use schedule dates)
-                    setTimerDays(0);
-                    setTimerHours(0);
-                    setTimerMinutes(0);
-                    setTimerSeconds(0);
-                    setTargetDate(null);
-                  } else {
-                    // Clear schedule dates when disabling
-                    setScheduleStartDate(null);
-                    setScheduleEndDate(null);
-                    // Show duration picker since schedule is disabled and noTimeLimit is still false
-                    if (!noTimeLimit) {
-                      Animated.timing(durationFadeAnim, {
-                        toValue: 1,
-                        duration: 150,
-                        useNativeDriver: true,
-                      }).start();
-                    }
-                  }
+                  });
                 }}
-                trackColor={{ false: colors.border, true: colors.greenDark }}
-                thumbColor={isScheduled ? colors.green : colors.textMuted}
+                trackColorFalse={colors.border}
+                trackColorTrue={colors.greenDark}
+                thumbColorOn={colors.green}
+                thumbColorOff={colors.textMuted}
+                size="small"
               />
             </View>
 
@@ -810,9 +804,9 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               </View>
             )}
 
-            {/* Timer Picker (if time limit enabled and not scheduled) - always rendered with animation for optimistic UI */}
-            {!isScheduled && (
-              <Animated.View style={{ opacity: durationFadeAnim, display: noTimeLimit ? 'none' : 'flex' }} className="mt-6">
+            {/* Timer Picker (if time limit enabled and not scheduled) */}
+            {!noTimeLimit && !isScheduled && (
+              <View className="mt-6">
                 <Text style={{ color: colors.textMuted }} className="text-xs font-nunito uppercase tracking-wider mb-4">
                   Duration
                 </Text>
@@ -892,7 +886,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                     <Text style={{ color: colors.textSecondary }} className="text-xl">›</Text>
                   )}
                 </TouchableOpacity>
-              </Animated.View>
+              </View>
             )}
           </ScrollView>
 

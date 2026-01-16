@@ -132,6 +132,54 @@ class ScheduleModule(reactContext: ReactApplicationContext) :
     }
 
     /**
+     * Check if the app was launched from the blocked overlay (tap to dismiss).
+     * Returns true if so, and clears the flag.
+     */
+    @ReactMethod
+    fun getBlockedOverlayLaunchData(promise: Promise) {
+        try {
+            val prefs = reactApplicationContext.getSharedPreferences(LAUNCH_PREFS, Context.MODE_PRIVATE)
+            val wasLaunchedFromOverlay = prefs.getBoolean("from_blocked_overlay", false)
+
+            if (!wasLaunchedFromOverlay) {
+                promise.resolve(null)
+                return
+            }
+
+            // Check if launch was recent (within last 10 seconds) to avoid stale data
+            val launchTime = prefs.getLong("blocked_overlay_launch_time", 0)
+            val now = System.currentTimeMillis()
+            if (now - launchTime > 10000) {
+                // Launch data is stale, clear it
+                clearBlockedOverlayLaunchDataInternal()
+                promise.resolve(null)
+                return
+            }
+
+            val result: WritableMap = Arguments.createMap()
+            result.putBoolean("fromBlockedOverlay", true)
+            result.putDouble("launchTime", launchTime.toDouble())
+
+            // Clear after reading so we don't redirect multiple times
+            clearBlockedOverlayLaunchDataInternal()
+
+            promise.resolve(result)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting blocked overlay launch data", e)
+            promise.reject("ERROR", "Failed to get blocked overlay launch data: ${e.message}")
+        }
+    }
+
+    private fun clearBlockedOverlayLaunchDataInternal() {
+        val prefs = reactApplicationContext.getSharedPreferences(LAUNCH_PREFS, Context.MODE_PRIVATE)
+        prefs.edit()
+            .remove("from_blocked_overlay")
+            .remove("blocked_overlay_launch_time")
+            .apply()
+        Log.d(TAG, "Cleared blocked overlay launch data")
+    }
+
+    /**
      * Check if we can schedule exact alarms (required for Android 12+)
      */
     @ReactMethod

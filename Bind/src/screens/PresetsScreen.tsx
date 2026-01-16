@@ -637,18 +637,20 @@ function PresetsScreen({ userEmail }: Props) {
         </TouchableOpacity>
       </View>
 
-      {/* Presets List */}
-      <FlatList
-        className="flex-1"
-        data={presets}
-        renderItem={renderPresetItem}
-        keyExtractor={keyExtractor}
-        ListEmptyComponent={ListEmptyComponent}
-        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32 }}
-        removeClippedSubviews={true}
-        maxToRenderPerBatch={10}
-        windowSize={5}
-      />
+      {/* Presets List - only show after loading is complete */}
+      {!loading && (
+        <FlatList
+          className="flex-1"
+          data={presets}
+          renderItem={renderPresetItem}
+          keyExtractor={keyExtractor}
+          ListEmptyComponent={ListEmptyComponent}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32 }}
+          removeClippedSubviews={true}
+          maxToRenderPerBatch={10}
+          windowSize={5}
+        />
+      )}
 
       {/* Edit/Create Modal */}
       <PresetEditModal
