@@ -26,6 +26,7 @@ import InfoModal from './InfoModal';
 import ExcludedAppsInfoModal from './ExcludedAppsInfoModal';
 import DisableTapoutWarningModal from './DisableTapoutWarningModal';
 import BlockSettingsWarningModal from './BlockSettingsWarningModal';
+import RecurrenceInfoModal from './RecurrenceInfoModal';
 import { Preset } from './PresetCard';
 import { getEmergencyTapoutStatus, setEmergencyTapoutEnabled } from '../services/cardApi';
 import { lightTap, mediumTap } from '../utils/haptics';
@@ -35,6 +36,10 @@ const SCHEDULE_INFO_DISMISSED_KEY = 'schedule_info_dismissed';
 const EXCLUDED_APPS_INFO_DISMISSED_KEY = 'excluded_apps_info_dismissed';
 const DISABLE_TAPOUT_WARNING_DISMISSED_KEY = 'disable_tapout_warning_dismissed';
 const BLOCK_SETTINGS_WARNING_DISMISSED_KEY = 'block_settings_warning_dismissed';
+const RECURRENCE_INFO_DISMISSED_KEY = 'recurrence_info_dismissed';
+
+// Recurring schedule unit types
+type RecurringUnit = 'minutes' | 'hours' | 'days' | 'weeks' | 'months';
 
 // ============ Installed Apps Cache ============
 // Cache installed apps globally to avoid reloading on every modal open
@@ -153,6 +158,40 @@ const FlagIcon = ({ size = 24 }: { size?: number }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Path
       d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1zM4 22v-7"
+      stroke="#FFFFFF"
+      strokeWidth={2.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+// Repeat/Recurrence icon - white with thicker strokes
+const RepeatIcon = ({ size = 24 }: { size?: number }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M17 1l4 4-4 4"
+      stroke="#FFFFFF"
+      strokeWidth={2.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M3 11V9a4 4 0 014-4h14"
+      stroke="#FFFFFF"
+      strokeWidth={2.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M7 23l-4-4 4-4"
+      stroke="#FFFFFF"
+      strokeWidth={2.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M21 13v2a4 4 0 01-4 4H3"
       stroke="#FFFFFF"
       strokeWidth={2.5}
       strokeLinecap="round"
@@ -310,6 +349,13 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
   const [scheduleInfoVisible, setScheduleInfoVisible] = useState(false);
   const [startDatePickerVisible, setStartDatePickerVisible] = useState(false);
   const [endDatePickerVisible, setEndDatePickerVisible] = useState(false);
+
+  // Recurring schedule feature
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [recurringValue, setRecurringValue] = useState<string>('1');
+  const [recurringUnit, setRecurringUnit] = useState<RecurringUnit>('hours');
+  const [recurringUnitModalVisible, setRecurringUnitModalVisible] = useState(false);
+  const [recurrenceInfoVisible, setRecurrenceInfoVisible] = useState(false);
 
   // Define loadInstalledApps before the useEffect that uses it
   // Uses global cache to avoid reloading apps on every modal open
@@ -519,6 +565,49 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
     }
   }, [name, isSaving, canSave, preset, installedSelectedApps, blockedWebsites, blockSettings, noTimeLimit, timerDays, timerHours, timerMinutes, timerSeconds, targetDate, onSave, allowEmergencyTapout, isScheduled, scheduleStartDate, scheduleEndDate, existingPresets]);
 
+  // Calculate next recurring occurrence based on your specified logic:
+  // - Minutes/Hours: Add interval to END time → new START = END + interval, new END = new START + duration
+  // - Days/Weeks/Months: Add interval to START date (same time slot on different day)
+  const getNextRecurringOccurrence = useCallback(() => {
+    if (!scheduleStartDate || !scheduleEndDate || !isRecurring) return null;
+
+    const parsedValue = parseInt(recurringValue, 10);
+    const value = isNaN(parsedValue) || parsedValue <= 0 ? 1 : parsedValue;
+
+    const duration = scheduleEndDate.getTime() - scheduleStartDate.getTime();
+
+    if (recurringUnit === 'minutes' || recurringUnit === 'hours') {
+      // Add interval to END time to get new START, then add duration to get new END
+      // Example: 4:32-4:36 + 2 min → new start = 4:36 + 2 = 4:38, new end = 4:38 + 4 = 4:42
+      const intervalMs = recurringUnit === 'minutes'
+        ? value * 60 * 1000
+        : value * 60 * 60 * 1000;
+
+      const newStartTime = scheduleEndDate.getTime() + intervalMs;
+      const nextStart = new Date(newStartTime);
+      const nextEnd = new Date(newStartTime + duration);
+
+      return { start: nextStart, end: nextEnd };
+    } else {
+      // Add interval to START date (days/weeks/months) - same time slot, different day
+      const nextStart = new Date(scheduleStartDate);
+      const nextEnd = new Date(scheduleEndDate);
+
+      if (recurringUnit === 'days') {
+        nextStart.setDate(nextStart.getDate() + value);
+        nextEnd.setDate(nextEnd.getDate() + value);
+      } else if (recurringUnit === 'weeks') {
+        nextStart.setDate(nextStart.getDate() + (value * 7));
+        nextEnd.setDate(nextEnd.getDate() + (value * 7));
+      } else if (recurringUnit === 'months') {
+        nextStart.setMonth(nextStart.getMonth() + value);
+        nextEnd.setMonth(nextEnd.getMonth() + value);
+      }
+
+      return { start: nextStart, end: nextEnd };
+    }
+  }, [scheduleStartDate, scheduleEndDate, isRecurring, recurringValue, recurringUnit]);
+
   // Memoize filtered apps to avoid recalculation on every render
   const filteredApps = useMemo(() =>
     installedApps.filter(app =>
@@ -600,7 +689,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               </TouchableOpacity>
             </View>
 
-            <ScrollView className="flex-1 px-6 pt-6">
+            <ScrollView className="flex-1 px-6 pt-6" contentContainerStyle={{ paddingBottom: 100 }}>
             {/* No Time Limit Toggle */}
             <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between py-4">
               <View>
@@ -661,8 +750,8 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               />
             </View>
 
-            {/* Emergency Tapout Toggle - available for timed presets */}
-            {!noTimeLimit && !isScheduled && (
+            {/* Emergency Tapout Toggle - available for timed presets (hidden only when No Time Limit is on) */}
+            {!noTimeLimit && (
               <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between py-4">
                 <View className="flex-1">
                   <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">Allow Emergency Tapout</Text>
@@ -814,6 +903,145 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                     End date must be after start date
                   </Text>
                 )}
+
+                {/* Recurring Schedule Toggle */}
+                {scheduleStartDate && scheduleEndDate && scheduleEndDate > scheduleStartDate && (
+                  <View className="mt-4">
+                    <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between py-4">
+                      <View className="flex-1">
+                        <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">Recurring Schedule</Text>
+                        <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">Repeat this block automatically</Text>
+                      </View>
+                      <AnimatedSwitch
+                        value={isRecurring}
+                        onValueChange={(value: boolean) => {
+                          setIsRecurring(value);
+                          if (value) {
+                            mediumTap();
+                            AsyncStorage.getItem(RECURRENCE_INFO_DISMISSED_KEY).then(dismissed => {
+                              if (dismissed !== 'true') {
+                                setRecurrenceInfoVisible(true);
+                              }
+                            });
+                          } else {
+                            setRecurringValue('1');
+                            setRecurringUnit('hours');
+                            mediumTap();
+                          }
+                        }}
+                        trackColorFalse={colors.border}
+                        trackColorTrue={colors.greenDark}
+                        thumbColorOn={colors.green}
+                        thumbColorOff={colors.textMuted}
+                        size="small"
+                      />
+                    </View>
+
+                    {/* Recurring Options */}
+                    {isRecurring && (
+                      <View className="mt-4">
+                        <Text style={{ color: colors.textMuted }} className="text-xs font-nunito uppercase tracking-wider mb-3">
+                          Repeat Every
+                        </Text>
+
+                        <View className="flex-row items-center">
+                          {/* Number Input */}
+                          <View
+                            style={{ backgroundColor: colors.card }}
+                            className="flex-row items-center py-3 px-4 rounded-xl mr-3"
+                          >
+                            <View style={{ backgroundColor: colors.cardLight }} className="w-10 h-10 rounded-lg items-center justify-center mr-3">
+                              <RepeatIcon size={22} />
+                            </View>
+                            <TextInput
+                              style={{ color: colors.text, minWidth: 50 }}
+                              className="text-base font-nunito-semibold text-center"
+                              value={recurringValue}
+                              onChangeText={(text) => {
+                                // Only allow numbers
+                                const numericValue = text.replace(/[^0-9]/g, '');
+                                setRecurringValue(numericValue);
+                              }}
+                              keyboardType="number-pad"
+                              maxLength={3}
+                              placeholder="1"
+                              placeholderTextColor={colors.textMuted}
+                            />
+                          </View>
+
+                          {/* Unit Selector */}
+                          <TouchableOpacity
+                            onPress={() => {
+                              lightTap();
+                              setRecurringUnitModalVisible(true);
+                            }}
+                            activeOpacity={0.7}
+                            style={{ backgroundColor: colors.card }}
+                            className="flex-1 flex-row items-center justify-between py-3 px-4 rounded-xl"
+                          >
+                            <Text style={{ color: colors.text }} className="text-base font-nunito-semibold capitalize">
+                              {recurringUnit}
+                            </Text>
+                            <Text style={{ color: colors.textSecondary }} className="text-xl">›</Text>
+                          </TouchableOpacity>
+                        </View>
+
+                        {/* Next Occurrence Preview */}
+                        {(() => {
+                          const nextOccurrence = getNextRecurringOccurrence();
+                          if (!nextOccurrence) return null;
+
+                          const isSameDay = nextOccurrence.start.toDateString() === scheduleStartDate?.toDateString();
+
+                          return (
+                            <View style={{ backgroundColor: colors.cardLight }} className="mt-4 p-4 rounded-xl">
+                              <Text style={{ color: colors.textMuted }} className="text-xs font-nunito uppercase tracking-wider mb-2">
+                                Next Occurrence
+                              </Text>
+                              <Text style={{ color: colors.text }} className="text-sm font-nunito-semibold">
+                                {isSameDay ? (
+                                  // Same day - just show times
+                                  `${nextOccurrence.start.toLocaleTimeString('en-US', {
+                                    hour: 'numeric',
+                                    minute: '2-digit',
+                                    hour12: true,
+                                  })} - ${nextOccurrence.end.toLocaleTimeString('en-US', {
+                                    hour: 'numeric',
+                                    minute: '2-digit',
+                                    hour12: true,
+                                  })}`
+                                ) : (
+                                  // Different day - show full date and times
+                                  `${nextOccurrence.start.toLocaleDateString('en-US', {
+                                    month: 'short',
+                                    day: 'numeric',
+                                    year: 'numeric',
+                                  })} at ${nextOccurrence.start.toLocaleTimeString('en-US', {
+                                    hour: 'numeric',
+                                    minute: '2-digit',
+                                    hour12: true,
+                                  })}`
+                                )}
+                              </Text>
+                              {!isSameDay && (
+                                <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito mt-1">
+                                  to {nextOccurrence.end.toLocaleDateString('en-US', {
+                                    month: 'short',
+                                    day: 'numeric',
+                                  })} at {nextOccurrence.end.toLocaleTimeString('en-US', {
+                                    hour: 'numeric',
+                                    minute: '2-digit',
+                                    hour12: true,
+                                  })}
+                                </Text>
+                              )}
+                            </View>
+                          );
+                        })()}
+                      </View>
+                    )}
+                  </View>
+                )}
               </View>
             )}
 
@@ -954,6 +1182,66 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               }
             }}
           />
+
+          {/* Recurrence Info Modal */}
+          <RecurrenceInfoModal
+            visible={recurrenceInfoVisible}
+            onClose={async (dontShowAgain) => {
+              setRecurrenceInfoVisible(false);
+              if (dontShowAgain) {
+                await AsyncStorage.setItem(RECURRENCE_INFO_DISMISSED_KEY, 'true');
+              }
+            }}
+          />
+
+          {/* Recurring Unit Selection Modal */}
+          <Modal
+            visible={recurringUnitModalVisible}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setRecurringUnitModalVisible(false)}
+          >
+            <TouchableOpacity
+              activeOpacity={1}
+              onPress={() => setRecurringUnitModalVisible(false)}
+              className="flex-1 bg-black/70 justify-center items-center px-6"
+            >
+              <View style={{ backgroundColor: colors.card }} className="w-full rounded-2xl overflow-hidden">
+                <View className="p-4">
+                  <Text style={{ color: colors.text }} className="text-lg font-nunito-bold text-center mb-4">
+                    Select Unit
+                  </Text>
+                  {(['minutes', 'hours', 'days', 'weeks', 'months'] as RecurringUnit[]).map((unit) => (
+                    <TouchableOpacity
+                      key={unit}
+                      onPress={() => {
+                        setRecurringUnit(unit);
+                        setRecurringUnitModalVisible(false);
+                        lightTap();
+                      }}
+                      activeOpacity={0.7}
+                      style={{
+                        backgroundColor: recurringUnit === unit ? colors.greenDark : colors.cardLight,
+                      }}
+                      className="flex-row items-center justify-between py-4 px-4 rounded-xl mb-2"
+                    >
+                      <Text
+                        style={{ color: recurringUnit === unit ? colors.green : colors.text }}
+                        className="text-base font-nunito-semibold capitalize"
+                      >
+                        {unit}
+                      </Text>
+                      {recurringUnit === unit && (
+                        <View className="w-5 h-5 rounded-full items-center justify-center" style={{ backgroundColor: colors.green }}>
+                          <View className="w-2 h-3 border-r-2 border-b-2 border-black rotate-45 -mt-0.5" />
+                        </View>
+                      )}
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+            </TouchableOpacity>
+          </Modal>
 
           </Animated.View>
 
