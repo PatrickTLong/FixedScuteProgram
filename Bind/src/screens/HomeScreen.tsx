@@ -975,6 +975,43 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
     return settings;
   }, [activePreset]);
 
+  // Get preset timing subtext (for timed and dated presets, not scheduled)
+  const getPresetTimingSubtext = useCallback((): string | null => {
+    if (!activePreset || activePreset.isScheduled) return null;
+
+    // For dated presets (targetDate is set)
+    if (activePreset.targetDate) {
+      const targetDate = new Date(activePreset.targetDate);
+      const dateStr = targetDate.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: targetDate.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined,
+      });
+      const timeStr = targetDate.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true,
+      });
+      return `Ends ${dateStr} at ${timeStr}`;
+    }
+
+    // For timed presets (has duration set, not no time limit)
+    if (!activePreset.noTimeLimit) {
+      const { timerDays, timerHours, timerMinutes, timerSeconds } = activePreset;
+      const parts: string[] = [];
+      if (timerDays > 0) parts.push(`${timerDays}d`);
+      if (timerHours > 0) parts.push(`${timerHours}h`);
+      if (timerMinutes > 0) parts.push(`${timerMinutes}m`);
+      if (timerSeconds > 0 && parts.length === 0) parts.push(`${timerSeconds}s`);
+
+      if (parts.length > 0) {
+        return parts.join(' ');
+      }
+    }
+
+    return null;
+  }, [activePreset]);
+
   if (loading) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }} edges={['top']}>
@@ -1083,6 +1120,16 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
           {activePreset && getActiveSettingsDisplay().length > 0 && (
             <Text style={{ color: colors.textSecondary }} className="text-base font-nunito mt-2 text-center px-4">
               Blocking {getActiveSettingsDisplay().join(', ')}
+            </Text>
+          )}
+
+          {/* Preset timing subtext (for timed/dated presets) */}
+          {getPresetTimingSubtext() && (
+            <Text
+              style={{ color: colors.textMuted }}
+              className="text-sm font-nunito mt-1 text-center"
+            >
+              {getPresetTimingSubtext()}
             </Text>
           )}
 
