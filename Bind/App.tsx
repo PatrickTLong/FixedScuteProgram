@@ -16,7 +16,7 @@ import TermsAcceptScreen from './src/screens/TermsAcceptScreen';
 import BottomTabBar from './src/components/BottomTabBar';
 import InfoModal from './src/components/InfoModal';
 import EmergencyTapoutModal from './src/components/EmergencyTapoutModal';
-import { deleteAccount, updateLockStatus, getLockStatus, getPresets, resetPresets, getEmergencyTapoutStatus, useEmergencyTapout, savePreset, Preset, EmergencyTapoutStatus, invalidateUserCaches, saveUserTheme, clearAuthToken, syncScheduledPresetsToNative } from './src/services/cardApi';
+import { deleteAccount, updateLockStatus, getLockStatus, getPresets, resetPresets, getEmergencyTapoutStatus, useEmergencyTapout, savePreset, Preset, EmergencyTapoutStatus, invalidateUserCaches, saveUserTheme, clearAuthToken } from './src/services/cardApi';
 
 const { BlockingModule, PermissionsModule, ScheduleModule } = NativeModules;
 
@@ -197,7 +197,6 @@ function App() {
     checkLoginStatus();
     checkScheduledPresetLaunch();
     checkBlockedOverlayLaunch();
-    checkRecurringPresetPauseLaunch();
   }, []);
 
   // Check if any scheduled preset is currently active and navigate to home if so
@@ -290,60 +289,6 @@ function App() {
     }
   }, [currentScreen]);
 
-  // Check if app was launched from recurring preset pause notification
-  // This happens when native side auto-renewed a recurring preset and we need to sync new dates to backend
-  const checkRecurringPresetPauseLaunch = useCallback(async () => {
-    try {
-      if (!ScheduleModule || !userEmail) return;
-
-      const launchData = await ScheduleModule.getRecurringPresetPauseLaunchData();
-      if (launchData?.launched) {
-        console.log('[App] Launched from recurring preset pause - syncing updated dates to backend');
-
-        // Clear the launch data so we don't process it again
-        await ScheduleModule.clearRecurringPauseLaunchData();
-
-        // Get the updated presets from native SharedPreferences
-        const nativePresetsJson = await ScheduleModule.getScheduledPresetsFromNative();
-        if (nativePresetsJson) {
-          try {
-            const nativePresets = JSON.parse(nativePresetsJson);
-            console.log('[App] Got native presets:', nativePresets.length, 'presets');
-
-            // Find recurring presets that were renewed and save them to backend
-            for (const nativePreset of nativePresets) {
-              if (nativePreset.repeat_enabled && nativePreset.scheduleStartDate && nativePreset.scheduleEndDate) {
-                console.log('[App] Syncing renewed recurring preset to backend:', {
-                  id: nativePreset.id,
-                  name: nativePreset.name,
-                  newStart: nativePreset.scheduleStartDate,
-                  newEnd: nativePreset.scheduleEndDate,
-                });
-
-                // Save to backend - this updates the schedule dates in Supabase
-                await savePreset(userEmail, nativePreset);
-                console.log('[App] Successfully synced preset to backend:', nativePreset.name);
-              }
-            }
-
-            // Invalidate caches so screens get fresh data
-            invalidateUserCaches(userEmail);
-
-            // Navigate to home tab and trigger refresh
-            if (currentScreen === 'main') {
-              setActiveTab('home'); setDisplayedTab('home');
-              setRefreshTrigger(prev => prev + 1);
-            }
-          } catch (parseError) {
-            console.error('[App] Error parsing native presets:', parseError);
-          }
-        }
-      }
-    } catch (error) {
-      console.error('[App] Error checking recurring preset pause launch:', error);
-    }
-  }, [currentScreen, userEmail]);
-
   // Check permissions when app comes to foreground
   const checkPermissionsOnForeground = useCallback(async () => {
     // Only check if user is logged in and on main screen
@@ -376,15 +321,13 @@ function App() {
         checkScheduledPresetLaunch();
         // Check if app was brought to foreground from blocked overlay (tap to dismiss)
         checkBlockedOverlayLaunch();
-        // Check if app was brought to foreground from recurring preset pause (needs backend sync)
-        checkRecurringPresetPauseLaunch();
         // Check if any scheduled preset is now active
         checkActiveScheduledPreset();
       }
     });
 
     return () => subscription.remove();
-  }, [checkPermissionsOnForeground, checkScheduledPresetLaunch, checkBlockedOverlayLaunch, checkRecurringPresetPauseLaunch, checkActiveScheduledPreset]);
+  }, [checkPermissionsOnForeground, checkScheduledPresetLaunch, checkBlockedOverlayLaunch, checkActiveScheduledPreset]);
 
   // Periodic check for scheduled preset activation (handles in-app scenario)
   // This runs every 5 seconds to detect when a preset becomes active while user is in-app

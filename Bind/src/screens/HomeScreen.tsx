@@ -224,7 +224,6 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
   const activateScheduledPreset = useCallback(async (preset: Preset) => {
     // Set the ref to prevent duplicate activations
     activatingPresetRef.current = preset.id;
-    setLoading(true); // Show loading spinner
 
     try {
       console.log('[HomeScreen] Activating scheduled preset:', preset.name);
@@ -261,20 +260,9 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
       }
 
       Vibration.vibrate([0, 100, 50, 100]);
-      invalidateUserCaches(email);
-      // Refresh data - fetch fresh presets and tapout status
-      const [presets, tapout] = await Promise.all([
-        getPresets(email, true),
-        getEmergencyTapoutStatus(email),
-      ]);
-      setScheduledPresets(presets.filter(p => p.isScheduled && p.isActive && p.scheduleEndDate).sort((a, b) =>
-        new Date(a.scheduleStartDate!).getTime() - new Date(b.scheduleStartDate!).getTime()
-      ));
-      setTapoutStatus(tapout);
     } catch (error) {
       console.error('[HomeScreen] Failed to activate scheduled preset:', error);
     } finally {
-      setLoading(false); // Hide loading spinner
       // Clear the activating ref after a delay to allow for settling
       setTimeout(() => {
         activatingPresetRef.current = null;
@@ -534,7 +522,6 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
   // Auto-unlock when timer expires (called from countdown effect)
   const handleTimerExpired = useCallback(async () => {
     console.log('[HomeScreen] Timer expired - auto-unlocking');
-    setLoading(true); // Show loading spinner
     try {
       // Update database lock status to unlocked
       await updateLockStatus(email, false, null);
@@ -554,13 +541,10 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
 
       Vibration.vibrate(100);
       invalidateUserCaches(email);
-      await loadStats(true); // Refresh data
     } catch (error) {
       console.error('[HomeScreen] Failed to auto-unlock on timer expiry:', error);
-    } finally {
-      setLoading(false); // Hide loading spinner
     }
-  }, [email, loadStats]);
+  }, [email]);
 
   // Countdown timer effect (for timed locks)
   useEffect(() => {
@@ -1267,26 +1251,12 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
                     <View className="flex-row items-center">
                       <View style={{ backgroundColor: isCurrentlyActive ? colors.green : colors.cyan }} className="w-2 h-2 rounded-full mr-3" />
                       <View className="flex-1">
-                        <View className="flex-row items-center">
-                          <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">
-                            {preset.name}
-                          </Text>
-                          {preset.repeat_enabled && (
-                            <View style={{ backgroundColor: '#a855f733' }} className="ml-2 px-2 py-0.5 rounded">
-                              <Text style={{ color: '#a855f7' }} className="text-xs font-nunito-semibold">
-                                Recurring
-                              </Text>
-                            </View>
-                          )}
-                        </View>
+                        <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">
+                          {preset.name}
+                        </Text>
                         <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito mt-1">
                           {formatScheduleDate(preset.scheduleStartDate!)} — {formatScheduleDate(preset.scheduleEndDate!)}
                         </Text>
-                        {preset.repeat_enabled && preset.repeat_interval && preset.repeat_unit && (
-                          <Text style={{ color: colors.textMuted }} className="text-xs font-nunito mt-0.5">
-                            Repeats every {preset.repeat_interval} {preset.repeat_interval === 1 ? preset.repeat_unit.slice(0, -1) : preset.repeat_unit}
-                          </Text>
-                        )}
                       </View>
                       <View style={{ backgroundColor: isCurrentlyActive ? 'rgba(34, 197, 94, 0.2)' : 'rgba(34, 211, 238, 0.2)' }} className="px-2 py-0.5 rounded">
                         <Text style={{ color: isCurrentlyActive ? colors.green : colors.cyan }} className="text-xs font-nunito-semibold">

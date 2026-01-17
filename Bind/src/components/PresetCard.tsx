@@ -51,22 +51,9 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, disabled
   const [, setTick] = useState(0);
 
   // Check if preset is expired - memoized to avoid recalculation
-  // Recurring presets show expired only if end date passed AND disabled
   const isExpired = useMemo(() => {
     const now = new Date();
     if (preset.isScheduled) {
-      // Recurring presets: show expired only if end date passed AND not active
-      if (preset.repeat_enabled) {
-        const endDatePassed = preset.scheduleEndDate ? now >= new Date(preset.scheduleEndDate) : false;
-        const expired = endDatePassed && !isActive;
-        console.log('[PresetCard] Recurring preset expired check:', {
-          name: preset.name,
-          isActive,
-          endDatePassed,
-          expired
-        });
-        return expired;
-      }
       // Scheduled presets with dates
       if (preset.scheduleStartDate && preset.scheduleEndDate) {
         const endDate = new Date(preset.scheduleEndDate);
@@ -84,7 +71,7 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, disabled
       return new Date(preset.targetDate) < now;
     }
     return false;
-  }, [preset.isScheduled, preset.scheduleStartDate, preset.scheduleEndDate, preset.targetDate, preset.noTimeLimit, isActive, preset.repeat_enabled]);
+  }, [preset.isScheduled, preset.scheduleStartDate, preset.scheduleEndDate, preset.targetDate, preset.noTimeLimit, isActive]);
 
   // Timer to check expiration - only runs when close to expiration (within 2 minutes)
   useEffect(() => {
@@ -125,38 +112,12 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, disabled
     }
   }, [preset.isScheduled, preset.scheduleStartDate, preset.scheduleEndDate, preset.targetDate, preset.noTimeLimit, isExpired]);
 
-  // Check if recurring preset needs renewal (end time passed)
-  const needsRenewal = useMemo(() => {
-    if (!preset.isScheduled || !preset.repeat_enabled || !preset.scheduleEndDate) {
-      return false;
-    }
-    const now = new Date();
-    const endDate = new Date(preset.scheduleEndDate);
-    const needs = now >= endDate;
-    console.log('[PresetCard] Recurring preset needsRenewal check:', {
-      name: preset.name,
-      isActive,
-      endDate: preset.scheduleEndDate,
-      now: now.toISOString(),
-      needsRenewal: needs
-    });
-    return needs;
-  }, [preset.isScheduled, preset.repeat_enabled, preset.scheduleEndDate, isActive, preset.name]);
-
-  // Auto-deactivate expired presets OR trigger renewal for recurring presets
+  // Auto-deactivate expired presets
   useEffect(() => {
-    if (onExpired) {
-      if (isExpired && isActive) {
-        // Non-recurring preset expired
-        console.log('[PresetCard] Triggering onExpired for non-recurring preset:', preset.name);
-        onExpired();
-      } else if (needsRenewal && isActive) {
-        // Recurring preset needs renewal
-        console.log('[PresetCard] Triggering onExpired for recurring preset renewal:', preset.name);
-        onExpired();
-      }
+    if (isExpired && isActive && onExpired) {
+      onExpired();
     }
-  }, [isExpired, isActive, onExpired, needsRenewal, preset.name]);
+  }, [isExpired, isActive, onExpired]);
 
   const formatScheduleDate = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -177,14 +138,6 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, disabled
     if (preset.isScheduled) {
       if (preset.scheduleStartDate && preset.scheduleEndDate) {
         parts.push(`${formatScheduleDate(preset.scheduleStartDate)} - ${formatScheduleDate(preset.scheduleEndDate)}`);
-
-        // Add recurring interval info
-        if (preset.repeat_enabled && preset.repeat_interval && preset.repeat_unit) {
-          const interval = preset.repeat_interval;
-          const unit = preset.repeat_unit;
-          const unitLabel = interval === 1 ? unit.slice(0, -1) : unit; // Remove 's' for singular
-          parts.push(`Repeats every ${interval} ${unitLabel}`);
-        }
       } else {
         parts.push('No schedule set');
       }

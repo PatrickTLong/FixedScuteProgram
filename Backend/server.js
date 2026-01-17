@@ -825,62 +825,35 @@ app.post('/api/presets', authenticateToken, async (req, res) => {
       repeat_interval: preset.repeat_interval || null,
     };
 
-    // Log recurring schedule data
     console.log('[presets:save] Recurring data:', {
       repeat_enabled: preset.repeat_enabled,
       repeat_unit: preset.repeat_unit,
       repeat_interval: preset.repeat_interval,
     });
 
-    // Log schedule dates for recurring presets
-    if (preset.repeat_enabled) {
-      console.log('[presets:save] RECURRING preset detected:', {
-        name: preset.name,
-        scheduleStartDate: preset.scheduleStartDate,
-        scheduleEndDate: preset.scheduleEndDate,
-        isActive: preset.isActive,
-      });
-    }
-
     let error;
     if (existing) {
       // Update existing preset
-      console.log('[presets:save] Updating existing preset:', preset.id);
       const result = await supabase
         .from('user_presets')
         .update(presetData)
         .eq('email', normalizedEmail)
         .eq('preset_id', preset.id);
       error = result.error;
-      if (!error) {
-        console.log('[presets:save] Update SUCCESS for:', preset.name);
-        if (preset.repeat_enabled) {
-          console.log('[presets:save] RECURRING updated with new dates:', {
-            schedule_start_date: presetData.schedule_start_date,
-            schedule_end_date: presetData.schedule_end_date,
-          });
-        }
-      }
     } else {
       // Insert new preset
-      console.log('[presets:save] Inserting new preset:', preset.id);
       const result = await supabase
         .from('user_presets')
         .insert(presetData);
       error = result.error;
-      if (!error) {
-        console.log('[presets:save] Insert SUCCESS for:', preset.name);
-      }
     }
 
     if (error) {
-      console.error('[presets:save] Error saving preset:', error);
-      console.error('[presets:save] Error details:', JSON.stringify(error, null, 2));
-      console.error('[presets:save] Preset data that failed:', JSON.stringify(presetData, null, 2));
-      return res.status(500).json({ error: 'Failed to save preset', details: error.message });
+      console.error('Error saving preset:', error);
+      return res.status(500).json({ error: 'Failed to save preset' });
     }
 
-    console.log(`[presets:save] Preset saved: ${preset.name} for ${normalizedEmail}`);
+    console.log(`Preset saved: ${preset.name} for ${normalizedEmail}`);
     res.json({ success: true });
   } catch (error) {
     console.error('Save preset error:', error);
