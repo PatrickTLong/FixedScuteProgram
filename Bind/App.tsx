@@ -291,52 +291,25 @@ function App() {
   }, [currentScreen]);
 
   // Check if app was launched from recurring preset pause notification
-  // This happens when native side auto-renewed a recurring preset and we need to sync new dates to backend
+  // React Native handles the date renewal calculation - just refresh the UI
   const checkRecurringPresetPauseLaunch = useCallback(async () => {
     try {
       if (!ScheduleModule || !userEmail) return;
 
       const launchData = await ScheduleModule.getRecurringPresetPauseLaunchData();
       if (launchData?.launched) {
-        console.log('[App] Launched from recurring preset pause - syncing updated dates to backend');
+        console.log('[App] Launched from recurring preset pause - refreshing data');
 
         // Clear the launch data so we don't process it again
         await ScheduleModule.clearRecurringPauseLaunchData();
 
-        // Get the updated presets from native SharedPreferences
-        const nativePresetsJson = await ScheduleModule.getScheduledPresetsFromNative();
-        if (nativePresetsJson) {
-          try {
-            const nativePresets = JSON.parse(nativePresetsJson);
-            console.log('[App] Got native presets:', nativePresets.length, 'presets');
+        // Invalidate caches so screens get fresh data from backend
+        invalidateUserCaches(userEmail);
 
-            // Find recurring presets that were renewed and save them to backend
-            for (const nativePreset of nativePresets) {
-              if (nativePreset.repeat_enabled && nativePreset.scheduleStartDate && nativePreset.scheduleEndDate) {
-                console.log('[App] Syncing renewed recurring preset to backend:', {
-                  id: nativePreset.id,
-                  name: nativePreset.name,
-                  newStart: nativePreset.scheduleStartDate,
-                  newEnd: nativePreset.scheduleEndDate,
-                });
-
-                // Save to backend - this updates the schedule dates in Supabase
-                await savePreset(userEmail, nativePreset);
-                console.log('[App] Successfully synced preset to backend:', nativePreset.name);
-              }
-            }
-
-            // Invalidate caches so screens get fresh data
-            invalidateUserCaches(userEmail);
-
-            // Navigate to home tab and trigger refresh
-            if (currentScreen === 'main') {
-              setActiveTab('home'); setDisplayedTab('home');
-              setRefreshTrigger(prev => prev + 1);
-            }
-          } catch (parseError) {
-            console.error('[App] Error parsing native presets:', parseError);
-          }
+        // Navigate to home tab and trigger refresh
+        if (currentScreen === 'main') {
+          setActiveTab('home'); setDisplayedTab('home');
+          setRefreshTrigger(prev => prev + 1);
         }
       }
     } catch (error) {
