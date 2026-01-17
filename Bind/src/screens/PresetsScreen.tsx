@@ -12,7 +12,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import PresetCard, { Preset } from '../components/PresetCard';
 import PresetEditModal from '../components/PresetEditModal';
 import ConfirmationModal from '../components/ConfirmationModal';
-import ActiveRecurringPresetModal from '../components/ActiveRecurringPresetModal';
 import {
   getPresets,
   savePreset,
@@ -63,9 +62,6 @@ function PresetsScreen({ userEmail }: Props) {
   // Verification modal for enabling scheduled presets
   const [scheduleVerifyModalVisible, setScheduleVerifyModalVisible] = useState(false);
   const [pendingScheduledPreset, setPendingScheduledPreset] = useState<Preset | null>(null);
-
-  // Active recurring preset modal (prevents editing)
-  const [activeRecurringModalVisible, setActiveRecurringModalVisible] = useState(false);
 
 
   const checkLockStatus = useCallback(async () => {
@@ -376,11 +372,6 @@ function PresetsScreen({ userEmail }: Props) {
   }, []);
 
   const handleEditPreset = useCallback((preset: Preset) => {
-    // Check if this is an active recurring preset - prevent editing
-    if (preset.repeat_enabled && preset.isActive) {
-      setActiveRecurringModalVisible(true);
-      return;
-    }
     setEditingPreset(preset);
     setEditModalVisible(true);
   }, []);
@@ -562,18 +553,9 @@ function PresetsScreen({ userEmail }: Props) {
 
         console.log('[PresetsScreen] RECURRING: Calculation params:', {
           durationMs: duration,
-          durationMinutes: duration / 60000,
           interval: interval,
           unit: preset.repeat_unit,
-          startTime: startDate.getTime(),
-          endTime: endDate.getTime(),
         });
-
-        // Safety check: if duration is 0 or negative, something is wrong - skip renewal
-        if (duration <= 0) {
-          console.error('[PresetsScreen] RECURRING: Invalid duration, skipping renewal');
-          return;
-        }
 
         let nextStart: Date;
         let nextEnd: Date;
@@ -587,12 +569,7 @@ function PresetsScreen({ userEmail }: Props) {
           const newStartTime = endDate.getTime() + intervalMs;
           nextStart = new Date(newStartTime);
           nextEnd = new Date(newStartTime + duration);
-          console.log('[PresetsScreen] RECURRING: Minutes/Hours calculation:', {
-            intervalMs,
-            newStartTime,
-            nextStartISO: nextStart.toISOString(),
-            nextEndISO: nextEnd.toISOString(),
-          });
+          console.log('[PresetsScreen] RECURRING: Minutes/Hours calculation:', { intervalMs, newStartTime });
         } else {
           // For days/weeks/months: add interval to START date
           nextStart = new Date(startDate);
@@ -615,7 +592,6 @@ function PresetsScreen({ userEmail }: Props) {
         console.log('[PresetsScreen] RECURRING: Next occurrence calculated:', {
           nextStart: nextStart.toISOString(),
           nextEnd: nextEnd.toISOString(),
-          newDuration: nextEnd.getTime() - nextStart.getTime(),
         });
 
         // Update preset with new dates, keep it active
@@ -642,8 +618,6 @@ function PresetsScreen({ userEmail }: Props) {
         console.log('[PresetsScreen] RECURRING: Saving to backend...');
         savePreset(userEmail, renewedPreset).then(async () => {
           console.log('[PresetsScreen] RECURRING: Backend save SUCCESS');
-          // Invalidate caches so other screens get fresh data
-          invalidateUserCaches(userEmail);
           // Sync to native to schedule the next alarm
           console.log('[PresetsScreen] RECURRING: Syncing to native...');
           await syncScheduledPresetsToNative(updatedPresets);
@@ -821,12 +795,6 @@ function PresetsScreen({ userEmail }: Props) {
         cancelText="Cancel"
         onConfirm={handleScheduleVerifyConfirm}
         onCancel={handleScheduleVerifyCancel}
-      />
-
-      {/* Active Recurring Preset Modal */}
-      <ActiveRecurringPresetModal
-        visible={activeRecurringModalVisible}
-        onClose={() => setActiveRecurringModalVisible(false)}
       />
 
     </SafeAreaView>

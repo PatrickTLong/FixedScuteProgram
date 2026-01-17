@@ -61,17 +61,10 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
                 Context.MODE_PRIVATE
             )
 
-            // Check if the session is even active - if not, nothing to deactivate
-            val isSessionActive = sessionPrefs.getBoolean(UninstallBlockerService.KEY_SESSION_ACTIVE, false)
-            if (!isSessionActive) {
-                Log.d(TAG, "Session is not active, skipping deactivation for preset $presetId")
-                return
-            }
-
             // Check if this preset is the currently active one
             val activePresetId = sessionPrefs.getString("active_preset_id", null)
             if (activePresetId != presetId) {
-                Log.d(TAG, "Preset $presetId is not the active preset (active: $activePresetId), skipping deactivation")
+                Log.d(TAG, "Preset $presetId is not the active preset, skipping deactivation")
                 return
             }
 
@@ -92,15 +85,91 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
                         val repeatEnabled = preset.optBoolean("repeat_enabled", false)
                         val repeatUnit = preset.optString("repeat_unit", null)
                         val repeatInterval = preset.optInt("repeat_interval", 0)
+                        val startDateStr = preset.optString("scheduleStartDate", null)
+                        val endDateStr = preset.optString("scheduleEndDate", null)
 
                         Log.d(TAG, "RECURRING check: repeat_enabled=$repeatEnabled, unit=$repeatUnit, interval=$repeatInterval")
 
-                        if (repeatEnabled && repeatUnit != null && repeatInterval > 0) {
+                        if (repeatEnabled && repeatUnit != null && repeatInterval > 0 && startDateStr != null && endDateStr != null) {
                             isRecurring = true
+                            Log.d(TAG, "RECURRING preset detected, calculating next occurrence...")
+
+                            // Calculate next occurrence
+                            val startTime = parseIsoDate(startDateStr)
+                            val endTime = parseIsoDate(endDateStr)
+                            val duration = endTime - startTime
+
+                            val nextStart: Long
+                            val nextEnd: Long
+
+                            when (repeatUnit) {
+                                "minutes" -> {
+                                    val intervalMs = repeatInterval * 60 * 1000L
+                                    nextStart = endTime + intervalMs
+                                    nextEnd = nextStart + duration
+                                }
+                                "hours" -> {
+                                    val intervalMs = repeatInterval * 60 * 60 * 1000L
+                                    nextStart = endTime + intervalMs
+                                    nextEnd = nextStart + duration
+                                }
+                                "days" -> {
+                                    val calendar = java.util.Calendar.getInstance()
+                                    calendar.timeInMillis = startTime
+                                    calendar.add(java.util.Calendar.DAY_OF_MONTH, repeatInterval)
+                                    nextStart = calendar.timeInMillis
+                                    calendar.timeInMillis = endTime
+                                    calendar.add(java.util.Calendar.DAY_OF_MONTH, repeatInterval)
+                                    nextEnd = calendar.timeInMillis
+                                }
+                                "weeks" -> {
+                                    val calendar = java.util.Calendar.getInstance()
+                                    calendar.timeInMillis = startTime
+                                    calendar.add(java.util.Calendar.WEEK_OF_YEAR, repeatInterval)
+                                    nextStart = calendar.timeInMillis
+                                    calendar.timeInMillis = endTime
+                                    calendar.add(java.util.Calendar.WEEK_OF_YEAR, repeatInterval)
+                                    nextEnd = calendar.timeInMillis
+                                }
+                                "months" -> {
+                                    val calendar = java.util.Calendar.getInstance()
+                                    calendar.timeInMillis = startTime
+                                    calendar.add(java.util.Calendar.MONTH, repeatInterval)
+                                    nextStart = calendar.timeInMillis
+                                    calendar.timeInMillis = endTime
+                                    calendar.add(java.util.Calendar.MONTH, repeatInterval)
+                                    nextEnd = calendar.timeInMillis
+                                }
+                                else -> {
+                                    nextStart = startTime
+                                    nextEnd = endTime
+                                }
+                            }
+
+                            // Format dates back to ISO string
+                            val dateFormat = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", java.util.Locale.US)
+                            dateFormat.timeZone = java.util.TimeZone.getTimeZone("UTC")
+                            val nextStartStr = dateFormat.format(java.util.Date(nextStart))
+                            val nextEndStr = dateFormat.format(java.util.Date(nextEnd))
+
+                            Log.d(TAG, "RECURRING: Next occurrence - start=$nextStartStr, end=$nextEndStr")
+
+                            // Update the preset in the JSON array
+                            preset.put("scheduleStartDate", nextStartStr)
+                            preset.put("scheduleEndDate", nextEndStr)
+
+                            // Save updated presets back to SharedPreferences
+                            prefs.edit()
+                                .putString(ScheduleManager.KEY_SCHEDULED_PRESETS, presetsArray.toString())
+                                .apply()
+
+                            Log.d(TAG, "RECURRING: Updated preset JSON with new dates")
+
+                            // Schedule the next start alarm
+                            ScheduleManager.schedulePresetStart(context, presetId, nextStart)
+                            Log.d(TAG, "RECURRING: Scheduled next start alarm at ${java.util.Date(nextStart)}")
+
                             presetRenewed = true
-                            // React Native handles the date calculation and backend sync
-                            // Native just marks it as recurring so we show the right notification
-                            Log.d(TAG, "RECURRING preset detected - React Native will handle renewal")
                         }
                         break
                     }
