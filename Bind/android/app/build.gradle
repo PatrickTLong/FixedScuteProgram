@@ -84,6 +84,11 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
+        // API URL for backend calls from native code
+        buildConfigField "String", "API_URL", '"http://10.0.0.252:3000"'
+    }
+    buildFeatures {
+        buildConfig true
     }
     signingConfigs {
         debug {

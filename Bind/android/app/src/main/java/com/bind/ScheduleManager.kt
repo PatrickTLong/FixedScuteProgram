@@ -301,19 +301,30 @@ object ScheduleManager {
     }
 
     private fun parseIsoDate(isoDate: String): Long {
-        return try {
-            java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", java.util.Locale.US).apply {
-                timeZone = java.util.TimeZone.getTimeZone("UTC")
-            }.parse(isoDate)?.time ?: System.currentTimeMillis()
-        } catch (e: Exception) {
+        // Try multiple ISO date formats
+        val formats = listOf(
+            "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",      // 2026-01-18T00:09:00.000Z
+            "yyyy-MM-dd'T'HH:mm:ss'Z'",           // 2026-01-18T00:09:00Z
+            "yyyy-MM-dd'T'HH:mm:ssXXX",           // 2026-01-18T00:09:00+00:00
+            "yyyy-MM-dd'T'HH:mm:ss.SSSXXX",       // 2026-01-18T00:09:00.000+00:00
+            "yyyy-MM-dd'T'HH:mm:ssZ",             // 2026-01-18T00:09:00+0000
+            "yyyy-MM-dd'T'HH:mm:ss.SSSZ"          // 2026-01-18T00:09:00.000+0000
+        )
+
+        for (format in formats) {
             try {
-                java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", java.util.Locale.US).apply {
-                    timeZone = java.util.TimeZone.getTimeZone("UTC")
-                }.parse(isoDate)?.time ?: System.currentTimeMillis()
-            } catch (e2: Exception) {
-                Log.e(TAG, "Failed to parse date: $isoDate", e2)
-                System.currentTimeMillis()
+                val sdf = java.text.SimpleDateFormat(format, java.util.Locale.US)
+                sdf.timeZone = java.util.TimeZone.getTimeZone("UTC")
+                val result = sdf.parse(isoDate)?.time
+                if (result != null) {
+                    return result
+                }
+            } catch (e: Exception) {
+                // Try next format
             }
         }
+
+        Log.e(TAG, "Failed to parse date with any format: $isoDate")
+        return System.currentTimeMillis()
     }
 }

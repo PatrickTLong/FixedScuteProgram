@@ -333,6 +333,57 @@ export async function savePreset(email: string, preset: Preset): Promise<{ succe
 }
 
 /**
+ * Update schedule dates for a recurring preset
+ * Called when Android calculates the next occurrence
+ */
+export async function updatePresetSchedule(
+  email: string,
+  presetId: string,
+  scheduleStartDate: string,
+  scheduleEndDate: string
+): Promise<{ success: boolean; error?: string }> {
+  console.log('[CardAPI] ========== RECURRING UPDATE SCHEDULE ==========');
+  console.log('[CardAPI] updatePresetSchedule called');
+  console.log('[CardAPI]   Email:', email);
+  console.log('[CardAPI]   Preset ID:', presetId);
+  console.log('[CardAPI]   New start date:', scheduleStartDate);
+  console.log('[CardAPI]   New end date:', scheduleEndDate);
+
+  const normalizedEmail = email.toLowerCase();
+
+  try {
+    const headers = await getAuthHeaders();
+    console.log('[CardAPI] Sending POST to:', `${API_URL}/api/presets/update-schedule`);
+    console.log('[CardAPI] Request body:', JSON.stringify({ presetId, scheduleStartDate, scheduleEndDate }));
+
+    const response = await fetch(`${API_URL}/api/presets/update-schedule`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ presetId, scheduleStartDate, scheduleEndDate }),
+    });
+
+    console.log('[CardAPI] Response status:', response.status);
+    const data = await response.json();
+    console.log('[CardAPI] Response data:', JSON.stringify(data));
+
+    if (!response.ok) {
+      console.error('[CardAPI] updatePresetSchedule error:', data.error);
+      return { success: false, error: data.error };
+    }
+
+    // Invalidate presets cache so UI gets updated dates
+    console.log('[CardAPI] Invalidating presets cache for:', normalizedEmail);
+    invalidateCache(`presets:${normalizedEmail}`);
+    console.log('[CardAPI] updatePresetSchedule SUCCESS for preset:', presetId);
+    console.log('[CardAPI] ========== RECURRING UPDATE COMPLETE ==========');
+    return { success: true };
+  } catch (error) {
+    console.error('[CardAPI] updatePresetSchedule EXCEPTION:', error);
+    return { success: false, error: 'Network error' };
+  }
+}
+
+/**
  * Delete a preset
  */
 export async function deletePreset(email: string, presetId: string): Promise<{ success: boolean; error?: string }> {
@@ -722,6 +773,7 @@ export default {
   activatePreset,
   initDefaultPresets,
   resetPresets,
+  updatePresetSchedule,
   // Lock status functions
   updateLockStatus,
   getLockStatus,

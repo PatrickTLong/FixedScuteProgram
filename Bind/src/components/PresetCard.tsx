@@ -53,25 +53,45 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, disabled
   // Check if preset is expired - memoized to avoid recalculation
   const isExpired = useMemo(() => {
     const now = new Date();
+    console.log(`[PresetCard] Checking expiration for preset: ${preset.name} (${preset.id})`);
+    console.log(`[PresetCard]   isScheduled=${preset.isScheduled}, repeat_enabled=${preset.repeat_enabled}, isActive=${isActive}`);
+
     if (preset.isScheduled) {
+      // Recurring presets never show as expired - they auto-reschedule
+      if (preset.repeat_enabled) {
+        console.log(`[PresetCard]   Result: NOT EXPIRED (recurring preset, auto-reschedules)`);
+        return false;
+      }
       // Scheduled presets with dates
       if (preset.scheduleStartDate && preset.scheduleEndDate) {
         const endDate = new Date(preset.scheduleEndDate);
+        console.log(`[PresetCard]   Schedule: start=${preset.scheduleStartDate}, end=${preset.scheduleEndDate}`);
+        console.log(`[PresetCard]   Now: ${now.toISOString()}, End: ${endDate.toISOString()}`);
         // If end time passed, it's expired
-        if (now >= endDate) return true;
+        if (now >= endDate) {
+          console.log(`[PresetCard]   Result: EXPIRED (end time passed)`);
+          return true;
+        }
         // If start time passed and it's not active, it's expired (missed the window)
         const startDate = new Date(preset.scheduleStartDate);
-        if (now >= startDate && !isActive) return true;
+        if (now >= startDate && !isActive) {
+          console.log(`[PresetCard]   Result: EXPIRED (start time passed but not active - missed window)`);
+          return true;
+        }
       }
       // Scheduled presets with no time limit (no dates) - never expire
+      console.log(`[PresetCard]   Result: NOT EXPIRED (scheduled, no time limit or within window)`);
       return false;
     }
     // Non-scheduled presets with target date
     if (preset.targetDate && !preset.noTimeLimit) {
-      return new Date(preset.targetDate) < now;
+      const expired = new Date(preset.targetDate) < now;
+      console.log(`[PresetCard]   Result: ${expired ? 'EXPIRED' : 'NOT EXPIRED'} (non-scheduled with targetDate)`);
+      return expired;
     }
+    console.log(`[PresetCard]   Result: NOT EXPIRED (no expiration criteria)`);
     return false;
-  }, [preset.isScheduled, preset.scheduleStartDate, preset.scheduleEndDate, preset.targetDate, preset.noTimeLimit, isActive]);
+  }, [preset.isScheduled, preset.scheduleStartDate, preset.scheduleEndDate, preset.targetDate, preset.noTimeLimit, isActive, preset.repeat_enabled, preset.name, preset.id]);
 
   // Timer to check expiration - only runs when close to expiration (within 2 minutes)
   useEffect(() => {

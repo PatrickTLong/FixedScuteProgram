@@ -861,6 +861,59 @@ app.post('/api/presets', authenticateToken, async (req, res) => {
   }
 });
 
+// POST /api/presets/update-schedule - Update schedule dates for recurring presets (PROTECTED)
+// Called by Android when a recurring preset ends to set the next occurrence
+app.post('/api/presets/update-schedule', authenticateToken, async (req, res) => {
+  const { presetId, scheduleStartDate, scheduleEndDate } = req.body;
+  const normalizedEmail = req.userEmail;
+
+  console.log('[presets:update-schedule] ========== RECURRING PRESET UPDATE ==========');
+  console.log('[presets:update-schedule] Request received:');
+  console.log('[presets:update-schedule]   User email:', normalizedEmail);
+  console.log('[presets:update-schedule]   Preset ID:', presetId);
+  console.log('[presets:update-schedule]   New start date:', scheduleStartDate);
+  console.log('[presets:update-schedule]   New end date:', scheduleEndDate);
+
+  if (!presetId || !scheduleStartDate || !scheduleEndDate) {
+    console.log('[presets:update-schedule] ERROR: Missing required fields');
+    console.log('[presets:update-schedule]   presetId present:', !!presetId);
+    console.log('[presets:update-schedule]   scheduleStartDate present:', !!scheduleStartDate);
+    console.log('[presets:update-schedule]   scheduleEndDate present:', !!scheduleEndDate);
+    return res.status(400).json({ error: 'presetId, scheduleStartDate, and scheduleEndDate required' });
+  }
+
+  try {
+    console.log('[presets:update-schedule] Updating Supabase...');
+    const { data, error } = await supabase
+      .from('user_presets')
+      .update({
+        schedule_start_date: scheduleStartDate,
+        schedule_end_date: scheduleEndDate,
+      })
+      .eq('email', normalizedEmail)
+      .eq('preset_id', presetId)
+      .select();
+
+    if (error) {
+      console.error('[presets:update-schedule] Supabase error:', error);
+      return res.status(500).json({ error: 'Failed to update schedule' });
+    }
+
+    console.log('[presets:update-schedule] SUCCESS! Updated rows:', data?.length || 0);
+    if (data && data.length > 0) {
+      console.log('[presets:update-schedule] Updated preset data:', JSON.stringify(data[0], null, 2));
+    } else {
+      console.log('[presets:update-schedule] WARNING: No rows were updated. Check if preset_id and email match.');
+    }
+    console.log('[presets:update-schedule] ========== UPDATE COMPLETE ==========');
+
+    res.json({ success: true, updated: data?.length || 0 });
+  } catch (error) {
+    console.error('[presets:update-schedule] Exception:', error);
+    res.status(500).json({ error: 'Failed to update schedule' });
+  }
+});
+
 // DELETE /api/presets - Delete a preset (PROTECTED)
 app.delete('/api/presets', authenticateToken, async (req, res) => {
   const { presetId } = req.body;
