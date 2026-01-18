@@ -82,7 +82,6 @@ export default function AnimatedSwitch({
           borderRadius: trackHeight / 2,
           justifyContent: 'center',
           backgroundColor: trackBackgroundColor,
-          opacity: disabled ? 0.5 : 1,
         }}
       >
         <Animated.View
