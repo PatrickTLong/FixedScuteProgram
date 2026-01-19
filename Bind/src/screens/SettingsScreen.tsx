@@ -384,15 +384,17 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
       {/* Locked Overlay */}
       {isLocked && (
         <View style={{ backgroundColor: colors.bg + 'F2' }} className="absolute inset-0 z-50 items-center justify-center">
-          <Image
-            source={require('../frontassets/scutelogo.png')}
-            style={{ width: 120, height: 120, tintColor: colors.logoTint, marginBottom: 24 }}
-            resizeMode="contain"
-          />
-          <Text style={{ color: colors.text }} className="text-xl font-nunito-bold mb-2">Phone is Locked</Text>
-          <Text style={{ color: colors.textSecondary }} className="text-center font-nunito px-8">
-            Settings cannot be changed while blocking is active.
-          </Text>
+          <View className="items-center" style={{ marginTop: '-10%' }}>
+            <Image
+              source={require('../frontassets/TrueScute-Photoroom.png')}
+              style={{ width: 250, height: 250, tintColor: colors.logoTint, marginBottom: -60 }}
+              resizeMode="contain"
+            />
+            <Text style={{ color: colors.text }} className="text-xl font-nunito-bold mb-2">Phone is Locked</Text>
+            <Text style={{ color: colors.textSecondary }} className="text-center font-nunito px-8">
+              Settings cannot be changed while blocking is active.
+            </Text>
+          </View>
         </View>
       )}
 

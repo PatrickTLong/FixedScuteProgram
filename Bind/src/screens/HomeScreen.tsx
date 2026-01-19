@@ -20,7 +20,7 @@ import EmergencyTapoutModal from '../components/EmergencyTapoutModal';
 import { getPresets, getLockStatus, updateLockStatus, Preset, getEmergencyTapoutStatus, useEmergencyTapout, EmergencyTapoutStatus, activatePreset, invalidateUserCaches, isFirstLoad, markInitialLoadComplete, clearAllCaches } from '../services/cardApi';
 import { useTheme } from '../context/ThemeContext';
 
-const scuteLogo = require('../frontassets/scutelogo.png');
+const scuteLogo = require('../frontassets/TrueScute-Photoroom.png');
 
 const { BlockingModule, PermissionsModule } = NativeModules;
 
@@ -116,7 +116,6 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
   const [scheduledPresets, setScheduledPresets] = useState<Preset[]>([]);
   const [isLocked, setIsLocked] = useState(false);
   const [lockEndsAt, setLockEndsAt] = useState<string | null>(null);
-  const [lockStartedAt, setLockStartedAt] = useState<string | null>(null);
   const [timeRemaining, setTimeRemaining] = useState<string | null>(null);
   const [elapsedTime, setElapsedTime] = useState<string | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
@@ -332,7 +331,6 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
             // Set unlocked state but keep the preset showing
             setIsLocked(false);
             setLockEndsAt(null);
-            setLockStartedAt(null);
             // Keep preset active - set it from the active preset found
             if (active) {
               setCurrentPreset(active.name);
@@ -384,7 +382,6 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
 
       setIsLocked(lockStatus.isLocked);
       setLockEndsAt(lockStatus.lockEndsAt);
-      setLockStartedAt(lockStatus.lockStartedAt);
       setTapoutStatus(tapout);
     } catch (error) {
       console.error('Failed to load stats:', error);
@@ -420,7 +417,6 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
         setEmergencyTapoutModalVisible(false);
         setIsLocked(false);
         setLockEndsAt(null);
-        setLockStartedAt(null);
 
         // Update database lock status to unlocked (already done by backend, but ensure local state is synced)
         await updateLockStatus(email, false, null);
@@ -535,7 +531,6 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
       // Update local state - keep preset active, just unlock
       setIsLocked(false);
       setLockEndsAt(null);
-      setLockStartedAt(null);
       setTimeRemaining(null);
       // NOTE: Don't deactivate the preset - keep it selected so user can lock again easily
 
@@ -681,16 +676,23 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
   }, [isActivelyLocked, presetGlowOpacity]);
 
   // Elapsed time effect (for no-time-limit locks)
+  // Pure UI counter - starts from 0 when lock is detected, no server dependency
+  const elapsedStartTimeRef = useRef<number | null>(null);
+
   useEffect(() => {
-    if (!isLocked || lockEndsAt || !lockStartedAt) {
+    if (!isLocked || lockEndsAt) {
       setElapsedTime(null);
+      elapsedStartTimeRef.current = null;
       return;
     }
 
+    // Start counting from now
+    if (elapsedStartTimeRef.current === null) {
+      elapsedStartTimeRef.current = Date.now();
+    }
+
     function updateElapsed() {
-      const startTime = new Date(lockStartedAt!).getTime();
-      const now = Date.now();
-      const diff = now - startTime;
+      const diff = Date.now() - elapsedStartTimeRef.current!;
 
       const days = Math.floor(diff / (24 * 60 * 60 * 1000));
       const hours = Math.floor((diff % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
@@ -714,7 +716,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
     return () => {
       clearInterval(interval);
     };
-  }, [isLocked, lockEndsAt, lockStartedAt]);
+  }, [isLocked, lockEndsAt]);
 
   const formatScheduleDate = useCallback((dateStr: string): string => {
     const date = new Date(dateStr);
@@ -764,7 +766,6 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
       // Update local state
       setIsLocked(false);
       setLockEndsAt(null);
-      setLockStartedAt(null);
 
       Vibration.vibrate(100);
 
@@ -911,10 +912,8 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
       await updateLockStatus(email, true, calculatedLockEndsAt);
 
       // Set local state immediately for instant UI update
-      const nowISO = new Date().toISOString();
       setIsLocked(true);
       setLockEndsAt(calculatedLockEndsAt);
-      setLockStartedAt(nowISO);
 
       // Call native blocking module
       if (BlockingModule) {
@@ -1031,59 +1030,21 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }} edges={['top']}>
       <View className="flex-1 px-6">
-        {/* Fixed height status section at top */}
-        <View style={{ height: 80 }} className="items-center justify-center mt-4">
-          {isLocked && timeRemaining ? (
-            <>
-              <Text style={{ color: colors.textMuted }} className="text-base font-nunito mb-1">
-                Will unlock in
-              </Text>
-              <Text style={{ color: colors.text }} className="text-4xl font-nunito-bold tracking-tight">
-                {timeRemaining}
-              </Text>
-            </>
-          ) : isLocked && elapsedTime ? (
-            <>
-              <Text style={{ color: colors.textMuted }} className="text-base font-nunito">
-                Locked for
-              </Text>
-              <Text style={{ color: colors.text }} className="text-4xl font-nunito-bold tracking-tight mt-2">
-                {elapsedTime}
-              </Text>
-            </>
-          ) : isLocked ? (
-            <>
-              <Text style={{ color: colors.text }} className="text-3xl font-nunito-bold mb-1">
-                Locked
-              </Text>
-              <Text style={{ color: colors.textMuted }} className="text-base font-nunito">
-                Tap to Unlock
-              </Text>
-            </>
-          ) : (
-            <Text style={{ color: colors.text }} className="text-3xl font-nunito-bold">
-              Not Locked
-            </Text>
-          )}
-        </View>
-
-        {/* Scute Logo - gradient when actively locked, tinted when unlocked or ready to unlock */}
+        {/* Scute Logo - absolute positioned so it doesn't affect centering */}
         <TouchableOpacity
           onPress={handleConfigurePress}
-          activeOpacity={isLocked ? 1 : 0.7}
-          className="items-center my-6"
+          style={{ position: 'absolute', top: -32, left: -8, zIndex: 10 }}
         >
           <Animated.View
             style={{ transform: [{ translateX: shakeAnim }] }}
-            className="items-center justify-center"
           >
             {/* Unlocked logo - fades out when actively locked */}
             <Animated.View style={{ opacity: unlockedOpacity, position: 'absolute' }}>
               <Image
                 source={scuteLogo}
                 style={{
-                  width: 200,
-                  height: 200,
+                  width: 150,
+                  height: 150,
                   tintColor: colors.logoTint,
                 }}
                 resizeMode="contain"
@@ -1094,8 +1055,8 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
               <Image
                 source={scuteLogo}
                 style={{
-                  width: 200,
-                  height: 200,
+                  width: 150,
+                  height: 150,
                   tintColor: colors.logoTint,
                 }}
                 resizeMode="contain"
@@ -1104,44 +1065,83 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
           </Animated.View>
         </TouchableOpacity>
 
-        {/* Preset info - fixed height section */}
-        <View style={{ minHeight: 100 }} className="items-center">
-          <View className="items-center justify-center">
-            {isActivelyLocked ? (
-              <GlowText
-                text={`Preset: ${currentPreset || 'None Selected'}`}
-                color={colors.text}
-                glowOpacity={presetGlowOpacity}
-                fontSize={20}
-              />
+        {/* Status + Preset + Scheduled - centered in full screen */}
+        <View className="flex-1 items-center justify-center" style={{ paddingTop: '8%' }}>
+          {/* Status section */}
+          <View className="items-center justify-center mb-4">
+            {isLocked && timeRemaining ? (
+              <>
+                <Text style={{ color: colors.textMuted }} className="text-base font-nunito mb-1">
+                  Will unlock in
+                </Text>
+                <Text style={{ color: colors.text }} className="text-4xl font-nunito-bold tracking-tight">
+                  {timeRemaining}
+                </Text>
+              </>
+            ) : isLocked && elapsedTime ? (
+              <>
+                <Text style={{ color: colors.textMuted }} className="text-base font-nunito">
+                  Locked for
+                </Text>
+                <Text style={{ color: colors.text }} className="text-4xl font-nunito-bold tracking-tight mt-2">
+                  {elapsedTime}
+                </Text>
+              </>
+            ) : isLocked ? (
+              <>
+                <Text style={{ color: colors.text }} className="text-4xl font-nunito-bold mb-1">
+                  Locked
+                </Text>
+                <Text style={{ color: colors.textMuted }} className="text-base font-nunito">
+                  Tap to Unlock
+                </Text>
+              </>
             ) : (
-              <Text
-                style={{ color: colors.text }}
-                className="text-xl font-nunito-semibold text-center"
-              >
-                Preset: {currentPreset || 'None Selected'}
+              <Text style={{ color: colors.text }} className="text-4xl font-nunito-bold">
+                Not Locked
               </Text>
             )}
           </View>
 
-          {/* Active settings display */}
-          {activePreset && getActiveSettingsDisplay().length > 0 && (
-            <Text style={{ color: colors.textSecondary }} className="text-base font-nunito mt-2 text-center px-4">
-              Blocking {getActiveSettingsDisplay().join(', ')}
-            </Text>
-          )}
+          {/* Preset info */}
+          <View className="items-center">
+            <View className="items-center justify-center">
+              {isActivelyLocked ? (
+                <GlowText
+                  text={`Preset: ${currentPreset || 'None Selected'}`}
+                  color={colors.text}
+                  glowOpacity={presetGlowOpacity}
+                  fontSize={20}
+                />
+              ) : (
+                <Text
+                  style={{ color: colors.text }}
+                  className="text-xl font-nunito-semibold text-center"
+                >
+                  Preset: {currentPreset || 'None Selected'}
+                </Text>
+              )}
+            </View>
 
-          {/* Preset timing subtext (for timed/dated presets) */}
-          {getPresetTimingSubtext() && (
-            <Text
-              style={{ color: colors.textMuted }}
-              className="text-sm font-nunito mt-1 text-center"
-            >
-              {getPresetTimingSubtext()}
-            </Text>
-          )}
+            {/* Active settings display */}
+            {activePreset && getActiveSettingsDisplay().length > 0 && (
+              <Text style={{ color: colors.textSecondary }} className="text-base font-nunito mt-2 text-center px-4">
+                Blocking {getActiveSettingsDisplay().join(', ')}
+              </Text>
+            )}
 
-          {/* Scheduled Presets Button - matte style */}
+            {/* Preset timing subtext (for timed/dated presets) */}
+            {getPresetTimingSubtext() && (
+              <Text
+                style={{ color: colors.textMuted }}
+                className="text-sm font-nunito mt-1 text-center"
+              >
+                {getPresetTimingSubtext()}
+              </Text>
+            )}
+          </View>
+
+          {/* Scheduled Presets Button */}
           {scheduledPresets.length > 0 && (
             <TouchableOpacity
               onPress={() => setScheduledPresetsModalVisible(true)}
@@ -1176,9 +1176,6 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
             </TouchableOpacity>
           )}
         </View>
-
-        {/* Spacer to push button to bottom */}
-        <View className="flex-1" />
 
         {/* Action Button - clean matte style */}
         <View className="mb-10">

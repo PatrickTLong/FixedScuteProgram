@@ -575,22 +575,25 @@ function PresetsScreen({ userEmail }: Props) {
   const keyExtractor = useCallback((item: Preset) => item.id, []);
 
   const ListEmptyComponent = useCallback(() => (
-    <View className="items-center py-12">
+    <View className="items-center py-12" style={{ marginTop: -40 }}>
       {!loading && (
         <>
-          <Image
-            source={require('../frontassets/scutelogo.png')}
-            style={{
-              width: 80,
-              height: 80,
-              tintColor: colors.textMuted,
-              opacity: 0.3
-            }}
-            resizeMode="contain"
-          />
-          <Text style={{ color: colors.textSecondary }} className="text-base font-nunito mt-4">
-            No presets yet
-          </Text>
+          <View className="items-center">
+            <Image
+              source={require('../frontassets/TrueScute-Photoroom.png')}
+              style={{
+                width: 150,
+                height: 150,
+                tintColor: colors.textMuted,
+                opacity: 0.3,
+                marginBottom: -40,
+              }}
+              resizeMode="contain"
+            />
+            <Text style={{ color: colors.textSecondary }} className="text-base font-nunito">
+              No presets yet
+            </Text>
+          </View>
           <Text style={{ color: colors.textMuted }} className="text-sm font-nunito mt-1">
             Tap + to create one
           </Text>
@@ -604,15 +607,17 @@ function PresetsScreen({ userEmail }: Props) {
       {/* Locked Overlay */}
       {isLocked === true && (
         <View style={{ backgroundColor: colors.bg + 'F2' }} className="absolute inset-0 z-50 items-center justify-center">
-          <Image
-            source={require('../frontassets/scutelogo.png')}
-            style={{ width: 120, height: 120, tintColor: colors.logoTint, marginBottom: 24 }}
-            resizeMode="contain"
-          />
-          <Text style={{ color: colors.text }} className="text-xl font-nunito-bold mb-2">Phone is Locked</Text>
-          <Text style={{ color: colors.textSecondary }} className="text-center font-nunito px-8">
-            Presets cannot be changed while blocking is active.
-          </Text>
+          <View className="items-center" style={{ marginTop: '-10%' }}>
+            <Image
+              source={require('../frontassets/TrueScute-Photoroom.png')}
+              style={{ width: 250, height: 250, tintColor: colors.logoTint, marginBottom: -60 }}
+              resizeMode="contain"
+            />
+            <Text style={{ color: colors.text }} className="text-xl font-nunito-bold mb-2">Phone is Locked</Text>
+            <Text style={{ color: colors.textSecondary }} className="text-center font-nunito px-8">
+              Presets cannot be changed while blocking is active.
+            </Text>
+          </View>
         </View>
       )}
 

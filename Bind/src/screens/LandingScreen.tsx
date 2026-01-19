@@ -103,7 +103,7 @@ function LandingScreen({ onSignIn, onGetStarted }: Props) {
       <View className="flex-1 justify-center items-center px-8">
         {/* Scute Logo */}
         <Image
-          source={require('../frontassets/scutelogo.png')}
+          source={require('../frontassets/TrueScute-Photoroom.png')}
           className="w-72 h-72 mb-8"
           resizeMode="contain"
           style={{ tintColor: colors.logoTint, marginTop: -60 }}
