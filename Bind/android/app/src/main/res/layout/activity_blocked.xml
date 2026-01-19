@@ -4,7 +4,7 @@
     android:id="@+id/blocked_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F2121212"
+    android:background="#F228282B"
     android:clickable="true"
     android:focusable="true">
 
@@ -15,20 +15,20 @@
         android:gravity="center_horizontal"
         android:padding="32dp">
 
-        <!-- Top spacer to push logo up (about 20% from top) -->
+        <!-- Top spacer to push content up (matches React Native -20% marginTop) -->
         <View
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:layout_weight="0.2" />
+            android:layout_weight="0.15" />
 
-        <!-- Scute Logo -->
+        <!-- Scute Logo (250dp to match React Native overlay size) -->
         <ImageView
             android:id="@+id/blocked_logo"
-            android:layout_width="120dp"
-            android:layout_height="120dp"
+            android:layout_width="250dp"
+            android:layout_height="250dp"
             android:src="@drawable/scute_logo"
             android:tint="#FFFFFF"
-            android:layout_marginBottom="24dp" />
+            android:layout_marginBottom="-60dp" />
 
         <!-- Title -->
         <TextView
@@ -36,8 +36,7 @@
             android:layout_height="wrap_content"
             android:text="Blocked"
             android:textColor="#FFFFFF"
-            android:textSize="28sp"
-            android:textStyle="bold"
+            android:textSize="22sp"
             android:layout_marginBottom="12dp" />
 
         <!-- Message -->

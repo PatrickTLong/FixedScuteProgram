@@ -462,6 +462,31 @@ function BlockNowButton({
           }}
         />
 
+        {/* Arrow that travels with the green bar - clips at button edge */}
+        <Animated.View
+          style={{
+            position: 'absolute',
+            left: 0,
+            top: 0,
+            bottom: 0,
+            justifyContent: 'center',
+            transform: [{ translateX: slidePosition }],
+            paddingLeft: 12,
+            opacity: 0.5,
+          }}
+        >
+          <Svg width={20} height={20} viewBox="0 0 24 24">
+            <Path
+              d="M9 18l6-6-6-6"
+              stroke={colors.text}
+              strokeWidth={2.5}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              fill="none"
+            />
+          </Svg>
+        </Animated.View>
+
         {/* Button Content */}
         <View className="flex-1 flex-row items-center justify-center">
           <GlowText

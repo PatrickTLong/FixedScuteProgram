@@ -384,7 +384,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
       {/* Locked Overlay */}
       {isLocked && (
         <View style={{ backgroundColor: colors.bg + 'F2' }} className="absolute inset-0 z-50 items-center justify-center">
-          <View className="items-center" style={{ marginTop: '-10%' }}>
+          <View className="items-center" style={{ marginTop: '-20%' }}>
             <Image
               source={require('../frontassets/TrueScute-Photoroom.png')}
               style={{ width: 250, height: 250, tintColor: colors.logoTint, marginBottom: -60 }}

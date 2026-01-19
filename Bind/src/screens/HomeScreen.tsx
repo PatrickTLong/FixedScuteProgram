@@ -116,6 +116,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
   const [scheduledPresets, setScheduledPresets] = useState<Preset[]>([]);
   const [isLocked, setIsLocked] = useState(false);
   const [lockEndsAt, setLockEndsAt] = useState<string | null>(null);
+  const [lockStartedAt, setLockStartedAt] = useState<string | null>(null);
   const [timeRemaining, setTimeRemaining] = useState<string | null>(null);
   const [elapsedTime, setElapsedTime] = useState<string | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
@@ -269,7 +270,11 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
     }
   }, [email]);
 
-  const loadStats = useCallback(async (skipCache = false) => {
+  const loadStats = useCallback(async (skipCache = false, showLoading = false) => {
+    if (showLoading) setLoading(true);
+    const hideLoading = () => {
+      if (showLoading) setTimeout(() => setLoading(false), 100);
+    };
     try {
       // Fetch presets, lock status, and tapout status in parallel
       const [presets, lockStatus, tapout] = await Promise.all([
@@ -296,6 +301,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
         }
 
         await activateScheduledPreset(preset);
+        hideLoading();
         return; // State will be updated by activateScheduledPreset
       }
 
@@ -331,6 +337,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
             // Set unlocked state but keep the preset showing
             setIsLocked(false);
             setLockEndsAt(null);
+            setLockStartedAt(null);
             // Keep preset active - set it from the active preset found
             if (active) {
               setCurrentPreset(active.name);
@@ -338,6 +345,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
             }
             setScheduledPresets(activeScheduled);
             setTapoutStatus(tapout);
+            hideLoading();
             return; // Exit early, state is set
           } catch (error) {
             console.error('[HomeScreen] Failed to auto-unlock expired lock:', error);
@@ -382,9 +390,12 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
 
       setIsLocked(lockStatus.isLocked);
       setLockEndsAt(lockStatus.lockEndsAt);
+      setLockStartedAt(lockStatus.lockStartedAt);
       setTapoutStatus(tapout);
+      hideLoading();
     } catch (error) {
       console.error('Failed to load stats:', error);
+      hideLoading();
     }
   }, [email, checkScheduledPresets, activateScheduledPreset]);
 
@@ -417,6 +428,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
         setEmergencyTapoutModalVisible(false);
         setIsLocked(false);
         setLockEndsAt(null);
+        setLockStartedAt(null);
 
         // Update database lock status to unlocked (already done by backend, but ensure local state is synced)
         await updateLockStatus(email, false, null);
@@ -463,7 +475,6 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
   // Load data on mount
   useEffect(() => {
     async function init() {
-      setLoading(true);
       // On first app load (app was killed/restarted), clear all caches for fresh data
       // On subsequent navigations, only invalidate user-specific caches
       if (isFirstLoad()) {
@@ -472,19 +483,16 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
       } else {
         invalidateUserCaches(email);
       }
-      await loadStats(true);
-      setLoading(false);
+      await loadStats(true, true); // skipCache=true, showLoading=true
     }
     init();
 
     // Refresh preset when app comes to foreground
     const subscription = AppState.addEventListener('change', async (nextAppState) => {
       if (nextAppState === 'active') {
-        // Show loading spinner and fetch fresh data when returning to foreground
-        setLoading(true);
+        // Fetch fresh data when returning to foreground with loading spinner
         invalidateUserCaches(email);
-        await loadStats(true);
-        setLoading(false);
+        await loadStats(true, true); // skipCache=true, showLoading=true
       }
     });
 
@@ -506,12 +514,9 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
       console.log('[HomeScreen] Refresh triggered by parent');
       // Close any open modals
       setEmergencyTapoutModalVisible(false);
-      // Show loading spinner and fetch fresh data
-      setLoading(true);
+      // Fetch fresh data with loading spinner
       invalidateUserCaches(email);
-      loadStats(true).finally(() => {
-        setLoading(false);
-      });
+      loadStats(true, true); // skipCache=true, showLoading=true
     }
   }, [refreshTrigger, loadStats, email]);
 
@@ -531,6 +536,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
       // Update local state - keep preset active, just unlock
       setIsLocked(false);
       setLockEndsAt(null);
+      setLockStartedAt(null);
       setTimeRemaining(null);
       // NOTE: Don't deactivate the preset - keep it selected so user can lock again easily
 
@@ -676,23 +682,16 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
   }, [isActivelyLocked, presetGlowOpacity]);
 
   // Elapsed time effect (for no-time-limit locks)
-  // Pure UI counter - starts from 0 when lock is detected, no server dependency
-  const elapsedStartTimeRef = useRef<number | null>(null);
-
   useEffect(() => {
-    if (!isLocked || lockEndsAt) {
+    if (!isLocked || lockEndsAt || !lockStartedAt) {
       setElapsedTime(null);
-      elapsedStartTimeRef.current = null;
       return;
     }
 
-    // Start counting from now
-    if (elapsedStartTimeRef.current === null) {
-      elapsedStartTimeRef.current = Date.now();
-    }
-
     function updateElapsed() {
-      const diff = Date.now() - elapsedStartTimeRef.current!;
+      const startTime = new Date(lockStartedAt!).getTime();
+      const now = Date.now();
+      const diff = Math.max(0, now - startTime);
 
       const days = Math.floor(diff / (24 * 60 * 60 * 1000));
       const hours = Math.floor((diff % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
@@ -716,7 +715,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
     return () => {
       clearInterval(interval);
     };
-  }, [isLocked, lockEndsAt]);
+  }, [isLocked, lockEndsAt, lockStartedAt]);
 
   const formatScheduleDate = useCallback((dateStr: string): string => {
     const date = new Date(dateStr);
@@ -766,6 +765,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
       // Update local state
       setIsLocked(false);
       setLockEndsAt(null);
+      setLockStartedAt(null);
 
       Vibration.vibrate(100);
 
@@ -912,8 +912,10 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
       await updateLockStatus(email, true, calculatedLockEndsAt);
 
       // Set local state immediately for instant UI update
+      const nowISO = new Date().toISOString();
       setIsLocked(true);
       setLockEndsAt(calculatedLockEndsAt);
+      setLockStartedAt(nowISO);
 
       // Call native blocking module
       if (BlockingModule) {

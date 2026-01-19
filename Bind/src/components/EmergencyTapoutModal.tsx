@@ -89,23 +89,11 @@ function EmergencyTapoutModal({
         <View style={{ backgroundColor: colors.card }} className="w-full rounded-2xl overflow-hidden">
           {/* Header */}
           <View className="p-6 pb-4 items-center">
-            {/* Lock Icon */}
-            <View style={{ backgroundColor: `${colors.red}33` }} className="w-16 h-16 rounded-full items-center justify-center mb-4">
-              <Svg width={32} height={32} viewBox="0 0 24 24" fill="none">
-                <Path
-                  d="M19 11H5a2 2 0 00-2 2v7a2 2 0 002 2h14a2 2 0 002-2v-7a2 2 0 00-2-2zM7 11V7a5 5 0 0110 0v4"
-                  stroke={colors.red}
-                  strokeWidth={2}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </Svg>
-            </View>
-            <Text style={{ color: colors.text }} className="text-xl font-nunito-bold text-center">
+            <Text style={{ color: colors.text }} className="text-2xl font-nunito-bold text-center">
               Phone is Locked
             </Text>
             <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito text-center mt-2">
-              Tap your Scute card to unlock when the timer is finished, or use an emergency tapout if available.
+              Wait for the timer to finish, or unlock now by using an emergency tapout.
             </Text>
           </View>
 
