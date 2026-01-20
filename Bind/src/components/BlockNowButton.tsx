@@ -134,6 +134,7 @@ interface BlockNowButtonProps {
   isLocked?: boolean;
   hasActiveTimer?: boolean; // true when there's a countdown or elapsed time showing
   hasReadyPreset?: boolean; // true when there's a preset ready to lock (enables glow)
+  strictMode?: boolean; // when false, slide-to-unlock is available even for timed presets
 }
 
 function BlockNowButton({
@@ -144,6 +145,7 @@ function BlockNowButton({
   isLocked = false,
   hasActiveTimer = false,
   hasReadyPreset = false,
+  strictMode = false,
 }: BlockNowButtonProps) {
   const { colors } = useTheme();
   const [isPressed, setIsPressed] = useState(false);
@@ -185,8 +187,14 @@ function BlockNowButton({
     isUnlockingRef.current = isUnlocking;
   }, [isUnlocking]);
 
-  // Determine if we should show slide-to-unlock (locked but no active timer)
-  const showSlideToUnlock = isLocked && !hasActiveTimer;
+  // Determine if we should show slide-to-unlock
+  // Show slide-to-unlock when:
+  // 1. Locked with no active timer (no time limit preset) - always slide-to-unlock
+  // 2. Locked with active timer BUT strictMode is OFF - slide-to-unlock available
+  const showSlideToUnlock = isLocked && (!hasActiveTimer || !strictMode);
+
+  // Log for debugging
+  console.log('[BlockNowButton] State:', { isLocked, hasActiveTimer, strictMode, showSlideToUnlock });
 
   // Slow pulsating glow for ready preset (hold to lock) and slide to unlock
   const shouldShowSlowGlow = (hasReadyPreset && !isLocked) || showSlideToUnlock;
@@ -416,8 +424,8 @@ function BlockNowButton({
     return colors.text;
   };
 
-  // When locked with active timer, show tappable "Locked" button with static glow and dimmed background
-  if (isLocked && hasActiveTimer) {
+  // When locked with active timer AND strict mode is ON, show tappable "Locked" button with static glow and dimmed background
+  if (isLocked && hasActiveTimer && strictMode) {
     return (
       <TouchableOpacity
         onPress={() => {
@@ -553,6 +561,7 @@ export default memo(BlockNowButton, (prevProps, nextProps) => {
     prevProps.isLocked === nextProps.isLocked &&
     prevProps.hasActiveTimer === nextProps.hasActiveTimer &&
     prevProps.hasReadyPreset === nextProps.hasReadyPreset &&
+    prevProps.strictMode === nextProps.strictMode &&
     prevProps.onActivate === nextProps.onActivate &&
     prevProps.onUnlockPress === nextProps.onUnlockPress &&
     prevProps.onSlideUnlock === nextProps.onSlideUnlock

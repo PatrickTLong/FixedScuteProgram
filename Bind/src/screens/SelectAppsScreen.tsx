@@ -82,9 +82,9 @@ const AppItem = memo(({ item, isSelected, onToggle, cardColor, cardLightColor, t
       className="flex-row items-center py-3 px-4 rounded-xl mb-2"
     >
       {/* App Icon */}
-      <View style={{ backgroundColor: cardLightColor }} className="w-10 h-10 rounded-lg items-center justify-center mr-3">
+      <View className="w-10 h-10 items-center justify-center mr-3">
         {item.icon ? (
-          <Image source={{ uri: item.icon }} className="w-8 h-8 rounded" />
+          <Image source={{ uri: item.icon }} className="w-9 h-9" />
         ) : (
           <Text style={{ color: textSecondaryColor }} className="text-lg font-nunito-bold">
             {item.name.charAt(0)}
@@ -96,8 +96,8 @@ const AppItem = memo(({ item, isSelected, onToggle, cardColor, cardLightColor, t
       <Text style={{ color: textColor }} className="flex-1 text-base font-nunito">{item.name}</Text>
 
       {/* Checkbox */}
-      <View style={isSelected ? { backgroundColor: cyanColor, borderColor: cyanColor } : { borderColor: borderColor }} className="w-6 h-6 rounded border-2 items-center justify-center">
-        {isSelected && <Text className="text-black text-sm font-bold">✓</Text>}
+      <View style={isSelected ? { backgroundColor: cyanColor, borderColor: cyanColor } : { borderColor: borderColor }} className="w-6 h-6 rounded-full border-2 items-center justify-center">
+        {isSelected && <Text className="text-white text-sm font-bold"></Text>}
       </View>
     </TouchableOpacity>
   );
@@ -288,14 +288,14 @@ function SelectAppsScreen({
             keyExtractor={(item) => item}
             renderItem={({ item }) => (
               <View style={{ backgroundColor: colors.card }} className="flex-row items-center py-3 px-4 rounded-xl mb-2">
-                <View style={{ backgroundColor: colors.cardLight }} className="w-10 h-10 rounded-lg items-center justify-center mr-3">
+                <View style={{ backgroundColor: colors.cardLight, borderRadius: 10 }} className="w-10 h-10 items-center justify-center mr-3">
                   <Text style={{ color: colors.textSecondary }} className="text-lg font-nunito-bold">
                     {item.charAt(0).toUpperCase()}
                   </Text>
                 </View>
                 <Text style={{ color: colors.text }} className="flex-1 text-base font-nunito">{item}</Text>
-                <View style={{ backgroundColor: colors.cyan, borderColor: colors.cyan }} className="w-6 h-6 rounded border-2 items-center justify-center">
-                  <Text className="text-black text-sm font-bold">✓</Text>
+                <View style={{ backgroundColor: colors.cyan, borderColor: colors.cyan }} className="w-6 h-6 rounded-full border-2 items-center justify-center">
+                  <Text className="text-white text-sm font-bold">✓</Text>
                 </View>
               </View>
             )}

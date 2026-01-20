@@ -768,7 +768,15 @@ app.get('/api/presets', authenticateToken, async (req, res) => {
       repeat_enabled: p.repeat_enabled || false,
       repeat_unit: p.repeat_unit || null,
       repeat_interval: p.repeat_interval || null,
+      // Strict mode - when enabled, preset is locked until timer ends or emergency tapout
+      // When disabled, slide-to-unlock is available
+      strictMode: p.strict_mode ?? false, // Default to false (slide-to-unlock available)
     }));
+
+    console.log('[presets:get] Returning', presets.length, 'presets for user:', normalizedEmail);
+    presets.forEach(p => {
+      console.log(`[presets:get]   - ${p.name}: strictMode=${p.strictMode}, allowEmergencyTapout=${p.allowEmergencyTapout}, noTimeLimit=${p.noTimeLimit}`);
+    });
 
     res.json({ presets });
   } catch (error) {
@@ -823,9 +831,16 @@ app.post('/api/presets', authenticateToken, async (req, res) => {
       repeat_enabled: preset.repeat_enabled || false,
       repeat_unit: preset.repeat_unit || null,
       repeat_interval: preset.repeat_interval || null,
+      // Strict mode - when enabled, preset is locked until timer ends or emergency tapout
+      strict_mode: preset.strictMode ?? false, // Default to false (slide-to-unlock available)
     };
 
-    console.log('[presets:save] Recurring data:', {
+    console.log('[presets:save] Preset data:', {
+      name: preset.name,
+      strictMode: preset.strictMode,
+      strict_mode_to_save: presetData.strict_mode,
+      allowEmergencyTapout: preset.allowEmergencyTapout,
+      noTimeLimit: preset.noTimeLimit,
       repeat_enabled: preset.repeat_enabled,
       repeat_unit: preset.repeat_unit,
       repeat_interval: preset.repeat_interval,
@@ -1238,7 +1253,7 @@ app.post('/api/emergency-tapout/toggle', authenticateToken, async (req, res) => 
 // The frontend checks preset.allowEmergencyTapout before calling this endpoint.
 // This endpoint validates remaining tapouts count and deactivates the preset.
 app.post('/api/emergency-tapout/use', authenticateToken, async (req, res) => {
-  const { presetId } = req.body;
+  const { presetId, skipTapoutDecrement } = req.body;
   const normalizedEmail = req.userEmail; // Get email from verified token
 
   try {
@@ -1253,33 +1268,47 @@ app.post('/api/emergency-tapout/use', authenticateToken, async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    if ((data.emergency_tapout_remaining ?? 0) <= 0) {
-      return res.status(400).json({ error: 'No emergency tapouts remaining' });
+    // Only check tapout count if not skipping decrement (slide-to-unlock case)
+    if (!skipTapoutDecrement) {
+      if ((data.emergency_tapout_remaining ?? 0) <= 0) {
+        return res.status(400).json({ error: 'No emergency tapouts remaining' });
+      }
     }
 
-    const newRemaining = (data.emergency_tapout_remaining ?? 3) - 1;
-
-    // Calculate next refill date
-    // If going from 3 to 2, start the 2-week countdown
-    // If already below 3, keep the existing countdown (don't reset it)
+    // Calculate new remaining count and refill date (only if not skipping)
+    let newRemaining = data.emergency_tapout_remaining ?? 3;
     let nextRefillDate = data.emergency_tapout_next_refill;
-    if (data.emergency_tapout_remaining === 3) {
-      // First tapout used, start the refill countdown
-      nextRefillDate = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(); // 2 weeks from now
+
+    if (!skipTapoutDecrement) {
+      newRemaining = newRemaining - 1;
+      // Calculate next refill date
+      // If going from 3 to 2, start the 2-week countdown
+      // If already below 3, keep the existing countdown (don't reset it)
+      if (data.emergency_tapout_remaining === 3) {
+        // First tapout used, start the refill countdown
+        nextRefillDate = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(); // 2 weeks from now
+      }
+      // If already had a refill date scheduled, keep it
     }
-    // If already had a refill date scheduled, keep it
+
+    // Build update object - always unlock
+    const updateObj = {
+      is_locked: false,
+      lock_started_at: null,
+      lock_ends_at: null,
+      settings: null, // Clear active settings
+    };
+
+    // Only update tapout count if not skipping
+    if (!skipTapoutDecrement) {
+      updateObj.emergency_tapout_remaining = newRemaining;
+      updateObj.emergency_tapout_next_refill = nextRefillDate;
+    }
 
     // Also unlock the user when using emergency tapout
     const { error: updateError } = await supabase
       .from('user_cards')
-      .update({
-        emergency_tapout_remaining: newRemaining,
-        emergency_tapout_next_refill: nextRefillDate,
-        is_locked: false,
-        lock_started_at: null,
-        lock_ends_at: null,
-        settings: null, // Clear active settings
-      })
+      .update(updateObj)
       .eq('email', normalizedEmail);
 
     if (updateError) {
@@ -1317,7 +1346,11 @@ app.post('/api/emergency-tapout/use', authenticateToken, async (req, res) => {
       }
     }
 
-    console.log(`Emergency tapout used for ${normalizedEmail}, ${newRemaining} remaining, next refill: ${nextRefillDate}`);
+    if (skipTapoutDecrement) {
+      console.log(`Slide unlock (no tapout decrement) for ${normalizedEmail}`);
+    } else {
+      console.log(`Emergency tapout used for ${normalizedEmail}, ${newRemaining} remaining, next refill: ${nextRefillDate}`);
+    }
     res.json({ success: true, remaining: newRemaining, nextRefillDate });
   } catch (error) {
     console.error('Use emergency tapout error:', error);

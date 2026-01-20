@@ -258,6 +258,9 @@ export interface Preset {
   repeat_enabled?: boolean;
   repeat_unit?: 'minutes' | 'hours' | 'days' | 'weeks' | 'months';
   repeat_interval?: number;
+  // Strict mode - when enabled, presets are locked and require emergency tapout to unlock
+  // When disabled, slide-to-unlock is available for all presets
+  strictMode?: boolean;
 }
 
 /**
@@ -671,9 +674,10 @@ export async function setEmergencyTapoutEnabled(email: string, enabled: boolean)
  * Use one emergency tapout
  * @param email - User's email
  * @param presetId - Optional preset ID to deactivate (if not provided, all active presets are deactivated)
+ * @param skipTapoutDecrement - If true, unlocks without decrementing tapout count (for slide-to-unlock)
  */
-export async function useEmergencyTapout(email: string, presetId?: string): Promise<{ success: boolean; remaining: number }> {
-  console.log('[CardAPI] useEmergencyTapout called, presetId:', presetId);
+export async function useEmergencyTapout(email: string, presetId?: string, skipTapoutDecrement?: boolean): Promise<{ success: boolean; remaining: number }> {
+  console.log('[CardAPI] useEmergencyTapout called, presetId:', presetId, 'skipTapoutDecrement:', skipTapoutDecrement);
   const normalizedEmail = email.toLowerCase();
 
   try {
@@ -681,7 +685,7 @@ export async function useEmergencyTapout(email: string, presetId?: string): Prom
     const response = await fetch(`${API_URL}/api/emergency-tapout/use`, {
       method: 'POST',
       headers,
-      body: JSON.stringify({ presetId }),
+      body: JSON.stringify({ presetId, skipTapoutDecrement }),
     });
 
     const data = await response.json();

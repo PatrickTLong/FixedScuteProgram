@@ -695,6 +695,17 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
     };
   }, [isActivelyLocked, presetGlowOpacity]);
 
+  // Debug logging for strictMode
+  useEffect(() => {
+    console.log('[HomeScreen] StrictMode debug:', {
+      activePresetName: activePreset?.name,
+      strictMode: activePreset?.strictMode,
+      resolvedStrictMode: activePreset?.strictMode ?? true,
+      isLocked,
+      hasActiveTimer: !!timeRemaining,
+    });
+  }, [activePreset, isLocked, timeRemaining]);
+
   // Elapsed time effect (for no-time-limit locks)
   useEffect(() => {
     if (!isLocked || lockEndsAt || !lockStartedAt) {
@@ -762,24 +773,53 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
     setEmergencyTapoutModalVisible(true);
   }, []);
 
-  // Handle slide to unlock for no-time-limit presets (called directly from BlockNowButton)
+  // Handle slide to unlock (called directly from BlockNowButton)
+  // For scheduled/recurring presets: call backend endpoint (same as emergency tapout but without decrementing tapout count)
+  // For regular presets: just unlock but keep preset active
   const handleSlideUnlock = useCallback(async () => {
+    // Store preset info before starting
+    const presetIdToKeep = activePreset?.id;
+    const isScheduledPreset = activePreset?.isScheduled;
+
     try {
       // Show loading spinner during unlock
       setLoading(true);
 
-      // Update database lock status to unlocked
-      await updateLockStatus(email, false, null);
-
-      // Clear native blocking
-      if (BlockingModule) {
-        await BlockingModule.forceUnlock();
-      }
-
-      // Update local state
+      // Update local state immediately
       setIsLocked(false);
       setLockEndsAt(null);
       setLockStartedAt(null);
+
+      // For scheduled/recurring presets: use the same backend endpoint as emergency tapout
+      // but with skipTapoutDecrement=true so it doesn't use up tapout count
+      if (isScheduledPreset) {
+        console.log('[HomeScreen] Slide unlock for scheduled preset - calling backend with skipTapoutDecrement');
+        // Call the same endpoint as emergency tapout but skip the tapout decrement
+        const result = await useEmergencyTapout(email, presetIdToKeep, true);
+        if (result.success) {
+          // Clear native blocking
+          if (BlockingModule) {
+            await BlockingModule.forceUnlock();
+          }
+          setCurrentPreset(null);
+          setActivePreset(null);
+        } else {
+          throw new Error('Backend unlock failed');
+        }
+      } else {
+        // Regular preset - just update lock status and keep preset active
+        await updateLockStatus(email, false, null);
+
+        // Clear native blocking
+        if (BlockingModule) {
+          await BlockingModule.forceUnlock();
+        }
+
+        if (presetIdToKeep) {
+          console.log('[HomeScreen] Re-activating preset after slide unlock:', presetIdToKeep);
+          await activatePreset(email, presetIdToKeep);
+        }
+      }
 
       Vibration.vibrate(100);
 
@@ -792,7 +832,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
     } finally {
       setLoading(false);
     }
-  }, [email, loadStats, showModal]);
+  }, [email, loadStats, showModal, activePreset]);
 
   const handleBlockNow = useCallback(async () => {
     console.log('[HomeScreen] handleBlockNow called');
@@ -998,7 +1038,11 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
       settings.push('Blocking Settings');
     }
 
-    if (activePreset.allowEmergencyTapout && !activePreset.noTimeLimit) {
+    if (activePreset.strictMode && !activePreset.noTimeLimit) {
+      settings.push('Strict Mode');
+    }
+
+    if (activePreset.allowEmergencyTapout && !activePreset.noTimeLimit && activePreset.strictMode) {
       settings.push('Emergency Tapout');
     }
 
@@ -1210,6 +1254,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
             isLocked={isLocked}
             hasActiveTimer={!!timeRemaining}
             hasReadyPreset={!!currentPreset && !isLocked}
+            strictMode={activePreset?.strictMode ?? false}
           />
         </View>
       </View>

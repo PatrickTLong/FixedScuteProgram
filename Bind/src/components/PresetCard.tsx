@@ -33,6 +33,9 @@ export interface Preset {
   repeat_enabled?: boolean;
   repeat_unit?: 'minutes' | 'hours' | 'days' | 'weeks' | 'months';
   repeat_interval?: number;
+  // Strict mode - when enabled, presets are locked and require emergency tapout to unlock
+  // When disabled, slide-to-unlock is available for all presets
+  strictMode?: boolean;
 }
 
 interface PresetCardProps {
@@ -189,8 +192,13 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, disabled
       }
     }
 
-    // Add emergency tapout info
-    if (preset.allowEmergencyTapout) {
+    // Add strict mode info (only for timed presets)
+    if (preset.strictMode && !preset.noTimeLimit) {
+      parts.push('Strict mode');
+    }
+
+    // Add emergency tapout info (only when strict mode is on)
+    if (preset.allowEmergencyTapout && preset.strictMode && !preset.noTimeLimit) {
       parts.push('Emergency tapout');
     }
 

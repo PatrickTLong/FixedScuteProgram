@@ -27,6 +27,8 @@ import ExcludedAppsInfoModal from './ExcludedAppsInfoModal';
 import DisableTapoutWarningModal from './DisableTapoutWarningModal';
 import BlockSettingsWarningModal from './BlockSettingsWarningModal';
 import RecurrenceInfoModal from './RecurrenceInfoModal';
+import StrictModeWarningModal from './StrictModeWarningModal';
+import PresetGuideModal from './PresetGuideModal';
 import { Preset } from './PresetCard';
 import { getEmergencyTapoutStatus, setEmergencyTapoutEnabled } from '../services/cardApi';
 import { lightTap, mediumTap } from '../utils/haptics';
@@ -37,6 +39,7 @@ const EXCLUDED_APPS_INFO_DISMISSED_KEY = 'excluded_apps_info_dismissed';
 const DISABLE_TAPOUT_WARNING_DISMISSED_KEY = 'disable_tapout_warning_dismissed';
 const BLOCK_SETTINGS_WARNING_DISMISSED_KEY = 'block_settings_warning_dismissed';
 const RECURRENCE_INFO_DISMISSED_KEY = 'recurrence_info_dismissed';
+const STRICT_MODE_WARNING_DISMISSED_KEY = 'strict_mode_warning_dismissed';
 
 // Recurring schedule unit types
 type RecurringUnit = 'minutes' | 'hours' | 'days' | 'weeks' | 'months';
@@ -311,6 +314,13 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
   // Block settings warning modal
   const [blockSettingsWarningVisible, setBlockSettingsWarningVisible] = useState(false);
 
+  // Strict mode feature
+  const [strictMode, setStrictMode] = useState(false); // Default to false (slide-to-unlock available)
+  const [strictModeWarningVisible, setStrictModeWarningVisible] = useState(false);
+
+  // Preset guide modal
+  const [guideModalVisible, setGuideModalVisible] = useState(false);
+
   // Handler to toggle emergency tapout - optimistic UI update, then validate
   const handleEmergencyTapoutToggle = useCallback(async (value: boolean) => {
     mediumTap();
@@ -402,6 +412,9 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
         setTargetDate(preset.targetDate ? new Date(preset.targetDate) : null);
         // Emergency tapout feature
         setAllowEmergencyTapout(preset.allowEmergencyTapout ?? false);
+        // Strict mode feature - default to false for existing presets without the field
+        console.log('[PresetEditModal] Loading preset strictMode:', preset.strictMode, '-> setting to:', preset.strictMode ?? false);
+        setStrictMode(preset.strictMode ?? false);
         // Scheduling feature
         setIsScheduled(preset.isScheduled ?? false);
         setScheduleStartDate(preset.scheduleStartDate ? new Date(preset.scheduleStartDate) : null);
@@ -437,6 +450,8 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
         setTargetDate(null);
         // Emergency tapout feature - enabled by default for safety
         setAllowEmergencyTapout(true);
+        // Strict mode - disabled by default (slide-to-unlock available)
+        setStrictMode(false);
         // Scheduling feature
         setIsScheduled(false);
         setScheduleStartDate(null);
@@ -565,6 +580,8 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
       isActive: preset?.isActive ?? false,
       // Emergency tapout feature
       allowEmergencyTapout,
+      // Strict mode feature
+      strictMode,
       // Scheduling feature
       isScheduled,
       scheduleStartDate: isScheduled && scheduleStartDate ? scheduleStartDate.toISOString() : null,
@@ -575,8 +592,12 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
       repeat_interval: isScheduled && isRecurring ? finalRecurringInterval : undefined,
     };
 
-    // Log recurring data for debugging
-    console.log('[PresetEditModal] Saving preset with recurring data:', {
+    // Log preset data for debugging
+    console.log('[PresetEditModal] Saving preset:', {
+      name: newPreset.name,
+      strictMode: newPreset.strictMode,
+      allowEmergencyTapout: newPreset.allowEmergencyTapout,
+      noTimeLimit: newPreset.noTimeLimit,
       repeat_enabled: newPreset.repeat_enabled,
       repeat_unit: newPreset.repeat_unit,
       repeat_interval: newPreset.repeat_interval,
@@ -587,7 +608,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
     } finally {
       setIsSaving(false);
     }
-  }, [name, isSaving, canSave, preset, installedSelectedApps, blockedWebsites, blockSettings, noTimeLimit, timerDays, timerHours, timerMinutes, timerSeconds, targetDate, onSave, allowEmergencyTapout, isScheduled, scheduleStartDate, scheduleEndDate, existingPresets, isRecurring, recurringValue, recurringUnit]);
+  }, [name, isSaving, canSave, preset, installedSelectedApps, blockedWebsites, blockSettings, noTimeLimit, timerDays, timerHours, timerMinutes, timerSeconds, targetDate, onSave, allowEmergencyTapout, strictMode, isScheduled, scheduleStartDate, scheduleEndDate, existingPresets, isRecurring, recurringValue, recurringUnit]);
 
   // Calculate next recurring occurrence based on your specified logic:
   // - Minutes/Hours: Add interval to END time → new START = END + interval, new END = new START + duration
@@ -671,7 +692,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
         {/* Checkbox with checkmark */}
         <View style={isSelected ? { backgroundColor: colors.green } : { borderWidth: 2, borderColor: colors.border }} className="w-6 h-6 rounded items-center justify-center">
           {isSelected && (
-            <View className="w-2.5 h-4 border-r-2 border-b-2 border-black rotate-45 -mt-1" />
+            <View className="w-2.5 h-4 border-r-2 border-b-2 border-white rotate-45 -mt-1" />
           )}
         </View>
       </TouchableOpacity>
@@ -714,6 +735,21 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
             </View>
 
             <ScrollView className="flex-1 px-6 pt-6" contentContainerStyle={{ paddingBottom: 100 }}>
+              {/* Guide Button */}
+              <View className="items-center mb-6">
+                <TouchableOpacity
+                  onPress={() => {
+                    lightTap();
+                    setGuideModalVisible(true);
+                  }}
+                  activeOpacity={0.8}
+                  style={{ backgroundColor: colors.green }}
+                  className="px-6 py-3 rounded-full"
+                >
+                  <Text className="text-white text-base font-nunito-semibold">View Preset Guide</Text>
+                </TouchableOpacity>
+              </View>
+
             {/* No Time Limit Toggle */}
             <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between py-4">
               <View>
@@ -774,8 +810,45 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               />
             </View>
 
-            {/* Emergency Tapout Toggle - available for timed presets (hidden only when No Time Limit is on) */}
+            {/* Strict Mode Toggle - only for timed presets (hidden when No Time Limit is on) */}
             {!noTimeLimit && (
+              <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between py-4">
+                <View className="flex-1">
+                  <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">Strict Mode</Text>
+                  <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">Lock until timer ends or emergency tapout</Text>
+                </View>
+                <AnimatedSwitch
+                  value={strictMode}
+                  onValueChange={async (value: boolean) => {
+                    console.log('[PresetEditModal] Strict Mode toggle:', value);
+                    mediumTap();
+                    if (value) {
+                      // Enabling strict mode - check if we should show warning
+                      const dismissed = await AsyncStorage.getItem(STRICT_MODE_WARNING_DISMISSED_KEY);
+                      if (dismissed !== 'true') {
+                        setStrictModeWarningVisible(true);
+                      } else {
+                        setStrictMode(true);
+                        console.log('[PresetEditModal] Strict Mode enabled (warning dismissed)');
+                      }
+                    } else {
+                      // Disabling strict mode - also disable emergency tapout since it's not relevant
+                      setStrictMode(false);
+                      setAllowEmergencyTapout(false);
+                      console.log('[PresetEditModal] Strict Mode disabled, emergency tapout also disabled');
+                    }
+                  }}
+                  trackColorFalse={colors.border}
+                  trackColorTrue={colors.greenDark}
+                  thumbColorOn={colors.green}
+                  thumbColorOff={colors.textMuted}
+                  size="small"
+                />
+              </View>
+            )}
+
+            {/* Emergency Tapout Toggle - only available when Strict Mode is ON (hidden when No Time Limit or Strict Mode is off) */}
+            {!noTimeLimit && strictMode && (
               <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between py-4">
                 <View className="flex-1">
                   <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">Allow Emergency Tapout</Text>
@@ -1309,6 +1382,25 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               }
             }}
             onCancel={() => setBlockSettingsWarningVisible(false)}
+          />
+
+          {/* Strict Mode Warning Modal */}
+          <StrictModeWarningModal
+            visible={strictModeWarningVisible}
+            onConfirm={async (dontShowAgain) => {
+              setStrictModeWarningVisible(false);
+              setStrictMode(true);
+              if (dontShowAgain) {
+                await AsyncStorage.setItem(STRICT_MODE_WARNING_DISMISSED_KEY, 'true');
+              }
+            }}
+            onCancel={() => setStrictModeWarningVisible(false)}
+          />
+
+          {/* Preset Guide Modal */}
+          <PresetGuideModal
+            visible={guideModalVisible}
+            onClose={() => setGuideModalVisible(false)}
           />
         </SafeAreaView>
       </Modal>
