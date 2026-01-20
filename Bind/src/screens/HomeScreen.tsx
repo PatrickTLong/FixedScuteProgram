@@ -827,6 +827,9 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
 
       console.log('[HomeScreen] Attempting to start blocking with preset:', activePreset.name);
 
+      // Show loading spinner immediately
+      setLoading(true);
+
       // Calculate lock end time based on preset type
       let calculatedLockEndsAt: string | null = null;
       const now = new Date();
@@ -842,6 +845,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
             new Date(sp.scheduleStartDate!) > now
           );
           if (nextScheduled) {
+            setLoading(false);
             showModal(
               'Schedule Conflict',
               `This preset has no time limit and would overlap with "${nextScheduled.name}" starting ${formatScheduleDate(nextScheduled.scheduleStartDate!)}.`
@@ -867,6 +871,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
 
             // Check if ranges overlap: block starts before schedule ends AND block ends after schedule starts
             if (now < schedEnd && blockEndTime > schedStart) {
+              setLoading(false);
               showModal(
                 'Schedule Conflict',
                 `This would overlap with "${scheduled.name}" (${formatScheduleDate(scheduled.scheduleStartDate!)} - ${formatScheduleDate(scheduled.scheduleEndDate!)}). Please adjust your preset duration or disable the scheduled preset.`
@@ -883,6 +888,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
         const endDate = new Date(activePreset.scheduleEndDate);
 
         if (now < startDate) {
+          setLoading(false);
           const timeStr = startDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
           const dateStr = startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
           showModal('Not Yet', `"${activePreset.name}" is scheduled to start on ${dateStr} at ${timeStr}.`);
@@ -890,6 +896,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
         }
 
         if (now >= endDate) {
+          setLoading(false);
           showModal('Schedule Ended', 'This scheduled preset has already ended.');
           return;
         }
@@ -963,11 +970,11 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
       }
 
       // Refresh to ensure UI is in sync with locked state
-      setLoading(true);
       await loadStats(true);
       setLoading(false);
     } catch (error) {
       console.error('[HomeScreen] Failed to start blocking:', error);
+      setLoading(false);
       showModal('Error', 'Failed to start blocking session.');
     }
   }, [activePreset, email, showModal, scheduledPresets, formatScheduleDate, loadStats]);

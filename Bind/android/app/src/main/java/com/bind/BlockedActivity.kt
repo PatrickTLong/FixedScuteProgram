@@ -4,7 +4,9 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import android.view.WindowManager
+import android.view.animation.AlphaAnimation
 import android.widget.TextView
 
 /**
@@ -63,8 +65,18 @@ class BlockedActivity : Activity() {
             else -> "This app is blocked."
         }
 
+        // Get root view for animation and click handling
+        val rootView = findViewById<View>(R.id.blocked_root)
+
+        // Fade-in animation
+        val fadeIn = AlphaAnimation(0f, 1f).apply {
+            duration = 300
+            fillAfter = true
+        }
+        rootView.startAnimation(fadeIn)
+
         // Tap anywhere to dismiss (spam back + clear recents)
-        findViewById<android.view.View>(R.id.blocked_root).setOnClickListener {
+        rootView.setOnClickListener {
             dismissAndBlock()
         }
     }

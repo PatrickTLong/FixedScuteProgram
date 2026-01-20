@@ -641,9 +641,9 @@ function PresetsScreen({ userEmail }: Props) {
           activeOpacity={0.7}
           disabled={isDisabled}
           style={{ backgroundColor: colors.green }}
-          className="w-11 h-11 rounded-xl items-center justify-center"
+          className="w-11 h-11 rounded-full items-center justify-center"
         >
-          <Text className="text-2xl font-nunito-light text-black">+</Text>
+          <Text className="text-2xl font-nunito-light text-white">+</Text>
         </TouchableOpacity>
       </View>
 

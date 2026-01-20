@@ -1465,15 +1465,22 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                     onChangeText={setWebsiteInput}
                     autoCapitalize="none"
                     keyboardType="url"
-                    style={{ backgroundColor: colors.card, borderColor: colors.border, color: colors.text }}
+                    style={{
+                      backgroundColor: colors.card,
+                      borderColor: colors.border,
+                      color: colors.text,
+                      textAlignVertical: 'center',
+                      includeFontPadding: false,
+                      paddingVertical: 0,
+                    }}
                     className="flex-1 border rounded-xl px-4 h-12 text-base font-nunito mr-2"
                   />
                   <TouchableOpacity
                     onPress={addWebsite}
                     style={{ backgroundColor: colors.green }}
-                    className="w-12 h-12 rounded-xl items-center justify-center"
+                    className="w-11 h-11 rounded-full items-center justify-center"
                   >
-                    <Text className="text-black text-2xl font-nunito-light">+</Text>
+                    <Text className="text-white text-2xl font-nunito-light">+</Text>
                   </TouchableOpacity>
                 </View>
 

@@ -4,7 +4,7 @@
     android:id="@+id/blocked_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F228282B"
+    android:background="#28282B"
     android:clickable="true"
     android:focusable="true">
 

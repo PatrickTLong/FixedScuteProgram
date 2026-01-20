@@ -104,7 +104,7 @@ function LandingScreen({ onSignIn, onGetStarted }: Props) {
         {/* Scute Logo */}
         <Image
           source={require('../frontassets/TrueScute-Photoroom.png')}
-          className="w-72 h-72 mb-8"
+          className="w-80 h-80 mb-8"
           resizeMode="contain"
           style={{ tintColor: colors.logoTint, marginTop: -60 }}
         />

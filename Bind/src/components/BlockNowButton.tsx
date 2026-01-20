@@ -471,7 +471,7 @@ function BlockNowButton({
             bottom: 0,
             justifyContent: 'center',
             transform: [{ translateX: slidePosition }],
-            paddingLeft: 12,
+            paddingLeft: 4,
             opacity: 0.5,
           }}
         >
@@ -489,11 +489,12 @@ function BlockNowButton({
 
         {/* Button Content */}
         <View className="flex-1 flex-row items-center justify-center">
-          <GlowText
-            text={isUnlocking ? 'Unlocking...' : isSliding ? 'Slide...' : 'Slide to Unlock'}
-            color={colors.text}
-            glowOpacity={glowOpacity}
-          />
+          <Text
+            style={{ color: colors.text }}
+            className="text-base font-nunito-semibold"
+          >
+            {isUnlocking ? 'Unlocking...' : isSliding ? 'Slide...' : 'Slide to Unlock'}
+          </Text>
         </View>
       </View>
     );
