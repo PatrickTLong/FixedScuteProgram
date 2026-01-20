@@ -145,6 +145,9 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
   const presetGlowOpacity = useRef(new Animated.Value(0)).current;
   const presetGlowAnimationRef = useRef<Animated.CompositeAnimation | null>(null);
 
+  // Prevent concurrent loadStats calls (race condition fix)
+  const loadStatsInProgressRef = useRef(false);
+
   // Shake animation when tapping locked card
   const triggerShakeAnimation = useCallback(() => {
     Vibration.vibrate([0, 50, 30, 50]); // pattern: wait, vibrate, wait, vibrate
@@ -271,6 +274,13 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
   }, [email]);
 
   const loadStats = useCallback(async (skipCache = false, showLoading = false) => {
+    // Prevent concurrent calls (race condition fix)
+    if (loadStatsInProgressRef.current) {
+      console.log('[HomeScreen] loadStats already in progress, skipping');
+      return;
+    }
+    loadStatsInProgressRef.current = true;
+
     if (showLoading) setLoading(true);
     const hideLoading = () => {
       if (showLoading) setTimeout(() => setLoading(false), 100);
@@ -282,6 +292,12 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
         getLockStatus(email, skipCache),
         getEmergencyTapoutStatus(email),
       ]);
+
+      // Find active scheduled presets (sorted by start date) - only non-expired ones for the list
+      const activeScheduled = presets
+        .filter(p => p.isScheduled && p.isActive && p.scheduleEndDate)
+        .filter(p => new Date(p.scheduleEndDate!) > new Date()) // Not expired
+        .sort((a, b) => new Date(a.scheduleStartDate!).getTime() - new Date(b.scheduleStartDate!).getTime());
 
       // Check for scheduled presets that should activate
       const scheduledResult = await checkScheduledPresets(presets, lockStatus);
@@ -301,15 +317,14 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
         }
 
         await activateScheduledPreset(preset);
+        // Also set state that would normally be set
+        setScheduledPresets(activeScheduled);
+        setTapoutStatus(tapout);
         hideLoading();
+        loadStatsInProgressRef.current = false;
         return; // State will be updated by activateScheduledPreset
       }
 
-      // Find active scheduled presets (sorted by start date) - only non-expired ones for the list
-      const activeScheduled = presets
-        .filter(p => p.isScheduled && p.isActive && p.scheduleEndDate)
-        .filter(p => new Date(p.scheduleEndDate!) > new Date()) // Not expired
-        .sort((a, b) => new Date(a.scheduleStartDate!).getTime() - new Date(b.scheduleStartDate!).getTime());
       setScheduledPresets(activeScheduled);
 
       // Find active non-scheduled preset
@@ -346,6 +361,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
             setScheduledPresets(activeScheduled);
             setTapoutStatus(tapout);
             hideLoading();
+            loadStatsInProgressRef.current = false;
             return; // Exit early, state is set
           } catch (error) {
             console.error('[HomeScreen] Failed to auto-unlock expired lock:', error);
@@ -396,6 +412,8 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
     } catch (error) {
       console.error('Failed to load stats:', error);
       hideLoading();
+    } finally {
+      loadStatsInProgressRef.current = false;
     }
   }, [email, checkScheduledPresets, activateScheduledPreset]);
 
@@ -533,19 +551,15 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
         await BlockingModule.forceUnlock();
       }
 
-      // Update local state - keep preset active, just unlock
-      setIsLocked(false);
-      setLockEndsAt(null);
-      setLockStartedAt(null);
-      setTimeRemaining(null);
-      // NOTE: Don't deactivate the preset - keep it selected so user can lock again easily
-
       Vibration.vibrate(100);
       invalidateUserCaches(email);
+
+      // Refresh to get updated state (same as app launch unlock)
+      await loadStats(true, true); // skipCache=true, showLoading=true
     } catch (error) {
       console.error('[HomeScreen] Failed to auto-unlock on timer expiry:', error);
     }
-  }, [email]);
+  }, [email, loadStats]);
 
   // Countdown timer effect (for timed locks)
   useEffect(() => {

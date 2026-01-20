@@ -602,6 +602,14 @@ function PresetsScreen({ userEmail }: Props) {
     </View>
   ), [loading, colors.textSecondary, colors.textMuted]);
 
+  if (loading) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }} edges={['top']}>
+        <ActivityIndicator size="large" color={colors.green} />
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }} edges={['top']}>
       {/* Locked Overlay */}
@@ -625,9 +633,6 @@ function PresetsScreen({ userEmail }: Props) {
       <View className="flex-row items-center justify-between px-6 py-4">
         <View className="flex-row items-center">
           <Text style={{ color: colors.text }} className="text-2xl font-nunito-bold">Presets</Text>
-          {loading && (
-            <ActivityIndicator size="small" color={colors.green} style={{ marginLeft: 12 }} />
-          )}
         </View>
 
         {/* Add Button - stays green but disabled when locked */}
@@ -642,20 +647,18 @@ function PresetsScreen({ userEmail }: Props) {
         </TouchableOpacity>
       </View>
 
-      {/* Presets List - only show after loading is complete */}
-      {!loading && (
-        <FlatList
-          className="flex-1"
-          data={presets}
-          renderItem={renderPresetItem}
-          keyExtractor={keyExtractor}
-          ListEmptyComponent={ListEmptyComponent}
-          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32 }}
-          removeClippedSubviews={true}
-          maxToRenderPerBatch={10}
-          windowSize={5}
-        />
-      )}
+      {/* Presets List */}
+      <FlatList
+        className="flex-1"
+        data={presets}
+        renderItem={renderPresetItem}
+        keyExtractor={keyExtractor}
+        ListEmptyComponent={ListEmptyComponent}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32 }}
+        removeClippedSubviews={true}
+        maxToRenderPerBatch={10}
+        windowSize={5}
+      />
 
       {/* Edit/Create Modal */}
       <PresetEditModal
