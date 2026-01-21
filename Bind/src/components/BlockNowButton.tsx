@@ -497,12 +497,11 @@ function BlockNowButton({
 
         {/* Button Content */}
         <View className="flex-1 flex-row items-center justify-center">
-          <Text
-            style={{ color: colors.text }}
-            className="text-base font-nunito-semibold"
-          >
-            {isUnlocking ? 'Unlocking...' : isSliding ? 'Slide...' : 'Slide to Unlock'}
-          </Text>
+          <GlowText
+            text={isUnlocking ? 'Unlocking...' : isSliding ? 'Slide...' : 'Slide to Unlock'}
+            color={colors.text}
+            glowOpacity={glowOpacity}
+          />
         </View>
       </View>
     );

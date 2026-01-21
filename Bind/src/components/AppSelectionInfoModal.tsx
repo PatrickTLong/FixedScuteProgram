@@ -42,30 +42,26 @@ function AppSelectionInfoModal({ visible, onClose }: AppSelectionInfoModalProps)
 
             <View className="space-y-3">
               <View className="flex-row">
-                <Text style={{ color: colors.green }} className="mr-2">•</Text>
+                <Text style={{ color: colors.textSecondary }} className="mr-2">•</Text>
                 <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito flex-1">
-                  Phone & Dialer - Emergency calls always remain accessible
+                  Phone & Dialer
                 </Text>
               </View>
 
               <View className="flex-row">
-                <Text style={{ color: colors.green }} className="mr-2">•</Text>
+                <Text style={{ color: colors.textSecondary }} className="mr-2">•</Text>
                 <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito flex-1">
-                  Messages - For emergency SMS communication
+                  Messages
                 </Text>
               </View>
 
               <View className="flex-row">
-                <Text style={{ color: colors.green }} className="mr-2">•</Text>
+                <Text style={{ color: colors.textSecondary }} className="mr-2">•</Text>
                 <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito flex-1">
-                  Camera - For important moments and emergencies
+                  Camera
                 </Text>
               </View>
             </View>
-
-            <Text style={{ color: colors.textMuted }} className="text-xs font-nunito mt-4">
-              Settings can be blocked separately using the toggle in preset options.
-            </Text>
 
             {/* Don't show again checkbox */}
             <TouchableOpacity

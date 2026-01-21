@@ -42,14 +42,14 @@ function RecurrenceInfoModal({ visible, onClose }: RecurrenceInfoModalProps) {
 
             <View className="space-y-3">
               <View className="flex-row">
-                <Text style={{ color: colors.green }} className="mr-2">•</Text>
+                <Text style={{ color: colors.textSecondary }} className="mr-2">•</Text>
                 <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito flex-1">
                   The block duration stays the same for each recurrence
                 </Text>
               </View>
 
               <View className="flex-row">
-                <Text style={{ color: colors.green }} className="mr-2">•</Text>
+                <Text style={{ color: colors.textSecondary }} className="mr-2">•</Text>
                 <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito flex-1">
                   Choose how often to repeat: minutes, hours, days, weeks, or months
                 </Text>
