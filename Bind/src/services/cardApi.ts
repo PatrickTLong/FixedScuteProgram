@@ -69,6 +69,7 @@ const cache: Map<string, CacheEntry<any>> = new Map();
 const CACHE_TTL = {
   presets: 30000,      // 30 seconds - presets change rarely
   lockStatus: 10000,   // 10 seconds - balance between freshness and performance
+  tapoutStatus: 30000, // 30 seconds - tapout status changes rarely
 };
 
 function getCached<T>(key: string, ttl: number): T | null {
@@ -102,6 +103,25 @@ export function invalidateUserCaches(email: string): void {
   const normalizedEmail = email.toLowerCase();
   invalidateCache(`presets:${normalizedEmail}`);
   invalidateCache(`lockStatus:${normalizedEmail}`);
+  invalidateCache(`tapoutStatus:${normalizedEmail}`);
+}
+
+/**
+ * Synchronously get cached lock status - returns null if not cached
+ * Use this for instant UI rendering without async delay
+ */
+export function getCachedLockStatus(email: string): { isLocked: boolean; lockEndsAt: string | null; lockStartedAt: string | null } | null {
+  const normalizedEmail = email.toLowerCase();
+  return getCached(`lockStatus:${normalizedEmail}`, CACHE_TTL.lockStatus);
+}
+
+/**
+ * Synchronously get cached tapout status - returns null if not cached
+ * Use this for instant UI rendering without async delay
+ */
+export function getCachedTapoutStatus(email: string): EmergencyTapoutStatus | null {
+  const normalizedEmail = email.toLowerCase();
+  return getCached(`tapoutStatus:${normalizedEmail}`, CACHE_TTL.tapoutStatus);
 }
 
 // Track users who have already been initialized this session to prevent duplicate calls
@@ -568,7 +588,16 @@ export interface EmergencyTapoutStatus {
  * Get user's emergency tapout status
  * Gradual refill system: +1 tapout every 2 weeks until back to 3
  */
-export async function getEmergencyTapoutStatus(email: string): Promise<EmergencyTapoutStatus> {
+export async function getEmergencyTapoutStatus(email: string, skipCache = false): Promise<EmergencyTapoutStatus> {
+  const normalizedEmail = email.toLowerCase();
+  const cacheKey = `tapoutStatus:${normalizedEmail}`;
+
+  // Check cache first (unless skipCache is true)
+  if (!skipCache) {
+    const cached = getCached<EmergencyTapoutStatus>(cacheKey, CACHE_TTL.tapoutStatus);
+    if (cached) return cached;
+  }
+
   try {
     const headers = await getAuthHeaders();
     const response = await fetch(`${API_URL}/api/emergency-tapout`, { headers });
@@ -578,10 +607,15 @@ export async function getEmergencyTapoutStatus(email: string): Promise<Emergency
       return { remaining: 3, nextRefillDate: null };
     }
 
-    return {
+    const result = {
       remaining: data.remaining ?? 3,
       nextRefillDate: data.nextRefillDate ?? null,
     };
+
+    // Cache the result
+    setCache(cacheKey, result);
+
+    return result;
   } catch (error) {
     return { remaining: 3, nextRefillDate: null };
   }

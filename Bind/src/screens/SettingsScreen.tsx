@@ -12,7 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import ConfirmationModal from '../components/ConfirmationModal';
-import { getLockStatus, getEmergencyTapoutStatus, EmergencyTapoutStatus, invalidateUserCaches, saveUserTheme } from '../services/cardApi';
+import { getLockStatus, getEmergencyTapoutStatus, EmergencyTapoutStatus, saveUserTheme, getCachedLockStatus, getCachedTapoutStatus } from '../services/cardApi';
 import { useTheme } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 
@@ -241,11 +241,17 @@ const SettingsRow = ({
 
 function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Props) {
   const { s } = useResponsive();
+
+  // Initialize state from cache synchronously to avoid loading flash
+  const cachedLockStatus = getCachedLockStatus(email);
+  const cachedTapoutStatus = getCachedTapoutStatus(email);
+  const hasCache = cachedLockStatus !== null && cachedTapoutStatus !== null;
+
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
   const [resetModalVisible, setResetModalVisible] = useState(false);
   const [deleteAccountModalVisible, setDeleteAccountModalVisible] = useState(false);
-  const [isLocked, setIsLocked] = useState<boolean | null>(null);
-  const [lockChecked, setLockChecked] = useState(false);
+  const [isLocked, setIsLocked] = useState<boolean | null>(hasCache ? cachedLockStatus.isLocked : null);
+  const [lockChecked, setLockChecked] = useState(hasCache);
   const [privacyModalVisible, setPrivacyModalVisible] = useState(false);
   const [termsModalVisible, setTermsModalVisible] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
@@ -256,28 +262,28 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
   // Theme state
   const { theme, setTheme, colors } = useTheme();
 
-  // Emergency Tapout state
-  const [tapoutStatus, setTapoutStatus] = useState<EmergencyTapoutStatus | null>(null);
+  // Emergency Tapout state - initialize from cache if available
+  const [tapoutStatus, setTapoutStatus] = useState<EmergencyTapoutStatus | null>(cachedTapoutStatus);
+  const [loading, setLoading] = useState(!hasCache);
 
-  // Fetch lock status FIRST before anything else
+  // Load data on mount - only fetch if cache miss
   useEffect(() => {
-    checkLockStatus();
-  }, [email]);
+    // If we already have cached data, no need to fetch
+    if (hasCache) return;
 
-  async function checkLockStatus() {
-    // Clear caches to ensure fresh data on mount
-    invalidateUserCaches(email);
+    async function init() {
+      const [status, tapout] = await Promise.all([
+        getLockStatus(email, false),
+        getEmergencyTapoutStatus(email, false),
+      ]);
 
-    // Fetch all data in parallel
-    const [status, tapout] = await Promise.all([
-      getLockStatus(email, true),
-      getEmergencyTapoutStatus(email),
-    ]);
-
-    setIsLocked(status.isLocked);
-    setTapoutStatus(tapout);
-    setLockChecked(true);
-  }
+      setIsLocked(status.isLocked);
+      setTapoutStatus(tapout);
+      setLockChecked(true);
+      setLoading(false);
+    }
+    init();
+  }, [email, hasCache]);
 
   // Note: Scheduled preset navigation is handled centrally by App.tsx
   // which polls every 5 seconds and navigates to home when a preset becomes active.
@@ -360,23 +366,24 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
   // Don't allow any actions until lock status is checked, or if locked
   const isDisabled = !lockChecked || isLocked === true;
 
-  // Show full-screen loading for initial load or any action in progress
-  if (!lockChecked || isResetting || isDeleting) {
-    let loadingMessage = '';
-    if (!lockChecked) {
-      loadingMessage = '';
-    } else if (isResetting) {
-      loadingMessage = 'Resetting Account...';
-    } else if (isDeleting) {
-      loadingMessage = 'Deleting Account...';
-    }
+  // Show full-screen loading only for destructive actions (reset/delete)
+  // Initial load uses cache so it's instant - no spinner needed
+  if (isResetting || isDeleting) {
+    const loadingMessage = isResetting ? 'Resetting Account...' : 'Deleting Account...';
 
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }} edges={['top']}>
         <ActivityIndicator size="large" color={colors.green} />
-        {loadingMessage ? (
-          <Text style={{ color: colors.text }} className="text-lg font-nunito-semibold mt-4">{loadingMessage}</Text>
-        ) : null}
+        <Text style={{ color: colors.text }} className="text-lg font-nunito-semibold mt-4">{loadingMessage}</Text>
+      </SafeAreaView>
+    );
+  }
+
+  // Show loading spinner only if cache miss (rare - HomeScreen pre-populates)
+  if (loading) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }} edges={['top']}>
+        <ActivityIndicator size="large" color={colors.green} />
       </SafeAreaView>
     );
   }

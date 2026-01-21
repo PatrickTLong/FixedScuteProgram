@@ -285,7 +285,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
       const [presets, lockStatus, tapout] = await Promise.all([
         getPresets(email, skipCache),
         getLockStatus(email, skipCache),
-        getEmergencyTapoutStatus(email),
+        getEmergencyTapoutStatus(email, skipCache),
       ]);
 
       // Find active scheduled presets (sorted by start date) - only non-expired ones for the list
