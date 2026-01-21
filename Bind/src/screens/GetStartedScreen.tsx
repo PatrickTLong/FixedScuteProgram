@@ -249,7 +249,7 @@ function GetStartedScreen({ onBack, onSuccess, onSignIn }: Props) {
                   disabled={loading}
                   className="items-center mb-4"
                 >
-                  <Text style={{ color: colors.green }} className="text-base font-nunito">
+                  <Text style={{ color: '#FFFFFF' }} className="text-base font-nunito">
                     Resend code
                   </Text>
                 </TouchableOpacity>

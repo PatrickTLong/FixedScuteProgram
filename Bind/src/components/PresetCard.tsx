@@ -289,8 +289,8 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, disabled
           onValueChange={handleToggle}
           disabled={disabled || isExpired}
           trackColorFalse={colors.border}
-          trackColorTrue="#16a34a"
-          thumbColorOn={colors.green}
+          trackColorTrue="#22c55e"
+          thumbColorOn="#4ade80"
           thumbColorOff="#9ca3af"
         />
       </View>

@@ -107,7 +107,7 @@ function ExcludedAppsInfoModal({ visible, onClose }: ExcludedAppsInfoModalProps)
               activeOpacity={0.7}
               className="py-4 items-center"
             >
-              <Text style={{ color: colors.green }} className="text-base font-nunito-semibold">
+              <Text style={{ color: '#FFFFFF' }} className="text-base font-nunito-semibold">
                 Got it
               </Text>
             </TouchableOpacity>

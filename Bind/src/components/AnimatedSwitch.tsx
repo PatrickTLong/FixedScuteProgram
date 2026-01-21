@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, TouchableWithoutFeedback } from 'react-native';
+import { Animated, TouchableWithoutFeedback, View } from 'react-native';
 import { useResponsive } from '../utils/responsive';
 
 interface AnimatedSwitchProps {
@@ -11,6 +11,10 @@ interface AnimatedSwitchProps {
   thumbColorOn?: string;
   thumbColorOff?: string;
   size?: 'default' | 'small' | 'medium' | 'large';
+  /** New outline style - white thumb, transparent background, white border, icon in thumb */
+  outlineStyle?: boolean;
+  /** Color for the checkmark/X icon inside the thumb (when outlineStyle is true) */
+  iconColor?: string;
 }
 
 // Base sizes (will be scaled)
@@ -48,6 +52,8 @@ export default function AnimatedSwitch({
   thumbColorOn = '#22c55e',
   thumbColorOff = '#9ca3af',
   size = 'medium',
+  outlineStyle = false,
+  iconColor,
 }: AnimatedSwitchProps) {
   const { s } = useResponsive();
 
@@ -113,6 +119,85 @@ export default function AnimatedSwitch({
     outputRange: [thumbColorOff, thumbColorOn],
   });
 
+  // For outline style, determine the icon color based on state
+  const getIconColor = () => {
+    if (iconColor) return iconColor;
+    return value ? trackColorTrue : trackColorFalse;
+  };
+
+  // Outline style rendering
+  if (outlineStyle) {
+    const borderColor = value ? '#FFFFFF' : 'rgba(255, 255, 255, 0.5)';
+    const currentIconColor = getIconColor();
+
+    return (
+      <TouchableWithoutFeedback onPress={handlePress} disabled={disabled}>
+        <Animated.View
+          style={{
+            width: trackWidth,
+            height: trackHeight,
+            borderRadius: trackHeight / 2,
+            justifyContent: 'center',
+            backgroundColor: 'transparent',
+            borderWidth: 2.5,
+            borderColor: borderColor,
+            opacity: disabled ? 0.5 : 1,
+          }}
+        >
+          <Animated.View
+            style={{
+              width: thumbSize,
+              height: thumbSize,
+              borderRadius: thumbSize / 2,
+              backgroundColor: '#FFFFFF',
+              transform: [{ translateX: thumbTranslateX }],
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            {/* Checkmark when ON, X when OFF */}
+            {value ? (
+              <View
+                style={{
+                  width: thumbSize * 0.35,
+                  height: thumbSize * 0.55,
+                  borderRightWidth: 2.5,
+                  borderBottomWidth: 2.5,
+                  borderColor: currentIconColor,
+                  transform: [{ rotate: '45deg' }],
+                  marginTop: -thumbSize * 0.1,
+                }}
+              />
+            ) : (
+              <View style={{ width: thumbSize * 0.5, height: thumbSize * 0.5, alignItems: 'center', justifyContent: 'center' }}>
+                {/* X icon */}
+                <View
+                  style={{
+                    position: 'absolute',
+                    width: thumbSize * 0.45,
+                    height: 2.5,
+                    backgroundColor: currentIconColor,
+                    transform: [{ rotate: '45deg' }],
+                  }}
+                />
+                <View
+                  style={{
+                    position: 'absolute',
+                    width: thumbSize * 0.45,
+                    height: 2.5,
+                    backgroundColor: currentIconColor,
+                    transform: [{ rotate: '-45deg' }],
+                  }}
+                />
+              </View>
+            )}
+          </Animated.View>
+        </Animated.View>
+      </TouchableWithoutFeedback>
+    );
+  }
+
+  // Default style rendering
   return (
     <TouchableWithoutFeedback onPress={handlePress} disabled={disabled}>
       <Animated.View

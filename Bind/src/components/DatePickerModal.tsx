@@ -152,19 +152,19 @@ const AmPmSelector = memo(({ value, onChange, greenColor, cardColor, textMutedCo
   <View className="ml-2">
     <TouchableOpacity
       onPress={() => { lightTap(); onChange('AM'); }}
-      style={{ backgroundColor: value === 'AM' ? greenColor : cardColor }}
+      style={{ backgroundColor: value === 'AM' ? '#22c55e' : cardColor }}
       className="px-3 py-2 rounded-lg"
     >
-      <Text style={{ color: value === 'AM' ? '#000000' : textMutedColor }} className="text-base font-nunito-semibold">
+      <Text style={{ color: value === 'AM' ? '#FFFFFF' : textMutedColor }} className="text-base font-nunito-semibold">
         AM
       </Text>
     </TouchableOpacity>
     <TouchableOpacity
       onPress={() => { lightTap(); onChange('PM'); }}
-      style={{ backgroundColor: value === 'PM' ? greenColor : cardColor }}
+      style={{ backgroundColor: value === 'PM' ? '#22c55e' : cardColor }}
       className="px-3 py-2 rounded-lg mt-1"
     >
-      <Text style={{ color: value === 'PM' ? '#000000' : textMutedColor }} className="text-base font-nunito-semibold">
+      <Text style={{ color: value === 'PM' ? '#FFFFFF' : textMutedColor }} className="text-base font-nunito-semibold">
         PM
       </Text>
     </TouchableOpacity>
@@ -387,7 +387,7 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
         {/* Header */}
         <View style={{ borderBottomColor: colors.border }} className="flex-row items-center justify-between px-4 py-3 border-b">
           <TouchableOpacity onPress={onClose} className="px-2">
-            <Text style={{ color: colors.green }} className="text-base font-nunito">Cancel</Text>
+            <Text style={{ color: '#FFFFFF'}} className="text-base font-nunito">Cancel</Text>
           </TouchableOpacity>
           <Text style={{ color: colors.text }} className="text-lg font-nunito-semibold">Pick Date & Time</Text>
           <TouchableOpacity
@@ -395,7 +395,7 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
             disabled={!isFutureDateTime}
             className="px-2"
           >
-            <Text style={{ color: isFutureDateTime ? colors.green : colors.textMuted }} className="text-base font-nunito-semibold">
+            <Text style={{ color: isFutureDateTime ? '#FFFFFF' : colors.textMuted }} className="text-base font-nunito-semibold">
               Done
             </Text>
           </TouchableOpacity>
@@ -459,7 +459,7 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
                 >
                   <View
                     style={{
-                      backgroundColor: selected ? colors.green : 'transparent',
+                      backgroundColor: selected ? '#22c55e' : 'transparent',
                       borderColor: todayDay && !selected ? colors.green : 'transparent',
                       borderWidth: todayDay && !selected ? 1 : 0,
                     }}
@@ -467,7 +467,7 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
                   >
                     <Text
                       style={{
-                        color: selected ? '#000000' : selectable ? colors.text : colors.textMuted,
+                        color: selected ? '#FFFFFF' : selectable ? colors.text : colors.textMuted,
                       }}
                       className={`text-base font-nunito ${selected ? 'font-nunito-bold' : ''}`}
                     >
@@ -512,7 +512,7 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
                 <AmPmSelector
                   value={selectedAmPm}
                   onChange={setSelectedAmPm}
-                  greenColor={colors.green}
+                  greenColor={'#22c55e'}
                   cardColor={colors.card}
                   textMutedColor={colors.textSecondary}
                 />
@@ -534,7 +534,7 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
                   style={{ backgroundColor: colors.card }}
                   className="ml-4 px-4 py-2 rounded-lg"
                 >
-                  <Text style={{ color: colors.red }} className="text-sm font-nunito-semibold">Clear</Text>
+                  <Text style={{ color: '#FFFFFF' }} className="text-sm font-nunito-semibold">Clear</Text>
                 </TouchableOpacity>
               )}
             </View>

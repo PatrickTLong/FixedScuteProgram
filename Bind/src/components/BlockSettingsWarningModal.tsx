@@ -109,7 +109,7 @@ function BlockSettingsWarningModal({ visible, onConfirm, onCancel }: BlockSettin
               activeOpacity={0.7}
               className="flex-1 py-4 items-center"
             >
-              <Text style={{ color: colors.green }} className="text-base font-nunito-semibold">
+              <Text style={{ color: '#FFFFFF' }} className="text-base font-nunito-semibold">
                 Enable
               </Text>
             </TouchableOpacity>

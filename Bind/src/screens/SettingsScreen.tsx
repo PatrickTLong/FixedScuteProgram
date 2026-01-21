@@ -242,7 +242,7 @@ const SettingsRow = ({
 function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Props) {
   const { s } = useResponsive();
 
-  // Initialize state from cache synchronously to avoid loading flash
+  // Check cache synchronously for initial render - avoids flash if cache exists
   const cachedLockStatus = getCachedLockStatus(email);
   const cachedTapoutStatus = getCachedTapoutStatus(email);
   const hasCache = cachedLockStatus !== null && cachedTapoutStatus !== null;
@@ -593,7 +593,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
             <View className="w-16" />
             <Text style={{ color: colors.text }} className="text-lg font-nunito-semibold">Privacy Policy</Text>
             <TouchableOpacity onPress={() => setPrivacyModalVisible(false)} className="w-16 items-end">
-              <Text style={{ color: colors.green }} className="text-base font-nunito">Done</Text>
+              <Text style={{ color: '#FFFFFF' }} className="text-base font-nunito">Done</Text>
             </TouchableOpacity>
           </View>
 
@@ -692,7 +692,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
             <View className="w-16" />
             <Text style={{ color: colors.text }} className="text-lg font-nunito-semibold">Terms of Service</Text>
             <TouchableOpacity onPress={() => setTermsModalVisible(false)} className="w-16 items-end">
-              <Text style={{ color: colors.green }} className="text-base font-nunito">Done</Text>
+              <Text style={{ color: '#FFFFFF' }} className="text-base font-nunito">Done</Text>
             </TouchableOpacity>
           </View>
 

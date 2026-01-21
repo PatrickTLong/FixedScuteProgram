@@ -125,7 +125,7 @@ function TermsAcceptScreen({ onAccept }: Props) {
         <TouchableOpacity
           onPress={handleAcceptTerms}
           activeOpacity={0.8}
-          style={{ backgroundColor: colors.green }}
+          style={{ backgroundColor: colors.textMuted }}
           className="rounded-full py-4 items-center"
         >
           <Text style={{ color: '#000000' }} className="text-lg font-nunito-semibold">

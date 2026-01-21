@@ -208,7 +208,7 @@ function SignInScreen({ onBack, onSuccess, onForgotPassword }: Props) {
                   activeOpacity={0.7}
                   className="items-end mb-8"
                 >
-                  <Text style={{ color: colors.green }} className="text-sm font-nunito">
+                  <Text style={{ color: '#FFFFFF' }} className="text-sm font-nunito">
                     Forgot Password?
                   </Text>
                 </TouchableOpacity>
@@ -242,7 +242,7 @@ function SignInScreen({ onBack, onSuccess, onForgotPassword }: Props) {
                   disabled={loading}
                   className="items-center mb-4"
                 >
-                  <Text style={{ color: colors.green }} className="text-base font-nunito">
+                  <Text style={{ color: '#FFFFFF' }} className="text-base font-nunito">
                     Resend code
                   </Text>
                 </TouchableOpacity>

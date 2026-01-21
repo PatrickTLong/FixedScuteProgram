@@ -50,7 +50,7 @@ function Button({
       case 'secondary':
         return { color: '#000000' };
       case 'outline':
-        return { color: colors.green };
+        return { color: '#FFFFFF' };
       default:
         return { color: colors.bg };
     }

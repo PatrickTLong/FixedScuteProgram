@@ -18,7 +18,7 @@ import {
 import AnimatedSwitch from './AnimatedSwitch';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Svg, { Path, Rect } from 'react-native-svg';
+import Svg, { Path, Rect, Text as SvgText, Defs, Filter, FeGaussianBlur } from 'react-native-svg';
 import TimerPicker from './TimerPicker';
 import DatePickerModal from './DatePickerModal';
 import ScheduleInfoModal from './ScheduleInfoModal';
@@ -40,6 +40,89 @@ const DISABLE_TAPOUT_WARNING_DISMISSED_KEY = 'disable_tapout_warning_dismissed';
 const BLOCK_SETTINGS_WARNING_DISMISSED_KEY = 'block_settings_warning_dismissed';
 const RECURRENCE_INFO_DISMISSED_KEY = 'recurrence_info_dismissed';
 const STRICT_MODE_WARNING_DISMISSED_KEY = 'strict_mode_warning_dismissed';
+
+// Pulsating glow text component (animated glow effect)
+interface PulsatingGlowTextProps {
+  text: string;
+  color: string;
+  fontSize?: number;
+}
+
+function PulsatingGlowText({ text, color, fontSize = 16 }: PulsatingGlowTextProps) {
+  const [opacity, setOpacity] = useState(0);
+  const glowOpacity = useRef(new Animated.Value(0)).current;
+  const animationRef = useRef<Animated.CompositeAnimation | null>(null);
+
+  useEffect(() => {
+    const listenerId = glowOpacity.addListener(({ value }) => {
+      setOpacity(value);
+    });
+
+    // Start pulsating animation (2 second cycle)
+    animationRef.current = Animated.loop(
+      Animated.sequence([
+        Animated.timing(glowOpacity, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: false,
+        }),
+        Animated.timing(glowOpacity, {
+          toValue: 0,
+          duration: 1000,
+          useNativeDriver: false,
+        }),
+      ])
+    );
+    animationRef.current.start();
+
+    return () => {
+      glowOpacity.removeListener(listenerId);
+      if (animationRef.current) {
+        animationRef.current.stop();
+      }
+    };
+  }, [glowOpacity]);
+
+  const textWidth = text.length * fontSize * 0.6;
+  const svgWidth = textWidth + 40;
+  const svgHeight = fontSize + 30;
+
+  return (
+    <View style={{ width: svgWidth, height: svgHeight, alignItems: 'center', justifyContent: 'center' }}>
+      <Svg width={svgWidth} height={svgHeight} style={{ position: 'absolute' }}>
+        <Defs>
+          <Filter id="pulsatingGlow" x="-50%" y="-50%" width="200%" height="200%">
+            <FeGaussianBlur in="SourceGraphic" stdDeviation="6" />
+          </Filter>
+        </Defs>
+        {/* Glow layer */}
+        <SvgText
+          x={svgWidth / 2}
+          y={svgHeight / 2 + fontSize / 3}
+          textAnchor="middle"
+          fontSize={fontSize}
+          fontFamily="Nunito-SemiBold"
+          fill="#ffffff"
+          opacity={opacity}
+          filter="url(#pulsatingGlow)"
+        >
+          {text}
+        </SvgText>
+        {/* Main text layer */}
+        <SvgText
+          x={svgWidth / 2}
+          y={svgHeight / 2 + fontSize / 3}
+          textAnchor="middle"
+          fontSize={fontSize}
+          fontFamily="Nunito-SemiBold"
+          fill={color}
+        >
+          {text}
+        </SvgText>
+      </Svg>
+    </View>
+  );
+}
 
 // Recurring schedule unit types
 type RecurringUnit = 'minutes' | 'hours' | 'days' | 'weeks' | 'months';
@@ -674,7 +757,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
         <Text style={{ color: colors.text }} className="flex-1 text-base font-nunito">{item.name}</Text>
 
         {/* Checkbox with checkmark */}
-        <View style={isSelected ? { backgroundColor: colors.green } : { borderWidth: 2, borderColor: colors.border }} className="w-6 h-6 rounded items-center justify-center">
+        <View style={isSelected ? { backgroundColor: '#22c55e' } : { borderWidth: 2, borderColor: colors.border }} className="w-6 h-6 rounded items-center justify-center">
           {isSelected && (
             <View className="w-2.5 h-4 border-r-2 border-b-2 border-white rotate-45 -mt-1" />
           )}
@@ -706,14 +789,14 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
             {/* Header */}
             <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between px-4 py-3">
               <TouchableOpacity onPress={() => goToStep(false)} disabled={isSaving} className="px-2">
-                <Text style={{ color: isSaving ? colors.textMuted : colors.green }} className="text-base font-nunito">Back</Text>
+                <Text style={{ color: isSaving ? '#FFFFFF' : '#FFFFFF' }} className="text-base font-nunito">Back</Text>
               </TouchableOpacity>
               <Text style={{ color: colors.text }} className="text-lg font-nunito-semibold">Final Settings</Text>
               <TouchableOpacity onPress={handleSave} disabled={isSaving || !canSave} className="px-2 min-w-[50px] items-end">
                 {isSaving ? (
                   <ActivityIndicator size="small" color={colors.green} />
                 ) : (
-                  <Text style={{ color: canSave ? colors.green : colors.textMuted }} className="text-base font-nunito-semibold">Save</Text>
+                  <Text style={{ color: canSave ? '#FFFFFF' : colors.textMuted }} className="text-base font-nunito-semibold">Save</Text>
                 )}
               </TouchableOpacity>
             </View>
@@ -727,10 +810,10 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                     setGuideModalVisible(true);
                   }}
                   activeOpacity={0.8}
-                  style={{ backgroundColor: colors.green }}
-                  className="px-6 py-3 rounded-full"
+                  style={{ backgroundColor: colors.card }}
+                  className="px-6 rounded-full"
                 >
-                  <Text className="text-white text-base font-nunito-semibold">View Preset Guide</Text>
+                  <PulsatingGlowText text="View Preset Guide" color="#FFFFFF" fontSize={16} />
                 </TouchableOpacity>
               </View>
 
@@ -756,9 +839,9 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                   });
                 }}
                 trackColorFalse={colors.border}
-                trackColorTrue={colors.greenDark}
-                thumbColorOn={colors.green}
-                thumbColorOff={colors.textMuted}
+                trackColorTrue="#22c55e"
+                thumbColorOn="#4ade80"
+                thumbColorOff="#9ca3af"
               />
             </View>
 
@@ -786,9 +869,9 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                   }
                 }}
                 trackColorFalse={colors.border}
-                trackColorTrue={colors.greenDark}
-                thumbColorOn={colors.green}
-                thumbColorOff={colors.textMuted}
+                trackColorTrue="#22c55e"
+                thumbColorOn="#4ade80"
+                thumbColorOff="#9ca3af"
               />
             </View>
 
@@ -818,9 +901,9 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                     }
                   }}
                   trackColorFalse={colors.border}
-                  trackColorTrue={colors.greenDark}
-                  thumbColorOn={colors.green}
-                  thumbColorOff={colors.textMuted}
+                  trackColorTrue="#22c55e"
+                  thumbColorOn="#4ade80"
+                  thumbColorOff="#9ca3af"
                   />
               </View>
             )}
@@ -836,9 +919,9 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                   value={allowEmergencyTapout}
                   onValueChange={handleEmergencyTapoutToggle}
                   trackColorFalse={colors.border}
-                  trackColorTrue={colors.greenDark}
-                  thumbColorOn={colors.green}
-                  thumbColorOff={colors.textMuted}
+                  trackColorTrue="#22c55e"
+                  thumbColorOn="#4ade80"
+                  thumbColorOff="#9ca3af"
                   />
               </View>
             )}
@@ -877,9 +960,9 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                   });
                 }}
                 trackColorFalse={colors.border}
-                trackColorTrue={colors.greenDark}
-                thumbColorOn={colors.green}
-                thumbColorOff={colors.textMuted}
+                  trackColorTrue="#22c55e"
+                  thumbColorOn="#4ade80"
+                  thumbColorOff="#9ca3af"
               />
             </View>
 
@@ -1003,9 +1086,9 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                           }
                         }}
                         trackColorFalse={colors.border}
-                        trackColorTrue={colors.greenDark}
-                        thumbColorOn={colors.green}
-                        thumbColorOff={colors.textMuted}
+                        trackColorTrue="#22c55e"
+                        thumbColorOn="#4ade80"
+                        thumbColorOff="#9ca3af"
                               />
                     </View>
 
@@ -1393,7 +1476,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
           {/* Header */}
           <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between px-4 py-3">
             <TouchableOpacity onPress={onClose} className="px-2">
-              <Text style={{ color: colors.green }} className="text-base font-nunito">Cancel</Text>
+              <Text style={{ color: '#FFFFFF' }} className="text-base font-nunito">Cancel</Text>
             </TouchableOpacity>
             <Text style={{ color: colors.text }} className="text-lg font-nunito-semibold">
               {preset ? 'Edit Preset' : 'New Preset'}
@@ -1403,7 +1486,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               disabled={!canContinue}
               className="px-2"
             >
-              <Text style={{ color: canContinue ? colors.green : colors.textMuted }} className="text-base font-nunito-semibold">
+              <Text style={{ color: canContinue ? '#FFFFFF' : colors.textMuted }} className="text-base font-nunito-semibold">
                 Next
               </Text>
             </TouchableOpacity>
@@ -1481,7 +1564,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                       style={{ backgroundColor: colors.card }}
                       className="flex-1 py-2 rounded-xl items-center mr-2"
                     >
-                      <Text style={{ color: colors.green }} className="text-sm font-nunito-semibold">
+                      <Text style={{ color: '#FFFFFF' }} className="text-sm font-nunito-semibold">
                         Select All
                       </Text>
                     </TouchableOpacity>
@@ -1544,8 +1627,8 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                   />
                   <TouchableOpacity
                     onPress={addWebsite}
-                    style={{ backgroundColor: colors.green }}
-                    className="w-11 h-11 rounded-xl items-center justify-center"
+                    style={{ backgroundColor: colors.card }}
+                    className="w-11 h-11 rounded-full items-center justify-center"
                   >
                     <Text className="text-white text-2xl font-nunito-light">+</Text>
                   </TouchableOpacity>

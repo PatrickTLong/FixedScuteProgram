@@ -30,7 +30,7 @@ function PresetGuideModal({ visible, onClose }: PresetGuideModalProps) {
           <View className="w-16" />
           <Text style={{ color: colors.text }} className="text-lg font-nunito-semibold">Preset Guide</Text>
           <TouchableOpacity onPress={onClose} className="w-16 items-end">
-            <Text style={{ color: colors.green }} className="text-base font-nunito">Done</Text>
+            <Text style={{ color: '#FFFFFF' }} className="text-base font-nunito">Done</Text>
           </TouchableOpacity>
         </View>
 
