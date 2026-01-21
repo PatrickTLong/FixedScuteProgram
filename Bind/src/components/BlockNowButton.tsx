@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   Dimensions,
 } from 'react-native';
-import Svg, { Path, Text as SvgText, Defs, Filter, FeGaussianBlur } from 'react-native-svg';
+import Svg, { Text as SvgText, Defs, Filter, FeGaussianBlur } from 'react-native-svg';
 import { lightTap, mediumTap, successTap } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
@@ -128,7 +128,7 @@ interface SlideThumbProps {
   size?: number;
 }
 
-function SlideThumb({ size = 40 }: SlideThumbProps) {
+function SlideThumb({ size = 32 }: SlideThumbProps) {
   return (
     <View
       style={{
@@ -137,18 +137,7 @@ function SlideThumb({ size = 40 }: SlideThumbProps) {
         alignItems: 'center',
         justifyContent: 'center',
       }}
-    >
-      <Svg width={18} height={18} viewBox="0 0 24 24">
-        <Path
-          d="M9 5l6 7-6 7"
-          stroke="#FFFFFF"
-          strokeWidth={3}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          fill="none"
-        />
-      </Svg>
-    </View>
+    />
   );
 }
 
@@ -470,8 +459,8 @@ function BlockNowButton({
 
   // When locked without timer (no time limit), show slide-to-unlock
   if (showSlideToUnlock) {
-    const thumbSize = 40;
-    const thumbMargin = 8;
+    const thumbSize = 32;
+    const thumbMargin = 6;
     const initialFillWidth = thumbSize + thumbMargin * 2; // Initial green fill to contain the thumb
 
     // Interpolate slide fill width starting from initial width
@@ -492,10 +481,9 @@ function BlockNowButton({
       >
         {/* Button Content - rendered first so it's behind the fill */}
         <View className="flex-1 flex-row items-center justify-center" style={{ zIndex: 1 }}>
-          <GlowText
+          <StaticGlowText
             text={isUnlocking ? 'Unlocking...' : isSliding ? 'Slide...' : 'Slide to Unlock'}
             color={colors.text}
-            glowOpacity={glowOpacity}
           />
         </View>
 

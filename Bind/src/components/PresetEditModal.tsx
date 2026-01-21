@@ -66,6 +66,7 @@ if (InstalledAppsModule) {
 
 // System apps excluded from app selection
 const EXCLUDED_PACKAGES = [
+  'com.bind',                       // Scute (this app)
   'com.android.settings',           // Settings (has its own toggle)
   'com.android.dialer',             // Phone/Dialer
   'com.google.android.dialer',      // Google Phone

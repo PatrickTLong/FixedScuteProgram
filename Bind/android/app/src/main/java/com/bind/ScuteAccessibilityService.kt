@@ -31,6 +31,11 @@ class ScuteAccessibilityService : AccessibilityService() {
         // Throttle schedule checks to avoid excessive processing
         private const val SCHEDULE_CHECK_INTERVAL_MS = 5000L // Check every 5 seconds max
 
+        // Packages that should NEVER be blocked
+        private val EXCLUDED_PACKAGES = setOf(
+            "com.bind" // Our own app - never block
+        )
+
         @Volatile
         var isRunning = false
             private set
@@ -61,9 +66,9 @@ class ScuteAccessibilityService : AccessibilityService() {
     // Instance variable to throttle schedule checks
     private var lastScheduleCheckTime = 0L
 
-    // Throttle overlay launches to prevent spamming
+    // Simple throttle - minimum time between overlay launches
     private var lastOverlayLaunchTime = 0L
-    private val OVERLAY_THROTTLE_MS = 1500L // Minimum 1.5 seconds between overlay launches
+    private val OVERLAY_THROTTLE_MS = 800L
 
     override fun onServiceConnected() {
         super.onServiceConnected()
@@ -87,8 +92,8 @@ class ScuteAccessibilityService : AccessibilityService() {
 
         val packageName = event.packageName?.toString() ?: return
 
-        // Skip our own app
-        if (packageName == "com.bind") {
+        // Skip our own app and any excluded packages
+        if (EXCLUDED_PACKAGES.contains(packageName)) {
             return
         }
 
@@ -163,10 +168,9 @@ class ScuteAccessibilityService : AccessibilityService() {
                     checkBrowserUrl(packageName, isPageLoad = false)
                 }
 
-                // Also check if Settings should be blocked (handles case when user is already in Settings)
+                // Also check if Settings should be blocked
                 if (isSettingsApp(packageName) && shouldBlockApp(packageName)) {
                     Log.d(TAG, "BLOCKING settings app on content change: $packageName")
-                    // Show blocking overlay
                     showBlockedOverlay(BlockedActivity.TYPE_SETTINGS)
                     return
                 }
@@ -398,6 +402,11 @@ class ScuteAccessibilityService : AccessibilityService() {
     }
 
     private fun shouldBlockApp(packageName: String): Boolean {
+        // Never block excluded packages (our own app, etc.)
+        if (EXCLUDED_PACKAGES.contains(packageName)) {
+            return false
+        }
+
         val prefs = getSharedPreferences(UninstallBlockerService.PREFS_NAME, Context.MODE_PRIVATE)
 
         // Check if session is active
@@ -432,20 +441,51 @@ class ScuteAccessibilityService : AccessibilityService() {
 
     /**
      * Show the blocking overlay activity.
-     * Includes throttling to prevent spam when accessibility events fire rapidly.
+     * Sequence: back x3 -> home -> overlay
      */
     private fun showBlockedOverlay(blockedType: String) {
         val now = System.currentTimeMillis()
 
-        // Throttle to prevent overlay spam - if already showing, do nothing
+        // Simple throttle to prevent rapid-fire overlays
         if (now - lastOverlayLaunchTime < OVERLAY_THROTTLE_MS) {
-            Log.d(TAG, "Overlay throttled, skipping (overlay already showing)")
+            Log.d(TAG, "Overlay throttled, skipping")
             return
         }
-
         lastOverlayLaunchTime = now
+
         Log.d(TAG, "Launching BlockedActivity with type: $blockedType")
-        BlockedActivity.launch(this, blockedType)
+
+        // Back presses first (0, 100, 200ms)
+        performGlobalAction(GLOBAL_ACTION_BACK)
+
+        val handler = android.os.Handler(android.os.Looper.getMainLooper())
+
+        handler.postDelayed({
+            performGlobalAction(GLOBAL_ACTION_BACK)
+        }, 100L)
+
+        handler.postDelayed({
+            performGlobalAction(GLOBAL_ACTION_BACK)
+        }, 200L)
+
+        // Home after back presses complete (350ms)
+        handler.postDelayed({
+            performGlobalAction(GLOBAL_ACTION_HOME)
+        }, 350L)
+
+        // Overlay after home (450ms)
+        handler.postDelayed({
+            BlockedActivity.launchNoAnimation(this, blockedType)
+            lastOverlayLaunchTime = System.currentTimeMillis()
+        }, 450L)
+    }
+
+    /**
+     * Called when overlay is dismissed - go home
+     */
+    fun onOverlayDismissed() {
+        Log.d(TAG, "Overlay dismissed")
+        performGlobalAction(GLOBAL_ACTION_HOME)
     }
 
     private fun isSettingsApp(packageName: String): Boolean {
@@ -513,11 +553,13 @@ class ScuteAccessibilityService : AccessibilityService() {
                 val presetId = preset.getString("id")
                 val isActive = preset.optBoolean("isActive", false)
                 val isScheduled = preset.optBoolean("isScheduled", false)
-                val startDate = preset.optString("scheduleStartDate", null)
-                val endDate = preset.optString("scheduleEndDate", null)
+                val startDate = if (preset.has("scheduleStartDate") && !preset.isNull("scheduleStartDate"))
+                    preset.getString("scheduleStartDate") else null
+                val endDate = if (preset.has("scheduleEndDate") && !preset.isNull("scheduleEndDate"))
+                    preset.getString("scheduleEndDate") else null
 
                 // Skip if not active or not scheduled
-                if (!isActive || !isScheduled || startDate == null || endDate == null) {
+                if (!isActive || !isScheduled || startDate.isNullOrEmpty() || endDate.isNullOrEmpty()) {
                     continue
                 }
 
@@ -648,6 +690,9 @@ class ScuteAccessibilityService : AccessibilityService() {
                 selectedApps.add("com.google.android.settings.intelligence")
             }
 
+            // IMPORTANT: Remove any excluded packages (like our own app)
+            selectedApps.removeAll(EXCLUDED_PACKAGES)
+
             // Calculate end time
             val noTimeLimit = preset.optBoolean("noTimeLimit", false)
             val finalEndTime = if (noTimeLimit) {
@@ -753,7 +798,7 @@ class ScuteAccessibilityService : AccessibilityService() {
     }
 
     /**
-     * Open recents and then go back to clear the blocked app from view
+     * Clear recent apps from view
      */
     fun clearRecents() {
         performGlobalAction(GLOBAL_ACTION_RECENTS)
@@ -761,5 +806,12 @@ class ScuteAccessibilityService : AccessibilityService() {
         android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
             performGlobalAction(GLOBAL_ACTION_BACK)
         }, 200)
+    }
+
+    /**
+     * Go to home screen
+     */
+    fun goHome() {
+        performGlobalAction(GLOBAL_ACTION_HOME)
     }
 }

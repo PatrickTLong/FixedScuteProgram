@@ -6,7 +6,6 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.view.WindowManager
-import android.view.animation.AlphaAnimation
 import android.widget.TextView
 
 /**
@@ -17,6 +16,7 @@ import android.widget.TextView
  * directly by the AccessibilityService.
  *
  * The overlay stays on screen until the user taps to dismiss it.
+ * On dismiss, user is sent to Android home screen (not Scute app).
  */
 class BlockedActivity : Activity() {
 
@@ -29,7 +29,7 @@ class BlockedActivity : Activity() {
         const val TYPE_SETTINGS = "settings"
 
         /**
-         * Launch the blocked overlay activity
+         * Launch the blocked overlay activity (no animation)
          */
         fun launch(context: Context, blockedType: String = TYPE_APP) {
             val intent = Intent(context, BlockedActivity::class.java).apply {
@@ -41,10 +41,23 @@ class BlockedActivity : Activity() {
             }
             context.startActivity(intent)
         }
+
+        /**
+         * Launch with explicit no animation (called from AccessibilityService)
+         */
+        fun launchNoAnimation(context: Context, blockedType: String = TYPE_APP) {
+            launch(context, blockedType) // Already has NO_ANIMATION flag
+        }
     }
+
+    // Prevent multiple dismiss calls
+    private var isDismissing = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Disable all window animations for instant appearance
+        window.setWindowAnimations(0)
 
         // Make it a full-screen overlay that appears above everything
         window.addFlags(
@@ -65,48 +78,43 @@ class BlockedActivity : Activity() {
             else -> "This app is blocked."
         }
 
-        // Get root view for animation and click handling
+        // Get root view for click handling (no animation - instant appear)
         val rootView = findViewById<View>(R.id.blocked_root)
 
-        // Fade-in animation
-        val fadeIn = AlphaAnimation(0f, 1f).apply {
-            duration = 150
-            fillAfter = true
-        }
-        rootView.startAnimation(fadeIn)
-
-        // Tap anywhere to dismiss (spam back + clear recents)
+        // Tap anywhere to dismiss and go to home
         rootView.setOnClickListener {
-            dismissAndBlock()
+            dismissAndGoHome()
         }
     }
 
     override fun onBackPressed() {
-        // Override back button - dismiss with aggressive blocking
-        dismissAndBlock()
+        // Override back button - dismiss and go to home
+        dismissAndGoHome()
     }
 
-    private fun dismissAndBlock() {
-        // Press back 2 times then open Scute app
-        ScuteAccessibilityService.instance?.spamBackButton(2)
+    private fun dismissAndGoHome() {
+        // Prevent multiple dismiss calls (race condition fix)
+        if (isDismissing) return
+        isDismissing = true
 
-        // After back presses complete, open Scute app
-        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
-            openScuteApp()
-        }, 2 * 150L + 100L) // Wait for back presses to complete + small buffer
+        // Notify service that overlay is being dismissed
+        // This also triggers going to home screen
+        ScuteAccessibilityService.instance?.onOverlayDismissed()
 
         finish()
-        overridePendingTransition(0, 0) // No animation
     }
 
-    private fun openScuteApp() {
-        val intent = packageManager.getLaunchIntentForPackage("com.bind")
-        intent?.let {
-            it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            it.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-            // Signal that we came from the blocked overlay so app redirects to home
-            it.putExtra("from_blocked_overlay", true)
-            startActivity(it)
+    override fun finish() {
+        super.finish()
+        // Disable exit animation
+        overridePendingTransition(0, 0)
+    }
+
+    override fun onDestroy() {
+        // Ensure we notify service if destroyed without explicit dismiss
+        if (!isDismissing) {
+            ScuteAccessibilityService.instance?.onOverlayDismissed()
         }
+        super.onDestroy()
     }
 }
