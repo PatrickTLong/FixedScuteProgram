@@ -9,6 +9,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Text as SvgText, Defs, Filter, FeGaussianBlur } from 'react-native-svg';
 import { useTheme } from '../context/ThemeContext';
+import { useResponsive } from '../utils/responsive';
 
 // Glowing "Scute!" text - uses invisible Text for layout + absolute SVG for glow effect
 function GlowingScuteText({ color, glowOpacity }: { color: string; glowOpacity: Animated.Value }) {
@@ -70,6 +71,7 @@ interface Props {
 
 function LandingScreen({ onSignIn, onGetStarted }: Props) {
   const { colors, theme } = useTheme();
+  const { s } = useResponsive();
   const isDark = theme === 'dark';
 
   // Pulsating glow animation for "Scute!" text
@@ -106,7 +108,7 @@ function LandingScreen({ onSignIn, onGetStarted }: Props) {
           source={require('../frontassets/TrueScute-Photoroom.png')}
           className="w-80 h-80 mb-8"
           resizeMode="contain"
-          style={{ tintColor: colors.logoTint, marginTop: -60 }}
+          style={{ tintColor: colors.logoTint, marginTop: s(-60) }}
         />
 
         {/* Title */}

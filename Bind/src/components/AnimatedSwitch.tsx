@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, TouchableWithoutFeedback } from 'react-native';
+import { useResponsive } from '../utils/responsive';
 
 interface AnimatedSwitchProps {
   value: boolean;
@@ -12,17 +13,17 @@ interface AnimatedSwitchProps {
   size?: 'default' | 'small';
 }
 
-// Default size
-const TRACK_WIDTH = 44;
-const TRACK_HEIGHT = 26;
-const THUMB_SIZE = 22;
-const THUMB_OFFSET = 2;
+// Base sizes (will be scaled)
+const BASE_TRACK_WIDTH = 44;
+const BASE_TRACK_HEIGHT = 26;
+const BASE_THUMB_SIZE = 22;
+const BASE_THUMB_OFFSET = 2;
 
-// Small size
-const TRACK_WIDTH_SMALL = 36;
-const TRACK_HEIGHT_SMALL = 20;
-const THUMB_SIZE_SMALL = 16;
-const THUMB_OFFSET_SMALL = 2;
+// Small size bases
+const BASE_TRACK_WIDTH_SMALL = 36;
+const BASE_TRACK_HEIGHT_SMALL = 20;
+const BASE_THUMB_SIZE_SMALL = 16;
+const BASE_THUMB_OFFSET_SMALL = 2;
 
 const ANIMATION_DURATION = 250;
 
@@ -36,11 +37,13 @@ export default function AnimatedSwitch({
   thumbColorOff = '#9ca3af',
   size = 'default',
 }: AnimatedSwitchProps) {
-  // Select dimensions based on size
-  const trackWidth = size === 'small' ? TRACK_WIDTH_SMALL : TRACK_WIDTH;
-  const trackHeight = size === 'small' ? TRACK_HEIGHT_SMALL : TRACK_HEIGHT;
-  const thumbSize = size === 'small' ? THUMB_SIZE_SMALL : THUMB_SIZE;
-  const thumbOffset = size === 'small' ? THUMB_OFFSET_SMALL : THUMB_OFFSET;
+  const { s } = useResponsive();
+
+  // Select dimensions based on size, then scale
+  const trackWidth = s(size === 'small' ? BASE_TRACK_WIDTH_SMALL : BASE_TRACK_WIDTH);
+  const trackHeight = s(size === 'small' ? BASE_TRACK_HEIGHT_SMALL : BASE_TRACK_HEIGHT);
+  const thumbSize = s(size === 'small' ? BASE_THUMB_SIZE_SMALL : BASE_THUMB_SIZE);
+  const thumbOffset = s(size === 'small' ? BASE_THUMB_OFFSET_SMALL : BASE_THUMB_OFFSET);
 
   const animatedValue = useRef(new Animated.Value(value ? 1 : 0)).current;
 

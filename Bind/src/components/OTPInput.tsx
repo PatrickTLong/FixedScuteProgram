@@ -1,6 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import { View, TextInput, Pressable } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
+import { useResponsive } from '../utils/responsive';
 
 interface OTPInputProps {
   value: string;
@@ -12,6 +13,7 @@ interface OTPInputProps {
 
 function OTPInput({ value, onChange, length = 6, disabled = false, autoFocus = false }: OTPInputProps) {
   const { colors } = useTheme();
+  const { s } = useResponsive();
   const inputRef = useRef<TextInput>(null);
 
   // Auto focus on mount if requested
@@ -73,9 +75,9 @@ function OTPInput({ value, onChange, length = 6, disabled = false, autoFocus = f
                   backgroundColor: colors.card,
                   borderColor: isCurrentPosition ? colors.text : colors.border,
                   borderWidth: isCurrentPosition ? 2 : 1,
-                  width: 36,
-                  height: 44,
-                  borderRadius: 8,
+                  width: s(36),
+                  height: s(44),
+                  borderRadius: s(8),
                   justifyContent: 'center',
                   alignItems: 'center',
                 }}

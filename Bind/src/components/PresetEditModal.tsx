@@ -241,14 +241,16 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
   const [showFinalStep, setShowFinalStep] = useState(false);
   const [displayedStep, setDisplayedStep] = useState<'first' | 'final'>('first');
 
-  // Animation refs
-  const stepFadeAnim = useRef(new Animated.Value(1)).current;
+  // Animation refs (for tab transition)
   const tabFadeAnim = useRef(new Animated.Value(1)).current;
-  const isStepTransitioning = useRef(false);
   const isTabTransitioning = useRef(false);
 
-  // Animated step transition (first step <-> final step)
-  const animateToStep = useCallback((toFinal: boolean) => {
+  // Animation refs (for step transition)
+  const stepFadeAnim = useRef(new Animated.Value(1)).current;
+  const isStepTransitioning = useRef(false);
+
+  // Step transition (first step <-> final step) - with fade animation
+  const goToStep = useCallback((toFinal: boolean) => {
     if (isStepTransitioning.current) return;
     isStepTransitioning.current = true;
 
@@ -461,8 +463,8 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
       setDisplayedTab('apps');
       setShowFinalStep(false);
       setDisplayedStep('first');
-      stepFadeAnim.setValue(1);
       tabFadeAnim.setValue(1);
+      stepFadeAnim.setValue(1);
       loadInstalledApps(preset?.mode);
       // Check if we should show excluded apps info modal
       AsyncStorage.getItem(EXCLUDED_APPS_INFO_DISMISSED_KEY).then((dismissed) => {
@@ -471,7 +473,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
         }
       });
     }
-  }, [visible, preset, loadInstalledApps, stepFadeAnim, tabFadeAnim]);
+  }, [visible, preset, loadInstalledApps, tabFadeAnim, stepFadeAnim]);
 
   const toggleApp = useCallback((appId: string) => {
     lightTap();
@@ -540,8 +542,8 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
       return;
     }
     lightTap();
-    animateToStep(true);
-  }, [canContinue, animateToStep]);
+    goToStep(true);
+  }, [canContinue, goToStep]);
 
   const handleSave = useCallback(async () => {
     if (!name.trim() || isSaving || !canSave) return;
@@ -721,7 +723,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
           <Animated.View style={{ flex: 1, opacity: stepFadeAnim }}>
             {/* Header */}
             <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between px-4 py-3">
-              <TouchableOpacity onPress={() => animateToStep(false)} disabled={isSaving} className="px-2">
+              <TouchableOpacity onPress={() => goToStep(false)} disabled={isSaving} className="px-2">
                 <Text style={{ color: isSaving ? colors.textMuted : colors.green }} className="text-base font-nunito">Back</Text>
               </TouchableOpacity>
               <Text style={{ color: colors.text }} className="text-lg font-nunito-semibold">Final Settings</Text>
@@ -1570,7 +1572,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                   <TouchableOpacity
                     onPress={addWebsite}
                     style={{ backgroundColor: colors.green }}
-                    className="w-11 h-11 rounded-full items-center justify-center"
+                    className="w-11 h-11 rounded-xl items-center justify-center"
                   >
                     <Text className="text-white text-2xl font-nunito-light">+</Text>
                   </TouchableOpacity>

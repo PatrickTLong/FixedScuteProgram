@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { lightTap } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
+import { useResponsive } from '../utils/responsive';
 
 interface DatePickerModalProps {
   visible: boolean;
@@ -29,7 +30,7 @@ const MONTHS = [
 const DAYS_OF_WEEK = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 // Time picker constants
-const TIME_ITEM_HEIGHT = 40;
+const BASE_TIME_ITEM_HEIGHT = 40;
 const TIME_VISIBLE_ITEMS = 3;
 const HOURS_12 = Array.from({ length: 12 }, (_, i) => i + 1); // 1-12
 const MINUTES = Array.from({ length: 60 }, (_, i) => i);
@@ -42,9 +43,11 @@ interface TimeWheelProps {
   padZero?: boolean;
   textColor: string;
   textMutedColor: string;
+  itemHeight: number;
+  wheelWidth: number;
 }
 
-const TimeWheel = memo(({ values, selectedValue, onValueChange, padZero = true, textColor, textMutedColor }: TimeWheelProps) => {
+const TimeWheel = memo(({ values, selectedValue, onValueChange, padZero = true, textColor, textMutedColor, itemHeight, wheelWidth }: TimeWheelProps) => {
   const scrollRef = useRef<ScrollView>(null);
   const lastHapticIndex = useRef(-1); // Track last index for haptic feedback
 
@@ -53,17 +56,17 @@ const TimeWheel = memo(({ values, selectedValue, onValueChange, padZero = true, 
     if (index >= 0 && scrollRef.current) {
       setTimeout(() => {
         scrollRef.current?.scrollTo({
-          y: index * TIME_ITEM_HEIGHT,
+          y: index * itemHeight,
           animated: false,
         });
       }, 10);
     }
-  }, [selectedValue, values]);
+  }, [selectedValue, values, itemHeight]);
 
   // Handle scroll to trigger haptic on each number passed
   const handleScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const offsetY = event.nativeEvent.contentOffset.y;
-    const currentIndex = Math.round(offsetY / TIME_ITEM_HEIGHT);
+    const currentIndex = Math.round(offsetY / itemHeight);
     const clampedIndex = Math.max(0, Math.min(currentIndex, values.length - 1));
 
     // Trigger haptic when passing a new number
@@ -71,11 +74,11 @@ const TimeWheel = memo(({ values, selectedValue, onValueChange, padZero = true, 
       lightTap();
     }
     lastHapticIndex.current = clampedIndex;
-  }, [values.length]);
+  }, [values.length, itemHeight]);
 
   const handleScrollEnd = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const offsetY = event.nativeEvent.contentOffset.y;
-    const index = Math.round(offsetY / TIME_ITEM_HEIGHT);
+    const index = Math.round(offsetY / itemHeight);
     const clampedIndex = Math.max(0, Math.min(index, values.length - 1));
 
     if (values[clampedIndex] !== selectedValue) {
@@ -83,19 +86,19 @@ const TimeWheel = memo(({ values, selectedValue, onValueChange, padZero = true, 
     }
 
     scrollRef.current?.scrollTo({
-      y: clampedIndex * TIME_ITEM_HEIGHT,
+      y: clampedIndex * itemHeight,
       animated: true,
     });
-  }, [values, selectedValue, onValueChange]);
+  }, [values, selectedValue, onValueChange, itemHeight]);
 
-  const paddingVertical = (TIME_ITEM_HEIGHT * (TIME_VISIBLE_ITEMS - 1)) / 2;
+  const paddingVertical = (itemHeight * (TIME_VISIBLE_ITEMS - 1)) / 2;
 
   return (
-    <View style={{ height: TIME_ITEM_HEIGHT * TIME_VISIBLE_ITEMS, width: 50, overflow: 'hidden' }}>
+    <View style={{ height: itemHeight * TIME_VISIBLE_ITEMS, width: wheelWidth, overflow: 'hidden' }}>
       <ScrollView
         ref={scrollRef}
         showsVerticalScrollIndicator={false}
-        snapToInterval={TIME_ITEM_HEIGHT}
+        snapToInterval={itemHeight}
         decelerationRate="fast"
         onScroll={handleScroll}
         scrollEventThrottle={16}
@@ -114,7 +117,7 @@ const TimeWheel = memo(({ values, selectedValue, onValueChange, padZero = true, 
             <View
               key={value}
               style={{
-                height: TIME_ITEM_HEIGHT,
+                height: itemHeight,
                 justifyContent: 'center',
                 alignItems: 'center',
               }}
@@ -170,6 +173,9 @@ const AmPmSelector = memo(({ value, onChange, greenColor, cardColor, textMutedCo
 
 function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate }: DatePickerModalProps) {
   const { colors } = useTheme();
+  const { s } = useResponsive();
+  const timeItemHeight = s(BASE_TIME_ITEM_HEIGHT);
+  const wheelWidth = s(50);
   const today = useMemo(() => new Date(), []);
   const maxDate = useMemo(() => {
     const max = new Date(today);
@@ -487,6 +493,8 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
                   padZero={false}
                   textColor={colors.text}
                   textMutedColor={colors.text === '#ffffff' ? 'rgba(255,255,255,0.3)' : 'rgba(26,26,26,0.3)'}
+                  itemHeight={timeItemHeight}
+                  wheelWidth={wheelWidth}
                 />
                 <Text style={{ color: colors.textMuted, fontSize: 24, marginHorizontal: 4 }}>:</Text>
                 <TimeWheel
@@ -496,6 +504,8 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
                   padZero={true}
                   textColor={colors.text}
                   textMutedColor={colors.text === '#ffffff' ? 'rgba(255,255,255,0.3)' : 'rgba(26,26,26,0.3)'}
+                  itemHeight={timeItemHeight}
+                  wheelWidth={wheelWidth}
                 />
                 <AmPmSelector
                   value={selectedAmPm}

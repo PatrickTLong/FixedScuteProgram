@@ -14,6 +14,7 @@ import Svg, { Path } from 'react-native-svg';
 import ConfirmationModal from '../components/ConfirmationModal';
 import { getLockStatus, getEmergencyTapoutStatus, EmergencyTapoutStatus, invalidateUserCaches, saveUserTheme } from '../services/cardApi';
 import { useTheme } from '../context/ThemeContext';
+import { useResponsive } from '../utils/responsive';
 
 interface Props {
   email: string;
@@ -239,6 +240,7 @@ const SettingsRow = ({
 );
 
 function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Props) {
+  const { s } = useResponsive();
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
   const [resetModalVisible, setResetModalVisible] = useState(false);
   const [deleteAccountModalVisible, setDeleteAccountModalVisible] = useState(false);
@@ -387,7 +389,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
           <View className="items-center" style={{ marginTop: '-20%' }}>
             <Image
               source={require('../frontassets/TrueScute-Photoroom.png')}
-              style={{ width: 250, height: 250, tintColor: colors.logoTint, marginBottom: -60 }}
+              style={{ width: s(250), height: s(250), tintColor: colors.logoTint, marginBottom: s(-60) }}
               resizeMode="contain"
             />
             <Text style={{ color: colors.text }} className="text-xl font-nunito-bold mb-2">Phone is Locked</Text>

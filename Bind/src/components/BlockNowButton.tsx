@@ -10,6 +10,7 @@ import {
 import Svg, { Path, Text as SvgText, Defs, Filter, FeGaussianBlur } from 'react-native-svg';
 import { lightTap, mediumTap, successTap } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
+import { useResponsive } from '../utils/responsive';
 
 // Glowing text component using SVG blur filter (animated)
 interface GlowTextProps {
@@ -124,7 +125,7 @@ function StaticGlowText({ text, color, fontSize = 16, glowOpacity = 1 }: StaticG
 
 const HOLD_DURATION = 3000; // 3 seconds
 const SCREEN_WIDTH = Dimensions.get('window').width;
-const BUTTON_HORIZONTAL_PADDING = 48; // px-6 = 24px * 2 from parent
+const BASE_BUTTON_HORIZONTAL_PADDING = 48; // px-6 = 24px * 2 from parent
 
 interface BlockNowButtonProps {
   onActivate: () => void;
@@ -148,6 +149,8 @@ function BlockNowButton({
   strictMode = false,
 }: BlockNowButtonProps) {
   const { colors } = useTheme();
+  const { s } = useResponsive();
+  const buttonHorizontalPadding = s(BASE_BUTTON_HORIZONTAL_PADDING);
   const [isPressed, setIsPressed] = useState(false);
   const fillAnimation = useRef(new Animated.Value(0)).current;
   const animationRef = useRef<Animated.CompositeAnimation | null>(null);
@@ -161,7 +164,7 @@ function BlockNowButton({
   const [isSliding, setIsSliding] = useState(false);
   const [isUnlocking, setIsUnlocking] = useState(false);
   const slidePosition = useRef(new Animated.Value(0)).current;
-  const [buttonWidth, setButtonWidth] = useState(SCREEN_WIDTH - BUTTON_HORIZONTAL_PADDING);
+  const [buttonWidth, setButtonWidth] = useState(SCREEN_WIDTH - buttonHorizontalPadding);
   const hapticTriggeredRef = useRef({ first: false, second: false, third: false });
 
   // Can activate only when not disabled and not locked
@@ -469,31 +472,6 @@ function BlockNowButton({
             borderRadius: 16,
           }}
         />
-
-        {/* Arrow that travels with the green bar - clips at button edge */}
-        <Animated.View
-          style={{
-            position: 'absolute',
-            left: 0,
-            top: 0,
-            bottom: 0,
-            justifyContent: 'center',
-            transform: [{ translateX: slidePosition }],
-            paddingLeft: 4,
-            opacity: 0.5,
-          }}
-        >
-          <Svg width={20} height={20} viewBox="0 0 24 24">
-            <Path
-              d="M9 18l6-6-6-6"
-              stroke={colors.text}
-              strokeWidth={2.5}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              fill="none"
-            />
-          </Svg>
-        </Animated.View>
 
         {/* Button Content */}
         <View className="flex-1 flex-row items-center justify-center">

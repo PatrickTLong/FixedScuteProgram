@@ -21,6 +21,7 @@ import {
   invalidateUserCaches,
 } from '../services/cardApi';
 import { useTheme } from '../context/ThemeContext';
+import { useResponsive } from '../utils/responsive';
 
 const { InstalledAppsModule, ScheduleModule } = NativeModules;
 
@@ -46,6 +47,7 @@ interface Props {
 
 function PresetsScreen({ userEmail }: Props) {
   const { colors } = useTheme();
+  const { s } = useResponsive();
   const [presets, setPresets] = useState<Preset[]>([]);
   const [activePresetId, setActivePresetId] = useState<string | null>(null);
   const [editModalVisible, setEditModalVisible] = useState(false);
@@ -575,18 +577,18 @@ function PresetsScreen({ userEmail }: Props) {
   const keyExtractor = useCallback((item: Preset) => item.id, []);
 
   const ListEmptyComponent = useCallback(() => (
-    <View className="items-center py-12" style={{ marginTop: -40 }}>
+    <View className="items-center py-12" style={{ marginTop: s(-40) }}>
       {!loading && (
         <>
           <View className="items-center">
             <Image
               source={require('../frontassets/TrueScute-Photoroom.png')}
               style={{
-                width: 150,
-                height: 150,
+                width: s(150),
+                height: s(150),
                 tintColor: colors.textMuted,
                 opacity: 0.3,
-                marginBottom: -40,
+                marginBottom: s(-40),
               }}
               resizeMode="contain"
             />
@@ -600,7 +602,7 @@ function PresetsScreen({ userEmail }: Props) {
         </>
       )}
     </View>
-  ), [loading, colors.textSecondary, colors.textMuted]);
+  ), [loading, colors.textSecondary, colors.textMuted, s]);
 
   if (loading) {
     return (
@@ -618,7 +620,7 @@ function PresetsScreen({ userEmail }: Props) {
           <View className="items-center" style={{ marginTop: '-20%' }}>
             <Image
               source={require('../frontassets/TrueScute-Photoroom.png')}
-              style={{ width: 250, height: 250, tintColor: colors.logoTint, marginBottom: -60 }}
+              style={{ width: s(250), height: s(250), tintColor: colors.logoTint, marginBottom: s(-60) }}
               resizeMode="contain"
             />
             <Text style={{ color: colors.text }} className="text-xl font-nunito-bold mb-2">Phone is Locked</Text>
@@ -641,7 +643,7 @@ function PresetsScreen({ userEmail }: Props) {
           activeOpacity={0.7}
           disabled={isDisabled}
           style={{ backgroundColor: colors.green }}
-          className="w-11 h-11 rounded-full items-center justify-center"
+          className="w-11 h-11 rounded-xl items-center justify-center"
         >
           <Text className="text-2xl font-nunito-light text-white">+</Text>
         </TouchableOpacity>

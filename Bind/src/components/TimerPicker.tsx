@@ -8,8 +8,9 @@ import {
 } from 'react-native';
 import { lightTap } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
+import { useResponsive } from '../utils/responsive';
 
-const ITEM_HEIGHT = 44;
+const BASE_ITEM_HEIGHT = 44;
 const VISIBLE_ITEMS = 2;
 
 interface WheelProps {
@@ -20,9 +21,11 @@ interface WheelProps {
   textColor: string;
   textMutedColor: string;
   labelColor: string;
+  itemHeight: number;
+  wheelWidth: number;
 }
 
-const Wheel = memo(({ values, selectedValue, onValueChange, label, textColor, textMutedColor, labelColor }: WheelProps) => {
+const Wheel = memo(({ values, selectedValue, onValueChange, label, textColor, textMutedColor, labelColor, itemHeight, wheelWidth }: WheelProps) => {
   const scrollRef = useRef<ScrollView>(null);
   const isUserScrolling = useRef(false);
   const lastUserSelectedValue = useRef(selectedValue);
@@ -43,7 +46,7 @@ const Wheel = memo(({ values, selectedValue, onValueChange, label, textColor, te
 
         setTimeout(() => {
           scrollRef.current?.scrollTo({
-            y: index * ITEM_HEIGHT,
+            y: index * itemHeight,
             animated: isMounted.current, // Animate only after mount
           });
         }, 10);
@@ -51,12 +54,12 @@ const Wheel = memo(({ values, selectedValue, onValueChange, label, textColor, te
       lastUserSelectedValue.current = selectedValue;
     }
     isMounted.current = true;
-  }, [selectedValue, values]);
+  }, [selectedValue, values, itemHeight]);
 
   // Handle scroll to trigger haptic on each number passed
   const handleScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const offsetY = event.nativeEvent.contentOffset.y;
-    const currentIndex = Math.round(offsetY / ITEM_HEIGHT);
+    const currentIndex = Math.round(offsetY / itemHeight);
     const clampedIndex = Math.max(0, Math.min(currentIndex, values.length - 1));
 
     // Trigger haptic when passing a new number
@@ -64,11 +67,11 @@ const Wheel = memo(({ values, selectedValue, onValueChange, label, textColor, te
       lightTap();
     }
     lastHapticIndex.current = clampedIndex;
-  }, [values.length]);
+  }, [values.length, itemHeight]);
 
   const handleScrollEnd = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const offsetY = event.nativeEvent.contentOffset.y;
-    const index = Math.round(offsetY / ITEM_HEIGHT);
+    const index = Math.round(offsetY / itemHeight);
     const clampedIndex = Math.max(0, Math.min(index, values.length - 1));
 
     // Update the last user selected value before calling onValueChange
@@ -80,7 +83,7 @@ const Wheel = memo(({ values, selectedValue, onValueChange, label, textColor, te
 
     // Snap to nearest item
     scrollRef.current?.scrollTo({
-      y: clampedIndex * ITEM_HEIGHT,
+      y: clampedIndex * itemHeight,
       animated: true,
     });
 
@@ -88,7 +91,7 @@ const Wheel = memo(({ values, selectedValue, onValueChange, label, textColor, te
     setTimeout(() => {
       isUserScrolling.current = false;
     }, 100);
-  }, [values, selectedValue, onValueChange]);
+  }, [values, selectedValue, onValueChange, itemHeight]);
 
   const handleScrollBegin = useCallback(() => {
     isUserScrolling.current = true;
@@ -97,21 +100,21 @@ const Wheel = memo(({ values, selectedValue, onValueChange, label, textColor, te
     lastHapticIndex.current = index >= 0 ? index : 0;
   }, [values, selectedValue]);
 
-  const paddingVertical = (ITEM_HEIGHT * (VISIBLE_ITEMS - 1)) / 2;
+  const paddingVertical = (itemHeight * (VISIBLE_ITEMS - 1)) / 2;
 
   return (
     <View style={{ alignItems: 'center' }}>
       <View
         style={{
-          height: ITEM_HEIGHT * VISIBLE_ITEMS,
-          width: 56,
+          height: itemHeight * VISIBLE_ITEMS,
+          width: wheelWidth,
           overflow: 'hidden',
         }}
       >
         <ScrollView
           ref={scrollRef}
           showsVerticalScrollIndicator={false}
-          snapToInterval={ITEM_HEIGHT}
+          snapToInterval={itemHeight}
           decelerationRate="fast"
           onScrollBeginDrag={handleScrollBegin}
           onScroll={handleScroll}
@@ -132,7 +135,7 @@ const Wheel = memo(({ values, selectedValue, onValueChange, label, textColor, te
               <View
                 key={value}
                 style={{
-                  height: ITEM_HEIGHT,
+                  height: itemHeight,
                   justifyContent: 'center',
                   alignItems: 'center',
                 }}
@@ -193,6 +196,9 @@ function TimerPicker({
   onSecondsChange,
 }: TimerPickerProps) {
   const { colors } = useTheme();
+  const { s } = useResponsive();
+  const itemHeight = s(BASE_ITEM_HEIGHT);
+  const wheelWidth = s(56);
 
   // Create muted color for unselected items (30% opacity of text color)
   const textMutedColor = colors.text === '#ffffff'
@@ -208,13 +214,13 @@ function TimerPicker({
         gap: 4,
       }}
     >
-      <Wheel values={DAYS} selectedValue={days} onValueChange={onDaysChange} label="days" textColor={colors.text} textMutedColor={textMutedColor} labelColor={colors.textMuted} />
-      <Text style={{ color: colors.textMuted, fontSize: 28, marginTop: 44 }}>:</Text>
-      <Wheel values={HOURS} selectedValue={hours} onValueChange={onHoursChange} label="hrs" textColor={colors.text} textMutedColor={textMutedColor} labelColor={colors.textMuted} />
-      <Text style={{ color: colors.textMuted, fontSize: 28, marginTop: 44 }}>:</Text>
-      <Wheel values={MINUTES} selectedValue={minutes} onValueChange={onMinutesChange} label="min" textColor={colors.text} textMutedColor={textMutedColor} labelColor={colors.textMuted} />
-      <Text style={{ color: colors.textMuted, fontSize: 28, marginTop: 44 }}>:</Text>
-      <Wheel values={SECONDS} selectedValue={seconds} onValueChange={onSecondsChange} label="sec" textColor={colors.text} textMutedColor={textMutedColor} labelColor={colors.textMuted} />
+      <Wheel values={DAYS} selectedValue={days} onValueChange={onDaysChange} label="days" textColor={colors.text} textMutedColor={textMutedColor} labelColor={colors.textMuted} itemHeight={itemHeight} wheelWidth={wheelWidth} />
+      <Text style={{ color: colors.textMuted, fontSize: 28, marginTop: itemHeight }}>:</Text>
+      <Wheel values={HOURS} selectedValue={hours} onValueChange={onHoursChange} label="hrs" textColor={colors.text} textMutedColor={textMutedColor} labelColor={colors.textMuted} itemHeight={itemHeight} wheelWidth={wheelWidth} />
+      <Text style={{ color: colors.textMuted, fontSize: 28, marginTop: itemHeight }}>:</Text>
+      <Wheel values={MINUTES} selectedValue={minutes} onValueChange={onMinutesChange} label="min" textColor={colors.text} textMutedColor={textMutedColor} labelColor={colors.textMuted} itemHeight={itemHeight} wheelWidth={wheelWidth} />
+      <Text style={{ color: colors.textMuted, fontSize: 28, marginTop: itemHeight }}>:</Text>
+      <Wheel values={SECONDS} selectedValue={seconds} onValueChange={onSecondsChange} label="sec" textColor={colors.text} textMutedColor={textMutedColor} labelColor={colors.textMuted} itemHeight={itemHeight} wheelWidth={wheelWidth} />
     </View>
   );
 }

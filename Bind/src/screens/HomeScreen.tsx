@@ -19,6 +19,7 @@ import InfoModal from '../components/InfoModal';
 import EmergencyTapoutModal from '../components/EmergencyTapoutModal';
 import { getPresets, getLockStatus, updateLockStatus, Preset, getEmergencyTapoutStatus, useEmergencyTapout, EmergencyTapoutStatus, activatePreset, invalidateUserCaches, isFirstLoad, markInitialLoadComplete, clearAllCaches } from '../services/cardApi';
 import { useTheme } from '../context/ThemeContext';
+import { useResponsive } from '../utils/responsive';
 
 const scuteLogo = require('../frontassets/TrueScute-Photoroom.png');
 
@@ -111,6 +112,7 @@ interface Props {
 
 function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
   const { colors } = useTheme();
+  const { s } = useResponsive();
   const [currentPreset, setCurrentPreset] = useState<string | null>(null);
   const [activePreset, setActivePreset] = useState<Preset | null>(null);
   const [scheduledPresets, setScheduledPresets] = useState<Preset[]>([]);
@@ -1100,7 +1102,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
         {/* Scute Logo - absolute positioned so it doesn't affect centering */}
         <TouchableOpacity
           onPress={handleConfigurePress}
-          style={{ position: 'absolute', top: -32, left: -8, zIndex: 10 }}
+          style={{ position: 'absolute', top: s(-32), left: s(-8), zIndex: 10 }}
         >
           <Animated.View
             style={{ transform: [{ translateX: shakeAnim }] }}
@@ -1110,8 +1112,8 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
               <Image
                 source={scuteLogo}
                 style={{
-                  width: 150,
-                  height: 150,
+                  width: s(150),
+                  height: s(150),
                   tintColor: colors.logoTint,
                 }}
                 resizeMode="contain"
@@ -1122,8 +1124,8 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
               <Image
                 source={scuteLogo}
                 style={{
-                  width: 150,
-                  height: 150,
+                  width: s(150),
+                  height: s(150),
                   tintColor: colors.logoTint,
                 }}
                 resizeMode="contain"
