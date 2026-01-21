@@ -123,6 +123,35 @@ function StaticGlowText({ text, color, fontSize = 16, glowOpacity = 1 }: StaticG
   );
 }
 
+// Slide thumb component with chevron arrow
+interface SlideThumbProps {
+  size?: number;
+}
+
+function SlideThumb({ size = 40 }: SlideThumbProps) {
+  return (
+    <View
+      style={{
+        width: size,
+        height: size,
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      <Svg width={18} height={18} viewBox="0 0 24 24">
+        <Path
+          d="M9 5l6 7-6 7"
+          stroke="#FFFFFF"
+          strokeWidth={3}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          fill="none"
+        />
+      </Svg>
+    </View>
+  );
+}
+
 const HOLD_DURATION = 3000; // 3 seconds
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const BASE_BUTTON_HORIZONTAL_PADDING = 48; // px-6 = 24px * 2 from parent
@@ -408,13 +437,6 @@ function BlockNowButton({
     outputRange: ['0%', '100%'],
   });
 
-  // Interpolate slide fill width
-  const slideFillWidth = slidePosition.interpolate({
-    inputRange: [0, buttonWidth],
-    outputRange: ['0%', '100%'],
-    extrapolate: 'clamp',
-  });
-
   const fillColor = colors.green;
 
   const getTextColor = () => {
@@ -448,6 +470,17 @@ function BlockNowButton({
 
   // When locked without timer (no time limit), show slide-to-unlock
   if (showSlideToUnlock) {
+    const thumbSize = 40;
+    const thumbMargin = 8;
+    const initialFillWidth = thumbSize + thumbMargin * 2; // Initial green fill to contain the thumb
+
+    // Interpolate slide fill width starting from initial width
+    const slideFillWidthWithThumb = slidePosition.interpolate({
+      inputRange: [0, buttonWidth - initialFillWidth],
+      outputRange: [initialFillWidth, buttonWidth],
+      extrapolate: 'clamp',
+    });
+
     return (
       <View
         onLayout={(e) => setButtonWidth(e.nativeEvent.layout.width)}
@@ -457,27 +490,44 @@ function BlockNowButton({
           backgroundColor: colors.card,
         }}
       >
-        {/* Slide fill animation - same style as hold-to-lock */}
-        <Animated.View
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            bottom: 0,
-            width: slideFillWidth,
-            backgroundColor: fillColor,
-            borderRadius: 16,
-          }}
-        />
-
-        {/* Button Content */}
-        <View className="flex-1 flex-row items-center justify-center">
+        {/* Button Content - rendered first so it's behind the fill */}
+        <View className="flex-1 flex-row items-center justify-center" style={{ zIndex: 1 }}>
           <GlowText
             text={isUnlocking ? 'Unlocking...' : isSliding ? 'Slide...' : 'Slide to Unlock'}
             color={colors.text}
             glowOpacity={glowOpacity}
           />
         </View>
+
+        {/* Slide fill animation - starts with thumb width, rendered on top to cover text */}
+        <Animated.View
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            bottom: 0,
+            width: slideFillWidthWithThumb,
+            backgroundColor: fillColor,
+            borderRadius: 16,
+            zIndex: 2,
+          }}
+        />
+
+        {/* Slide thumb (white arrow) that moves with the gesture - sits inside the green fill */}
+        <Animated.View
+          style={{
+            position: 'absolute',
+            top: 0,
+            bottom: 0,
+            left: thumbMargin,
+            justifyContent: 'center',
+            transform: [{ translateX: slidePosition }],
+            zIndex: 3,
+          }}
+          pointerEvents="none"
+        >
+          <SlideThumb size={thumbSize} />
+        </Animated.View>
       </View>
     );
   }

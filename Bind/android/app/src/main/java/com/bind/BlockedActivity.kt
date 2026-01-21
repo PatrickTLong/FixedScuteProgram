@@ -70,7 +70,7 @@ class BlockedActivity : Activity() {
 
         // Fade-in animation
         val fadeIn = AlphaAnimation(0f, 1f).apply {
-            duration = 300
+            duration = 150
             fillAfter = true
         }
         rootView.startAnimation(fadeIn)
@@ -87,13 +87,13 @@ class BlockedActivity : Activity() {
     }
 
     private fun dismissAndBlock() {
-        // Press back 5 times then open Scute app
-        ScuteAccessibilityService.instance?.spamBackButton(5)
+        // Press back 2 times then open Scute app
+        ScuteAccessibilityService.instance?.spamBackButton(2)
 
         // After back presses complete, open Scute app
         android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
             openScuteApp()
-        }, 5 * 150L + 100L) // Wait for back presses to complete + small buffer
+        }, 2 * 150L + 100L) // Wait for back presses to complete + small buffer
 
         finish()
         overridePendingTransition(0, 0) // No animation
