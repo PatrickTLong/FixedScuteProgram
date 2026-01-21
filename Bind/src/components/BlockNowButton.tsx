@@ -196,9 +196,6 @@ function BlockNowButton({
   // 2. Locked with active timer BUT strictMode is OFF - slide-to-unlock available
   const showSlideToUnlock = isLocked && (!hasActiveTimer || !strictMode);
 
-  // Log for debugging
-  console.log('[BlockNowButton] State:', { isLocked, hasActiveTimer, strictMode, showSlideToUnlock });
-
   // Slow pulsating glow for ready preset (hold to lock) and slide to unlock
   const shouldShowSlowGlow = (hasReadyPreset && !isLocked) || showSlideToUnlock;
 

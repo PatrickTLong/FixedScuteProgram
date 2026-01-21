@@ -112,7 +112,7 @@ function PermissionsChecklistScreen({ onComplete }: Props) {
         );
       }
     } catch (error) {
-      console.error('Failed to check permissions:', error);
+      // Silent failure - permissions will show as not granted
     } finally {
       setIsLoading(false);
     }
@@ -161,7 +161,6 @@ function PermissionsChecklistScreen({ onComplete }: Props) {
             Alert.alert('Error', 'Device admin module not available');
           }
         } catch (error) {
-          console.error('Failed to request device admin:', error);
           Alert.alert('Error', 'Failed to request device admin permission');
         }
         return;

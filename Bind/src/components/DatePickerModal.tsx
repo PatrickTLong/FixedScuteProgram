@@ -496,7 +496,9 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
                   itemHeight={timeItemHeight}
                   wheelWidth={wheelWidth}
                 />
-                <Text style={{ color: colors.textMuted, fontSize: 24, marginHorizontal: 4 }}>:</Text>
+                <View style={{ height: timeItemHeight, justifyContent: 'center', marginHorizontal: 4, marginTop: -timeItemHeight * 0.15 }}>
+                  <Text style={{ color: colors.textMuted, fontSize: 24 }}>:</Text>
+                </View>
                 <TimeWheel
                   values={MINUTES}
                   selectedValue={selectedMinute}

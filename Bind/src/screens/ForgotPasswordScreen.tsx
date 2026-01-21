@@ -69,7 +69,6 @@ function ForgotPasswordScreen({ onBack, onSuccess }: Props) {
       }
     } catch (error) {
       showModal('Connection Error', 'Could not connect to server.');
-      console.error('Reset password request error:', error);
     } finally {
       setLoading(false);
     }
@@ -113,7 +112,6 @@ function ForgotPasswordScreen({ onBack, onSuccess }: Props) {
       }
     } catch (error) {
       showModal('Connection Error', 'Could not connect to server');
-      console.error('Reset password error:', error);
     } finally {
       setLoading(false);
     }

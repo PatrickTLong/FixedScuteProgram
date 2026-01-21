@@ -202,12 +202,10 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
               if (activatingPresetRef.current === preset.id) {
                 return null;
               }
-              console.log('[HomeScreen] Canceling untimed lock for scheduled preset:', preset.name);
               return { preset, shouldOverride: true };
             }
             // If current lock ends AFTER the scheduled preset starts, it might be a different session
             // Don't override if it's already a timed lock
-            console.log('[HomeScreen] Already locked with timed preset, not overriding');
             return null;
           }
 
@@ -216,7 +214,6 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
             return null;
           }
 
-          console.log('[HomeScreen] Scheduled preset should activate:', preset.name);
           return { preset, shouldOverride: false };
         }
       }
@@ -231,8 +228,6 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
     activatingPresetRef.current = preset.id;
 
     try {
-      console.log('[HomeScreen] Activating scheduled preset:', preset.name);
-
       // Activate the preset in database
       await activatePreset(email, preset.id);
 
@@ -266,7 +261,6 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
 
       Vibration.vibrate([0, 100, 50, 100]);
     } catch (error) {
-      console.error('[HomeScreen] Failed to activate scheduled preset:', error);
     } finally {
       // Clear the activating ref after a delay to allow for settling
       setTimeout(() => {
@@ -278,7 +272,6 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
   const loadStats = useCallback(async (skipCache = false, showLoading = false) => {
     // Prevent concurrent calls (race condition fix)
     if (loadStatsInProgressRef.current) {
-      console.log('[HomeScreen] loadStats already in progress, skipping');
       return;
     }
     loadStatsInProgressRef.current = true;
@@ -308,7 +301,6 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
 
         // If we need to override an untimed lock, force unlock first
         if (shouldOverride) {
-          console.log('[HomeScreen] Force unlocking untimed preset to activate scheduled preset');
           if (BlockingModule) {
             await BlockingModule.forceUnlock();
           }
@@ -340,7 +332,6 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
       if (lockStatus.isLocked && lockStatus.lockEndsAt) {
         const lockEndTime = new Date(lockStatus.lockEndsAt).getTime();
         if (lockEndTime <= now.getTime()) {
-          console.log('[HomeScreen] Lock has expired - auto-unlocking on load');
           // Lock has expired - auto-unlock but keep preset active
           try {
             await updateLockStatus(email, false, null);
@@ -366,7 +357,6 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
             loadStatsInProgressRef.current = false;
             return; // Exit early, state is set
           } catch (error) {
-            console.error('[HomeScreen] Failed to auto-unlock expired lock:', error);
             // Continue with normal flow if auto-unlock fails
           }
         }
@@ -412,7 +402,6 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
       setTapoutStatus(tapout);
       hideLoading();
     } catch (error) {
-      console.error('Failed to load stats:', error);
       hideLoading();
     } finally {
       loadStatsInProgressRef.current = false;
@@ -461,13 +450,11 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
         // For scheduled presets: fully deactivate/clear (same as when schedule ends)
         // For regular presets: re-activate to keep it ready for quick re-lock
         if (isScheduledPreset) {
-          console.log('[HomeScreen] Clearing scheduled preset after emergency tapout:', presetIdToKeep);
           // Deactivate the preset - same as when a scheduled preset ends naturally
           await activatePreset(email, null);
           setCurrentPreset(null);
           setActivePreset(null);
         } else if (presetIdToKeep) {
-          console.log('[HomeScreen] Re-activating preset after emergency tapout:', presetIdToKeep);
           await activatePreset(email, presetIdToKeep);
         }
 
@@ -484,7 +471,6 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
         showModal('Failed', 'Could not use emergency tapout. Please try again.');
       }
     } catch (error) {
-      console.error('Failed to use emergency tapout:', error);
       showModal('Error', 'Something went wrong. Please try again.');
     } finally {
       setTapoutLoading(false);
@@ -531,7 +517,6 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
   // Reload when refreshTrigger changes (e.g., after scheduled preset from App.tsx)
   useEffect(() => {
     if (refreshTrigger && refreshTrigger > 0) {
-      console.log('[HomeScreen] Refresh triggered by parent');
       // Close any open modals
       setEmergencyTapoutModalVisible(false);
       // Fetch fresh data with loading spinner
@@ -542,7 +527,6 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
 
   // Auto-unlock when timer expires (called from countdown effect)
   const handleTimerExpired = useCallback(async () => {
-    console.log('[HomeScreen] Timer expired - auto-unlocking');
     try {
       // Update database lock status to unlocked
       await updateLockStatus(email, false, null);
@@ -559,7 +543,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
       // Refresh to get updated state (same as app launch unlock)
       await loadStats(true, true); // skipCache=true, showLoading=true
     } catch (error) {
-      console.error('[HomeScreen] Failed to auto-unlock on timer expiry:', error);
+      // Failed to auto-unlock on timer expiry
     }
   }, [email, loadStats]);
 
@@ -697,16 +681,6 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
     };
   }, [isActivelyLocked, presetGlowOpacity]);
 
-  // Debug logging for strictMode
-  useEffect(() => {
-    console.log('[HomeScreen] StrictMode debug:', {
-      activePresetName: activePreset?.name,
-      strictMode: activePreset?.strictMode,
-      resolvedStrictMode: activePreset?.strictMode ?? true,
-      isLocked,
-      hasActiveTimer: !!timeRemaining,
-    });
-  }, [activePreset, isLocked, timeRemaining]);
 
   // Elapsed time effect (for no-time-limit locks)
   useEffect(() => {
@@ -795,7 +769,6 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
       // For scheduled/recurring presets: use the same backend endpoint as emergency tapout
       // but with skipTapoutDecrement=true so it doesn't use up tapout count
       if (isScheduledPreset) {
-        console.log('[HomeScreen] Slide unlock for scheduled preset - calling backend with skipTapoutDecrement');
         // Call the same endpoint as emergency tapout but skip the tapout decrement
         const result = await useEmergencyTapout(email, presetIdToKeep, true);
         if (result.success) {
@@ -818,7 +791,6 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
         }
 
         if (presetIdToKeep) {
-          console.log('[HomeScreen] Re-activating preset after slide unlock:', presetIdToKeep);
           await activatePreset(email, presetIdToKeep);
         }
       }
@@ -829,7 +801,6 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
       invalidateUserCaches(email);
       await loadStats(true);
     } catch (error) {
-      console.error('[HomeScreen] Failed to unlock:', error);
       showModal('Error', 'Failed to unlock. Please try again.');
     } finally {
       setLoading(false);
@@ -837,12 +808,8 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
   }, [email, loadStats, showModal, activePreset]);
 
   const handleBlockNow = useCallback(async () => {
-    console.log('[HomeScreen] handleBlockNow called');
-    console.log('[HomeScreen] activePreset:', activePreset);
-
     try {
       if (!activePreset) {
-        console.log('[HomeScreen] No active preset - showing modal');
         showModal(
           'No Preset Selected',
           'Please toggle a preset in the Presets tab before you can start blocking.'
@@ -862,12 +829,9 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
             return;
           }
         } catch (permError) {
-          console.warn('[HomeScreen] Failed to check accessibility permission:', permError);
           // Continue anyway if we can't check - native module might still work
         }
       }
-
-      console.log('[HomeScreen] Attempting to start blocking with preset:', activePreset.name);
 
       // Show loading spinner immediately
       setLoading(true);
@@ -947,13 +911,6 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
         calculatedLockEndsAt = activePreset.scheduleEndDate;
       } else if (!activePreset.noTimeLimit) {
         // Non-scheduled preset with time limit
-        console.log('[HomeScreen] DEBUG targetDate check:', {
-          targetDate: activePreset.targetDate,
-          noTimeLimit: activePreset.noTimeLimit,
-          timerDays: activePreset.timerDays,
-          timerHours: activePreset.timerHours,
-          timerMinutes: activePreset.timerMinutes,
-        });
         if (activePreset.targetDate) {
           // Target date set - use it directly
           calculatedLockEndsAt = activePreset.targetDate;
@@ -971,7 +928,6 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
       // If noTimeLimit is true and not scheduled, calculatedLockEndsAt stays null
 
       // Update lock status in database
-      console.log('[HomeScreen] Updating lock status to locked, ends at:', calculatedLockEndsAt);
       await updateLockStatus(email, true, calculatedLockEndsAt);
 
       // Set local state immediately for instant UI update
@@ -982,7 +938,6 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
 
       // Call native blocking module
       if (BlockingModule) {
-        console.log('[HomeScreen] BlockingModule exists, calling startBlocking');
 
         // Calculate lock end time in milliseconds for native alarm scheduling
         const lockEndTimeMs = calculatedLockEndsAt
@@ -1004,10 +959,8 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
           isScheduled: activePreset.isScheduled || false, // Timer presets get timer alarm, scheduled presets don't
         });
 
-        console.log('[HomeScreen] BlockingModule.startBlocking completed');
         Vibration.vibrate(50);
       } else {
-        console.log('[HomeScreen] BlockingModule is null/undefined - fallback mode');
         Vibration.vibrate(50);
       }
 
@@ -1015,7 +968,6 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
       await loadStats(true);
       setLoading(false);
     } catch (error) {
-      console.error('[HomeScreen] Failed to start blocking:', error);
       setLoading(false);
       showModal('Error', 'Failed to start blocking session.');
     }

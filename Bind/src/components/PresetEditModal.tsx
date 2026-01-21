@@ -59,8 +59,7 @@ function invalidateInstalledAppsCache() {
 const { InstalledAppsModule } = NativeModules;
 if (InstalledAppsModule) {
   const installedAppsEmitter = new NativeEventEmitter(InstalledAppsModule);
-  installedAppsEmitter.addListener('onAppsChanged', (event) => {
-    console.log('[PresetEditModal] App change detected:', event?.type);
+  installedAppsEmitter.addListener('onAppsChanged', () => {
     invalidateInstalledAppsCache();
   });
 }
@@ -122,7 +121,6 @@ async function loadInstalledAppsOnce(): Promise<InstalledApp[]> {
       cachedInstalledApps = apps;
       return apps;
     } catch (error) {
-      console.error('Failed to load installed apps:', error);
       return [];
     } finally {
       installedAppsLoadPromise = null;
@@ -339,7 +337,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
             setNoTapoutsModalVisible(true);
           }
         } catch (error) {
-          console.error('Failed to check emergency tapout status:', error);
+          // Failed to check emergency tapout status
         }
       }
     } else {
@@ -393,7 +391,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
         setSelectedApps(apps.map(app => app.id));
       }
     } catch (error) {
-      console.error('Failed to load apps:', error);
+      // Failed to load apps
     } finally {
       setLoadingApps(false);
     }
@@ -415,18 +413,12 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
         // Emergency tapout feature
         setAllowEmergencyTapout(preset.allowEmergencyTapout ?? false);
         // Strict mode feature - default to false for existing presets without the field
-        console.log('[PresetEditModal] Loading preset strictMode:', preset.strictMode, '-> setting to:', preset.strictMode ?? false);
         setStrictMode(preset.strictMode ?? false);
         // Scheduling feature
         setIsScheduled(preset.isScheduled ?? false);
         setScheduleStartDate(preset.scheduleStartDate ? new Date(preset.scheduleStartDate) : null);
         setScheduleEndDate(preset.scheduleEndDate ? new Date(preset.scheduleEndDate) : null);
         // Recurring schedule feature
-        console.log('[PresetEditModal] Loading preset recurring data:', {
-          repeat_enabled: preset.repeat_enabled,
-          repeat_unit: preset.repeat_unit,
-          repeat_interval: preset.repeat_interval,
-        });
         setIsRecurring(preset.repeat_enabled ?? false);
         setRecurringValue(preset.repeat_interval?.toString() ?? '1');
         setRecurringUnit(preset.repeat_unit ?? 'hours');
@@ -593,17 +585,6 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
       repeat_unit: isScheduled && isRecurring ? recurringUnit : undefined,
       repeat_interval: isScheduled && isRecurring ? finalRecurringInterval : undefined,
     };
-
-    // Log preset data for debugging
-    console.log('[PresetEditModal] Saving preset:', {
-      name: newPreset.name,
-      strictMode: newPreset.strictMode,
-      allowEmergencyTapout: newPreset.allowEmergencyTapout,
-      noTimeLimit: newPreset.noTimeLimit,
-      repeat_enabled: newPreset.repeat_enabled,
-      repeat_unit: newPreset.repeat_unit,
-      repeat_interval: newPreset.repeat_interval,
-    });
 
     try {
       await onSave(newPreset);
@@ -777,7 +758,6 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                 trackColorTrue={colors.greenDark}
                 thumbColorOn={colors.green}
                 thumbColorOff={colors.textMuted}
-                size="small"
               />
             </View>
 
@@ -808,7 +788,6 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                 trackColorTrue={colors.greenDark}
                 thumbColorOn={colors.green}
                 thumbColorOff={colors.textMuted}
-                size="small"
               />
             </View>
 
@@ -822,7 +801,6 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                 <AnimatedSwitch
                   value={strictMode}
                   onValueChange={async (value: boolean) => {
-                    console.log('[PresetEditModal] Strict Mode toggle:', value);
                     mediumTap();
                     if (value) {
                       // Enabling strict mode - check if we should show warning
@@ -831,21 +809,18 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                         setStrictModeWarningVisible(true);
                       } else {
                         setStrictMode(true);
-                        console.log('[PresetEditModal] Strict Mode enabled (warning dismissed)');
                       }
                     } else {
                       // Disabling strict mode - also disable emergency tapout since it's not relevant
                       setStrictMode(false);
                       setAllowEmergencyTapout(false);
-                      console.log('[PresetEditModal] Strict Mode disabled, emergency tapout also disabled');
                     }
                   }}
                   trackColorFalse={colors.border}
                   trackColorTrue={colors.greenDark}
                   thumbColorOn={colors.green}
                   thumbColorOff={colors.textMuted}
-                  size="small"
-                />
+                  />
               </View>
             )}
 
@@ -863,8 +838,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                   trackColorTrue={colors.greenDark}
                   thumbColorOn={colors.green}
                   thumbColorOff={colors.textMuted}
-                  size="small"
-                />
+                  />
               </View>
             )}
 
@@ -905,7 +879,6 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                 trackColorTrue={colors.greenDark}
                 thumbColorOn={colors.green}
                 thumbColorOff={colors.textMuted}
-                size="small"
               />
             </View>
 
@@ -1032,8 +1005,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                         trackColorTrue={colors.greenDark}
                         thumbColorOn={colors.green}
                         thumbColorOff={colors.textMuted}
-                        size="small"
-                      />
+                              />
                     </View>
 
                     {/* Recurring Options */}

@@ -16,9 +16,7 @@ import { createClient } from '@supabase/supabase-js';
 const SUPABASE_URL = 'https://mbrewdmvnadwubhshuav.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1icmV3ZG12bmFkd3ViaHNodWF2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc3NDUyMzAsImV4cCI6MjA4MzMyMTIzMH0.fhBN0aEvXVkcPLvDyXCaGJfYS-Eu70kXxwcC2sxaGW8';
 
-if (SUPABASE_URL === 'YOUR_SUPABASE_URL' || SUPABASE_ANON_KEY === 'YOUR_SUPABASE_ANON_KEY') {
-  console.warn('[Supabase] WARNING: You need to configure your Supabase credentials in src/config/supabase.ts');
-}
+// Credentials are configured - remove this check in production
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {

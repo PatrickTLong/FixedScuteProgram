@@ -215,11 +215,11 @@ function TimerPicker({
       }}
     >
       <Wheel values={DAYS} selectedValue={days} onValueChange={onDaysChange} label="days" textColor={colors.text} textMutedColor={textMutedColor} labelColor={colors.textMuted} itemHeight={itemHeight} wheelWidth={wheelWidth} />
-      <Text style={{ color: colors.textMuted, fontSize: 28, marginTop: itemHeight }}>:</Text>
+      <Text style={{ color: colors.textMuted, fontSize: 28, height: itemHeight * VISIBLE_ITEMS, lineHeight: itemHeight * VISIBLE_ITEMS }}>:</Text>
       <Wheel values={HOURS} selectedValue={hours} onValueChange={onHoursChange} label="hrs" textColor={colors.text} textMutedColor={textMutedColor} labelColor={colors.textMuted} itemHeight={itemHeight} wheelWidth={wheelWidth} />
-      <Text style={{ color: colors.textMuted, fontSize: 28, marginTop: itemHeight }}>:</Text>
+      <Text style={{ color: colors.textMuted, fontSize: 28, height: itemHeight * VISIBLE_ITEMS, lineHeight: itemHeight * VISIBLE_ITEMS }}>:</Text>
       <Wheel values={MINUTES} selectedValue={minutes} onValueChange={onMinutesChange} label="min" textColor={colors.text} textMutedColor={textMutedColor} labelColor={colors.textMuted} itemHeight={itemHeight} wheelWidth={wheelWidth} />
-      <Text style={{ color: colors.textMuted, fontSize: 28, marginTop: itemHeight }}>:</Text>
+      <Text style={{ color: colors.textMuted, fontSize: 28, height: itemHeight * VISIBLE_ITEMS, lineHeight: itemHeight * VISIBLE_ITEMS }}>:</Text>
       <Wheel values={SECONDS} selectedValue={seconds} onValueChange={onSecondsChange} label="sec" textColor={colors.text} textMutedColor={textMutedColor} labelColor={colors.textMuted} itemHeight={itemHeight} wheelWidth={wheelWidth} />
     </View>
   );

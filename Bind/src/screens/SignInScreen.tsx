@@ -78,7 +78,6 @@ function SignInScreen({ onBack, onSuccess, onForgotPassword }: Props) {
       }
     } catch (error) {
       showModal('Connection Error', 'Could not connect to server.');
-      console.error('Sign in error:', error);
     } finally {
       setLoading(false);
     }
@@ -113,7 +112,6 @@ function SignInScreen({ onBack, onSuccess, onForgotPassword }: Props) {
       }
     } catch (error) {
       showModal('Connection Error', 'Could not connect to server');
-      console.error('Verify code error:', error);
     } finally {
       setLoading(false);
     }

@@ -36,7 +36,6 @@ async function getInstalledAppsCached(): Promise<{ id: string }[]> {
     cachedInstalledApps = apps;
     return apps;
   } catch (e) {
-    console.log('[PresetsScreen] Could not get installed apps:', e);
     return [];
   }
 }
@@ -88,7 +87,6 @@ function PresetsScreen({ userEmail }: Props) {
           const installedSelectedApps = preset.selectedApps.filter(id => installedAppIds.has(id));
           if (installedSelectedApps.length === 0 && preset.blockedWebsites.length === 0) {
             presetsToDelete.push(preset.id);
-            console.log(`[PresetsScreen] Deleting orphaned preset "${preset.name}" - no installed apps`);
           } else {
             validPresets.push(preset);
           }
@@ -106,7 +104,7 @@ function PresetsScreen({ userEmail }: Props) {
         setPresets(validPresets);
       }
     } catch (e) {
-      console.log('[PresetsScreen] Could not run orphan cleanup:', e);
+      // Could not run orphan cleanup
     }
   }, [userEmail]);
 
@@ -126,14 +124,13 @@ function PresetsScreen({ userEmail }: Props) {
       const scheduledPresets = fetchedPresets.filter(p => p.isScheduled && p.isActive);
       if (scheduledPresets.length > 0) {
         ScheduleModule?.saveScheduledPresets(JSON.stringify(scheduledPresets))
-          .then(() => console.log('[PresetsScreen] Synced scheduled presets on load:', scheduledPresets.length))
-          .catch((e: any) => console.error('[PresetsScreen] Failed to sync scheduled presets on load:', e));
+          .catch(() => { /* Failed to sync scheduled presets on load */ });
       }
 
       // Run orphan cleanup in background (non-blocking)
       runOrphanCleanup(fetchedPresets);
     } catch (error) {
-      console.error('Failed to load presets:', error);
+      // Failed to load presets
     }
   }, [userEmail, runOrphanCleanup]);
 
@@ -159,9 +156,8 @@ function PresetsScreen({ userEmail }: Props) {
       const scheduledPresets = allPresets.filter(p => p.isScheduled && p.isActive);
       const presetsJson = JSON.stringify(scheduledPresets);
       await ScheduleModule?.saveScheduledPresets(presetsJson);
-      console.log('[PresetsScreen] Synced scheduled presets to native:', scheduledPresets.length);
     } catch (e) {
-      console.error('[PresetsScreen] Failed to sync scheduled presets:', e);
+      // Failed to sync scheduled presets
     }
   }, []);
 
@@ -204,7 +200,6 @@ function PresetsScreen({ userEmail }: Props) {
         setPresets(prev => prev.map(p =>
           p.id === preset.id ? { ...p, isActive: false } : p
         ));
-        console.error('Failed to save preset:', result.error);
       }
     });
   }, [userEmail, presets, syncScheduledPresetsToNative]);
@@ -310,7 +305,6 @@ function PresetsScreen({ userEmail }: Props) {
               ...p,
               isActive: p.isScheduled ? p.isActive : false,
             })));
-            console.error('Failed to activate preset:', result.error);
           }
         });
       }
@@ -338,7 +332,6 @@ function PresetsScreen({ userEmail }: Props) {
             setPresets(prev => prev.map(p =>
               p.id === preset.id ? { ...p, isActive: true } : p
             ));
-            console.error('Failed to save preset:', result.error);
           }
         });
       } else {
@@ -416,7 +409,6 @@ function PresetsScreen({ userEmail }: Props) {
         }
       } else {
         // Revert on error - add preset back
-        console.error('Failed to delete preset:', result.error);
         setPresets(prev => [...prev, presetToDelete]);
         if (wasActiveNonScheduled) {
           setActivePresetId(presetId);
@@ -447,9 +439,8 @@ function PresetsScreen({ userEmail }: Props) {
       if (editingPreset.isScheduled) {
         try {
           await ScheduleModule?.cancelPresetAlarm(editingPreset.id);
-          console.log('[PresetsScreen] Cancelled existing alarms for preset before update:', editingPreset.id);
         } catch (e) {
-          console.log('[PresetsScreen] Could not cancel existing alarm (may not exist):', e);
+          // Could not cancel existing alarm (may not exist)
         }
       }
 
@@ -507,8 +498,6 @@ function PresetsScreen({ userEmail }: Props) {
       if (presetToSave.isScheduled) {
         await syncScheduledPresetsToNative(updatedPresets);
       }
-    } else {
-      console.error('Failed to save preset:', result.error);
     }
 
     setEditModalVisible(false);
@@ -539,8 +528,8 @@ function PresetsScreen({ userEmail }: Props) {
       savePreset(userEmail, presetToSave).then(async () => {
         // Sync to native to cancel the alarm
         await syncScheduledPresetsToNative(updatedPresets);
-      }).catch(err => {
-        console.error('Failed to save expired scheduled preset:', err);
+      }).catch(() => {
+        // Failed to save expired scheduled preset
       });
     } else if (activePresetId === preset.id) {
       // Non-scheduled preset expired

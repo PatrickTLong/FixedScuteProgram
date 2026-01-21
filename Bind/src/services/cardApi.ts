@@ -16,7 +16,6 @@ let cachedToken: string | null = null;
 export async function setAuthToken(token: string): Promise<void> {
   cachedToken = token;
   await AsyncStorage.setItem(TOKEN_KEY, token);
-  console.log('[CardAPI] Auth token stored');
 }
 
 /**
@@ -34,7 +33,6 @@ export async function getAuthToken(): Promise<string | null> {
 export async function clearAuthToken(): Promise<void> {
   cachedToken = null;
   await AsyncStorage.removeItem(TOKEN_KEY);
-  console.log('[CardAPI] Auth token cleared');
 }
 
 /**
@@ -172,7 +170,6 @@ export interface TapSettings {
  * Save user settings via backend API
  */
 export async function saveUserSettings(email: string, settings: TapSettings): Promise<void> {
-  console.log('[CardAPI] saveUserSettings called for:', email);
   try {
     const headers = await getAuthHeaders();
     const response = await fetch(`${API_URL}/api/save-settings`, {
@@ -182,13 +179,10 @@ export async function saveUserSettings(email: string, settings: TapSettings): Pr
     });
 
     if (!response.ok) {
-      const data = await response.json();
-      console.error('[CardAPI] saveUserSettings error:', data.error);
-    } else {
-      console.log('[CardAPI] saveUserSettings success');
+      await response.json();
     }
   } catch (error) {
-    console.error('[CardAPI] saveUserSettings error:', error);
+    // Silent failure
   }
 }
 
@@ -197,7 +191,6 @@ export async function saveUserSettings(email: string, settings: TapSettings): Pr
  * Note: This deletes from users and user_cards tables, NOT the whitelist
  */
 export async function deleteAccount(email: string): Promise<{ success: boolean; error?: string }> {
-  console.log('[CardAPI] deleteAccount called for:', email);
   const normalizedEmail = email.toLowerCase();
 
   try {
@@ -211,7 +204,6 @@ export async function deleteAccount(email: string): Promise<{ success: boolean; 
     const data = await response.json();
 
     if (!response.ok) {
-      console.error('[CardAPI] deleteAccount error:', data.error);
       return { success: false, error: data.error || 'Failed to delete account' };
     }
 
@@ -223,10 +215,8 @@ export async function deleteAccount(email: string): Promise<{ success: boolean; 
     // Clear auth token on account deletion
     await clearAuthToken();
 
-    console.log('[CardAPI] Account deleted:', normalizedEmail);
     return { success: true };
   } catch (error) {
-    console.error('[CardAPI] Error deleting account:', error);
     return { success: false, error: 'Network error' };
   }
 }
@@ -274,12 +264,10 @@ export async function getPresets(email: string, skipCache = false): Promise<Pres
   if (!skipCache) {
     const cached = getCached<Preset[]>(cacheKey, CACHE_TTL.presets);
     if (cached) {
-      console.log('[CardAPI] getPresets returning cached data');
       return cached;
     }
   }
 
-  console.log('[CardAPI] getPresets fetching from API');
   // Use deduplication to prevent multiple simultaneous requests
   return deduplicatedRequest(cacheKey, async () => {
     try {
@@ -288,16 +276,13 @@ export async function getPresets(email: string, skipCache = false): Promise<Pres
       const data = await response.json();
 
       if (!response.ok || data.error) {
-        console.error('[CardAPI] getPresets error:', data.error);
         return [];
       }
 
       const presets = data.presets || [];
-      console.log('[CardAPI] getPresets success, count:', presets.length);
       setCache(cacheKey, presets);
       return presets;
     } catch (error) {
-      console.error('[CardAPI] getPresets error:', error);
       return [];
     }
   });
@@ -307,7 +292,6 @@ export async function getPresets(email: string, skipCache = false): Promise<Pres
  * Save a preset (create or update)
  */
 export async function savePreset(email: string, preset: Preset): Promise<{ success: boolean; error?: string }> {
-  console.log('[CardAPI] savePreset called:', preset.name);
   const normalizedEmail = email.toLowerCase();
 
   try {
@@ -321,16 +305,13 @@ export async function savePreset(email: string, preset: Preset): Promise<{ succe
     const data = await response.json();
 
     if (!response.ok) {
-      console.error('[CardAPI] savePreset error:', data.error);
       return { success: false, error: data.error };
     }
 
     // Invalidate presets cache
     invalidateCache(`presets:${normalizedEmail}`);
-    console.log('[CardAPI] savePreset success:', preset.name);
     return { success: true };
   } catch (error) {
-    console.error('[CardAPI] savePreset error:', error);
     return { success: false, error: 'Network error' };
   }
 }
@@ -345,43 +326,26 @@ export async function updatePresetSchedule(
   scheduleStartDate: string,
   scheduleEndDate: string
 ): Promise<{ success: boolean; error?: string }> {
-  console.log('[CardAPI] ========== RECURRING UPDATE SCHEDULE ==========');
-  console.log('[CardAPI] updatePresetSchedule called');
-  console.log('[CardAPI]   Email:', email);
-  console.log('[CardAPI]   Preset ID:', presetId);
-  console.log('[CardAPI]   New start date:', scheduleStartDate);
-  console.log('[CardAPI]   New end date:', scheduleEndDate);
-
   const normalizedEmail = email.toLowerCase();
 
   try {
     const headers = await getAuthHeaders();
-    console.log('[CardAPI] Sending POST to:', `${API_URL}/api/presets/update-schedule`);
-    console.log('[CardAPI] Request body:', JSON.stringify({ presetId, scheduleStartDate, scheduleEndDate }));
-
     const response = await fetch(`${API_URL}/api/presets/update-schedule`, {
       method: 'POST',
       headers,
       body: JSON.stringify({ presetId, scheduleStartDate, scheduleEndDate }),
     });
 
-    console.log('[CardAPI] Response status:', response.status);
     const data = await response.json();
-    console.log('[CardAPI] Response data:', JSON.stringify(data));
 
     if (!response.ok) {
-      console.error('[CardAPI] updatePresetSchedule error:', data.error);
       return { success: false, error: data.error };
     }
 
     // Invalidate presets cache so UI gets updated dates
-    console.log('[CardAPI] Invalidating presets cache for:', normalizedEmail);
     invalidateCache(`presets:${normalizedEmail}`);
-    console.log('[CardAPI] updatePresetSchedule SUCCESS for preset:', presetId);
-    console.log('[CardAPI] ========== RECURRING UPDATE COMPLETE ==========');
     return { success: true };
   } catch (error) {
-    console.error('[CardAPI] updatePresetSchedule EXCEPTION:', error);
     return { success: false, error: 'Network error' };
   }
 }
@@ -390,7 +354,6 @@ export async function updatePresetSchedule(
  * Delete a preset
  */
 export async function deletePreset(email: string, presetId: string): Promise<{ success: boolean; error?: string }> {
-  console.log('[CardAPI] deletePreset called:', presetId);
   const normalizedEmail = email.toLowerCase();
 
   try {
@@ -404,16 +367,13 @@ export async function deletePreset(email: string, presetId: string): Promise<{ s
     const data = await response.json();
 
     if (!response.ok) {
-      console.error('[CardAPI] deletePreset error:', data.error);
       return { success: false, error: data.error };
     }
 
     // Invalidate presets cache
     invalidateCache(`presets:${normalizedEmail}`);
-    console.log('[CardAPI] deletePreset success:', presetId);
     return { success: true };
   } catch (error) {
-    console.error('[CardAPI] deletePreset error:', error);
     return { success: false, error: 'Network error' };
   }
 }
@@ -422,7 +382,6 @@ export async function deletePreset(email: string, presetId: string): Promise<{ s
  * Activate a preset (deactivates others and saves settings to user_cards)
  */
 export async function activatePreset(email: string, presetId: string | null): Promise<{ success: boolean; error?: string }> {
-  console.log('[CardAPI] activatePreset called:', presetId);
   const normalizedEmail = email.toLowerCase();
 
   try {
@@ -436,17 +395,14 @@ export async function activatePreset(email: string, presetId: string | null): Pr
     const data = await response.json();
 
     if (!response.ok) {
-      console.error('[CardAPI] activatePreset error:', data.error);
       return { success: false, error: data.error };
     }
 
     // Invalidate caches - activation changes presets and user card data
     invalidateCache(`presets:${normalizedEmail}`);
     invalidateCache(`userCardData:${normalizedEmail}`);
-    console.log('[CardAPI] activatePreset success:', presetId);
     return { success: true };
   } catch (error) {
-    console.error('[CardAPI] activatePreset error:', error);
     return { success: false, error: 'Network error' };
   }
 }
@@ -477,7 +433,6 @@ export async function initDefaultPresets(email: string): Promise<{ success: bool
       const data = await response.json();
 
       if (!response.ok) {
-        console.error('[CardAPI] Error initializing default presets:', data.error);
         return { success: false, created: false, error: data.error };
       }
 
@@ -487,11 +442,9 @@ export async function initDefaultPresets(email: string): Promise<{ success: bool
       // Only invalidate cache if defaults were actually created
       if (data.created) {
         invalidateCache(`presets:${normalizedEmail}`);
-        console.log('[CardAPI] Default presets initialized for:', normalizedEmail);
       }
       return { success: true, created: data.created || false };
     } catch (error) {
-      console.error('[CardAPI] Error initializing default presets:', error);
       return { success: false, created: false, error: 'Network error' };
     }
   });
@@ -514,16 +467,13 @@ export async function resetPresets(email: string): Promise<{ success: boolean; e
     const data = await response.json();
 
     if (!response.ok) {
-      console.error('[CardAPI] Error resetting presets:', data.error);
       return { success: false, error: data.error };
     }
 
     // Invalidate presets cache
     invalidateCache(`presets:${normalizedEmail}`);
-    console.log('[CardAPI] Presets reset for:', normalizedEmail);
     return { success: true };
   } catch (error) {
-    console.error('[CardAPI] Error resetting presets:', error);
     return { success: false, error: 'Network error' };
   }
 }
@@ -544,7 +494,6 @@ export async function updateLockStatus(
   isLocked: boolean,
   lockEndsAt?: string | null
 ): Promise<{ success: boolean; error?: string }> {
-  console.log('[CardAPI] updateLockStatus called:', { isLocked, lockEndsAt });
   const normalizedEmail = email.toLowerCase();
 
   try {
@@ -558,16 +507,13 @@ export async function updateLockStatus(
     const data = await response.json();
 
     if (!response.ok) {
-      console.error('[CardAPI] updateLockStatus error:', data.error);
       return { success: false, error: data.error };
     }
 
     // Invalidate lock status cache
     invalidateCache(`lockStatus:${normalizedEmail}`);
-    console.log('[CardAPI] updateLockStatus success:', isLocked);
     return { success: true };
   } catch (error) {
-    console.error('[CardAPI] updateLockStatus error:', error);
     return { success: false, error: 'Network error' };
   }
 }
@@ -583,12 +529,10 @@ export async function getLockStatus(email: string, skipCache = false): Promise<L
   if (!skipCache) {
     const cached = getCached<LockStatus>(cacheKey, CACHE_TTL.lockStatus);
     if (cached) {
-      console.log('[CardAPI] getLockStatus returning cached data');
       return cached;
     }
   }
 
-  console.log('[CardAPI] getLockStatus fetching from API');
   // Use deduplication to prevent multiple simultaneous requests
   return deduplicatedRequest(cacheKey, async () => {
     try {
@@ -597,7 +541,6 @@ export async function getLockStatus(email: string, skipCache = false): Promise<L
       const data = await response.json();
 
       if (!response.ok || data.error) {
-        console.error('[CardAPI] getLockStatus error:', data.error);
         return { isLocked: false, lockStartedAt: null, lockEndsAt: null };
       }
 
@@ -607,11 +550,9 @@ export async function getLockStatus(email: string, skipCache = false): Promise<L
         lockEndsAt: data.lockEndsAt,
       };
 
-      console.log('[CardAPI] getLockStatus success:', result.isLocked);
       setCache(cacheKey, result);
       return result;
     } catch (error) {
-      console.error('[CardAPI] getLockStatus error:', error);
       return { isLocked: false, lockStartedAt: null, lockEndsAt: null };
     }
   });
@@ -628,24 +569,20 @@ export interface EmergencyTapoutStatus {
  * Gradual refill system: +1 tapout every 2 weeks until back to 3
  */
 export async function getEmergencyTapoutStatus(email: string): Promise<EmergencyTapoutStatus> {
-  console.log('[CardAPI] getEmergencyTapoutStatus called');
   try {
     const headers = await getAuthHeaders();
     const response = await fetch(`${API_URL}/api/emergency-tapout`, { headers });
     const data = await response.json();
 
     if (!response.ok || data.error) {
-      console.error('[CardAPI] getEmergencyTapoutStatus error:', data.error);
       return { remaining: 3, nextRefillDate: null };
     }
 
-    console.log('[CardAPI] getEmergencyTapoutStatus success, remaining:', data.remaining);
     return {
       remaining: data.remaining ?? 3,
       nextRefillDate: data.nextRefillDate ?? null,
     };
   } catch (error) {
-    console.error('[CardAPI] getEmergencyTapoutStatus error:', error);
     return { remaining: 3, nextRefillDate: null };
   }
 }
@@ -665,7 +602,6 @@ export async function setEmergencyTapoutEnabled(email: string, enabled: boolean)
     const data = await response.json();
     return { success: response.ok && !data.error };
   } catch (error) {
-    console.error('[CardAPI] Error setting emergency tapout:', error);
     return { success: false };
   }
 }
@@ -677,7 +613,6 @@ export async function setEmergencyTapoutEnabled(email: string, enabled: boolean)
  * @param skipTapoutDecrement - If true, unlocks without decrementing tapout count (for slide-to-unlock)
  */
 export async function useEmergencyTapout(email: string, presetId?: string, skipTapoutDecrement?: boolean): Promise<{ success: boolean; remaining: number }> {
-  console.log('[CardAPI] useEmergencyTapout called, presetId:', presetId, 'skipTapoutDecrement:', skipTapoutDecrement);
   const normalizedEmail = email.toLowerCase();
 
   try {
@@ -691,17 +626,14 @@ export async function useEmergencyTapout(email: string, presetId?: string, skipT
     const data = await response.json();
 
     if (!response.ok || data.error) {
-      console.error('[CardAPI] useEmergencyTapout error:', data.error);
       return { success: false, remaining: 0 };
     }
 
     // Invalidate presets cache since the preset was deactivated
     invalidateCache(`presets:${normalizedEmail}`);
 
-    console.log('[CardAPI] useEmergencyTapout success, remaining:', data.remaining);
     return { success: true, remaining: data.remaining ?? 0 };
   } catch (error) {
-    console.error('[CardAPI] useEmergencyTapout error:', error);
     return { success: false, remaining: 0 };
   }
 }
@@ -714,21 +646,17 @@ export type ThemeType = 'dark' | 'light';
  * Get user's theme preference
  */
 export async function getUserTheme(email: string): Promise<ThemeType> {
-  console.log('[CardAPI] getUserTheme called');
   try {
     const headers = await getAuthHeaders();
     const response = await fetch(`${API_URL}/api/user-theme`, { headers });
     const data = await response.json();
 
     if (!response.ok || data.error) {
-      console.error('[CardAPI] getUserTheme error:', data.error);
       return 'dark'; // Default to dark
     }
 
-    console.log('[CardAPI] getUserTheme success:', data.theme);
     return data.theme === 'light' ? 'light' : 'dark';
   } catch (error) {
-    console.error('[CardAPI] getUserTheme error:', error);
     return 'dark';
   }
 }
@@ -737,7 +665,6 @@ export async function getUserTheme(email: string): Promise<ThemeType> {
  * Save user's theme preference
  */
 export async function saveUserTheme(email: string, theme: ThemeType): Promise<{ success: boolean; error?: string }> {
-  console.log('[CardAPI] saveUserTheme called:', theme);
   try {
     const headers = await getAuthHeaders();
     const response = await fetch(`${API_URL}/api/user-theme`, {
@@ -749,14 +676,11 @@ export async function saveUserTheme(email: string, theme: ThemeType): Promise<{ 
     const data = await response.json();
 
     if (!response.ok) {
-      console.error('[CardAPI] saveUserTheme error:', data.error);
       return { success: false, error: data.error };
     }
 
-    console.log('[CardAPI] saveUserTheme success:', theme);
     return { success: true };
   } catch (error) {
-    console.error('[CardAPI] saveUserTheme error:', error);
     return { success: false, error: 'Network error' };
   }
 }

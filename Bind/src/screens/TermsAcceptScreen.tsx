@@ -119,7 +119,7 @@ function TermsAcceptScreen({ onAccept }: Props) {
 
       {/* Accept Terms Section */}
       <View style={{ borderTopWidth: 1, borderTopColor: colors.border, backgroundColor: colors.bg }} className="px-6 py-4">
-        <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito text-center mb-4">
+        <Text style={{ color: colors.textSecondary }} className="text-sm text-white font-nunito text-center mb-4">
           Do you accept these Terms of Service?
         </Text>
         <TouchableOpacity

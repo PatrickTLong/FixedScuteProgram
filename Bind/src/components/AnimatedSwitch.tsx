@@ -10,7 +10,7 @@ interface AnimatedSwitchProps {
   trackColorTrue?: string;
   thumbColorOn?: string;
   thumbColorOff?: string;
-  size?: 'default' | 'small';
+  size?: 'default' | 'small' | 'medium' | 'large';
 }
 
 // Base sizes (will be scaled)
@@ -25,6 +25,18 @@ const BASE_TRACK_HEIGHT_SMALL = 20;
 const BASE_THUMB_SIZE_SMALL = 16;
 const BASE_THUMB_OFFSET_SMALL = 2;
 
+// Medium size bases
+const BASE_TRACK_WIDTH_MEDIUM = 48;
+const BASE_TRACK_HEIGHT_MEDIUM = 29;
+const BASE_THUMB_SIZE_MEDIUM = 25;
+const BASE_THUMB_OFFSET_MEDIUM = 2;
+
+// Large size bases
+const BASE_TRACK_WIDTH_LARGE = 52;
+const BASE_TRACK_HEIGHT_LARGE = 32;
+const BASE_THUMB_SIZE_LARGE = 28;
+const BASE_THUMB_OFFSET_LARGE = 2;
+
 const ANIMATION_DURATION = 250;
 
 export default function AnimatedSwitch({
@@ -35,15 +47,40 @@ export default function AnimatedSwitch({
   trackColorTrue = '#16a34a',
   thumbColorOn = '#22c55e',
   thumbColorOff = '#9ca3af',
-  size = 'default',
+  size = 'medium',
 }: AnimatedSwitchProps) {
   const { s } = useResponsive();
 
   // Select dimensions based on size, then scale
-  const trackWidth = s(size === 'small' ? BASE_TRACK_WIDTH_SMALL : BASE_TRACK_WIDTH);
-  const trackHeight = s(size === 'small' ? BASE_TRACK_HEIGHT_SMALL : BASE_TRACK_HEIGHT);
-  const thumbSize = s(size === 'small' ? BASE_THUMB_SIZE_SMALL : BASE_THUMB_SIZE);
-  const thumbOffset = s(size === 'small' ? BASE_THUMB_OFFSET_SMALL : BASE_THUMB_OFFSET);
+  const getBaseTrackWidth = () => {
+    if (size === 'small') return BASE_TRACK_WIDTH_SMALL;
+    if (size === 'medium') return BASE_TRACK_WIDTH_MEDIUM;
+    if (size === 'large') return BASE_TRACK_WIDTH_LARGE;
+    return BASE_TRACK_WIDTH;
+  };
+  const getBaseTrackHeight = () => {
+    if (size === 'small') return BASE_TRACK_HEIGHT_SMALL;
+    if (size === 'medium') return BASE_TRACK_HEIGHT_MEDIUM;
+    if (size === 'large') return BASE_TRACK_HEIGHT_LARGE;
+    return BASE_TRACK_HEIGHT;
+  };
+  const getBaseThumbSize = () => {
+    if (size === 'small') return BASE_THUMB_SIZE_SMALL;
+    if (size === 'medium') return BASE_THUMB_SIZE_MEDIUM;
+    if (size === 'large') return BASE_THUMB_SIZE_LARGE;
+    return BASE_THUMB_SIZE;
+  };
+  const getBaseThumbOffset = () => {
+    if (size === 'small') return BASE_THUMB_OFFSET_SMALL;
+    if (size === 'medium') return BASE_THUMB_OFFSET_MEDIUM;
+    if (size === 'large') return BASE_THUMB_OFFSET_LARGE;
+    return BASE_THUMB_OFFSET;
+  };
+
+  const trackWidth = s(getBaseTrackWidth());
+  const trackHeight = s(getBaseTrackHeight());
+  const thumbSize = s(getBaseThumbSize());
+  const thumbOffset = s(getBaseThumbOffset());
 
   const animatedValue = useRef(new Animated.Value(value ? 1 : 0)).current;
 

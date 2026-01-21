@@ -158,15 +158,13 @@ function App() {
         if (activePresetForTapout) {
           const deactivatedPreset = { ...activePresetForTapout, isActive: false };
           await savePreset(userEmail, deactivatedPreset);
-          console.log('[App] Deactivated preset after emergency tapout:', activePresetForTapout.name);
 
           // If it's a scheduled preset, cancel its alarm
           if (activePresetForTapout.isScheduled && ScheduleModule) {
             try {
               await ScheduleModule.cancelPresetAlarm(activePresetForTapout.id);
-              console.log('[App] Cancelled scheduled alarm for preset:', activePresetForTapout.id);
             } catch (e) {
-              console.error('[App] Failed to cancel preset alarm:', e);
+              // Failed to cancel preset alarm
             }
           }
         }
@@ -186,7 +184,6 @@ function App() {
         showModal('Failed', 'Could not use emergency tapout. Please try again.');
       }
     } catch (error) {
-      console.error('[App] Failed to use emergency tapout:', error);
       showModal('Error', 'Something went wrong. Please try again.');
     } finally {
       setTapoutLoading(false);
@@ -220,7 +217,6 @@ function App() {
         if (now >= startTime && now < endTime) {
           // Only navigate if we haven't already for this preset
           if (lastNavigatedScheduledPresetId !== preset.id) {
-            console.log('[App] Scheduled preset is now active:', preset.name, '- navigating to home');
             lastNavigatedScheduledPresetId = preset.id;
 
             // Invalidate caches to ensure HomeScreen gets fresh data
@@ -237,7 +233,7 @@ function App() {
       // No active scheduled preset found - clear the tracker so we can navigate again for future presets
       lastNavigatedScheduledPresetId = null;
     } catch (error) {
-      console.error('[App] Error checking active scheduled preset:', error);
+      // Error checking active scheduled preset
     }
   }, [userEmail, currentScreen]);
 
@@ -248,8 +244,6 @@ function App() {
 
       const launchData = await ScheduleModule.getScheduledLaunchData();
       if (launchData?.launched) {
-        console.log('[App] Launched from scheduled preset alarm:', launchData.presetName);
-
         // Clear the launch data so we don't process it again
         await ScheduleModule.clearScheduledLaunchData();
 
@@ -265,7 +259,7 @@ function App() {
         }
       }
     } catch (error) {
-      console.error('[App] Error checking scheduled launch:', error);
+      // Error checking scheduled launch
     }
   }, [currentScreen, userEmail]);
 
@@ -276,8 +270,6 @@ function App() {
 
       const launchData = await ScheduleModule.getBlockedOverlayLaunchData();
       if (launchData?.fromBlockedOverlay) {
-        console.log('[App] Launched from blocked overlay - redirecting to home');
-
         // If user is logged in and on main screen, ensure we're on home tab
         if (currentScreen === 'main') {
           setActiveTab('home'); setDisplayedTab('home');
@@ -285,7 +277,7 @@ function App() {
         }
       }
     } catch (error) {
-      console.error('[App] Error checking blocked overlay launch:', error);
+      // Error checking blocked overlay launch
     }
   }, [currentScreen]);
 
@@ -308,7 +300,7 @@ function App() {
         }
       }
     } catch (error) {
-      console.error('[App] Failed to check permissions:', error);
+      // Failed to check permissions
     }
   }, [userEmail, currentScreen]);
 
@@ -391,7 +383,7 @@ function App() {
           }
         }
       } catch (error) {
-        console.error('[App] Error checking permissions:', error);
+        // Error checking permissions
       }
 
       // Permissions not all granted or check failed, show permissions screen
@@ -430,7 +422,7 @@ function App() {
         }
       }
     } catch (error) {
-      console.error('[App] Error checking permissions:', error);
+      // Error checking permissions
     }
 
     // Permissions not all granted or check failed, show permissions screen
@@ -454,7 +446,7 @@ function App() {
         }
       }
     } catch (error) {
-      console.error('[App] Error checking permissions:', error);
+      // Error checking permissions
     }
 
     // Permissions not all granted or check failed, show permissions screen
@@ -492,7 +484,6 @@ function App() {
 
       return { success: true };
     } catch (error) {
-      console.error('Failed to reset account:', error);
       return { success: false, error: 'Failed to reset account' };
     }
   }, [userEmail, setTheme]);
@@ -514,7 +505,6 @@ function App() {
       setActiveTab('home'); setDisplayedTab('home');
       return { success: true };
     } catch (error) {
-      console.error('Failed to delete account:', error);
       return { success: false, error: 'Failed to delete account' };
     }
   }, [userEmail]);

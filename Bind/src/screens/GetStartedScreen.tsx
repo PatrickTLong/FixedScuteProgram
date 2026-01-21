@@ -78,7 +78,6 @@ function GetStartedScreen({ onBack, onSuccess, onSignIn }: Props) {
       }
     } catch (error) {
       showModal('Connection Error', 'Could not connect to server.');
-      console.error('Send code error:', error);
     } finally {
       setLoading(false);
     }
@@ -115,7 +114,6 @@ function GetStartedScreen({ onBack, onSuccess, onSignIn }: Props) {
       }
     } catch (error) {
       showModal('Connection Error', 'Could not connect to server');
-      console.error('Create account error:', error);
     } finally {
       setLoading(false);
     }
