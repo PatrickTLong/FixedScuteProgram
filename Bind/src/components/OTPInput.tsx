@@ -75,9 +75,9 @@ function OTPInput({ value, onChange, length = 6, disabled = false, autoFocus = f
                   backgroundColor: colors.card,
                   borderColor: isCurrentPosition ? colors.text : colors.border,
                   borderWidth: isCurrentPosition ? 2 : 1,
-                  width: s(36),
-                  height: s(44),
-                  borderRadius: s(8),
+                  width: s(44),
+                  height: s(52),
+                  borderRadius: s(10),
                   justifyContent: 'center',
                   alignItems: 'center',
                 }}
@@ -87,7 +87,7 @@ function OTPInput({ value, onChange, length = 6, disabled = false, autoFocus = f
                   editable={false}
                   style={{
                     color: colors.text,
-                    fontSize: 18,
+                    fontSize: 22,
                     fontFamily: 'Nunito-Bold',
                     textAlign: 'center',
                     width: '100%',

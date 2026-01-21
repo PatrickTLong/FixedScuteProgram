@@ -159,10 +159,10 @@ function SignInScreen({ onBack, onSuccess, onForgotPassword }: Props) {
       >
         <ScrollView
           keyboardShouldPersistTaps="handled"
-          contentContainerStyle={{ flexGrow: 1 }}
+          contentContainerStyle={{ flexGrow: 1, paddingTop: '20%' }}
           className="flex-1"
         >
-          <View className="flex-1 px-6 pt-12">
+          <View className="px-6 pt-12">
             {step === 'credentials' ? (
               <>
                 {/* Title */}
@@ -251,7 +251,7 @@ function SignInScreen({ onBack, onSuccess, onForgotPassword }: Props) {
           </View>
 
           {/* Bottom Section */}
-          <View className="px-6 pb-8">
+          <View className="px-6 pb-8 mt-6">
             {/* Sign In / Verify Button */}
             <TouchableOpacity
               onPress={step === 'credentials' ? handleSignIn : handleVerifyCode}

@@ -161,10 +161,10 @@ function GetStartedScreen({ onBack, onSuccess, onSignIn }: Props) {
       >
         <ScrollView
           keyboardShouldPersistTaps="handled"
-          contentContainerStyle={{ flexGrow: 1 }}
+          contentContainerStyle={{ flexGrow: 1, paddingTop: '15%' }}
           className="flex-1"
         >
-          <View className="flex-1 px-6 pt-12">
+          <View className="px-6 pt-12">
             {step === 'form' ? (
               <>
                 {/* Title */}
@@ -258,7 +258,7 @@ function GetStartedScreen({ onBack, onSuccess, onSignIn }: Props) {
           </View>
 
           {/* Bottom Section */}
-          <View className="px-6 pb-8">
+          <View className="px-6 pb-8 mt-6">
             {/* Sign Up / Verify Button */}
             <TouchableOpacity
               onPress={step === 'form' ? handleSignUp : handleVerifyCode}

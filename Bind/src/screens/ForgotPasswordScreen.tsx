@@ -175,10 +175,10 @@ function ForgotPasswordScreen({ onBack, onSuccess }: Props) {
       >
         <ScrollView
           keyboardShouldPersistTaps="handled"
-          contentContainerStyle={{ flexGrow: 1 }}
+          contentContainerStyle={{ flexGrow: 1, paddingTop: '20%' }}
           className="flex-1"
         >
-          <View className="flex-1 px-6 pt-12">
+          <View className="px-6 pt-12">
             {step === 'email' && (
               <>
                 <Text style={{ color: colors.text }} className="text-2xl font-nunito-bold text-center mb-4">
@@ -283,7 +283,7 @@ function ForgotPasswordScreen({ onBack, onSuccess }: Props) {
           </View>
 
           {/* Bottom Section */}
-          <View className="px-6 pb-8">
+          <View className="px-6 pb-8 mt-6">
             {/* Action Button */}
             <TouchableOpacity
               onPress={

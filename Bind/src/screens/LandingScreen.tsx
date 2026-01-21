@@ -25,7 +25,7 @@ function GlowingScuteText({ color, glowOpacity }: { color: string; glowOpacity: 
   return (
     <View style={{ position: 'relative' }}>
       {/* Invisible text for proper baseline alignment and layout */}
-      <Text style={{ opacity: 0 }} className="text-3xl font-nunito-bold">Scute!</Text>
+      <Text style={{ opacity: 0 }} className="text-3xl font-nunito-bold">Scute</Text>
       {/* SVG overlay with glow effect - positioned absolutely over the text */}
       <Svg
         style={{ position: 'absolute', top: -13.5, left: -12 }}
@@ -47,7 +47,7 @@ function GlowingScuteText({ color, glowOpacity }: { color: string; glowOpacity: 
           opacity={opacity}
           filter="url(#glow)"
         >
-          Scute!
+          Scute
         </SvgText>
         {/* Main text layer */}
         <SvgText
@@ -57,7 +57,7 @@ function GlowingScuteText({ color, glowOpacity }: { color: string; glowOpacity: 
           fontFamily="Nunito-Bold"
           fill={color}
         >
-          Scute!
+          Scute
         </SvgText>
       </Svg>
     </View>
@@ -106,7 +106,7 @@ function LandingScreen({ onSignIn, onGetStarted }: Props) {
         {/* Scute Logo */}
         <Image
           source={require('../frontassets/TrueScute-Photoroom.png')}
-          className="w-80 h-80 mb-8"
+          className="w-96 h-96 "
           resizeMode="contain"
           style={{ tintColor: colors.logoTint, marginTop: s(-60) }}
         />
@@ -117,13 +117,13 @@ function LandingScreen({ onSignIn, onGetStarted }: Props) {
           {isDark ? (
             <GlowingScuteText color={colors.text} glowOpacity={glowOpacity} />
           ) : (
-            <Text style={{ color: colors.text }} className="text-3xl font-nunito-bold">Scute!</Text>
+            <Text style={{ color: colors.text }} className="text-3xl font-nunito-bold">Scute</Text>
           )}
         </View>
 
         {/* Subtitle */}
         <Text style={{ color: colors.textSecondary }} className="text-center text-base font-nunito leading-6 px-4">
-          A simple way to block distractions and enjoy more of what matters.
+          A simple way to block distractions with minimal annoyance & hassle
         </Text>
       </View>
 
