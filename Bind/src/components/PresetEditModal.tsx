@@ -18,7 +18,7 @@ import {
 import AnimatedSwitch from './AnimatedSwitch';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Svg, { Path, Rect, Text as SvgText, Defs, Filter, FeGaussianBlur } from 'react-native-svg';
+import Svg, { Path, Rect } from 'react-native-svg';
 import TimerPicker from './TimerPicker';
 import DatePickerModal from './DatePickerModal';
 import ScheduleInfoModal from './ScheduleInfoModal';
@@ -40,89 +40,6 @@ const DISABLE_TAPOUT_WARNING_DISMISSED_KEY = 'disable_tapout_warning_dismissed';
 const BLOCK_SETTINGS_WARNING_DISMISSED_KEY = 'block_settings_warning_dismissed';
 const RECURRENCE_INFO_DISMISSED_KEY = 'recurrence_info_dismissed';
 const STRICT_MODE_WARNING_DISMISSED_KEY = 'strict_mode_warning_dismissed';
-
-// Pulsating glow text component (animated glow effect)
-interface PulsatingGlowTextProps {
-  text: string;
-  color: string;
-  fontSize?: number;
-}
-
-function PulsatingGlowText({ text, color, fontSize = 16 }: PulsatingGlowTextProps) {
-  const [opacity, setOpacity] = useState(0);
-  const glowOpacity = useRef(new Animated.Value(0)).current;
-  const animationRef = useRef<Animated.CompositeAnimation | null>(null);
-
-  useEffect(() => {
-    const listenerId = glowOpacity.addListener(({ value }) => {
-      setOpacity(value);
-    });
-
-    // Start pulsating animation (2 second cycle)
-    animationRef.current = Animated.loop(
-      Animated.sequence([
-        Animated.timing(glowOpacity, {
-          toValue: 1,
-          duration: 1000,
-          useNativeDriver: false,
-        }),
-        Animated.timing(glowOpacity, {
-          toValue: 0,
-          duration: 1000,
-          useNativeDriver: false,
-        }),
-      ])
-    );
-    animationRef.current.start();
-
-    return () => {
-      glowOpacity.removeListener(listenerId);
-      if (animationRef.current) {
-        animationRef.current.stop();
-      }
-    };
-  }, [glowOpacity]);
-
-  const textWidth = text.length * fontSize * 0.6;
-  const svgWidth = textWidth + 40;
-  const svgHeight = fontSize + 30;
-
-  return (
-    <View style={{ width: svgWidth, height: svgHeight, alignItems: 'center', justifyContent: 'center' }}>
-      <Svg width={svgWidth} height={svgHeight} style={{ position: 'absolute' }}>
-        <Defs>
-          <Filter id="pulsatingGlow" x="-50%" y="-50%" width="200%" height="200%">
-            <FeGaussianBlur in="SourceGraphic" stdDeviation="6" />
-          </Filter>
-        </Defs>
-        {/* Glow layer */}
-        <SvgText
-          x={svgWidth / 2}
-          y={svgHeight / 2 + fontSize / 3}
-          textAnchor="middle"
-          fontSize={fontSize}
-          fontFamily="Nunito-SemiBold"
-          fill="#ffffff"
-          opacity={opacity}
-          filter="url(#pulsatingGlow)"
-        >
-          {text}
-        </SvgText>
-        {/* Main text layer */}
-        <SvgText
-          x={svgWidth / 2}
-          y={svgHeight / 2 + fontSize / 3}
-          textAnchor="middle"
-          fontSize={fontSize}
-          fontFamily="Nunito-SemiBold"
-          fill={color}
-        >
-          {text}
-        </SvgText>
-      </Svg>
-    </View>
-  );
-}
 
 // Recurring schedule unit types
 type RecurringUnit = 'minutes' | 'hours' | 'days' | 'weeks' | 'months';
@@ -244,6 +161,19 @@ const FlagIcon = ({ size = 24 }: { size?: number }) => (
     <Path
       d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1zM4 22v-7"
       stroke="#FFFFFF"
+      strokeWidth={2.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+// Chevron right icon
+const ChevronRightIcon = ({ size = 24, color = "#9CA3AF" }: { size?: number; color?: string }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M9 18l6-6-6-6"
+      stroke={color}
       strokeWidth={2.5}
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -811,9 +741,9 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                   }}
                   activeOpacity={0.8}
                   style={{ backgroundColor: colors.card }}
-                  className="px-6 rounded-full"
+                  className="px-6 py-3 rounded-full"
                 >
-                  <PulsatingGlowText text="View Preset Guide" color="#FFFFFF" fontSize={16} />
+                  <Text style={{ color: '#FFFFFF' }} className="text-base font-nunito-semibold">View Preset Guide</Text>
                 </TouchableOpacity>
               </View>
 
@@ -1105,7 +1035,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                             style={{ backgroundColor: colors.card }}
                             className="flex-row items-center py-3 px-4 rounded-xl mr-3"
                           >
-                            <View style={{ backgroundColor: colors.cardLight }} className="w-10 h-10 rounded-lg items-center justify-center mr-3">
+                            <View className="mr-3">
                               <RepeatIcon size={22} />
                             </View>
                             <TextInput
@@ -1132,12 +1062,12 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                             }}
                             activeOpacity={0.7}
                             style={{ backgroundColor: colors.card }}
-                            className="flex-1 flex-row items-center justify-between py-3 px-4 rounded-xl"
+                            className="flex-1 flex-row items-center justify-between h-[4.55rem] py-3 px-4 rounded-xl"
                           >
                             <Text style={{ color: colors.text }} className="text-base font-nunito-semibold capitalize">
                               {recurringUnit}
                             </Text>
-                            <Text style={{ color: colors.textSecondary }} className="text-xl">›</Text>
+                            <ChevronRightIcon size={25} color={colors.textSecondary} />
                           </TouchableOpacity>
                         </View>
 
@@ -1376,19 +1306,19 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                       }}
                       activeOpacity={0.7}
                       style={{
-                        backgroundColor: recurringUnit === unit ? colors.greenDark : colors.cardLight,
+                        backgroundColor: recurringUnit === unit ? "#22c55e" : colors.cardLight,
                       }}
                       className="flex-row items-center justify-between py-4 px-4 rounded-xl mb-2"
                     >
                       <Text
-                        style={{ color: recurringUnit === unit ? colors.green : colors.text }}
+                        style={{ color: recurringUnit === unit ? colors.text : colors.text }}
                         className="text-base font-nunito-semibold capitalize"
                       >
                         {unit}
                       </Text>
                       {recurringUnit === unit && (
-                        <View className="w-5 h-5 rounded-full items-center justify-center" style={{ backgroundColor: colors.green }}>
-                          <View className="w-2 h-3 border-r-2 border-b-2 border-black rotate-45 -mt-0.5" />
+                        <View className="w-5 h-5 rounded-full items-center justify-center" style={{ backgroundColor: "#22c55e" }}>
+                          <View className="w-2 h-3 border-r-2 border-b-2 border-white rotate-45 -mt-0.5" />
                         </View>
                       )}
                     </TouchableOpacity>

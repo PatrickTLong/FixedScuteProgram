@@ -7,121 +7,9 @@ import {
   TouchableOpacity,
   Dimensions,
 } from 'react-native';
-import Svg, { Text as SvgText, Defs, Filter, FeGaussianBlur } from 'react-native-svg';
 import { lightTap, mediumTap, successTap } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
-
-// Glowing text component using SVG blur filter (animated)
-interface GlowTextProps {
-  text: string;
-  color: string;
-  glowOpacity: Animated.Value;
-  fontSize?: number;
-}
-
-function GlowText({ text, color, glowOpacity, fontSize = 16 }: GlowTextProps) {
-  const [opacity, setOpacity] = useState(0);
-
-  useEffect(() => {
-    const listenerId = glowOpacity.addListener(({ value }) => {
-      setOpacity(value);
-    });
-    return () => glowOpacity.removeListener(listenerId);
-  }, [glowOpacity]);
-
-  // Estimate text width (rough approximation)
-  const textWidth = text.length * fontSize * 0.6;
-  const svgWidth = textWidth + 40; // padding for glow
-  const svgHeight = fontSize + 30;
-
-  return (
-    <View style={{ width: svgWidth, height: svgHeight, alignItems: 'center', justifyContent: 'center' }}>
-      <Svg width={svgWidth} height={svgHeight} style={{ position: 'absolute' }}>
-        <Defs>
-          <Filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-            <FeGaussianBlur in="SourceGraphic" stdDeviation="6" />
-          </Filter>
-        </Defs>
-        {/* Glow layer */}
-        <SvgText
-          x={svgWidth / 2}
-          y={svgHeight / 2 + fontSize / 3}
-          textAnchor="middle"
-          fontSize={fontSize}
-          fontFamily="Nunito-SemiBold"
-          fill="#ffffff"
-          opacity={opacity}
-          filter="url(#glow)"
-        >
-          {text}
-        </SvgText>
-        {/* Main text layer */}
-        <SvgText
-          x={svgWidth / 2}
-          y={svgHeight / 2 + fontSize / 3}
-          textAnchor="middle"
-          fontSize={fontSize}
-          fontFamily="Nunito-SemiBold"
-          fill={color}
-        >
-          {text}
-        </SvgText>
-      </Svg>
-    </View>
-  );
-}
-
-// Static glow text component (no animation, constant glow)
-interface StaticGlowTextProps {
-  text: string;
-  color: string;
-  fontSize?: number;
-  glowOpacity?: number;
-}
-
-function StaticGlowText({ text, color, fontSize = 16, glowOpacity = 1 }: StaticGlowTextProps) {
-  // Estimate text width (rough approximation)
-  const textWidth = text.length * fontSize * 0.6;
-  const svgWidth = textWidth + 40; // padding for glow
-  const svgHeight = fontSize + 30;
-
-  return (
-    <View style={{ width: svgWidth, height: svgHeight, alignItems: 'center', justifyContent: 'center' }}>
-      <Svg width={svgWidth} height={svgHeight} style={{ position: 'absolute' }}>
-        <Defs>
-          <Filter id="staticGlow" x="-50%" y="-50%" width="200%" height="200%">
-            <FeGaussianBlur in="SourceGraphic" stdDeviation="6" />
-          </Filter>
-        </Defs>
-        {/* Glow layer */}
-        <SvgText
-          x={svgWidth / 2}
-          y={svgHeight / 2 + fontSize / 3}
-          textAnchor="middle"
-          fontSize={fontSize}
-          fontFamily="Nunito-SemiBold"
-          fill="#ffffff"
-          opacity={glowOpacity}
-          filter="url(#staticGlow)"
-        >
-          {text}
-        </SvgText>
-        {/* Main text layer */}
-        <SvgText
-          x={svgWidth / 2}
-          y={svgHeight / 2 + fontSize / 3}
-          textAnchor="middle"
-          fontSize={fontSize}
-          fontFamily="Nunito-SemiBold"
-          fill={color}
-        >
-          {text}
-        </SvgText>
-      </Svg>
-    </View>
-  );
-}
 
 // Slide thumb component with chevron arrow
 interface SlideThumbProps {
@@ -152,7 +40,6 @@ interface BlockNowButtonProps {
   disabled?: boolean;
   isLocked?: boolean;
   hasActiveTimer?: boolean; // true when there's a countdown or elapsed time showing
-  hasReadyPreset?: boolean; // true when there's a preset ready to lock (enables glow)
   strictMode?: boolean; // when false, slide-to-unlock is available even for timed presets
 }
 
@@ -163,7 +50,6 @@ function BlockNowButton({
   disabled = false,
   isLocked = false,
   hasActiveTimer = false,
-  hasReadyPreset = false,
   strictMode = false,
 }: BlockNowButtonProps) {
   const { colors } = useTheme();
@@ -173,10 +59,6 @@ function BlockNowButton({
   const fillAnimation = useRef(new Animated.Value(0)).current;
   const animationRef = useRef<Animated.CompositeAnimation | null>(null);
   const hapticIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  // Pulsating glow animation
-  const glowOpacity = useRef(new Animated.Value(0)).current;
-  const glowAnimationRef = useRef<Animated.CompositeAnimation | null>(null);
 
   // Slide to unlock state
   const [isSliding, setIsSliding] = useState(false);
@@ -213,44 +95,6 @@ function BlockNowButton({
   // 1. Locked with no active timer (no time limit preset) - always slide-to-unlock
   // 2. Locked with active timer BUT strictMode is OFF - slide-to-unlock available
   const showSlideToUnlock = isLocked && (!hasActiveTimer || !strictMode);
-
-  // Slow pulsating glow for ready preset (hold to lock) and slide to unlock
-  const shouldShowSlowGlow = (hasReadyPreset && !isLocked) || showSlideToUnlock;
-
-  useEffect(() => {
-    if (shouldShowSlowGlow && !isPressed) {
-      // Start slow pulsating animation (2 second cycle)
-      glowAnimationRef.current = Animated.loop(
-        Animated.sequence([
-          Animated.timing(glowOpacity, {
-            toValue: 1,
-            duration: 1000,
-            useNativeDriver: false,
-          }),
-          Animated.timing(glowOpacity, {
-            toValue: 0,
-            duration: 1000,
-            useNativeDriver: false,
-          }),
-        ])
-      );
-      glowAnimationRef.current.start();
-    } else {
-      // Stop animation
-      if (glowAnimationRef.current) {
-        glowAnimationRef.current.stop();
-        glowAnimationRef.current = null;
-      }
-      glowOpacity.setValue(0);
-    }
-
-    return () => {
-      if (glowAnimationRef.current) {
-        glowAnimationRef.current.stop();
-        glowAnimationRef.current = null;
-      }
-    };
-  }, [shouldShowSlowGlow, isPressed, glowOpacity]);
 
   // Reset slide position when switching modes
   useEffect(() => {
@@ -451,7 +295,7 @@ function BlockNowButton({
         }}
       >
         <View className="flex-1 flex-row items-center justify-center">
-          <StaticGlowText text="Locked" color={colors.text} />
+          <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">Locked</Text>
         </View>
       </TouchableOpacity>
     );
@@ -461,12 +305,11 @@ function BlockNowButton({
   if (showSlideToUnlock) {
     const thumbSize = 32;
     const thumbMargin = 6;
-    const initialFillWidth = thumbSize + thumbMargin * 2; // Initial green fill to contain the thumb
 
-    // Interpolate slide fill width starting from initial width
-    const slideFillWidthWithThumb = slidePosition.interpolate({
-      inputRange: [0, buttonWidth - initialFillWidth],
-      outputRange: [initialFillWidth, buttonWidth],
+    // Green fill only appears when sliding - starts from 0 and grows with slide
+    const slideFillWidth = slidePosition.interpolate({
+      inputRange: [0, buttonWidth],
+      outputRange: [0, buttonWidth],
       extrapolate: 'clamp',
     });
 
@@ -481,27 +324,28 @@ function BlockNowButton({
       >
         {/* Button Content - rendered first so it's behind the fill */}
         <View className="flex-1 flex-row items-center justify-center" style={{ zIndex: 1 }}>
-          <StaticGlowText
-            text={isUnlocking ? 'Unlocking...' : isSliding ? 'Slide...' : 'Slide to Unlock'}
-            color={colors.text}
-          />
+          <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">
+            {isUnlocking ? 'Unlocking...' : isSliding ? 'Slide...' : 'Slide to Unlock'}
+          </Text>
         </View>
 
-        {/* Slide fill animation - starts with thumb width, rendered on top to cover text */}
-        <Animated.View
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            bottom: 0,
-            width: slideFillWidthWithThumb,
-            backgroundColor: fillColor,
-            borderRadius: 16,
-            zIndex: 2,
-          }}
-        />
+        {/* Slide fill animation - only visible when sliding, rendered on top to cover text */}
+        {isSliding && (
+          <Animated.View
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              bottom: 0,
+              width: slideFillWidth,
+              backgroundColor: fillColor,
+              borderRadius: 16,
+              zIndex: 2,
+            }}
+          />
+        )}
 
-        {/* Slide thumb (white arrow) that moves with the gesture - sits inside the green fill */}
+        {/* Slide thumb (white arrow) that moves with the gesture */}
         <Animated.View
           style={{
             position: 'absolute',
@@ -547,20 +391,12 @@ function BlockNowButton({
 
       {/* Button Content */}
       <View className="flex-1 flex-row items-center justify-center">
-        {shouldShowSlowGlow ? (
-          <GlowText
-            text={isPressed ? 'Hold...' : 'Hold to Begin Locking'}
-            color={getTextColor()}
-            glowOpacity={glowOpacity}
-          />
-        ) : (
-          <Text
-            style={{ color: getTextColor() }}
-            className="text-base font-nunito-semibold"
-          >
-            {isPressed ? 'Hold...' : 'Hold to Begin Locking'}
-          </Text>
-        )}
+        <Text
+          style={{ color: getTextColor() }}
+          className="text-base font-nunito-semibold"
+        >
+          {isPressed ? 'Hold...' : 'Hold to Begin Locking'}
+        </Text>
       </View>
     </View>
   );
@@ -572,7 +408,6 @@ export default memo(BlockNowButton, (prevProps, nextProps) => {
     prevProps.disabled === nextProps.disabled &&
     prevProps.isLocked === nextProps.isLocked &&
     prevProps.hasActiveTimer === nextProps.hasActiveTimer &&
-    prevProps.hasReadyPreset === nextProps.hasReadyPreset &&
     prevProps.strictMode === nextProps.strictMode &&
     prevProps.onActivate === nextProps.onActivate &&
     prevProps.onUnlockPress === nextProps.onUnlockPress &&

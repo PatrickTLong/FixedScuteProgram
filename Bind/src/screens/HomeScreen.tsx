@@ -7,11 +7,11 @@ import {
   AppState,
   Animated,
   Vibration,
-  ActivityIndicator,
   ScrollView,
   Modal,
   Image,
 } from 'react-native';
+import LottieView from 'lottie-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Text as SvgText, Defs, Filter, FeGaussianBlur } from 'react-native-svg';
 import BlockNowButton from '../components/BlockNowButton';
@@ -1043,7 +1043,12 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
   if (loading) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }} edges={['top']}>
-        <ActivityIndicator size="large" color={colors.green} />
+        <LottieView
+          source={require('../../insider-loading.json')}
+          autoPlay
+          loop
+          style={{ width: 100, height: 100 }}
+        />
       </SafeAreaView>
     );
   }
@@ -1207,7 +1212,6 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
             disabled={!currentPreset}
             isLocked={isLocked}
             hasActiveTimer={!!timeRemaining}
-            hasReadyPreset={!!currentPreset && !isLocked}
             strictMode={activePreset?.strictMode ?? false}
           />
         </View>
