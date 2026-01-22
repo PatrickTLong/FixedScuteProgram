@@ -85,15 +85,15 @@ const AppItem = memo(({ item, isSelected, onToggle, cardColor, cardLightColor, t
       className="flex-row items-center py-3 px-4 rounded-xl mb-2"
     >
       {/* App Icon */}
-      <View className="w-10 h-10 items-center justify-center mr-3">
-        {item.icon ? (
-          <Image source={{ uri: item.icon }} className="w-9 h-9" />
-        ) : (
+      {item.icon ? (
+        <Image source={{ uri: item.icon }} className="w-10 h-10 mr-3" />
+      ) : (
+        <View className="w-10 h-10 items-center justify-center mr-3">
           <Text style={{ color: textSecondaryColor }} className="text-lg font-nunito-bold">
             {item.name.charAt(0)}
           </Text>
-        )}
-      </View>
+        </View>
+      )}
 
       {/* App Name */}
       <Text style={{ color: textColor }} className="flex-1 text-base font-nunito">{item.name}</Text>

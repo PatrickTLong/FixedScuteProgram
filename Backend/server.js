@@ -1061,6 +1061,30 @@ app.post('/api/presets/init-defaults', authenticateToken, async (req, res) => {
   }
 });
 
+// POST /api/presets/deactivate-all - Deactivate all active presets for a user (used on logout) (PROTECTED)
+app.post('/api/presets/deactivate-all', authenticateToken, async (req, res) => {
+  const normalizedEmail = req.userEmail;
+
+  try {
+    const { error } = await supabase
+      .from('user_presets')
+      .update({ is_active: false })
+      .eq('email', normalizedEmail)
+      .eq('is_active', true);
+
+    if (error) {
+      console.error('Error deactivating presets:', error);
+      return res.status(500).json({ error: 'Failed to deactivate presets' });
+    }
+
+    console.log(`All active presets deactivated for ${normalizedEmail}`);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Deactivate all presets error:', error);
+    res.status(500).json({ error: 'Failed to deactivate presets' });
+  }
+});
+
 // POST /api/presets/reset - Delete all presets and recreate defaults (PROTECTED)
 app.post('/api/presets/reset', authenticateToken, async (req, res) => {
   const normalizedEmail = req.userEmail; // Get email from verified token

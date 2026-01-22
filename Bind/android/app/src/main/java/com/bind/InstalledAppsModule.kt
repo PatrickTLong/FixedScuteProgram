@@ -178,9 +178,9 @@ class InstalledAppsModule(reactContext: ReactApplicationContext) : ReactContextB
         return try {
             val bitmap = drawableToBitmap(drawable)
             val outputStream = ByteArrayOutputStream()
-            // Compress to smaller size for performance
-            val scaledBitmap = Bitmap.createScaledBitmap(bitmap, 64, 64, true)
-            scaledBitmap.compress(Bitmap.CompressFormat.PNG, 80, outputStream)
+            // Higher quality icons (128x128 at 100% quality)
+            val scaledBitmap = Bitmap.createScaledBitmap(bitmap, 128, 128, true)
+            scaledBitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
             val byteArray = outputStream.toByteArray()
             Base64.encodeToString(byteArray, Base64.NO_WRAP)
         } catch (e: Exception) {
@@ -193,8 +193,8 @@ class InstalledAppsModule(reactContext: ReactApplicationContext) : ReactContextB
             return drawable.bitmap
         }
 
-        val width = if (drawable.intrinsicWidth > 0) drawable.intrinsicWidth else 64
-        val height = if (drawable.intrinsicHeight > 0) drawable.intrinsicHeight else 64
+        val width = if (drawable.intrinsicWidth > 0) drawable.intrinsicWidth else 128
+        val height = if (drawable.intrinsicHeight > 0) drawable.intrinsicHeight else 128
 
         val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)

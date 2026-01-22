@@ -222,7 +222,9 @@ function PresetsScreen({ userEmail }: Props) {
   }, []);
 
   const handleTogglePreset = useCallback(async (preset: Preset, value: boolean) => {
+    console.log(`[PresetsScreen] handleTogglePreset called - preset: ${preset.name}, value: ${value}, isScheduled: ${preset.isScheduled}`);
     if (value) {
+      console.log(`[PresetsScreen] Activating preset: ${preset.name}`);
       if (preset.isScheduled) {
         // Scheduled preset - check for overlaps with other active scheduled presets
         const otherScheduledPresets = presets.filter(
@@ -312,7 +314,9 @@ function PresetsScreen({ userEmail }: Props) {
       }
     } else {
       // Deactivate
+      console.log(`[PresetsScreen] Deactivating preset: ${preset.name}`);
       if (preset.isScheduled) {
+        console.log(`[PresetsScreen] Deactivating SCHEDULED preset: ${preset.name}`);
         // OPTIMISTIC UPDATE - update UI immediately
         setPresets(prev => prev.map(p =>
           p.id === preset.id ? { ...p, isActive: false } : p
@@ -338,6 +342,7 @@ function PresetsScreen({ userEmail }: Props) {
         });
       } else {
         // Non-scheduled preset
+        console.log(`[PresetsScreen] Deactivating NON-SCHEDULED preset: ${preset.name}`);
         // OPTIMISTIC UPDATE - update UI immediately
         setActivePresetId(null);
         setPresets(prev => prev.map(p => ({
@@ -347,6 +352,7 @@ function PresetsScreen({ userEmail }: Props) {
 
         // Save in background
         activatePreset(userEmail, null).then(result => {
+          console.log(`[PresetsScreen] activatePreset(null) result:`, result);
           if (result.success) {
             // Invalidate cache so other screens get fresh data
             invalidateUserCaches(userEmail);

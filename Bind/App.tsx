@@ -16,7 +16,7 @@ import TermsAcceptScreen from './src/screens/TermsAcceptScreen';
 import BottomTabBar from './src/components/BottomTabBar';
 import InfoModal from './src/components/InfoModal';
 import EmergencyTapoutModal from './src/components/EmergencyTapoutModal';
-import { deleteAccount, updateLockStatus, getLockStatus, getPresets, resetPresets, getEmergencyTapoutStatus, useEmergencyTapout, savePreset, Preset, EmergencyTapoutStatus, invalidateUserCaches, saveUserTheme, clearAuthToken } from './src/services/cardApi';
+import { deleteAccount, updateLockStatus, getLockStatus, getPresets, resetPresets, deactivateAllPresets, getEmergencyTapoutStatus, useEmergencyTapout, savePreset, Preset, EmergencyTapoutStatus, invalidateUserCaches, saveUserTheme, clearAuthToken } from './src/services/cardApi';
 
 const { BlockingModule, PermissionsModule, ScheduleModule } = NativeModules;
 
@@ -460,18 +460,27 @@ function App() {
   }, []);
 
   const handleLogout = useCallback(async () => {
+    // Deactivate all active presets before logging out (same as PresetsScreen untoggle)
+    if (userEmail) {
+      await deactivateAllPresets(userEmail);
+      // Clear all scheduled alarms from native side
+      await ScheduleModule?.saveScheduledPresets('[]');
+    }
     await AsyncStorage.removeItem('user_email');
-    await clearAuthToken(); // Clear JWT token on logout
+    await clearAuthToken();
     setIsLoggedIn(false);
     setUserEmail('');
     setDisplayedScreen('landing');
     setCurrentScreen('landing');
     setActiveTab('home'); setDisplayedTab('home');
-  }, []);
+  }, [userEmail]);
 
   const handleResetAccount = useCallback(async (): Promise<{ success: boolean; error?: string }> => {
     // Reset presets and settings but keep user logged in
     try {
+      // Clear all scheduled alarms from native side before deleting presets
+      await ScheduleModule?.saveScheduledPresets('[]');
+
       // Call API to delete all presets and recreate defaults (Supabase is source of truth)
       const result = await resetPresets(userEmail);
       if (!result.success) {
@@ -492,6 +501,9 @@ function App() {
     // Delete account from Supabase and clear everything locally
     // This deletes from users and user_cards tables, NOT the whitelist
     try {
+      // Clear all scheduled alarms from native side before deleting account
+      await ScheduleModule?.saveScheduledPresets('[]');
+
       const result = await deleteAccount(userEmail);
       if (!result.success) {
         return { success: false, error: result.error || 'Failed to delete account' };

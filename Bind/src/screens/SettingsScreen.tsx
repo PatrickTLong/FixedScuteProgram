@@ -586,7 +586,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
       <ConfirmationModal
         visible={deleteAccountModalVisible}
         title="Delete Account"
-        message="This will permanently delete your account, delete all the data associated with your account, unregister your Scute, and return you to the onboarding screen. This action cannot be undone."
+        message="This will permanently delete your account, delete all the data associated with your account, and return you to the onboarding screen. This action cannot be undone."
         confirmText="Delete Account"
         cancelText="Cancel"
         isDestructive

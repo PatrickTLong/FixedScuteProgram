@@ -471,6 +471,34 @@ export async function initDefaultPresets(email: string): Promise<{ success: bool
 }
 
 /**
+ * Deactivate all active presets for a user (used on logout)
+ */
+export async function deactivateAllPresets(email: string): Promise<{ success: boolean; error?: string }> {
+  const normalizedEmail = email.toLowerCase();
+
+  try {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_URL}/api/presets/deactivate-all`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({}),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      return { success: false, error: data.error };
+    }
+
+    // Invalidate presets cache
+    invalidateCache(`presets:${normalizedEmail}`);
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: 'Network error' };
+  }
+}
+
+/**
  * Reset all presets to defaults (deletes all and recreates default presets)
  */
 export async function resetPresets(email: string): Promise<{ success: boolean; error?: string }> {
@@ -735,6 +763,7 @@ export default {
   activatePreset,
   initDefaultPresets,
   resetPresets,
+  deactivateAllPresets,
   updatePresetSchedule,
   // Lock status functions
   updateLockStatus,

@@ -1132,8 +1132,8 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
             )}
           </View>
 
-          {/* Preset info */}
-          <View className="items-center">
+          {/* Preset info - relative container for absolute scheduled button */}
+          <View className="items-center" style={{ position: 'relative' }}>
             <View className="items-center justify-center">
               {isActivelyLocked ? (
                 <GlowText
@@ -1168,42 +1168,45 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
                 {getPresetTimingSubtext()}
               </Text>
             )}
-          </View>
 
-          {/* Scheduled Presets Button */}
-          {scheduledPresets.length > 0 && (
-            <TouchableOpacity
-              onPress={() => { lightTap(); setScheduledPresetsModalVisible(true); }}
-              activeOpacity={0.7}
-              className="mt-6 px-5 py-2.5 rounded-full flex-row items-center"
-              style={{
-                backgroundColor: colors.card,
-              }}
-            >
-              <View style={{
-                backgroundColor: (() => {
-                  const now = new Date();
-                  // Check if any is currently active
-                  const hasActive = scheduledPresets.some(p => {
-                    const start = new Date(p.scheduleStartDate!);
-                    const end = new Date(p.scheduleEndDate!);
-                    return now >= start && now < end;
-                  });
-                  if (hasActive) return colors.green;
-                  // Check if any is pending
-                  const hasPending = scheduledPresets.some(p => {
-                    const start = new Date(p.scheduleStartDate!);
-                    return now < start;
-                  });
-                  if (hasPending) return colors.cyan;
-                  return colors.textSecondary;
-                })()
-              }} className="w-2 h-2 rounded-full mr-2" />
-              <Text style={{ color: colors.text }} className="text-sm font-nunito-semibold">
-                {scheduledPresets.length} Scheduled
-              </Text>
-            </TouchableOpacity>
-          )}
+            {/* Scheduled Presets Button - absolutely positioned under preset text */}
+            {scheduledPresets.length > 0 && (
+              <TouchableOpacity
+                onPress={() => { lightTap(); setScheduledPresetsModalVisible(true); }}
+                activeOpacity={0.7}
+                className="px-5 py-2.5 rounded-full flex-row items-center"
+                style={{
+                  backgroundColor: colors.card,
+                  position: 'absolute',
+                  top: '100%',
+                  marginTop: 24,
+                }}
+              >
+                <View style={{
+                  backgroundColor: (() => {
+                    const now = new Date();
+                    // Check if any is currently active
+                    const hasActive = scheduledPresets.some(p => {
+                      const start = new Date(p.scheduleStartDate!);
+                      const end = new Date(p.scheduleEndDate!);
+                      return now >= start && now < end;
+                    });
+                    if (hasActive) return colors.green;
+                    // Check if any is pending
+                    const hasPending = scheduledPresets.some(p => {
+                      const start = new Date(p.scheduleStartDate!);
+                      return now < start;
+                    });
+                    if (hasPending) return colors.cyan;
+                    return colors.textSecondary;
+                  })()
+                }} className="w-2 h-2 rounded-full mr-2" />
+                <Text style={{ color: colors.text }} className="text-sm font-nunito-semibold">
+                  {scheduledPresets.length} Scheduled
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
 
         {/* Action Button - clean matte style */}

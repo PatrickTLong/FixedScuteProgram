@@ -115,7 +115,12 @@ class UninstallBlockerService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         unregisterPackageReceiver()
-        Log.d(TAG, "UninstallBlockerService destroyed")
+
+        // Explicitly cancel the foreground notification
+        val notificationManager = getSystemService(NotificationManager::class.java)
+        notificationManager.cancel(NOTIFICATION_ID)
+
+        Log.d(TAG, "UninstallBlockerService destroyed and notification cancelled")
     }
 
     private fun createNotificationChannel() {
