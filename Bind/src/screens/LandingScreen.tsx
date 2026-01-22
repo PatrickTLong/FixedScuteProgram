@@ -1,8 +1,8 @@
-import React, { memo, useEffect, useRef } from 'react';
+import React, { memo, useEffect, useRef, useState } from 'react';
 import {
   Text,
   View,
-  TouchableOpacity,
+  Pressable,
   Image,
   Animated,
 } from 'react-native';
@@ -47,11 +47,15 @@ function LandingScreen({ onGetStarted }: Props) {
   const { colors, theme } = useTheme();
   const isDark = theme === 'dark';
 
-  // Pulsating glow animation for "Scute!" text
+  // Pulsating glow animation for logo
   const glowOpacity = useRef(new Animated.Value(0)).current;
 
+  // Fade in animation for "Tap to continue" text
+  const tapTextOpacity = useRef(new Animated.Value(0)).current;
+  const [showTapText, setShowTapText] = useState(false);
+
   useEffect(() => {
-    // Start slow pulsating animation (2 second cycle - matches Hold to Begin Locking)
+    // Start slow pulsating animation (2 second cycle)
     const animation = Animated.loop(
       Animated.sequence([
         Animated.timing(glowOpacity, {
@@ -68,46 +72,51 @@ function LandingScreen({ onGetStarted }: Props) {
     );
     animation.start();
 
+    // Show "Tap to continue" after 2 seconds with fade in
+    const timeout = setTimeout(() => {
+      setShowTapText(true);
+      Animated.timing(tapTextOpacity, {
+        toValue: 1,
+        duration: 500,
+        useNativeDriver: true,
+      }).start();
+    }, 2000);
+
     return () => {
       animation.stop();
+      clearTimeout(timeout);
     };
-  }, [glowOpacity]);
+  }, [glowOpacity, tapTextOpacity]);
+
+  const handleTap = () => {
+    if (showTapText) {
+      lightTap();
+      onGetStarted();
+    }
+  };
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
-      <View className="flex-1 justify-center items-center px-6">
-        {/* All content centered together */}
-        <View className="items-center w-full" style={{ marginTop: -140 }}>
-          {/* Scute Logo with glow effect in dark mode */}
-          {isDark ? (
-            <GlowingLogo glowOpacity={glowOpacity} tintColor={colors.logoTint} />
-          ) : (
-            <Image
-              source={require('../frontassets/TrueScute-Photoroom.png')}
-              className="w-96 h-96"
-              resizeMode="contain"
-              style={{ tintColor: colors.logoTint }}
-            />
-          )}
+      <Pressable onPress={handleTap} style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        {/* Logo centered */}
+        {isDark ? (
+          <GlowingLogo glowOpacity={glowOpacity} tintColor={colors.logoTint} />
+        ) : (
+          <Image
+            source={require('../frontassets/TrueScute-Photoroom.png')}
+            className="w-96 h-96"
+            resizeMode="contain"
+            style={{ tintColor: colors.logoTint }}
+          />
+        )}
 
-          {/* Subtitle - reduced top margin */}
-          <Text style={{ color: colors.textSecondary, marginTop: -40 }} className="text-center text-lg font-nunito leading-7 px-4 mb-8">
-            Block distractions with minimal friction and maximum control.
+        {/* Tap to continue text below logo */}
+        <Animated.View style={{ opacity: tapTextOpacity, marginTop: 24 }}>
+          <Text style={{ color: colors.textSecondary }} className="text-base font-nunito">
+            Tap to continue...
           </Text>
-
-          {/* Get Started Button */}
-          <TouchableOpacity
-            onPress={() => { lightTap(); onGetStarted(); }}
-            activeOpacity={0.8}
-            style={{ backgroundColor: colors.text }}
-            className="rounded-full py-4 items-center w-full"
-          >
-            <Text style={{ color: colors.bg }} className="text-lg font-nunito-semibold">
-              Get Started
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+        </Animated.View>
+      </Pressable>
     </SafeAreaView>
   );
 }

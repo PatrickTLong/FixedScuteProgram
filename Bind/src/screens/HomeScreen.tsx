@@ -966,8 +966,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
         Vibration.vibrate(50);
       }
 
-      // Refresh to ensure UI is in sync with locked state
-      await loadStats(true);
+      // Local state already set above - no need to call loadStats which would cause a delay
       setLoading(false);
     } catch (error) {
       setLoading(false);

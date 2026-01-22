@@ -125,10 +125,10 @@ function TermsAcceptScreen({ onAccept }: Props) {
         <TouchableOpacity
           onPress={handleAcceptTerms}
           activeOpacity={0.8}
-          style={{ backgroundColor: colors.textMuted }}
+          style={{ backgroundColor: colors.card  }}
           className="rounded-full py-4 items-center"
         >
-          <Text style={{ color: '#000000' }} className="text-lg font-nunito-semibold">
+          <Text style={{ color: '#FFFFFF' }} className="text-lg font-nunito-semibold">
             I Accept
           </Text>
         </TouchableOpacity>
