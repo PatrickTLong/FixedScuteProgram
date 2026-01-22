@@ -12,6 +12,7 @@ import {
   Image,
 } from 'react-native';
 import LottieView from 'lottie-react-native';
+const Lottie = LottieView as any;
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Text as SvgText, Defs, Filter, FeGaussianBlur } from 'react-native-svg';
 import BlockNowButton from '../components/BlockNowButton';
@@ -20,6 +21,7 @@ import EmergencyTapoutModal from '../components/EmergencyTapoutModal';
 import { getPresets, getLockStatus, updateLockStatus, Preset, getEmergencyTapoutStatus, useEmergencyTapout, EmergencyTapoutStatus, activatePreset, invalidateUserCaches, isFirstLoad, markInitialLoadComplete, clearAllCaches } from '../services/cardApi';
 import { useTheme } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
+import { lightTap } from '../utils/haptics';
 
 const scuteLogo = require('../frontassets/TrueScute-Photoroom.png');
 
@@ -1043,11 +1045,12 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
   if (loading) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }} edges={['top']}>
-        <LottieView
-          source={require('../../insider-loading.json')}
+        <Lottie
+          source={require('../frontassets/Insider-loading.json')}
           autoPlay
           loop
-          style={{ width: 100, height: 100 }}
+          speed={2}
+          style={{ width: 150, height: 150 }}
         />
       </SafeAreaView>
     );
@@ -1058,7 +1061,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
       <View className="flex-1 px-6">
         {/* Scute Logo - absolute positioned so it doesn't affect centering */}
         <TouchableOpacity
-          onPress={handleConfigurePress}
+          onPress={() => { lightTap(); handleConfigurePress(); }}
           style={{ position: 'absolute', top: s(-32), left: s(-8), zIndex: 10 }}
         >
           <Animated.View
@@ -1170,7 +1173,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
           {/* Scheduled Presets Button */}
           {scheduledPresets.length > 0 && (
             <TouchableOpacity
-              onPress={() => setScheduledPresetsModalVisible(true)}
+              onPress={() => { lightTap(); setScheduledPresetsModalVisible(true); }}
               activeOpacity={0.7}
               className="mt-6 px-5 py-2.5 rounded-full flex-row items-center"
               style={{
@@ -1295,7 +1298,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
             {/* Close Button */}
             <View style={{ borderTopColor: colors.border }} className="border-t">
               <TouchableOpacity
-                onPress={() => setScheduledPresetsModalVisible(false)}
+                onPress={() => { lightTap(); setScheduledPresetsModalVisible(false); }}
                 activeOpacity={0.7}
                 className="py-4 items-center"
               >

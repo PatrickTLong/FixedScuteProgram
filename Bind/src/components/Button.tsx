@@ -1,5 +1,7 @@
 import React, { memo, useCallback } from 'react';
-import { TouchableOpacity, Text, ActivityIndicator } from 'react-native';
+import { TouchableOpacity, Text } from 'react-native';
+import LottieView from 'lottie-react-native';
+const Lottie = LottieView as any;
 import { lightTap } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
 
@@ -70,7 +72,13 @@ function Button({
       className={`rounded-full py-4 px-6 items-center justify-center${fullWidth ? ' w-full' : ''}`}
     >
       {loading ? (
-        <ActivityIndicator color={variant === 'outline' ? colors.green : '#000000'} />
+        <Lottie
+          source={require('../frontassets/Insider-loading.json')}
+          autoPlay
+          loop
+          speed={2}
+          style={{ width: 40, height: 40 }}
+        />
       ) : (
         <Text style={getTextStyle()} className="text-base font-nunito-semibold">{title}</Text>
       )}

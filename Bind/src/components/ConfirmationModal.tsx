@@ -14,6 +14,7 @@ interface ConfirmationModalProps {
   message: string;
   confirmText?: string;
   cancelText?: string;
+  confirmColor?: string;
   isDestructive?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
@@ -25,6 +26,7 @@ function ConfirmationModal({
   message,
   confirmText = 'Confirm',
   cancelText = 'Cancel',
+  confirmColor,
   isDestructive = false,
   onConfirm,
   onCancel,
@@ -70,7 +72,7 @@ function ConfirmationModal({
               activeOpacity={0.7}
               className="flex-1 py-4 items-center"
             >
-              <Text style={{ color: isDestructive ? colors.red : colors.green }} className="text-base font-nunito-semibold">
+              <Text style={{ color: confirmColor || (isDestructive ? colors.red : colors.green) }} className="text-base font-nunito-semibold">
                 {confirmText}
               </Text>
             </TouchableOpacity>

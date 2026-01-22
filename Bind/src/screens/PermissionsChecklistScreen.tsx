@@ -9,11 +9,13 @@ import {
   Platform,
   NativeModules,
   AppState,
-  ActivityIndicator,
 } from 'react-native';
+import LottieView from 'lottie-react-native';
+const Lottie = LottieView as any;
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ProgressBar from '../components/ProgressBar';
 import { useTheme } from '../context/ThemeContext';
+import { lightTap } from '../utils/haptics';
 
 const { DeviceAdminModule, PermissionsModule } = NativeModules;
 
@@ -211,7 +213,13 @@ function PermissionsChecklistScreen({ onComplete }: Props) {
   if (isLoading) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }} className="justify-center items-center">
-        <ActivityIndicator size="large" color={colors.cyan} />
+        <Lottie
+          source={require('../frontassets/Insider-loading.json')}
+          autoPlay
+          loop
+          speed={2}
+          style={{ width: 150, height: 150 }}
+        />
         <Text style={{ color: colors.textSecondary }} className="text-base font-nunito mt-4">
           Checking permissions...
         </Text>
@@ -242,7 +250,7 @@ function PermissionsChecklistScreen({ onComplete }: Props) {
         {permissions.filter(p => !p.isGranted).map((permission) => (
           <TouchableOpacity
             key={permission.id}
-            onPress={() => openPermissionSettings(permission)}
+            onPress={() => { lightTap(); openPermissionSettings(permission); }}
             activeOpacity={0.7}
             style={{ backgroundColor: colors.card }}
             className="flex-row items-center p-4 rounded-2xl mb-3"

@@ -7,8 +7,9 @@ import {
   Platform,
   ScrollView,
   TextInput,
-  ActivityIndicator,
 } from 'react-native';
+import LottieView from 'lottie-react-native';
+const Lottie = LottieView as any;
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ProgressBar from '../components/ProgressBar';
@@ -18,6 +19,7 @@ import OTPInput from '../components/OTPInput';
 import { useTheme } from '../context/ThemeContext';
 import { setAuthToken } from '../services/cardApi';
 import { API_URL } from '../config/api';
+import { lightTap } from '../utils/haptics';
 
 interface Props {
   onBack: () => void;
@@ -138,15 +140,22 @@ function GetStartedScreen({ onBack, onSuccess, onSignIn }: Props) {
     }
   }
 
+  if (loading) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }}>
+        <Lottie
+          source={require('../frontassets/Insider-loading.json')}
+          autoPlay
+          loop
+          speed={2}
+          style={{ width: 150, height: 150 }}
+        />
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
-      {/* Loading Overlay */}
-      {loading && (
-        <View style={{ backgroundColor: colors.bg }} className="absolute inset-0 z-50 items-center justify-center">
-          <ActivityIndicator size="large" color={colors.green} />
-        </View>
-      )}
-
       {/* Back Button */}
       <View className="absolute top-12 left-0 z-10">
         <BackButton onPress={step === 'form' ? onBack : () => setStep('form')} />
@@ -245,7 +254,7 @@ function GetStartedScreen({ onBack, onSuccess, onSignIn }: Props) {
 
                 {/* Resend Code */}
                 <TouchableOpacity
-                  onPress={handleResendCode}
+                  onPress={() => { lightTap(); handleResendCode(); }}
                   disabled={loading}
                   className="items-center mb-4"
                 >
@@ -261,7 +270,7 @@ function GetStartedScreen({ onBack, onSuccess, onSignIn }: Props) {
           <View className="px-6 pb-8 mt-6">
             {/* Sign Up / Verify Button */}
             <TouchableOpacity
-              onPress={step === 'form' ? handleSignUp : handleVerifyCode}
+              onPress={() => { lightTap(); step === 'form' ? handleSignUp() : handleVerifyCode(); }}
               disabled={loading}
               activeOpacity={0.8}
               style={{ backgroundColor: loading ? colors.textMuted : colors.text }}
@@ -275,7 +284,7 @@ function GetStartedScreen({ onBack, onSuccess, onSignIn }: Props) {
             {/* Already have an account */}
             {step === 'form' && (
               <TouchableOpacity
-                onPress={onSignIn}
+                onPress={() => { lightTap(); onSignIn(); }}
                 activeOpacity={0.7}
                 className="items-center py-2"
               >

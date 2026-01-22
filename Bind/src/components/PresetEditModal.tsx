@@ -12,9 +12,10 @@ import {
   NativeEventEmitter,
   FlatList,
   Image,
-  ActivityIndicator,
   Animated,
 } from 'react-native';
+import LottieView from 'lottie-react-native';
+const Lottie = LottieView as any;
 import AnimatedSwitch from './AnimatedSwitch';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -687,7 +688,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
         <Text style={{ color: colors.text }} className="flex-1 text-base font-nunito">{item.name}</Text>
 
         {/* Checkbox with checkmark */}
-        <View style={isSelected ? { backgroundColor: '#22c55e' } : { borderWidth: 2, borderColor: colors.border }} className="w-6 h-6 rounded items-center justify-center">
+        <View style={isSelected ? { backgroundColor: '#4ade80' } : { borderWidth: 2, borderColor: colors.border }} className="w-6 h-6 rounded items-center justify-center">
           {isSelected && (
             <View className="w-2.5 h-4 border-r-2 border-b-2 border-white rotate-45 -mt-1" />
           )}
@@ -722,9 +723,15 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                 <Text style={{ color: isSaving ? '#FFFFFF' : '#FFFFFF' }} className="text-base font-nunito">Back</Text>
               </TouchableOpacity>
               <Text style={{ color: colors.text }} className="text-lg font-nunito-semibold">Final Settings</Text>
-              <TouchableOpacity onPress={handleSave} disabled={isSaving || !canSave} className="px-2 min-w-[50px] items-end">
+              <TouchableOpacity onPress={handleSave} disabled={isSaving || !canSave} className="px-2 min-w-[50px] items-end justify-center" style={{ height: 24 }}>
                 {isSaving ? (
-                  <ActivityIndicator size="small" color={colors.green} />
+                  <Lottie
+                    source={require('../frontassets/Insider-loading.json')}
+                    autoPlay
+                    loop
+                    speed={2}
+                    style={{ width: 90, height: 90, position: 'absolute', right: -25, top: -33 }}
+                  />
                 ) : (
                   <Text style={{ color: canSave ? '#FFFFFF' : colors.textMuted }} className="text-base font-nunito-semibold">Save</Text>
                 )}
@@ -769,8 +776,8 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                   });
                 }}
                 trackColorFalse={colors.border}
-                trackColorTrue="#22c55e"
-                thumbColorOn="#4ade80"
+                trackColorTrue="#4ade80"
+                thumbColorOn="#86efac"
                 thumbColorOff="#9ca3af"
               />
             </View>
@@ -799,8 +806,8 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                   }
                 }}
                 trackColorFalse={colors.border}
-                trackColorTrue="#22c55e"
-                thumbColorOn="#4ade80"
+                trackColorTrue="#4ade80"
+                thumbColorOn="#86efac"
                 thumbColorOff="#9ca3af"
               />
             </View>
@@ -831,8 +838,8 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                     }
                   }}
                   trackColorFalse={colors.border}
-                  trackColorTrue="#22c55e"
-                  thumbColorOn="#4ade80"
+                  trackColorTrue="#4ade80"
+                  thumbColorOn="#86efac"
                   thumbColorOff="#9ca3af"
                   />
               </View>
@@ -849,8 +856,8 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                   value={allowEmergencyTapout}
                   onValueChange={handleEmergencyTapoutToggle}
                   trackColorFalse={colors.border}
-                  trackColorTrue="#22c55e"
-                  thumbColorOn="#4ade80"
+                  trackColorTrue="#4ade80"
+                  thumbColorOn="#86efac"
                   thumbColorOff="#9ca3af"
                   />
               </View>
@@ -890,8 +897,8 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                   });
                 }}
                 trackColorFalse={colors.border}
-                  trackColorTrue="#22c55e"
-                  thumbColorOn="#4ade80"
+                  trackColorTrue="#4ade80"
+                  thumbColorOn="#86efac"
                   thumbColorOff="#9ca3af"
               />
             </View>
@@ -1016,8 +1023,8 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                           }
                         }}
                         trackColorFalse={colors.border}
-                        trackColorTrue="#22c55e"
-                        thumbColorOn="#4ade80"
+                        trackColorTrue="#4ade80"
+                        thumbColorOn="#86efac"
                         thumbColorOff="#9ca3af"
                               />
                     </View>
@@ -1306,7 +1313,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                       }}
                       activeOpacity={0.7}
                       style={{
-                        backgroundColor: recurringUnit === unit ? "#22c55e" : colors.cardLight,
+                        backgroundColor: recurringUnit === unit ? "#4ade80" : colors.cardLight,
                       }}
                       className="flex-row items-center justify-between py-4 px-4 rounded-xl mb-2"
                     >
@@ -1317,8 +1324,8 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                         {unit}
                       </Text>
                       {recurringUnit === unit && (
-                        <View className="w-5 h-5 rounded-full items-center justify-center" style={{ backgroundColor: "#22c55e" }}>
-                          <View className="w-2 h-3 border-r-2 border-b-2 border-white rotate-45 -mt-0.5" />
+                        <View className="w-5 h-5 rounded-full items-center justify-center" style={{ backgroundColor: "#4ade80" }}>
+                          <View className="w-3 h-5 border-r-2 border-b-2 border-white rotate-45 -mt-0.5" />
                         </View>
                       )}
                     </TouchableOpacity>
@@ -1518,7 +1525,13 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                 {/* Apps List */}
                 {loadingApps ? (
                   <View className="flex-1 items-center justify-center">
-                    <ActivityIndicator size="large" color={colors.green} />
+                    <Lottie
+                      source={require('../frontassets/Insider-loading.json')}
+                      autoPlay
+                      loop
+                      speed={2}
+                      style={{ width: 150, height: 150 }}
+                    />
                   </View>
                 ) : (
                   <FlatList

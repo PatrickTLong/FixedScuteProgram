@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useRef, useState } from 'react';
+import React, { memo, useEffect, useRef } from 'react';
 import {
   Text,
   View,
@@ -7,59 +7,33 @@ import {
   Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Svg, { Text as SvgText, Defs, Filter, FeGaussianBlur } from 'react-native-svg';
 import { useTheme } from '../context/ThemeContext';
-import { useResponsive } from '../utils/responsive';
+import { lightTap } from '../utils/haptics';
 
-// Glowing "Scute!" text - uses invisible Text for layout + absolute SVG for glow effect
-function GlowingScuteText({ color, glowOpacity }: { color: string; glowOpacity: Animated.Value }) {
-  const [opacity, setOpacity] = useState(0);
-
-  useEffect(() => {
-    const listenerId = glowOpacity.addListener(({ value }) => {
-      setOpacity(value);
-    });
-    return () => glowOpacity.removeListener(listenerId);
-  }, [glowOpacity]);
-
+// Glowing logo component - adds animated glow effect around the logo
+function GlowingLogo({ glowOpacity, tintColor }: { glowOpacity: Animated.Value; tintColor?: string }) {
   return (
     <View style={{ position: 'relative' }}>
-      {/* Invisible text for proper baseline alignment and layout */}
-      <Text style={{ opacity: 0 }} className="text-3xl font-nunito-bold">Scute</Text>
-      {/* SVG overlay with glow effect - positioned absolutely over the text */}
-      <Svg
-        style={{ position: 'absolute', top: -13.5, left: -12 }}
-        width={130}
-        height={60}
-      >
-        <Defs>
-          <Filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-            <FeGaussianBlur in="SourceGraphic" stdDeviation="5" />
-          </Filter>
-        </Defs>
-        {/* Glow layer */}
-        <SvgText
-          x={12}
-          y={38}
-          fontSize={30}
-          fontFamily="Nunito-Bold"
-          fill="#ffffff"
-          opacity={opacity}
-          filter="url(#glow)"
-        >
-          Scute
-        </SvgText>
-        {/* Main text layer */}
-        <SvgText
-          x={12}
-          y={38}
-          fontSize={30}
-          fontFamily="Nunito-Bold"
-          fill={color}
-        >
-          Scute
-        </SvgText>
-      </Svg>
+      {/* Glow layer - subtle blur effect */}
+      <Animated.Image
+        source={require('../frontassets/TrueScute-Photoroom.png')}
+        className="w-96 h-96"
+        resizeMode="contain"
+        style={{
+          position: 'absolute',
+          tintColor: '#ffffff',
+          opacity: glowOpacity,
+          transform: [{ scale: 1.02 }],
+        }}
+        blurRadius={8}
+      />
+      {/* Main logo */}
+      <Image
+        source={require('../frontassets/TrueScute-Photoroom.png')}
+        className="w-96 h-96"
+        resizeMode="contain"
+        style={{ tintColor }}
+      />
     </View>
   );
 }
@@ -69,9 +43,8 @@ interface Props {
   onGetStarted: () => void;
 }
 
-function LandingScreen({ onSignIn, onGetStarted }: Props) {
+function LandingScreen({ onGetStarted }: Props) {
   const { colors, theme } = useTheme();
-  const { s } = useResponsive();
   const isDark = theme === 'dark';
 
   // Pulsating glow animation for "Scute!" text
@@ -102,50 +75,37 @@ function LandingScreen({ onSignIn, onGetStarted }: Props) {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
-      <View className="flex-1 justify-center items-center px-8">
-        {/* Scute Logo */}
-        <Image
-          source={require('../frontassets/TrueScute-Photoroom.png')}
-          className="w-96 h-96 "
-          resizeMode="contain"
-          style={{ tintColor: colors.logoTint, marginTop: s(-60) }}
-        />
-
-        {/* Title */}
-        <View className="flex-row items-baseline justify-center mb-4">
-          <Text style={{ color: colors.text }} className="text-3xl font-nunito-bold">This is </Text>
+      <View className="flex-1 justify-center items-center px-6">
+        {/* All content centered together */}
+        <View className="items-center w-full" style={{ marginTop: -140 }}>
+          {/* Scute Logo with glow effect in dark mode */}
           {isDark ? (
-            <GlowingScuteText color={colors.text} glowOpacity={glowOpacity} />
+            <GlowingLogo glowOpacity={glowOpacity} tintColor={colors.logoTint} />
           ) : (
-            <Text style={{ color: colors.text }} className="text-3xl font-nunito-bold">Scute</Text>
+            <Image
+              source={require('../frontassets/TrueScute-Photoroom.png')}
+              className="w-96 h-96"
+              resizeMode="contain"
+              style={{ tintColor: colors.logoTint }}
+            />
           )}
-        </View>
 
-        {/* Subtitle */}
-        <Text style={{ color: colors.textSecondary }} className="text-center text-base font-nunito leading-6 px-4">
-          A simple way to block distractions with minimal annoyance & hassle
-        </Text>
-      </View>
-
-      {/* Bottom Section */}
-      <View className="px-6 pb-12">
-        {/* Get Started Button */}
-        <TouchableOpacity
-          onPress={onGetStarted}
-          activeOpacity={0.8}
-          style={{ backgroundColor: colors.text }}
-          className="rounded-full py-4 items-center mb-4"
-        >
-          <Text style={{ color: colors.bg }} className="text-lg font-nunito-semibold">
-            Get Started
+          {/* Subtitle - reduced top margin */}
+          <Text style={{ color: colors.textSecondary, marginTop: -40 }} className="text-center text-lg font-nunito leading-7 px-4 mb-8">
+            Block distractions with minimal friction and maximum control.
           </Text>
-        </TouchableOpacity>
 
-        {/* Spacer to maintain button position */}
-        <View className="items-center py-2">
-          <Text className="text-base font-nunito" style={{ opacity: 0 }}>
-            Placeholder
-          </Text>
+          {/* Get Started Button */}
+          <TouchableOpacity
+            onPress={() => { lightTap(); onGetStarted(); }}
+            activeOpacity={0.8}
+            style={{ backgroundColor: colors.text }}
+            className="rounded-full py-4 items-center w-full"
+          >
+            <Text style={{ color: colors.bg }} className="text-lg font-nunito-semibold">
+              Get Started
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
     </SafeAreaView>

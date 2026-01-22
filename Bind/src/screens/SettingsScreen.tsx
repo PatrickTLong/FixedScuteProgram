@@ -5,16 +5,18 @@ import {
   ScrollView,
   TouchableOpacity,
   Linking,
-  ActivityIndicator,
   Modal,
   Image,
 } from 'react-native';
+import LottieView from 'lottie-react-native';
+const Lottie = LottieView as any;
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import ConfirmationModal from '../components/ConfirmationModal';
 import { getLockStatus, getEmergencyTapoutStatus, EmergencyTapoutStatus, saveUserTheme, getCachedLockStatus, getCachedTapoutStatus } from '../services/cardApi';
 import { useTheme } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
+import { lightTap } from '../utils/haptics';
 
 interface Props {
   email: string;
@@ -222,7 +224,7 @@ const SettingsRow = ({
   arrowColor,
 }: SettingsRowProps) => (
   <TouchableOpacity
-    onPress={onPress}
+    onPress={() => { if (onPress) { lightTap(); onPress(); } }}
     disabled={!onPress}
     activeOpacity={onPress ? 0.7 : 1}
     style={!isLast ? { borderBottomWidth: 1, borderBottomColor: borderColor } : undefined}
@@ -373,7 +375,13 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
 
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }} edges={['top']}>
-        <ActivityIndicator size="large" color={colors.green} />
+        <Lottie
+          source={require('../frontassets/Insider-loading.json')}
+          autoPlay
+          loop
+          speed={2}
+          style={{ width: 150, height: 150 }}
+        />
         <Text style={{ color: colors.text }} className="text-lg font-nunito-semibold mt-4">{loadingMessage}</Text>
       </SafeAreaView>
     );
@@ -383,7 +391,13 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
   if (loading) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }} edges={['top']}>
-        <ActivityIndicator size="large" color={colors.green} />
+        <Lottie
+          source={require('../frontassets/Insider-loading.json')}
+          autoPlay
+          loop
+          speed={2}
+          style={{ width: 150, height: 150 }}
+        />
       </SafeAreaView>
     );
   }
@@ -552,6 +566,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
         message="Are you sure you want to log out? You can sign back in anytime."
         confirmText="Log Out"
         cancelText="Cancel"
+        confirmColor="#4ade80"
         onConfirm={handleLogout}
         onCancel={() => setLogoutModalVisible(false)}
       />
@@ -592,7 +607,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
           <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between px-4 py-3">
             <View className="w-16" />
             <Text style={{ color: colors.text }} className="text-lg font-nunito-semibold">Privacy Policy</Text>
-            <TouchableOpacity onPress={() => setPrivacyModalVisible(false)} className="w-16 items-end">
+            <TouchableOpacity onPress={() => { lightTap(); setPrivacyModalVisible(false); }} className="w-16 items-end">
               <Text style={{ color: '#FFFFFF' }} className="text-base font-nunito">Done</Text>
             </TouchableOpacity>
           </View>
@@ -691,7 +706,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
           <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between px-4 py-3">
             <View className="w-16" />
             <Text style={{ color: colors.text }} className="text-lg font-nunito-semibold">Terms of Service</Text>
-            <TouchableOpacity onPress={() => setTermsModalVisible(false)} className="w-16 items-end">
+            <TouchableOpacity onPress={() => { lightTap(); setTermsModalVisible(false); }} className="w-16 items-end">
               <Text style={{ color: '#FFFFFF' }} className="text-base font-nunito">Done</Text>
             </TouchableOpacity>
           </View>

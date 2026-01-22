@@ -7,8 +7,9 @@ import {
   Platform,
   ScrollView,
   TextInput,
-  ActivityIndicator,
 } from 'react-native';
+import LottieView from 'lottie-react-native';
+const Lottie = LottieView as any;
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ProgressBar from '../components/ProgressBar';
 import BackButton from '../components/BackButton';
@@ -16,6 +17,7 @@ import InfoModal from '../components/InfoModal';
 import OTPInput from '../components/OTPInput';
 import { useTheme } from '../context/ThemeContext';
 import { API_URL } from '../config/api';
+import { lightTap } from '../utils/haptics';
 
 interface Props {
   onBack: () => void;
@@ -152,15 +154,22 @@ function ForgotPasswordScreen({ onBack, onSuccess }: Props) {
     }
   };
 
+  if (loading) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }}>
+        <Lottie
+          source={require('../frontassets/Insider-loading.json')}
+          autoPlay
+          loop
+          speed={2}
+          style={{ width: 150, height: 150 }}
+        />
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
-      {/* Loading Overlay */}
-      {loading && (
-        <View style={{ backgroundColor: colors.bg }} className="absolute inset-0 z-50 items-center justify-center">
-          <ActivityIndicator size="large" color={colors.green} />
-        </View>
-      )}
-
       {/* Back Button */}
       <View className="absolute top-12 left-0 z-10">
         <BackButton onPress={handleBack} />
@@ -228,7 +237,7 @@ function ForgotPasswordScreen({ onBack, onSuccess }: Props) {
                 </View>
 
                 <TouchableOpacity
-                  onPress={handleResendCode}
+                  onPress={() => { lightTap(); handleResendCode(); }}
                   disabled={loading}
                   className="items-center mb-4"
                 >
@@ -286,13 +295,14 @@ function ForgotPasswordScreen({ onBack, onSuccess }: Props) {
           <View className="px-6 pb-8 mt-6">
             {/* Action Button */}
             <TouchableOpacity
-              onPress={
+              onPress={() => {
+                lightTap();
                 step === 'email'
-                  ? handleSendCode
+                  ? handleSendCode()
                   : step === 'code'
-                  ? handleVerifyCode
-                  : handleResetPassword
-              }
+                  ? handleVerifyCode()
+                  : handleResetPassword();
+              }}
               disabled={loading}
               activeOpacity={0.8}
               style={{ backgroundColor: loading ? colors.textMuted : colors.text }}

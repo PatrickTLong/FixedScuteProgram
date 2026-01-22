@@ -4,8 +4,9 @@ import {
   Text,
   TouchableOpacity,
   Modal,
-  ActivityIndicator,
 } from 'react-native';
+import LottieView from 'lottie-react-native';
+const Lottie = LottieView as any;
 import Svg, { Path } from 'react-native-svg';
 import { useTheme } from '../context/ThemeContext';
 import { mediumTap } from '../utils/haptics';
@@ -132,7 +133,13 @@ function EmergencyTapoutModal({
                 className="py-3 rounded-xl items-center"
               >
                 {isLoading ? (
-                  <ActivityIndicator color="#000" size="small" />
+                  <Lottie
+                    source={require('../frontassets/Insider-loading.json')}
+                    autoPlay
+                    loop
+                    speed={2}
+                    style={{ width: 40, height: 40 }}
+                  />
                 ) : (
                   <Text
                     style={{ color: canUseTapout ? '#000000' : colors.textSecondary }}

@@ -4,13 +4,15 @@ import {
   View,
   TouchableOpacity,
   FlatList,
-  ActivityIndicator,
   TextInput,
   Image,
 } from 'react-native';
+import LottieView from 'lottie-react-native';
+const Lottie = LottieView as any;
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import { useTheme } from '../context/ThemeContext';
+import { lightTap } from '../utils/haptics';
 
 interface InstalledApp {
   id: string;
@@ -71,6 +73,7 @@ interface AppItemProps {
 
 const AppItem = memo(({ item, isSelected, onToggle, cardColor, cardLightColor, textColor, textSecondaryColor, cyanColor, borderColor }: AppItemProps) => {
   const handlePress = useCallback(() => {
+    lightTap();
     onToggle(item.id);
   }, [item.id, onToggle]);
 
@@ -159,7 +162,7 @@ function SelectAppsScreen({
       {/* Header */}
       <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between px-4 py-3">
         <TouchableOpacity
-          onPress={onClose}
+          onPress={() => { lightTap(); onClose(); }}
           className="p-2"
         >
           <BackIcon color={colors.text} />
@@ -178,7 +181,7 @@ function SelectAppsScreen({
       {/* Tabs */}
       <View className="flex-row mx-4 my-4">
         <TouchableOpacity
-          onPress={() => setActiveTab('apps')}
+          onPress={() => { lightTap(); setActiveTab('apps'); }}
           style={{ backgroundColor: activeTab === 'apps' ? colors.text : colors.card }}
           className="flex-1 py-2 rounded-full items-center"
         >
@@ -188,7 +191,7 @@ function SelectAppsScreen({
         </TouchableOpacity>
         <View className="w-2" />
         <TouchableOpacity
-          onPress={() => setActiveTab('websites')}
+          onPress={() => { lightTap(); setActiveTab('websites'); }}
           style={{ backgroundColor: activeTab === 'websites' ? colors.text : colors.card }}
           className="flex-1 py-2 rounded-full items-center"
         >
@@ -213,7 +216,7 @@ function SelectAppsScreen({
                 className="flex-1 text-base font-nunito ml-3"
               />
               {searchQuery.length > 0 && (
-                <TouchableOpacity onPress={() => setSearchQuery('')}>
+                <TouchableOpacity onPress={() => { lightTap(); setSearchQuery(''); }}>
                   <Text style={{ color: colors.textSecondary }} className="text-lg">✕</Text>
                 </TouchableOpacity>
               )}
@@ -222,7 +225,13 @@ function SelectAppsScreen({
 
           {loading ? (
             <View className="flex-1 items-center justify-center">
-              <ActivityIndicator size="large" color={colors.cyan} />
+              <Lottie
+                source={require('../frontassets/Insider-loading.json')}
+                autoPlay
+                loop
+                speed={2}
+                style={{ width: 150, height: 150 }}
+              />
               <Text style={{ color: colors.textSecondary }} className="text-base font-nunito mt-4">
                 Loading apps...
               </Text>
@@ -272,7 +281,7 @@ function SelectAppsScreen({
                 onSubmitEditing={handleAddWebsite}
               />
               {websiteInput.length > 0 && (
-                <TouchableOpacity onPress={() => setWebsiteInput('')}>
+                <TouchableOpacity onPress={() => { lightTap(); setWebsiteInput(''); }}>
                   <Text style={{ color: colors.textSecondary }} className="text-lg">✕</Text>
                 </TouchableOpacity>
               )}
@@ -314,7 +323,7 @@ function SelectAppsScreen({
       {/* Save Button */}
       <View style={{ backgroundColor: colors.bg, borderTopWidth: 1, borderTopColor: colors.border }} className="absolute bottom-0 left-0 right-0 p-4">
         <TouchableOpacity
-          onPress={onSave}
+          onPress={() => { lightTap(); onSave(); }}
           activeOpacity={0.8}
           style={{ backgroundColor: colors.text }}
           className="rounded-full py-4 items-center"

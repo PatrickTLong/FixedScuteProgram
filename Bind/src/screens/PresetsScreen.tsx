@@ -5,9 +5,10 @@ import {
   FlatList,
   TouchableOpacity,
   NativeModules,
-  ActivityIndicator,
   Image,
 } from 'react-native';
+import LottieView from 'lottie-react-native';
+const Lottie = LottieView as any;
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PresetCard, { Preset } from '../components/PresetCard';
 import PresetEditModal from '../components/PresetEditModal';
@@ -22,6 +23,7 @@ import {
 } from '../services/cardApi';
 import { useTheme } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
+import { lightTap } from '../utils/haptics';
 
 const { InstalledAppsModule, ScheduleModule } = NativeModules;
 
@@ -596,7 +598,13 @@ function PresetsScreen({ userEmail }: Props) {
   if (loading) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }} edges={['top']}>
-        <ActivityIndicator size="large" color={colors.green} />
+        <Lottie
+          source={require('../frontassets/Insider-loading.json')}
+          autoPlay
+          loop
+          speed={2}
+          style={{ width: 150, height: 150 }}
+        />
       </SafeAreaView>
     );
   }
@@ -628,7 +636,7 @@ function PresetsScreen({ userEmail }: Props) {
 
         {/* Add Button - stays green but disabled when locked */}
         <TouchableOpacity
-          onPress={handleAddPreset}
+          onPress={() => { lightTap(); handleAddPreset(); }}
           activeOpacity={0.7}
           disabled={isDisabled}
           style={{ backgroundColor: colors.card }}
