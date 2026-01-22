@@ -1135,21 +1135,12 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
           {/* Preset info - relative container for absolute scheduled button */}
           <View className="items-center" style={{ position: 'relative' }}>
             <View className="items-center justify-center">
-              {isActivelyLocked ? (
-                <GlowText
-                  text={`Preset: ${currentPreset || 'None Selected'}`}
-                  color={colors.text}
-                  glowOpacity={presetGlowOpacity}
-                  fontSize={20}
-                />
-              ) : (
-                <Text
-                  style={{ color: colors.text }}
-                  className="text-xl font-nunito-semibold text-center"
-                >
-                  Preset: {currentPreset || 'None Selected'}
-                </Text>
-              )}
+              <Text
+                style={{ color: colors.text }}
+                className="text-xl font-nunito-semibold text-center"
+              >
+                Preset: {currentPreset || 'None Selected'}
+              </Text>
             </View>
 
             {/* Active settings display */}
@@ -1287,7 +1278,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
                           {formatScheduleDate(preset.scheduleStartDate!)} — {formatScheduleDate(preset.scheduleEndDate!)}
                         </Text>
                       </View>
-                      <View style={{ backgroundColor: isCurrentlyActive ? 'rgba(34, 197, 94, 0.2)' : 'rgba(34, 211, 238, 0.2)' }} className="px-2 py-0.5 rounded">
+                      <View style={{ backgroundColor: isCurrentlyActive ? 'rgba(34, 197, 94, 0.2)' : 'rgba(34, 211, 238, 0.2)' }} className="px-2 py-0.5 rounded-full">
                         <Text style={{ color: isCurrentlyActive ? colors.green : colors.cyan }} className="text-xs font-nunito-semibold">
                           {isCurrentlyActive ? 'Active' : isPending ? 'Pending' : 'Scheduled'}
                         </Text>

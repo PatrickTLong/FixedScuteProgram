@@ -581,11 +581,11 @@ function PresetsScreen({ userEmail }: Props) {
             <Image
               source={require('../frontassets/TrueScute-Photoroom.png')}
               style={{
-                width: s(150),
-                height: s(150),
+                width: s(250),
+                height: s(250),
                 tintColor: colors.textMuted,
                 opacity: 0.3,
-                marginBottom: s(-40),
+                marginBottom: s(-80),
               }}
               resizeMode="contain"
             />

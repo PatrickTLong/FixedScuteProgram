@@ -247,7 +247,7 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, disabled
               {preset.name}
             </Text>
             {isExpired ? (
-              <View style={{ backgroundColor: `${'#FF5C5C'}33` }} className="ml-2 px-2 py-0.5 rounded">
+              <View style={{ backgroundColor: `${'#FF5C5C'}33` }} className="ml-2 px-2 py-0.5 rounded-full">
                 <Text style={{ color: '#FF5C5C' }} className="text-xs font-nunito-semibold">
                   Expired
                 </Text>
@@ -255,14 +255,14 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, disabled
             ) : (
               <>
                 {preset.isScheduled && (
-                  <View style={{ backgroundColor: `${colors.cyan}33` }} className="ml-2 px-2 py-0.5 rounded">
+                  <View style={{ backgroundColor: `${colors.cyan}33` }} className="ml-2 px-2 py-0.5 rounded-full">
                     <Text style={{ color: colors.cyan }} className="text-xs font-nunito-semibold">
                       Scheduled
                     </Text>
                   </View>
                 )}
                 {preset.repeat_enabled && (
-                  <View style={{ backgroundColor: '#a855f733' }} className="ml-2 px-2 py-0.5 rounded">
+                  <View style={{ backgroundColor: '#a855f733' }} className="ml-2 px-2 py-0.5 rounded-full">
                     <Text style={{ color: '#a855f7' }} className="text-xs font-nunito-semibold">
                       Recurring
                     </Text>

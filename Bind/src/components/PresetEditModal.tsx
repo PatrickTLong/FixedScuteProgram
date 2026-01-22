@@ -306,7 +306,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
 
     Animated.timing(stepFadeAnim, {
       toValue: 0,
-      duration: 80,
+      duration: 150,
       useNativeDriver: true,
     }).start(() => {
       setDisplayedStep(toFinal ? 'final' : 'first');
@@ -314,7 +314,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
       requestAnimationFrame(() => {
         Animated.timing(stepFadeAnim, {
           toValue: 1,
-          duration: 80,
+          duration: 150,
           useNativeDriver: true,
         }).start(() => {
           isStepTransitioning.current = false;
