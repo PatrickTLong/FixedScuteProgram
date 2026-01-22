@@ -719,7 +719,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
           <Animated.View style={{ flex: 1, opacity: stepFadeAnim }}>
             {/* Header */}
             <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between px-4 py-3">
-              <TouchableOpacity onPress={() => goToStep(false)} disabled={isSaving} className="px-2">
+              <TouchableOpacity onPress={() => { lightTap(); goToStep(false); }} disabled={isSaving} className="px-2">
                 <Text style={{ color: isSaving ? '#FFFFFF' : '#FFFFFF' }} className="text-base font-nunito">Back</Text>
               </TouchableOpacity>
               <Text style={{ color: colors.text }} className="text-lg font-nunito-semibold">Final Settings</Text>
@@ -912,7 +912,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
 
                 {/* Start Date */}
                 <TouchableOpacity
-                  onPress={() => setStartDatePickerVisible(true)}
+                  onPress={() => { lightTap(); setStartDatePickerVisible(true); }}
                   activeOpacity={0.7}
                   style={{ backgroundColor: colors.card }}
                   className="flex-row items-center py-3 px-4 rounded-xl mb-3"
@@ -940,19 +940,19 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                   </View>
                   {scheduleStartDate ? (
                     <TouchableOpacity
-                      onPress={() => setScheduleStartDate(null)}
+                      onPress={() => { lightTap(); setScheduleStartDate(null); }}
                       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     >
-                      <Text style={{ color: colors.textSecondary }} className="text-lg">✕</Text>
+                      <Text style={{ color: '#FFFFFF' }} className="text-lg">✕</Text>
                     </TouchableOpacity>
                   ) : (
-                    <Text style={{ color: colors.textSecondary }} className="text-xl">›</Text>
+                    <Text style={{ color: '#FFFFFF' }} className="text-xl">›</Text>
                   )}
                 </TouchableOpacity>
 
                 {/* End Date */}
                 <TouchableOpacity
-                  onPress={() => setEndDatePickerVisible(true)}
+                  onPress={() => { lightTap(); setEndDatePickerVisible(true); }}
                   activeOpacity={0.7}
                   style={{ backgroundColor: colors.card }}
                   className="flex-row items-center py-3 px-4 rounded-xl"
@@ -980,13 +980,13 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                   </View>
                   {scheduleEndDate ? (
                     <TouchableOpacity
-                      onPress={() => setScheduleEndDate(null)}
+                      onPress={() => { lightTap(); setScheduleEndDate(null); }}
                       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     >
-                      <Text style={{ color: colors.textSecondary }} className="text-lg">✕</Text>
+                      <Text style={{ color: '#FFFFFF' }} className="text-lg">✕</Text>
                     </TouchableOpacity>
                   ) : (
-                    <Text style={{ color: colors.textSecondary }} className="text-xl">›</Text>
+                    <Text style={{ color: '#FFFFFF' }} className="text-xl">›</Text>
                   )}
                 </TouchableOpacity>
 
@@ -1040,14 +1040,14 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                           {/* Number Input */}
                           <View
                             style={{ backgroundColor: colors.card }}
-                            className="flex-row items-center py-3 px-4 rounded-xl mr-3"
+                            className="flex-row items-center justify-center py-3 px-4 rounded-xl mr-3"
                           >
-                            <View className="mr-3">
+                            <View style={{ backgroundColor: colors.cardLight }} className="w-10 h-10 rounded-lg items-center justify-center mr-3">
                               <RepeatIcon size={22} />
                             </View>
                             <TextInput
-                              style={{ color: colors.text, minWidth: 50 }}
-                              className="text-base font-nunito-semibold text-center"
+                              style={{ color: colors.text, minWidth: 50, textAlign: 'center' }}
+                              className="text-base font-nunito-semibold"
                               value={recurringValue}
                               onChangeText={(text) => {
                                 // Only allow numbers
@@ -1176,6 +1176,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                 {/* Pick a Date Button */}
                 <TouchableOpacity
                   onPress={() => {
+                    lightTap();
                     // Reset timer when opening date picker
                     setTimerDays(0);
                     setTimerHours(0);
@@ -1210,13 +1211,13 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                   </View>
                   {targetDate ? (
                     <TouchableOpacity
-                      onPress={() => setTargetDate(null)}
+                      onPress={() => { lightTap(); setTargetDate(null); }}
                       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     >
-                      <Text style={{ color: colors.textSecondary }} className="text-lg">✕</Text>
+                      <Text style={{ color: '#FFFFFF' }} className="text-lg">✕</Text>
                     </TouchableOpacity>
                   ) : (
-                    <Text style={{ color: colors.textSecondary }} className="text-xl">›</Text>
+                    <Text style={{ color: '#FFFFFF' }} className="text-xl">›</Text>
                   )}
                 </TouchableOpacity>
               </View>
@@ -1412,7 +1413,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
         <Animated.View style={{ flex: 1, opacity: stepFadeAnim }}>
           {/* Header */}
           <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between px-4 py-3">
-            <TouchableOpacity onPress={onClose} className="px-2">
+            <TouchableOpacity onPress={() => { lightTap(); onClose(); }} className="px-2">
               <Text style={{ color: '#FFFFFF' }} className="text-base font-nunito">Cancel</Text>
             </TouchableOpacity>
             <Text style={{ color: colors.text }} className="text-lg font-nunito-semibold">
@@ -1598,7 +1599,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                       onPress={() => removeWebsite(site)}
                       className="p-2"
                     >
-                      <Text style={{ color: colors.red }} className="text-lg">✕</Text>
+                      <Text style={{ color: "#FFFFFF" }} className="text-lg">✕</Text>
                     </TouchableOpacity>
                   </View>
                 ))}

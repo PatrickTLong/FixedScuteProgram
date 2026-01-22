@@ -46,7 +46,7 @@ function GlowText({ text, color, glowOpacity, fontSize = 20 }: GlowTextProps) {
     return () => glowOpacity.removeListener(listenerId);
   }, [glowOpacity]);
 
-  const glowPadding = 20;
+  const glowPadding = 12;
   const textWidth = text.length * fontSize * 0.55;
   const svgWidth = textWidth + glowPadding * 2;
   const svgHeight = fontSize * 1.5 + glowPadding * 2;
@@ -72,7 +72,7 @@ function GlowText({ text, color, glowOpacity, fontSize = 20 }: GlowTextProps) {
       >
         <Defs>
           <Filter id="presetGlow" x="-50%" y="-50%" width="200%" height="200%">
-            <FeGaussianBlur in="SourceGraphic" stdDeviation="6" />
+            <FeGaussianBlur in="SourceGraphic" stdDeviation="3" />
           </Filter>
         </Defs>
         {/* Glow layer */}

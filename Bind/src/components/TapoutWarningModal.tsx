@@ -6,6 +6,7 @@ import {
   Modal,
 } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
+import { lightTap } from '../utils/haptics';
 
 interface TapoutWarningModalProps {
   visible: boolean;
@@ -17,11 +18,13 @@ function TapoutWarningModal({ visible, onClose }: TapoutWarningModalProps) {
   const [dontShowAgain, setDontShowAgain] = useState(false);
 
   const handleConfirm = () => {
+    lightTap();
     onClose(dontShowAgain, true);
     setDontShowAgain(false); // Reset for next time
   };
 
   const handleCancel = () => {
+    lightTap();
     onClose(false, false);
     setDontShowAgain(false); // Reset for next time
   };
@@ -41,48 +44,25 @@ function TapoutWarningModal({ visible, onClose }: TapoutWarningModalProps) {
               Disable Emergency Tapout?
             </Text>
 
-            <Text style={{ color: colors.textSecondary }} className="text-base font-nunito mb-4">
-              Without emergency tapout enabled, you will not be able to unlock your phone early during this blocking session.
+            <Text style={{ color: colors.textSecondary }} className="text-base font-nunito">
+              Without tapouts, you cannot unlock early. You must wait for the timer to expire or the scheduled end time.
             </Text>
-
-            <View className="space-y-3">
-              <View className="flex-row">
-                <Text style={{ color: colors.red }} className="mr-2">•</Text>
-                <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito flex-1">
-                  You must wait for the timer to expire or until the scheduled end time
-                </Text>
-              </View>
-
-              <View className="flex-row">
-                <Text style={{ color: colors.red }} className="mr-2">•</Text>
-                <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito flex-1">
-                  There is no way to end the block early without tapouts
-                </Text>
-              </View>
-
-              <View className="flex-row">
-                <Text style={{ color: colors.red }} className="mr-2">•</Text>
-                <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito flex-1">
-                  Only disable this if you're confident you won't need emergency access
-                </Text>
-              </View>
-            </View>
 
             {/* Don't show again checkbox */}
             <TouchableOpacity
-              onPress={() => setDontShowAgain(!dontShowAgain)}
+              onPress={() => { lightTap(); setDontShowAgain(!dontShowAgain); }}
               activeOpacity={0.7}
               className="flex-row items-center mt-6"
             >
               <View
                 style={{
-                  backgroundColor: dontShowAgain ? colors.green : 'transparent',
-                  borderColor: dontShowAgain ? colors.green : colors.textSecondary,
+                  backgroundColor: dontShowAgain ? '#4ade80' : 'transparent',
+                  borderColor: dontShowAgain ? '#4ade80' : colors.textSecondary,
                 }}
                 className="w-5 h-5 rounded border-2 items-center justify-center mr-3"
               >
                 {dontShowAgain && (
-                  <View className="w-2 h-3 border-r-2 border-b-2 border-black rotate-45 -mt-0.5" />
+                  <View style={{ borderColor: '#FFFFFF' }} className="w-2 h-3 border-r-2 border-b-2 rotate-45 -mt-0.5" />
                 )}
               </View>
               <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">
@@ -108,7 +88,7 @@ function TapoutWarningModal({ visible, onClose }: TapoutWarningModalProps) {
               activeOpacity={0.7}
               className="flex-1 py-4 items-center"
             >
-              <Text style={{ color: colors.red }} className="text-base font-nunito-semibold">
+              <Text style={{ color: '#FFFFFF' }} className="text-base font-nunito-semibold">
                 Disable
               </Text>
             </TouchableOpacity>

@@ -40,8 +40,28 @@ function PresetGuideModal({ visible, onClose }: PresetGuideModalProps) {
             This guide explains all the settings available when creating or editing a preset. Read carefully to understand how each option affects your blocking experience.
           </Text>
 
+          {/* Apps Selection */}
+          <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">1. Apps Selection</Text>
+          <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-2">
+            Choose which apps to block. You can select individual apps or use "Select All" to block everything at once.
+          </Text>
+          <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
+            <Text style={{ color: colors.text }} className="font-nunito-semibold">Note: </Text>
+            Certain essential apps (Phone, Camera, Emergency, Messaging) are excluded from the list to ensure you can always access critical functions.
+          </Text>
+
+          {/* Websites */}
+          <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">2. Websites</Text>
+          <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-2">
+            Block specific websites by entering their domain (e.g., instagram.com, reddit.com). Blocked websites will be inaccessible in supported browsers.
+          </Text>
+          <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
+            <Text style={{ color: colors.text }} className="font-nunito-semibold">Tip: </Text>
+            Enter just the domain without "https://" or "www." - for example, use "instagram.com" not "https://www.instagram.com".
+          </Text>
+
           {/* No Time Limit */}
-          <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">1. No Time Limit</Text>
+          <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">3. No Time Limit</Text>
           <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-2">
             When enabled, the block will remain active indefinitely until you manually unlock it. There is no automatic end time.
           </Text>
@@ -51,7 +71,7 @@ function PresetGuideModal({ visible, onClose }: PresetGuideModalProps) {
           </Text>
 
           {/* Block Settings App */}
-          <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">2. Block Settings App</Text>
+          <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">4. Block Settings App</Text>
           <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-2">
             Prevents access to the Android Settings app during an active block. This stops you from easily disabling app permissions or uninstalling Scute.
           </Text>
@@ -65,7 +85,7 @@ function PresetGuideModal({ visible, onClose }: PresetGuideModalProps) {
           </Text>
 
           {/* Strict Mode */}
-          <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">3. Strict Mode</Text>
+          <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">5. Strict Mode</Text>
           <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-2">
             When enabled, the overlay cannot be dismissed using the slide-to-unlock button. The only ways to end the block are:{'\n'}
             • Wait for the timer to expire{'\n'}
@@ -80,7 +100,7 @@ function PresetGuideModal({ visible, onClose }: PresetGuideModalProps) {
           </Text>
 
           {/* Allow Emergency Tapout */}
-          <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">4. Allow Emergency Tapout</Text>
+          <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">6. Allow Emergency Tapout</Text>
           <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-2">
             Emergency Tapouts are your safety net. When enabled, you can use one of your limited tapouts to immediately end a Strict Mode block in case of a genuine emergency.
           </Text>
@@ -89,7 +109,7 @@ function PresetGuideModal({ visible, onClose }: PresetGuideModalProps) {
           </Text>
           <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-2">
             <Text style={{ color: colors.text }} className="font-nunito-semibold">Note: </Text>
-            You have a limited number of Emergency Tapouts. Use them wisely. They will eventually refill +1 every two weeks.
+            You have a limited number of Emergency Tapouts. Use them wisely. They refill +1 every two weeks.
           </Text>
           <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
             <Text style={{ color: colors.text }} className="font-nunito-semibold">Warning: </Text>
@@ -97,7 +117,7 @@ function PresetGuideModal({ visible, onClose }: PresetGuideModalProps) {
           </Text>
 
           {/* Schedule for Later */}
-          <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">5. Schedule for Later</Text>
+          <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">7. Schedule for Later</Text>
           <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-2">
             Instead of starting a block immediately, you can schedule it for a future date and time. Set both a start and end time for the block.
           </Text>
@@ -110,7 +130,7 @@ function PresetGuideModal({ visible, onClose }: PresetGuideModalProps) {
           </Text>
 
           {/* Recurring Schedule */}
-          <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">6. Recurring Schedule</Text>
+          <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">8. Recurring Schedule</Text>
           <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-2">
             Make your scheduled block repeat automatically. Choose how often the block should recur (minutes, hours, days, weeks, or months).
           </Text>
@@ -128,7 +148,7 @@ function PresetGuideModal({ visible, onClose }: PresetGuideModalProps) {
           </Text>
 
           {/* Duration (Timer) */}
-          <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">7. Duration (Timer)</Text>
+          <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">9. Duration (Timer)</Text>
           <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-2">
             Set a specific duration for your block using days, hours, minutes, and seconds. The block will automatically end when the timer reaches zero.
           </Text>
@@ -141,33 +161,13 @@ function PresetGuideModal({ visible, onClose }: PresetGuideModalProps) {
           </Text>
 
           {/* Pick a Date */}
-          <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">8. Pick a Date</Text>
+          <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">10. Pick a Date</Text>
           <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-2">
             Instead of a countdown timer, you can set the block to end at a specific date and time. This is useful when you know exactly when you want access restored.
           </Text>
           <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
             <Text style={{ color: colors.text }} className="font-nunito-semibold">Note: </Text>
             The date must be in the future. Using "Pick a Date" will clear any timer duration you've set, and vice versa.
-          </Text>
-
-          {/* Apps Selection */}
-          <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">9. Apps Selection</Text>
-          <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-2">
-            Choose which apps to block. You can select individual apps or use "Select All" to block everything at once.
-          </Text>
-          <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
-            <Text style={{ color: colors.text }} className="font-nunito-semibold">Note: </Text>
-            Certain essential apps (Phone, Camera, Emergency, Messaging) are excluded from the list to ensure you can always access critical functions.
-          </Text>
-
-          {/* Websites */}
-          <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">10. Websites</Text>
-          <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-2">
-            Block specific websites by entering their domain (e.g., instagram.com, reddit.com). Blocked websites will be inaccessible in supported browsers.
-          </Text>
-          <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
-            <Text style={{ color: colors.text }} className="font-nunito-semibold">Tip: </Text>
-            Enter just the domain without "https://" or "www." - for example, use "instagram.com" not "https://www.instagram.com".
           </Text>
 
           {/* Final Notes */}

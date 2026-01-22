@@ -6,6 +6,7 @@ import {
   Modal,
 } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
+import { lightTap } from '../utils/haptics';
 
 interface RecurrenceInfoModalProps {
   visible: boolean;
@@ -17,6 +18,7 @@ function RecurrenceInfoModal({ visible, onClose }: RecurrenceInfoModalProps) {
   const [dontShowAgain, setDontShowAgain] = useState(false);
 
   const handleClose = () => {
+    lightTap();
     onClose(dontShowAgain);
     setDontShowAgain(false); // Reset for next time
   };
@@ -36,41 +38,25 @@ function RecurrenceInfoModal({ visible, onClose }: RecurrenceInfoModalProps) {
               Recurring Blocks
             </Text>
 
-            <Text style={{ color: colors.textSecondary }} className="text-base font-nunito mb-4">
-              Set your scheduled block to repeat automatically at regular intervals.
+            <Text style={{ color: colors.textSecondary }} className="text-base font-nunito">
+              Set your block to repeat automatically. Choose intervals from minutes to months.
             </Text>
-
-            <View className="space-y-3">
-              <View className="flex-row">
-                <Text style={{ color: colors.textSecondary }} className="mr-2">•</Text>
-                <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito flex-1">
-                  The block duration stays the same for each recurrence
-                </Text>
-              </View>
-
-              <View className="flex-row">
-                <Text style={{ color: colors.textSecondary }} className="mr-2">•</Text>
-                <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito flex-1">
-                  Choose how often to repeat: minutes, hours, days, weeks, or months
-                </Text>
-              </View>
-            </View>
 
             {/* Don't show again checkbox */}
             <TouchableOpacity
-              onPress={() => setDontShowAgain(!dontShowAgain)}
+              onPress={() => { lightTap(); setDontShowAgain(!dontShowAgain); }}
               activeOpacity={0.7}
               className="flex-row items-center mt-6"
             >
               <View
                 style={{
-                  backgroundColor: dontShowAgain ? colors.green : 'transparent',
-                  borderColor: dontShowAgain ? colors.green : colors.textSecondary,
+                  backgroundColor: dontShowAgain ? '#4ade80' : 'transparent',
+                  borderColor: dontShowAgain ? '#4ade80' : colors.textSecondary,
                 }}
                 className="w-5 h-5 rounded border-2 items-center justify-center mr-3"
               >
                 {dontShowAgain && (
-                  <View className="w-2 h-3 border-r-2 border-b-2 border-black rotate-45 -mt-0.5" />
+                  <View style={{ borderColor: '#FFFFFF' }} className="w-2 h-3 border-r-2 border-b-2 rotate-45 -mt-0.5" />
                 )}
               </View>
               <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">

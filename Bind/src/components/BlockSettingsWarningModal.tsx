@@ -6,6 +6,7 @@ import {
   Modal,
 } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
+import { lightTap } from '../utils/haptics';
 
 interface BlockSettingsWarningModalProps {
   visible: boolean;
@@ -18,11 +19,13 @@ function BlockSettingsWarningModal({ visible, onConfirm, onCancel }: BlockSettin
   const [dontShowAgain, setDontShowAgain] = useState(false);
 
   const handleConfirm = () => {
+    lightTap();
     onConfirm(dontShowAgain);
     setDontShowAgain(false); // Reset for next time
   };
 
   const handleCancel = () => {
+    lightTap();
     onCancel();
     setDontShowAgain(false); // Reset for next time
   };
@@ -42,48 +45,25 @@ function BlockSettingsWarningModal({ visible, onConfirm, onCancel }: BlockSettin
               Block Settings App
             </Text>
 
-            <Text style={{ color: colors.textSecondary }} className="text-base font-nunito text-center mb-4">
-              The entire Settings app will be blocked when this preset is active.
+            <Text style={{ color: colors.textSecondary }} className="text-base font-nunito text-center">
+              The Settings app will be blocked when this preset is active. Basic toggles like WiFi and Bluetooth remain accessible via quick settings.
             </Text>
-
-            <View className="space-y-3">
-              <View className="flex-row">
-                <Text style={{ color: colors.textSecondary }} className="mr-2">•</Text>
-                <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito flex-1">
-                  WiFi settings will remain accessible via quick settings panel
-                </Text>
-              </View>
-
-              <View className="flex-row">
-                <Text style={{ color: colors.textSecondary }} className="mr-2">•</Text>
-                <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito flex-1">
-                  Basic toggles (Bluetooth, Airplane mode, etc.) stay available in quick settings
-                </Text>
-              </View>
-
-              <View className="flex-row">
-                <Text style={{ color: colors.textSecondary }} className="mr-2">•</Text>
-                <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito flex-1">
-                  You won't be able to access app permissions, accounts, or other system settings
-                </Text>
-              </View>
-            </View>
 
             {/* Don't show again checkbox */}
             <TouchableOpacity
-              onPress={() => setDontShowAgain(!dontShowAgain)}
+              onPress={() => { lightTap(); setDontShowAgain(!dontShowAgain); }}
               activeOpacity={0.7}
               className="flex-row items-center justify-center mt-6"
             >
               <View
                 style={{
-                  backgroundColor: dontShowAgain ? colors.green : 'transparent',
-                  borderColor: dontShowAgain ? colors.green : colors.textSecondary,
+                  backgroundColor: dontShowAgain ? '#4ade80' : 'transparent',
+                  borderColor: dontShowAgain ? '#4ade80' : colors.textSecondary,
                 }}
                 className="w-5 h-5 rounded border-2 items-center justify-center mr-3"
               >
                 {dontShowAgain && (
-                  <View className="w-2 h-3 border-r-2 border-b-2 border-black rotate-45 -mt-0.5" />
+                  <View style={{ borderColor: '#FFFFFF' }} className="w-2 h-3 border-r-2 border-b-2 rotate-45 -mt-0.5" />
                 )}
               </View>
               <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">

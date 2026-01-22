@@ -6,6 +6,7 @@ import {
   Modal,
 } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
+import { lightTap } from '../utils/haptics';
 
 interface DisableTapoutWarningModalProps {
   visible: boolean;
@@ -18,11 +19,13 @@ function DisableTapoutWarningModal({ visible, onConfirm, onCancel }: DisableTapo
   const [dontShowAgain, setDontShowAgain] = useState(false);
 
   const handleConfirm = () => {
+    lightTap();
     onConfirm(dontShowAgain);
     setDontShowAgain(false); // Reset for next time
   };
 
   const handleCancel = () => {
+    lightTap();
     onCancel();
     setDontShowAgain(false); // Reset for next time
   };
@@ -38,33 +41,29 @@ function DisableTapoutWarningModal({ visible, onConfirm, onCancel }: DisableTapo
         <View style={{ backgroundColor: colors.card }} className="w-full rounded-2xl overflow-hidden">
           {/* Content */}
           <View className="p-6">
-            <Text style={{ color: colors.red }} className="text-xl font-nunito-bold text-center mb-4">
+            <Text style={{ color: colors.text }} className="text-xl font-nunito-bold text-center mb-4">
               Disable Emergency Tapout?
             </Text>
 
-            <Text style={{ color: colors.textSecondary }} className="text-base font-nunito text-center mb-4">
-              You won't be able to use emergency tapouts to unlock this preset early if you need to.
-            </Text>
-
-            <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito text-center">
-              Emergency tapouts are your safety net for urgent situations. Only disable this if you're certain you won't need early access.
+            <Text style={{ color: colors.textSecondary }} className="text-base font-nunito text-center">
+              You won't be able to unlock this preset early. Only disable if you're certain you won't need emergency access.
             </Text>
 
             {/* Don't show again checkbox */}
             <TouchableOpacity
-              onPress={() => setDontShowAgain(!dontShowAgain)}
+              onPress={() => { lightTap(); setDontShowAgain(!dontShowAgain); }}
               activeOpacity={0.7}
               className="flex-row items-center justify-center mt-6"
             >
               <View
                 style={{
-                  backgroundColor: dontShowAgain ? colors.green : 'transparent',
-                  borderColor: dontShowAgain ? colors.green : colors.textSecondary,
+                  backgroundColor: dontShowAgain ? '#4ade80' : 'transparent',
+                  borderColor: dontShowAgain ? '#4ade80' : colors.textSecondary,
                 }}
                 className="w-5 h-5 rounded border-2 items-center justify-center mr-3"
               >
                 {dontShowAgain && (
-                  <View className="w-2 h-3 border-r-2 border-b-2 border-black rotate-45 -mt-0.5" />
+                  <View style={{ borderColor: '#FFFFFF' }} className="w-2 h-3 border-r-2 border-b-2 rotate-45 -mt-0.5" />
                 )}
               </View>
               <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">
@@ -90,7 +89,7 @@ function DisableTapoutWarningModal({ visible, onConfirm, onCancel }: DisableTapo
               activeOpacity={0.7}
               className="flex-1 py-4 items-center"
             >
-              <Text style={{ color: colors.red }} className="text-base font-nunito-semibold">
+              <Text style={{ color: '#FFFFFF' }} className="text-base font-nunito-semibold">
                 Disable
               </Text>
             </TouchableOpacity>

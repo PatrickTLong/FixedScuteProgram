@@ -13,11 +13,25 @@ import {
 import LottieView from 'lottie-react-native';
 const Lottie = LottieView as any;
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Svg, { Path } from 'react-native-svg';
 import ProgressBar from '../components/ProgressBar';
 import { useTheme } from '../context/ThemeContext';
 import { lightTap } from '../utils/haptics';
 
 const { DeviceAdminModule, PermissionsModule } = NativeModules;
+
+// Chevron right icon
+const ChevronRightIcon = ({ size = 24, color = "#FFFFFF" }: { size?: number; color?: string }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M9 18l6-6-6-6"
+      stroke={color}
+      strokeWidth={2.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
 
 interface Props {
   onComplete: () => void;
@@ -243,7 +257,7 @@ function PermissionsChecklistScreen({ onComplete }: Props) {
 
         {/* Subtitle */}
         <Text style={{ color: colors.textSecondary }} className="text-center text-base font-nunito mb-8 px-4">
-          Scute needs these permissions to block distractions.
+          Scute needs these permissions to block distractions & cheats.
         </Text>
 
         {/* Permission Cards */}
@@ -264,7 +278,7 @@ function PermissionsChecklistScreen({ onComplete }: Props) {
               </Text>
             </View>
 
-            <Text style={{ color: colors.textSecondary }} className="text-2xl ml-2">{'>'}</Text>
+            <ChevronRightIcon size={24} color="#FFFFFF" />
           </TouchableOpacity>
         ))}
 
@@ -280,8 +294,8 @@ function PermissionsChecklistScreen({ onComplete }: Props) {
                 style={{ backgroundColor: `${colors.card}80` }}
                 className="flex-row items-center py-3 px-4 rounded-xl mb-2"
               >
-                <View style={{ backgroundColor: colors.green }} className="w-6 h-6 rounded items-center justify-center mr-3">
-                  <View className="w-2.5 h-4 border-r-2 border-b-2 border-black rotate-45 -mt-1" />
+                <View style={{ backgroundColor: '#4ade80' }} className="w-6 h-6 rounded items-center justify-center mr-3">
+                  <View style={{ borderColor: '#FFFFFF' }} className="w-2.5 h-4 border-r-2 border-b-2 rotate-45 -mt-1" />
                 </View>
                 <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">
                   {permission.title}

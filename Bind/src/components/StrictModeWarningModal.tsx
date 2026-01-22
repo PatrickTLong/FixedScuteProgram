@@ -6,6 +6,7 @@ import {
   Modal,
 } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
+import { lightTap } from '../utils/haptics';
 
 interface StrictModeWarningModalProps {
   visible: boolean;
@@ -18,11 +19,13 @@ function StrictModeWarningModal({ visible, onConfirm, onCancel }: StrictModeWarn
   const [dontShowAgain, setDontShowAgain] = useState(false);
 
   const handleConfirm = () => {
+    lightTap();
     onConfirm(dontShowAgain);
     setDontShowAgain(false); // Reset for next time
   };
 
   const handleCancel = () => {
+    lightTap();
     onCancel();
     setDontShowAgain(false); // Reset for next time
   };
@@ -42,29 +45,25 @@ function StrictModeWarningModal({ visible, onConfirm, onCancel }: StrictModeWarn
               Enable Strict Mode?
             </Text>
 
-            <Text style={{ color: colors.textSecondary }} className="text-base font-nunito text-center mb-4">
-              With Strict Mode enabled, this preset will be locked until the timer ends or you use an emergency tapout (if available).
-            </Text>
-
-            <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito text-center">
-              Without Strict Mode, you can unlock anytime using slide-to-unlock.
+            <Text style={{ color: colors.textSecondary }} className="text-base font-nunito text-center">
+              The preset stays locked until the timer ends or you use an emergency tapout. Without Strict Mode, you can slide to unlock anytime.
             </Text>
 
             {/* Don't show again checkbox */}
             <TouchableOpacity
-              onPress={() => setDontShowAgain(!dontShowAgain)}
+              onPress={() => { lightTap(); setDontShowAgain(!dontShowAgain); }}
               activeOpacity={0.7}
               className="flex-row items-center justify-center mt-6"
             >
               <View
                 style={{
-                  backgroundColor: dontShowAgain ? colors.green : 'transparent',
-                  borderColor: dontShowAgain ? colors.green : colors.textSecondary,
+                  backgroundColor: dontShowAgain ? '#4ade80' : 'transparent',
+                  borderColor: dontShowAgain ? '#4ade80' : colors.textSecondary,
                 }}
                 className="w-5 h-5 rounded border-2 items-center justify-center mr-3"
               >
                 {dontShowAgain && (
-                  <View className="w-2 h-3 border-r-2 border-b-2 border-black rotate-45 -mt-0.5" />
+                  <View style={{ borderColor: '#FFFFFF' }} className="w-2 h-3 border-r-2 border-b-2 rotate-45 -mt-0.5" />
                 )}
               </View>
               <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">

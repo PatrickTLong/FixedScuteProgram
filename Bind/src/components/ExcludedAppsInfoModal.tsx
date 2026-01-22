@@ -6,6 +6,7 @@ import {
   Modal,
 } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
+import { lightTap } from '../utils/haptics';
 
 interface ExcludedAppsInfoModalProps {
   visible: boolean;
@@ -17,6 +18,7 @@ function ExcludedAppsInfoModal({ visible, onClose }: ExcludedAppsInfoModalProps)
   const [dontShowAgain, setDontShowAgain] = useState(false);
 
   const handleClose = () => {
+    lightTap();
     onClose(dontShowAgain);
     setDontShowAgain(false); // Reset for next time
   };
@@ -36,62 +38,25 @@ function ExcludedAppsInfoModal({ visible, onClose }: ExcludedAppsInfoModalProps)
               Some Apps Are Hidden
             </Text>
 
-            <Text style={{ color: colors.textSecondary }} className="text-base font-nunito mb-4">
-              For your safety, certain essential apps cannot be blocked:
+            <Text style={{ color: colors.textSecondary }} className="text-base font-nunito">
+              For your safety, essential apps like Phone, Camera, Messages, and Emergency services cannot be blocked. Settings has a separate toggle in preset options.
             </Text>
-
-            <View className="space-y-4">
-              <View className="flex-row">
-                <Text style={{ color: colors.textSecondary }} className="mr-2 mt-0.5">•</Text>
-                <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito flex-1 leading-5">
-                  <Text style={{ color: colors.text }} className="font-nunito-semibold">Phone</Text> - Always available so you can make and receive important calls, even during a blocking session
-                </Text>
-              </View>
-
-              <View className="flex-row">
-                <Text style={{ color: colors.textSecondary }} className="mr-2 mt-0.5">•</Text>
-                <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito flex-1 leading-5">
-                  <Text style={{ color: colors.text }} className="font-nunito-semibold">Camera</Text> - Kept accessible for capturing important moments, documenting incidents, or emergency situations
-                </Text>
-              </View>
-
-              <View className="flex-row">
-                <Text style={{ color: colors.textSecondary }} className="mr-2 mt-0.5">•</Text>
-                <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito flex-1 leading-5">
-                  <Text style={{ color: colors.text }} className="font-nunito-semibold">Messaging</Text> - Ensures you can always send and receive text messages for essential communication
-                </Text>
-              </View>
-
-              <View className="flex-row">
-                <Text style={{ color: colors.textSecondary }} className="mr-2 mt-0.5">•</Text>
-                <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito flex-1 leading-5">
-                  <Text style={{ color: colors.text }} className="font-nunito-semibold">Emergency</Text> - Critical apps like emergency dialer remain unblocked to ensure your safety at all times
-                </Text>
-              </View>
-
-              <View className="flex-row">
-                <Text style={{ color: colors.textSecondary }} className="mr-2 mt-0.5">•</Text>
-                <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito flex-1 leading-5">
-                  <Text style={{ color: colors.text }} className="font-nunito-semibold">Settings</Text> - Not shown here because it has a dedicated toggle in your preset options
-                </Text>
-              </View>
-            </View>
 
             {/* Don't show again checkbox */}
             <TouchableOpacity
-              onPress={() => setDontShowAgain(!dontShowAgain)}
+              onPress={() => { lightTap(); setDontShowAgain(!dontShowAgain); }}
               activeOpacity={0.7}
               className="flex-row items-center mt-6"
             >
               <View
                 style={{
-                  backgroundColor: dontShowAgain ? colors.green : 'transparent',
-                  borderColor: dontShowAgain ? colors.green : colors.textSecondary,
+                  backgroundColor: dontShowAgain ? '#4ade80' : 'transparent',
+                  borderColor: dontShowAgain ? '#4ade80' : colors.textSecondary,
                 }}
                 className="w-5 h-5 rounded border-2 items-center justify-center mr-3"
               >
                 {dontShowAgain && (
-                  <View className="w-2 h-3 border-r-2 border-b-2 border-black rotate-45 -mt-0.5" />
+                  <View style={{ borderColor: '#FFFFFF' }} className="w-2 h-3 border-r-2 border-b-2 rotate-45 -mt-0.5" />
                 )}
               </View>
               <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">

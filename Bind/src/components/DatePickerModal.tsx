@@ -344,6 +344,7 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
   }, [tempSelectedDate, selectedHour, selectedMinute, selectedAmPm, onSelect, onClose, isFutureDateTime]);
 
   const handleClear = useCallback(() => {
+    lightTap();
     setTempSelectedDate(null);
     onSelect(null as any);
     onClose();

@@ -23,9 +23,9 @@ function GlowingLogo({ glowOpacity, tintColor }: { glowOpacity: Animated.Value; 
           position: 'absolute',
           tintColor: '#ffffff',
           opacity: glowOpacity,
-          transform: [{ scale: 1.02 }],
+          transform: [{ scale: 1.01 }],
         }}
-        blurRadius={8}
+        blurRadius={4}
       />
       {/* Main logo */}
       <Image

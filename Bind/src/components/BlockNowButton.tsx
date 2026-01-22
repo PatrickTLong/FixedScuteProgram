@@ -11,24 +11,6 @@ import { lightTap, mediumTap, successTap } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 
-// Slide thumb component with chevron arrow
-interface SlideThumbProps {
-  size?: number;
-}
-
-function SlideThumb({ size = 32 }: SlideThumbProps) {
-  return (
-    <View
-      style={{
-        width: size,
-        height: size,
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
-    />
-  );
-}
-
 const HOLD_DURATION = 3000; // 3 seconds
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const BASE_BUTTON_HORIZONTAL_PADDING = 48; // px-6 = 24px * 2 from parent
@@ -303,9 +285,6 @@ function BlockNowButton({
 
   // When locked without timer (no time limit), show slide-to-unlock
   if (showSlideToUnlock) {
-    const thumbSize = 32;
-    const thumbMargin = 6;
-
     // Green fill only appears when sliding - starts from 0 and grows with slide
     const slideFillWidth = slidePosition.interpolate({
       inputRange: [0, buttonWidth],
@@ -345,21 +324,6 @@ function BlockNowButton({
           />
         )}
 
-        {/* Slide thumb (white arrow) that moves with the gesture */}
-        <Animated.View
-          style={{
-            position: 'absolute',
-            top: 0,
-            bottom: 0,
-            left: thumbMargin,
-            justifyContent: 'center',
-            transform: [{ translateX: slidePosition }],
-            zIndex: 3,
-          }}
-          pointerEvents="none"
-        >
-          <SlideThumb size={thumbSize} />
-        </Animated.View>
       </View>
     );
   }

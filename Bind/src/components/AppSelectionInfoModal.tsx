@@ -6,6 +6,7 @@ import {
   Modal,
 } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
+import { lightTap } from '../utils/haptics';
 
 interface AppSelectionInfoModalProps {
   visible: boolean;
@@ -17,6 +18,7 @@ function AppSelectionInfoModal({ visible, onClose }: AppSelectionInfoModalProps)
   const [dontShowAgain, setDontShowAgain] = useState(false);
 
   const handleConfirm = () => {
+    lightTap();
     onClose(dontShowAgain);
     setDontShowAgain(false); // Reset for next time
   };
@@ -36,48 +38,25 @@ function AppSelectionInfoModal({ visible, onClose }: AppSelectionInfoModalProps)
               App Selection
             </Text>
 
-            <Text style={{ color: colors.textSecondary }} className="text-base font-nunito mb-4">
-              For your safety, certain essential apps cannot be blocked:
+            <Text style={{ color: colors.textSecondary }} className="text-base font-nunito">
+              For your safety, essential apps like Phone, Messages, and Camera cannot be blocked.
             </Text>
-
-            <View className="space-y-3">
-              <View className="flex-row">
-                <Text style={{ color: colors.textSecondary }} className="mr-2">•</Text>
-                <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito flex-1">
-                  Phone & Dialer
-                </Text>
-              </View>
-
-              <View className="flex-row">
-                <Text style={{ color: colors.textSecondary }} className="mr-2">•</Text>
-                <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito flex-1">
-                  Messages
-                </Text>
-              </View>
-
-              <View className="flex-row">
-                <Text style={{ color: colors.textSecondary }} className="mr-2">•</Text>
-                <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito flex-1">
-                  Camera
-                </Text>
-              </View>
-            </View>
 
             {/* Don't show again checkbox */}
             <TouchableOpacity
-              onPress={() => setDontShowAgain(!dontShowAgain)}
+              onPress={() => { lightTap(); setDontShowAgain(!dontShowAgain); }}
               activeOpacity={0.7}
               className="flex-row items-center mt-5"
             >
               <View
                 style={{
-                  backgroundColor: dontShowAgain ? colors.green : 'transparent',
-                  borderColor: dontShowAgain ? colors.green : colors.textSecondary,
+                  backgroundColor: dontShowAgain ? '#4ade80' : 'transparent',
+                  borderColor: dontShowAgain ? '#4ade80' : colors.textSecondary,
                 }}
                 className="w-5 h-5 rounded border-2 items-center justify-center mr-3"
               >
                 {dontShowAgain && (
-                  <View className="w-2 h-3 border-r-2 border-b-2 border-black rotate-45 -mt-0.5" />
+                  <View style={{ borderColor: '#FFFFFF' }} className="w-2 h-3 border-r-2 border-b-2 rotate-45 -mt-0.5" />
                 )}
               </View>
               <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">
