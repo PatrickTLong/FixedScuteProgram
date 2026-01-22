@@ -455,12 +455,12 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
         </Text>
         {resetError && (
           <View style={{ backgroundColor: 'rgba(239, 68, 68, 0.2)' }} className="rounded-xl px-4 py-3 mb-3">
-            <Text style={{ color: colors.red }} className="text-sm font-nunito">{resetError}</Text>
+            <Text style={{ color: '#FF5C5C' }} className="text-sm font-nunito">{resetError}</Text>
           </View>
         )}
         {deleteError && (
           <View style={{ backgroundColor: 'rgba(239, 68, 68, 0.2)' }} className="rounded-xl px-4 py-3 mb-3">
-            <Text style={{ color: colors.red }} className="text-sm font-nunito">{deleteError}</Text>
+            <Text style={{ color: '#FF5C5C' }} className="text-sm font-nunito">{deleteError}</Text>
           </View>
         )}
         <View style={{ backgroundColor: colors.card }} className="rounded-2xl px-4 mb-6">
@@ -473,10 +473,10 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
             arrowColor={colors.textSecondary}
           />
           <SettingsRow
-            icon={<TrashIcon color={colors.red} />}
+            icon={<TrashIcon color="#FF5C5C" />}
             label="Delete Account"
             onPress={isDisabled ? undefined : () => setDeleteAccountModalVisible(true)}
-            labelColor={colors.red}
+            labelColor="#FF5C5C"
             borderColor={colors.border}
             arrowColor={colors.textSecondary}
             isLast
@@ -566,7 +566,6 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
         message="Are you sure you want to log out? You can sign back in anytime."
         confirmText="Log Out"
         cancelText="Cancel"
-        confirmColor="#4ade80"
         onConfirm={handleLogout}
         onCancel={() => setLogoutModalVisible(false)}
       />

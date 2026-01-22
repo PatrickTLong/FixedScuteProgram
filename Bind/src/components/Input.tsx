@@ -28,7 +28,7 @@ export default function Input({
         {...textInputProps}
       />
       {error && (
-        <Text style={{ color: colors.red }} className="text-sm font-nunito mt-2">
+        <Text style={{ color: '#FF5C5C' }} className="text-sm font-nunito mt-2">
           {error}
         </Text>
       )}

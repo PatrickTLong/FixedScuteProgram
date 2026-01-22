@@ -152,7 +152,7 @@ const AmPmSelector = memo(({ value, onChange, greenColor, cardColor, textMutedCo
   <View className="ml-2">
     <TouchableOpacity
       onPress={() => { lightTap(); onChange('AM'); }}
-      style={{ backgroundColor: value === 'AM' ? '#22c55e' : cardColor }}
+      style={{ backgroundColor: value === 'AM' ? '#4ade80' : cardColor }}
       className="px-3 py-2 rounded-lg"
     >
       <Text style={{ color: value === 'AM' ? '#FFFFFF' : textMutedColor }} className="text-base font-nunito-semibold">
@@ -161,7 +161,7 @@ const AmPmSelector = memo(({ value, onChange, greenColor, cardColor, textMutedCo
     </TouchableOpacity>
     <TouchableOpacity
       onPress={() => { lightTap(); onChange('PM'); }}
-      style={{ backgroundColor: value === 'PM' ? '#22c55e' : cardColor }}
+      style={{ backgroundColor: value === 'PM' ? '#4ade80' : cardColor }}
       className="px-3 py-2 rounded-lg mt-1"
     >
       <Text style={{ color: value === 'PM' ? '#FFFFFF' : textMutedColor }} className="text-base font-nunito-semibold">
@@ -387,12 +387,12 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
         {/* Header */}
         <View style={{ borderBottomColor: colors.border }} className="flex-row items-center justify-between px-4 py-3 border-b">
-          <TouchableOpacity onPress={onClose} className="px-2">
+          <TouchableOpacity onPress={() => { lightTap(); onClose(); }} className="px-2">
             <Text style={{ color: '#FFFFFF'}} className="text-base font-nunito">Cancel</Text>
           </TouchableOpacity>
           <Text style={{ color: colors.text }} className="text-lg font-nunito-semibold">Pick Date & Time</Text>
           <TouchableOpacity
-            onPress={handleConfirm}
+            onPress={() => { lightTap(); handleConfirm(); }}
             disabled={!isFutureDateTime}
             className="px-2"
           >
@@ -460,8 +460,8 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
                 >
                   <View
                     style={{
-                      backgroundColor: selected ? '#22c55e' : 'transparent',
-                      borderColor: todayDay && !selected ? colors.green : 'transparent',
+                      backgroundColor: selected ? '#4ade80' : 'transparent',
+                      borderColor: todayDay && !selected ? '#4ade80' : 'transparent',
                       borderWidth: todayDay && !selected ? 1 : 0,
                     }}
                     className="w-9 h-9 rounded-full items-center justify-center"
@@ -513,7 +513,7 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
                 <AmPmSelector
                   value={selectedAmPm}
                   onChange={setSelectedAmPm}
-                  greenColor={'#22c55e'}
+                  greenColor={'#4ade80'}
                   cardColor={colors.card}
                   textMutedColor={colors.textSecondary}
                 />
@@ -540,7 +540,7 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
               )}
             </View>
             {tempSelectedDate && !isFutureDateTime && (
-              <Text style={{ color: colors.red }} className="text-sm font-nunito mt-2">
+              <Text style={{ color: '#FF5C5C' }} className="text-sm font-nunito mt-2">
                 Please select a future date and time
               </Text>
             )}

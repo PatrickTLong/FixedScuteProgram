@@ -992,7 +992,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
 
                 {/* Schedule Validation Message */}
                 {scheduleStartDate && scheduleEndDate && scheduleEndDate <= scheduleStartDate && (
-                  <Text style={{ color: colors.red }} className="text-sm font-nunito mt-2">
+                  <Text style={{ color: '#FF5C5C' }} className="text-sm font-nunito mt-2">
                     End date must be after start date
                   </Text>
                 )}

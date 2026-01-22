@@ -247,8 +247,8 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, disabled
               {preset.name}
             </Text>
             {isExpired ? (
-              <View style={{ backgroundColor: `${colors.red}33` }} className="ml-2 px-2 py-0.5 rounded">
-                <Text style={{ color: colors.red }} className="text-xs font-nunito-semibold">
+              <View style={{ backgroundColor: `${'#FF5C5C'}33` }} className="ml-2 px-2 py-0.5 rounded">
+                <Text style={{ color: '#FF5C5C' }} className="text-xs font-nunito-semibold">
                   Expired
                 </Text>
               </View>
