@@ -315,7 +315,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
         }).start(() => {
           setShowStepOverlay(false);
         });
-      }, 60);
+      }, 120);
     });
   }, [stepOverlayAnim]);
 

@@ -38,7 +38,7 @@ function PresetGuideModal({ visible, onClose }: PresetGuideModalProps) {
         <ScrollView className="flex-1 px-6 py-4">
           {/* Introduction */}
           <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
-            This guide explains all the settings available when creating or editing a preset. Read carefully to understand how each option affects your blocking experience.
+            This guide explains all the settings available when creating or editing a preset. Read carefully to understand how each option affects your blocking.
           </Text>
 
           {/* Apps Selection */}

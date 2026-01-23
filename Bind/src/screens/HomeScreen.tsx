@@ -984,7 +984,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
 
       // For no time limit presets, show spinner for 1 extra second after locking
       if (activePreset.noTimeLimit && !activePreset.isScheduled) {
-        await new Promise<void>(resolve => setTimeout(resolve, 1000));
+        await new Promise<void>(resolve => setTimeout(resolve, 500));
       }
 
       // Local state already set above - no need to call loadStats which would cause a delay
@@ -1202,7 +1202,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
                       const end = new Date(p.scheduleEndDate!);
                       return now >= start && now < end;
                     });
-                    if (hasActive) return colors.green;
+                    if (hasActive) return "#4ade80";
                     // Check if any is pending
                     const hasPending = scheduledPresets.some(p => {
                       const start = new Date(p.scheduleStartDate!);
@@ -1289,7 +1289,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
                     className={`p-4 ${index < scheduledPresets.length - 1 ? 'border-b' : ''}`}
                   >
                     <View className="flex-row items-center">
-                      <View style={{ backgroundColor: isCurrentlyActive ? colors.green : colors.cyan }} className="w-2 h-2 rounded-full mr-3" />
+                      <View style={{ backgroundColor: isCurrentlyActive ? '#4ade80' : colors.cyan }} className="w-2 h-2 rounded-full mr-3" />
                       <View className="flex-1">
                         <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">
                           {preset.name}
@@ -1298,8 +1298,8 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
                           {formatScheduleDate(preset.scheduleStartDate!)} — {formatScheduleDate(preset.scheduleEndDate!)}
                         </Text>
                       </View>
-                      <View style={{ backgroundColor: isCurrentlyActive ? 'rgba(34, 197, 94, 0.2)' : 'rgba(34, 211, 238, 0.2)' }} className="px-2 py-0.5 rounded-full">
-                        <Text style={{ color: isCurrentlyActive ? colors.green : colors.cyan }} className="text-xs font-nunito-semibold">
+                      <View style={{ backgroundColor: isCurrentlyActive ? 'rgba(74, 222, 128, 0.2)' : 'rgba(34, 211, 238, 0.2)' }} className="px-2 py-0.5 rounded-full">
+                        <Text style={{ color: isCurrentlyActive ? '#4ade80' : colors.cyan }} className="text-xs font-nunito-semibold">
                           {isCurrentlyActive ? 'Active' : isPending ? 'Pending' : 'Scheduled'}
                         </Text>
                       </View>

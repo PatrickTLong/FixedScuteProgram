@@ -273,6 +273,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
   const [resetError, setResetError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   // Theme state
   const { theme, setTheme, colors } = useTheme();
@@ -348,7 +349,11 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
 
   const handleLogout = () => {
     setLogoutModalVisible(false);
-    onLogout();
+    setIsLoggingOut(true);
+    // Small delay to show the overlay before logout completes
+    setTimeout(() => {
+      onLogout();
+    }, 100);
   };
 
   const handleResetAccount = async () => {
@@ -381,10 +386,10 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
   // Don't allow any actions until lock status is checked, or if locked
   const isDisabled = !lockChecked || isLocked === true;
 
-  // Show full-screen loading only for destructive actions (reset/delete)
+  // Show full-screen loading only for destructive actions (reset/delete/logout)
   // Initial load uses cache so it's instant - no spinner needed
-  if (isResetting || isDeleting) {
-    const loadingMessage = isResetting ? 'Resetting Account...' : 'Deleting Account...';
+  if (isResetting || isDeleting || isLoggingOut) {
+    const loadingMessage = isResetting ? 'Resetting Account...' : isDeleting ? 'Deleting Account...' : 'Logging Out...';
 
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }} edges={['top']}>
