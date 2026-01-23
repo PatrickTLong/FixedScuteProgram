@@ -16,6 +16,7 @@ import ProgressBar from '../components/ProgressBar';
 import BackButton from '../components/BackButton';
 import InfoModal from '../components/InfoModal';
 import OTPInput from '../components/OTPInput';
+import GoogleSignInBtn from '../components/GoogleSignInButton';
 import { useTheme } from '../context/ThemeContext';
 import { setAuthToken } from '../services/cardApi';
 import { API_URL } from '../config/api';
@@ -281,12 +282,23 @@ function GetStartedScreen({ onBack, onSuccess, onSignIn }: Props) {
               </Text>
             </TouchableOpacity>
 
+            {/* Google Sign In - only show on form step */}
+            {step === 'form' && (
+              <View className="mt-2">
+                <GoogleSignInBtn
+                  onSuccess={onSuccess}
+                  onError={(error) => showModal('Google Sign-In Error', error)}
+                  disabled={loading}
+                />
+              </View>
+            )}
+
             {/* Already have an account */}
             {step === 'form' && (
               <TouchableOpacity
                 onPress={() => { lightTap(); onSignIn(); }}
                 activeOpacity={0.7}
-                className="items-center py-2"
+                className="items-center py-2 mt-4"
               >
                 <Text style={{ color: colors.textSecondary }} className="text-base font-nunito">
                   Already have an account?{' '}

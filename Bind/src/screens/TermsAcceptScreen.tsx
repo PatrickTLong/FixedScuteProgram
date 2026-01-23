@@ -8,6 +8,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '../context/ThemeContext';
+import { lightTap } from '../utils/haptics';
 
 interface Props {
   onAccept: () => void;
@@ -123,7 +124,7 @@ function TermsAcceptScreen({ onAccept }: Props) {
           Do you accept these Terms of Service?
         </Text>
         <TouchableOpacity
-          onPress={handleAcceptTerms}
+          onPress={() => { lightTap(); handleAcceptTerms(); }}
           activeOpacity={0.8}
           style={{ backgroundColor: colors.card  }}
           className="rounded-full py-4 items-center"

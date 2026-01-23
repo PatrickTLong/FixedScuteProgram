@@ -16,6 +16,7 @@ import ProgressBar from '../components/ProgressBar';
 import BackButton from '../components/BackButton';
 import InfoModal from '../components/InfoModal';
 import OTPInput from '../components/OTPInput';
+import GoogleSignInBtn from '../components/GoogleSignInButton';
 import { useTheme } from '../context/ThemeContext';
 import { setAuthToken } from '../services/cardApi';
 import { API_URL } from '../config/api';
@@ -273,6 +274,17 @@ function SignInScreen({ onBack, onSuccess, onForgotPassword }: Props) {
                 {loading ? 'Please wait...' : step === 'credentials' ? 'Sign In' : 'Verify'}
               </Text>
             </TouchableOpacity>
+
+            {/* Google Sign In - only show on credentials step */}
+            {step === 'credentials' && (
+              <View className="mt-2">
+                <GoogleSignInBtn
+                  onSuccess={onSuccess}
+                  onError={(error) => showModal('Google Sign-In Error', error)}
+                  disabled={loading}
+                />
+              </View>
+            )}
 
           </View>
         </ScrollView>

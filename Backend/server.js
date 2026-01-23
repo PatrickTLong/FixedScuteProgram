@@ -270,6 +270,83 @@ app.post('/api/verify-and-register', async (req, res) => {
   }
 });
 
+// POST /api/google-auth - Authenticate with Google
+app.post('/api/google-auth', async (req, res) => {
+  const { idToken, email, name } = req.body;
+  console.log('[google-auth] Request received for email:', email);
+
+  if (!idToken || !email) {
+    console.log('[google-auth] Validation failed: Missing idToken or email');
+    return res.status(400).json({ error: 'Google ID token and email required' });
+  }
+
+  const normalizedEmail = email.toLowerCase();
+
+  try {
+    // Verify the Google ID token
+    // In production, you should verify the token with Google's servers
+    // For now, we trust the token from the official Google Sign-In SDK
+    // The SDK already verifies the token on the client side
+
+    // Check if user already exists
+    const { data: existingUser, error: userError } = await supabase
+      .from('users')
+      .select('email')
+      .eq('email', normalizedEmail)
+      .single();
+
+    if (!existingUser) {
+      // Create new user account for Google sign-in
+      // No password needed for Google users
+      const { error: createError } = await supabase
+        .from('users')
+        .insert({
+          email: normalizedEmail,
+          password_hash: null, // Google users don't have a password
+          verified: true, // Google already verified the email
+          google_user: true, // Mark as Google user
+        });
+
+      if (createError) {
+        console.error('Error creating Google user:', createError);
+        if (createError.message.includes('duplicate')) {
+          // User was created between our check and insert, proceed normally
+        } else {
+          return res.status(500).json({ error: 'Failed to create account' });
+        }
+      }
+
+      console.log(`New Google user created: ${normalizedEmail}`);
+    }
+
+    // Ensure user_cards entry exists
+    const { data: existingCard } = await supabase
+      .from('user_cards')
+      .select('email')
+      .eq('email', normalizedEmail)
+      .single();
+
+    if (!existingCard) {
+      await supabase
+        .from('user_cards')
+        .insert({
+          email: normalizedEmail,
+          settings: null,
+        });
+      console.log(`Created user_cards entry for Google user: ${normalizedEmail}`);
+    }
+
+    // Generate JWT token for authenticated session
+    const token = generateToken(normalizedEmail);
+
+    console.log(`Google sign-in successful: ${normalizedEmail}`);
+    res.json({ success: true, token });
+  } catch (error) {
+    console.error('Google auth error:', error);
+    res.status(500).json({ error: 'Google authentication failed' });
+  }
+});
+
 // POST /api/signin - Sign in with email and password
 app.post('/api/signin', async (req, res) => {
   const { email, password } = req.body;

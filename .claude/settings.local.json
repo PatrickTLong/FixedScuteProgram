@@ -23,7 +23,9 @@
       "Bash(git remote add:*)",
       "Bash(git push:*)",
       "Bash(tree:*)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(./gradlew signingReport:*)",
+      "Bash(adb uninstall:*)"
     ]
   }
 }
