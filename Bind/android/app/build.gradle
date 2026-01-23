@@ -1,6 +1,7 @@
 apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
+apply from: project(':react-native-config').projectDir.getPath() + "/dotenv.gradle"
 
 /**
  * This is the configuration block to customize your React Native Android app.
@@ -84,8 +85,8 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
-        // API URL for backend calls from native code
-        buildConfigField "String", "API_URL", '"http://10.0.0.252:3000"'
+        // API URL is now loaded from .env file via react-native-config
+        resValue "string", "build_config_package", "com.bind"
     }
     buildFeatures {
         buildConfig true
