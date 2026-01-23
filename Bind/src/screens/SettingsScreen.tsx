@@ -186,6 +186,19 @@ const FileTextIcon = () => (
   </Svg>
 );
 
+// Chevron right icon - matches PresetEditModal
+const ChevronRightIcon = ({ size = 24 }: { size?: number }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M9 18l6-6-6-6"
+      stroke="#FFFFFF"
+      strokeWidth={2.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
 const TapoutIcon = () => (
   <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
     <Path
@@ -236,7 +249,7 @@ const SettingsRow = ({
       <Text style={{ color: valueColor }} className="text-sm font-nunito mr-2">{value}</Text>
     )}
     {showArrow && onPress && (
-      <Text style={{ color: arrowColor }} className="text-lg">{'>'}</Text>
+      <ChevronRightIcon size={20} />
     )}
   </TouchableOpacity>
 );

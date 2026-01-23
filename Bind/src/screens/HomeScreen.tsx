@@ -759,6 +759,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
     // Store preset info before starting
     const presetIdToKeep = activePreset?.id;
     const isScheduledPreset = activePreset?.isScheduled;
+    const isNoTimeLimit = activePreset?.noTimeLimit && !activePreset?.isScheduled;
 
     try {
       // Show loading spinner during unlock
@@ -803,6 +804,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
       // Refresh to get updated state
       invalidateUserCaches(email);
       await loadStats(true);
+
     } catch (error) {
       showModal('Error', 'Failed to unlock. Please try again.');
     } finally {
@@ -978,6 +980,11 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
         Vibration.vibrate(50);
       } else {
         Vibration.vibrate(50);
+      }
+
+      // For no time limit presets, show spinner for 1 extra second after locking
+      if (activePreset.noTimeLimit && !activePreset.isScheduled) {
+        await new Promise<void>(resolve => setTimeout(resolve, 1000));
       }
 
       // Local state already set above - no need to call loadStats which would cause a delay

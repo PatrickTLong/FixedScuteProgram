@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../context/ThemeContext';
+import { lightTap } from '../utils/haptics';
 
 interface PresetGuideModalProps {
   visible: boolean;
@@ -29,7 +30,7 @@ function PresetGuideModal({ visible, onClose }: PresetGuideModalProps) {
         <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between px-4 py-3">
           <View className="w-16" />
           <Text style={{ color: colors.text }} className="text-lg font-nunito-semibold">Preset Guide</Text>
-          <TouchableOpacity onPress={onClose} className="w-16 items-end">
+          <TouchableOpacity onPress={() => { lightTap(); onClose(); }} className="w-16 items-end">
             <Text style={{ color: '#FFFFFF' }} className="text-base font-nunito">Done</Text>
           </TouchableOpacity>
         </View>
