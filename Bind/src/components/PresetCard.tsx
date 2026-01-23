@@ -292,6 +292,7 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, disabled
           trackColorTrue="#4ade80"
           thumbColorOn="#86efac"
           thumbColorOff="#9ca3af"
+          size="large"
         />
       </View>
     </Pressable>

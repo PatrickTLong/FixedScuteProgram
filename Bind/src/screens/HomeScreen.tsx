@@ -10,6 +10,7 @@ import {
   ScrollView,
   Modal,
   Image,
+  Platform,
 } from 'react-native';
 import LottieView from 'lottie-react-native';
 const Lottie = LottieView as any;
@@ -819,16 +820,29 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
         return;
       }
 
-      // Check if Accessibility Service is enabled before starting blocking
+      // Check permissions before starting blocking (platform-specific)
       if (PermissionsModule) {
         try {
-          const isAccessibilityEnabled = await PermissionsModule.isAccessibilityServiceEnabled();
-          if (!isAccessibilityEnabled) {
-            showModal(
-              'Permission Required',
-              'Accessibility Service is not enabled. Please enable it in Settings to block apps.'
-            );
-            return;
+          if (Platform.OS === 'ios') {
+            // iOS: Check Screen Time authorization
+            const isScreenTimeAuthorized = await PermissionsModule.isScreenTimeAuthorized();
+            if (!isScreenTimeAuthorized) {
+              showModal(
+                'Permission Required',
+                'Screen Time access is not enabled. Please enable it to block apps.'
+              );
+              return;
+            }
+          } else {
+            // Android: Check Accessibility Service
+            const isAccessibilityEnabled = await PermissionsModule.isAccessibilityServiceEnabled();
+            if (!isAccessibilityEnabled) {
+              showModal(
+                'Permission Required',
+                'Accessibility Service is not enabled. Please enable it in Settings to block apps.'
+              );
+              return;
+            }
           }
         } catch (permError) {
           // Continue anyway if we can't check - native module might still work

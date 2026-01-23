@@ -43,9 +43,11 @@ interface Permission {
   description: string;
   isGranted: boolean;
   androidIntent?: string;
+  iosAction?: 'screenTime' | 'notifications' | 'openSettings';
 }
 
-const DEFAULT_PERMISSIONS: Permission[] = [
+// Android permissions (8 total)
+const ANDROID_PERMISSIONS: Permission[] = [
   {
     id: 'notification',
     title: 'Notification Access',
@@ -104,6 +106,27 @@ const DEFAULT_PERMISSIONS: Permission[] = [
   },
 ];
 
+// iOS permissions (2 total - much simpler!)
+const IOS_PERMISSIONS: Permission[] = [
+  {
+    id: 'screenTime',
+    title: 'Screen Time Access',
+    description: 'Block apps and websites during focus sessions.',
+    isGranted: false,
+    iosAction: 'screenTime',
+  },
+  {
+    id: 'notifications',
+    title: 'Notifications',
+    description: 'Receive alerts when blocking sessions start and end.',
+    isGranted: false,
+    iosAction: 'notifications',
+  },
+];
+
+// Get the default permissions based on platform
+const DEFAULT_PERMISSIONS = Platform.OS === 'ios' ? IOS_PERMISSIONS : ANDROID_PERMISSIONS;
+
 
 function PermissionsChecklistScreen({ onComplete }: Props) {
   const { colors } = useTheme();
@@ -120,12 +143,24 @@ function PermissionsChecklistScreen({ onComplete }: Props) {
     try {
       if (PermissionsModule) {
         const states = await PermissionsModule.checkAllPermissions();
-        setPermissions(prev =>
-          prev.map(p => ({
-            ...p,
-            isGranted: states[p.id] ?? false,
-          }))
-        );
+
+        if (Platform.OS === 'ios') {
+          // iOS returns { screenTime: bool, notifications: bool }
+          setPermissions(prev =>
+            prev.map(p => ({
+              ...p,
+              isGranted: states[p.id] ?? false,
+            }))
+          );
+        } else {
+          // Android returns all permission states
+          setPermissions(prev =>
+            prev.map(p => ({
+              ...p,
+              isGranted: states[p.id] ?? false,
+            }))
+          );
+        }
       }
     } catch (error) {
       // Silent failure - permissions will show as not granted
@@ -158,6 +193,45 @@ function PermissionsChecklistScreen({ onComplete }: Props) {
   }, [allGranted, isLoading, onComplete]);
 
   async function openPermissionSettings(permission: Permission) {
+    // iOS permission handling
+    if (Platform.OS === 'ios') {
+      if (permission.iosAction === 'screenTime') {
+        // Request Screen Time authorization directly
+        try {
+          if (PermissionsModule?.requestScreenTimeAuthorization) {
+            await PermissionsModule.requestScreenTimeAuthorization();
+            checkPermissions();
+          }
+        } catch (error) {
+          // If direct request fails, open settings
+          if (PermissionsModule?.openAppSettings) {
+            PermissionsModule.openAppSettings();
+          } else {
+            Linking.openSettings();
+          }
+        }
+        return;
+      }
+
+      if (permission.iosAction === 'notifications') {
+        // Request notification permission directly
+        try {
+          if (PermissionsModule?.requestNotificationPermission) {
+            await PermissionsModule.requestNotificationPermission();
+            checkPermissions();
+          }
+        } catch (error) {
+          Linking.openSettings();
+        }
+        return;
+      }
+
+      // Default: open app settings
+      Linking.openSettings();
+      return;
+    }
+
+    // Android permission handling
     if (Platform.OS === 'android' && permission.androidIntent) {
       // Handle device admin request specially
       if (permission.androidIntent === 'device_admin_request') {

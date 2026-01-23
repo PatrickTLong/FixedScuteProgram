@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   NativeModules,
   Image,
+  Platform,
 } from 'react-native';
 import LottieView from 'lottie-react-native';
 const Lottie = LottieView as any;
@@ -28,9 +29,13 @@ import { lightTap } from '../utils/haptics';
 const { InstalledAppsModule, ScheduleModule } = NativeModules;
 
 // Cache installed apps for the session (apps don't change often)
+// Note: iOS doesn't provide app list, only Android
 let cachedInstalledApps: { id: string }[] | null = null;
 
 async function getInstalledAppsCached(): Promise<{ id: string }[]> {
+  // iOS doesn't provide a list of installed apps - skip this check
+  if (Platform.OS === 'ios') return [];
+
   if (cachedInstalledApps) return cachedInstalledApps;
   if (!InstalledAppsModule) return [];
   try {

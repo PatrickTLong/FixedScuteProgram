@@ -56,9 +56,9 @@ function invalidateInstalledAppsCache() {
   installedAppsLoadPromise = null;
 }
 
-// Set up listener for app install/uninstall events
+// Set up listener for app install/uninstall events (Android only)
 const { InstalledAppsModule } = NativeModules;
-if (InstalledAppsModule) {
+if (Platform.OS === 'android' && InstalledAppsModule) {
   const installedAppsEmitter = new NativeEventEmitter(InstalledAppsModule);
   installedAppsEmitter.addListener('onAppsChanged', () => {
     invalidateInstalledAppsCache();
@@ -288,8 +288,9 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
   const [installedApps, setInstalledApps] = useState<InstalledApp[]>([]);
   const [loadingApps, setLoadingApps] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [showFinalStep, setShowFinalStep] = useState(false);
   const [displayedStep, setDisplayedStep] = useState<'first' | 'final'>('first');
+  // iOS-specific: track selected app count from native picker
+  const [iosSelectedAppsCount, setIosSelectedAppsCount] = useState(0);
 
   // Animation refs (for tab transition)
   const tabFadeAnim = useRef(new Animated.Value(1)).current;
@@ -300,21 +301,27 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
   const isStepTransitioning = useRef(false);
 
   // Step transition (first step <-> final step) - with fade animation
+  // Uses same pattern as auth flow to avoid flicker:
+  // 1. Fade out completely
+  // 2. Update BOTH states synchronously while invisible
+  // 3. Wait for render with requestAnimationFrame
+  // 4. Fade back in
   const goToStep = useCallback((toFinal: boolean) => {
     if (isStepTransitioning.current) return;
     isStepTransitioning.current = true;
 
     Animated.timing(stepFadeAnim, {
       toValue: 0,
-      duration: 150,
+      duration: 120,
       useNativeDriver: true,
     }).start(() => {
+      // Update state while fully transparent (like auth flow)
       setDisplayedStep(toFinal ? 'final' : 'first');
-      setShowFinalStep(toFinal);
+      // Small delay to ensure render completes before fading in
       requestAnimationFrame(() => {
         Animated.timing(stepFadeAnim, {
           toValue: 1,
-          duration: 150,
+          duration: 120,
           useNativeDriver: true,
         }).start(() => {
           isStepTransitioning.current = false;
@@ -422,7 +429,21 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
   // Define loadInstalledApps before the useEffect that uses it
   // Uses global cache to avoid reloading apps on every modal open
   const loadInstalledApps = useCallback(async (presetMode?: 'all' | 'specific') => {
-    // Check if we have cached apps - show them instantly without loading state
+    // iOS uses native FamilyActivityPicker - just get the count
+    if (Platform.OS === 'ios') {
+      try {
+        if (InstalledAppsModule?.getSelectedAppsCount) {
+          const count = await InstalledAppsModule.getSelectedAppsCount();
+          setIosSelectedAppsCount(count);
+        }
+      } catch (error) {
+        // Failed to get iOS app count
+      }
+      setLoadingApps(false);
+      return;
+    }
+
+    // Android: Check if we have cached apps - show them instantly without loading state
     if (cachedInstalledApps) {
       setInstalledApps(cachedInstalledApps);
       // If editing a preset with mode 'all', select all apps
@@ -446,6 +467,21 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
       // Failed to load apps
     } finally {
       setLoadingApps(false);
+    }
+  }, []);
+
+  // iOS: Open native FamilyActivityPicker
+  const openIOSAppPicker = useCallback(async () => {
+    if (Platform.OS !== 'ios' || !InstalledAppsModule?.showAppPicker) return;
+
+    try {
+      lightTap();
+      const result = await InstalledAppsModule.showAppPicker();
+      if (result?.success) {
+        setIosSelectedAppsCount(result.appCount || 0);
+      }
+    } catch (error) {
+      // User cancelled or error occurred
     }
   }, []);
 
@@ -505,7 +541,6 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
       }
       setActiveTab('apps');
       setDisplayedTab('apps');
-      setShowFinalStep(false);
       setDisplayedStep('first');
       tabFadeAnim.setValue(1);
       stepFadeAnim.setValue(1);
@@ -552,10 +587,12 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
   }, [selectedApps, installedApps]);
 
   // Check if preset can proceed (has name and at least one installed app or website)
-  const canContinue = useMemo(() =>
-    name.trim() && (installedSelectedApps.length > 0 || blockedWebsites.length > 0),
-    [name, installedSelectedApps.length, blockedWebsites.length]
-  );
+  const canContinue = useMemo(() => {
+    const hasApps = Platform.OS === 'ios'
+      ? iosSelectedAppsCount > 0
+      : installedSelectedApps.length > 0;
+    return name.trim() && (hasApps || blockedWebsites.length > 0);
+  }, [name, installedSelectedApps.length, blockedWebsites.length, iosSelectedAppsCount]);
 
   // Check if timer has any value set (not all zeros)
   const hasTimerValue = useMemo(() =>
@@ -801,9 +838,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               <AnimatedSwitch
                 value={noTimeLimit}
                 onValueChange={(value: boolean) => {
-                  // Update visibility state immediately
                   setNoTimeLimit(value);
-                  // Defer other state updates to allow render
                   requestAnimationFrame(() => {
                     if (value) {
                       setIsScheduled(false);
@@ -817,6 +852,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                 trackColorTrue="#4ade80"
                 thumbColorOn="#86efac"
                 thumbColorOff="#9ca3af"
+                size="large"
               />
             </View>
 
@@ -847,6 +883,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                 trackColorTrue="#4ade80"
                 thumbColorOn="#86efac"
                 thumbColorOff="#9ca3af"
+                size="large"
               />
             </View>
 
@@ -868,6 +905,18 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                         setStrictModeWarningVisible(true);
                       } else {
                         setStrictMode(true);
+                        // Auto-enable emergency tapout only if user has tapouts remaining
+                        setAllowEmergencyTapout(false); // Default to off first
+                        if (email) {
+                          try {
+                            const status = await getEmergencyTapoutStatus(email);
+                            if (status.remaining > 0) {
+                              setAllowEmergencyTapout(true);
+                            }
+                          } catch (error) {
+                            // Failed to check - keep off
+                          }
+                        }
                       }
                     } else {
                       // Disabling strict mode - also disable emergency tapout since it's not relevant
@@ -879,7 +928,8 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                   trackColorTrue="#4ade80"
                   thumbColorOn="#86efac"
                   thumbColorOff="#9ca3af"
-                  />
+                  size="large"
+                />
               </View>
             )}
 
@@ -897,7 +947,8 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                   trackColorTrue="#4ade80"
                   thumbColorOn="#86efac"
                   thumbColorOff="#9ca3af"
-                  />
+                  size="large"
+                />
               </View>
             )}
 
@@ -935,9 +986,10 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                   });
                 }}
                 trackColorFalse={colors.border}
-                  trackColorTrue="#4ade80"
-                  thumbColorOn="#86efac"
-                  thumbColorOff="#9ca3af"
+                trackColorTrue="#4ade80"
+                thumbColorOn="#86efac"
+                thumbColorOff="#9ca3af"
+                size="large"
               />
             </View>
 
@@ -1064,7 +1116,8 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                         trackColorTrue="#4ade80"
                         thumbColorOn="#86efac"
                         thumbColorOff="#9ca3af"
-                              />
+                        size="large"
+                      />
                     </View>
 
                     {/* Recurring Options */}
@@ -1424,6 +1477,18 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
             onConfirm={async (dontShowAgain) => {
               setStrictModeWarningVisible(false);
               setStrictMode(true);
+              // Auto-enable emergency tapout only if user has tapouts remaining
+              setAllowEmergencyTapout(false); // Default to off first
+              if (email) {
+                try {
+                  const status = await getEmergencyTapoutStatus(email);
+                  if (status.remaining > 0) {
+                    setAllowEmergencyTapout(true);
+                  }
+                } catch (error) {
+                  // Failed to check - keep off
+                }
+              }
               if (dontShowAgain) {
                 await AsyncStorage.setItem(STRICT_MODE_WARNING_DISMISSED_KEY, 'true');
               }
@@ -1480,8 +1545,8 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               value={name}
               onChangeText={setName}
               maxLength={20}
-              style={{ backgroundColor: colors.card, borderColor: colors.border, color: colors.text }}
-              className="border rounded-xl px-4 py-3 text-base font-nunito"
+              style={{ backgroundColor: colors.card, color: colors.text }}
+              className="rounded-xl px-4 py-3 text-base font-nunito-semibold"
             />
           </View>
 
@@ -1510,6 +1575,37 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
 
           <Animated.View style={{ flex: 1, opacity: tabFadeAnim }}>
             {displayedTab === 'apps' ? (
+              Platform.OS === 'ios' ? (
+                // iOS: Show button to open native FamilyActivityPicker
+                <View className="flex-1 px-6 pt-4">
+                  <TouchableOpacity
+                    onPress={openIOSAppPicker}
+                    activeOpacity={0.7}
+                    style={{ backgroundColor: colors.card }}
+                    className="flex-row items-center py-4 px-4 rounded-xl mb-4"
+                  >
+                    <View style={{ backgroundColor: colors.cardLight }} className="w-12 h-12 rounded-xl items-center justify-center mr-4">
+                      <AppsIcon size={24} color={colors.text} />
+                    </View>
+                    <View className="flex-1">
+                      <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">
+                        Select Apps to Block
+                      </Text>
+                      <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">
+                        {iosSelectedAppsCount > 0
+                          ? `${iosSelectedAppsCount} app${iosSelectedAppsCount !== 1 ? 's' : ''} selected`
+                          : 'Tap to choose apps'}
+                      </Text>
+                    </View>
+                    <ChevronRightIcon size={24} color={colors.textSecondary} />
+                  </TouchableOpacity>
+
+                  <Text style={{ color: colors.textMuted }} className="text-sm font-nunito text-center px-4">
+                    iOS uses Screen Time to block apps. Tap above to open the app picker.
+                  </Text>
+                </View>
+              ) : (
+              // Android: Show searchable list of apps
               <>
                 {/* Search */}
                 <View className="px-6 mb-4">
@@ -1518,8 +1614,8 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                     placeholderTextColor={colors.textMuted}
                     value={searchQuery}
                     onChangeText={setSearchQuery}
-                    style={{ backgroundColor: colors.card, borderColor: colors.border, color: colors.text }}
-                    className="border rounded-xl px-4 py-3 text-base font-nunito"
+                    style={{ backgroundColor: colors.card, color: colors.text }}
+                    className="rounded-xl px-4 py-3 text-base font-nunito-semibold"
                   />
                 </View>
 
@@ -1586,6 +1682,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                   />
                 )}
               </>
+              )
             ) : (
               <ScrollView className="flex-1 px-6">
                 {/* Website Input */}
@@ -1599,13 +1696,12 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                     keyboardType="url"
                     style={{
                       backgroundColor: colors.card,
-                      borderColor: colors.border,
                       color: colors.text,
                       textAlignVertical: 'center',
                       includeFontPadding: false,
                       paddingVertical: 0,
                     }}
-                    className="flex-1 border rounded-xl px-4 h-12 text-base font-nunito mr-2"
+                    className="flex-1 rounded-xl px-4 h-12 text-base font-nunito-semibold mr-2"
                   />
                   <TouchableOpacity
                     onPress={addWebsite}
