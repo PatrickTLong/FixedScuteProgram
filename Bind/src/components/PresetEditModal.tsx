@@ -810,6 +810,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                 <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">Block until manually unlocked</Text>
               </View>
               <LottieToggle
+                size="small"
                 value={noTimeLimit}
                 onValueChange={(value: boolean) => {
                   setNoTimeLimit(value);
@@ -832,6 +833,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                 <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">WiFi settings remain accessible</Text>
               </View>
               <LottieToggle
+                size="small"
                 value={blockSettings}
                 onValueChange={async (value: boolean) => {
                   mediumTap();
@@ -859,6 +861,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                   <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">Lock until timer ends or emergency tapout</Text>
                 </View>
                 <LottieToggle
+                  size="small"
                   value={strictMode}
                   onValueChange={async (value: boolean) => {
                     mediumTap();
@@ -900,6 +903,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                   <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">Use your emergency tapouts for this preset</Text>
                 </View>
                 <LottieToggle
+                  size="small"
                   value={allowEmergencyTapout}
                   onValueChange={handleEmergencyTapoutToggle}
                 />
@@ -913,6 +917,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                 <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">Set a future start and end time</Text>
               </View>
               <LottieToggle
+                size="small"
                 value={isScheduled}
                 onValueChange={(value: boolean) => {
                   // Update visibility state immediately
@@ -1045,6 +1050,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                         <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">Repeat this block automatically</Text>
                       </View>
                       <LottieToggle
+                        size="small"
                         value={isRecurring}
                         onValueChange={(value: boolean) => {
                           setIsRecurring(value);

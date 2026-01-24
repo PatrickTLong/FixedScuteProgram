@@ -198,6 +198,9 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
   const [selectedMinute, setSelectedMinute] = useState(0);
   const [selectedAmPm, setSelectedAmPm] = useState<'AM' | 'PM'>('PM');
 
+  // Content fade animation
+  const contentFadeAnim = useRef(new Animated.Value(0)).current;
+
   // Reset when modal opens
   useEffect(() => {
     if (visible) {
@@ -221,8 +224,18 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
         setSelectedHour(hours % 12 === 0 ? 12 : hours % 12);
         setSelectedMinute(now.getMinutes());
       }
+
+      // Fade in content
+      contentFadeAnim.setValue(0);
+      requestAnimationFrame(() => {
+        Animated.timing(contentFadeAnim, {
+          toValue: 1,
+          duration: 400,
+          useNativeDriver: true,
+        }).start();
+      });
     }
-  }, [visible, selectedDate, today]);
+  }, [visible, selectedDate, today, contentFadeAnim]);
 
   const getDaysInMonth = useCallback((month: number, year: number) => {
     return new Date(year, month + 1, 0).getDate();
@@ -381,28 +394,30 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
   return (
     <Modal
       visible={visible}
-      animationType="fade"
+      animationType="none"
       onRequestClose={onClose}
     >
-      <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
-        {/* Header */}
-        <View style={{ borderBottomColor: colors.border }} className="flex-row items-center justify-between px-4 py-3 border-b">
-          <TouchableOpacity onPress={() => { lightTap(); onClose(); }} className="px-2">
-            <Text style={{ color: '#FFFFFF'}} className="text-base font-nunito">Cancel</Text>
-          </TouchableOpacity>
-          <Text style={{ color: colors.text }} className="text-lg font-nunito-semibold">Pick Date & Time</Text>
-          <TouchableOpacity
-            onPress={() => { lightTap(); handleConfirm(); }}
-            disabled={!isFutureDateTime}
-            className="px-2"
-          >
-            <Text style={{ color: isFutureDateTime ? '#FFFFFF' : colors.textMuted }} className="text-base font-nunito-semibold">
-              Done
-            </Text>
-          </TouchableOpacity>
-        </View>
+      <View style={{ flex: 1, backgroundColor: colors.bg }}>
+        <Animated.View style={{ flex: 1, opacity: contentFadeAnim }}>
+          <SafeAreaView style={{ flex: 1 }}>
+            {/* Header */}
+          <View style={{ borderBottomColor: colors.border }} className="flex-row items-center justify-between px-4 py-3 border-b">
+            <TouchableOpacity onPress={() => { lightTap(); onClose(); }} className="px-2">
+              <Text style={{ color: '#FFFFFF'}} className="text-base font-nunito">Cancel</Text>
+            </TouchableOpacity>
+            <Text style={{ color: colors.text }} className="text-lg font-nunito-semibold">Pick Date & Time</Text>
+            <TouchableOpacity
+              onPress={() => { lightTap(); handleConfirm(); }}
+              disabled={!isFutureDateTime}
+              className="px-2"
+            >
+              <Text style={{ color: isFutureDateTime ? '#FFFFFF' : colors.textMuted }} className="text-base font-nunito-semibold">
+                Done
+              </Text>
+            </TouchableOpacity>
+          </View>
 
-        <ScrollView className="flex-1 px-6 pt-4">
+          <ScrollView className="flex-1 px-6 pt-4">
           {/* Month/Year Navigation */}
           <View className="flex-row items-center justify-between mb-4">
             <TouchableOpacity
@@ -549,7 +564,9 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
           {/* Bottom padding for Android navigation */}
           <View className="h-8" />
         </ScrollView>
-      </SafeAreaView>
+          </SafeAreaView>
+        </Animated.View>
+      </View>
     </Modal>
   );
 }

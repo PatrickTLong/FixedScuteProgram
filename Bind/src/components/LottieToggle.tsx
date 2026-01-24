@@ -8,6 +8,7 @@ interface LottieToggleProps {
   value: boolean;
   onValueChange: (value: boolean) => void;
   disabled?: boolean;
+  size?: 'small' | 'default';
 }
 
 // Frame segments from the markers we added:
@@ -20,22 +21,31 @@ const TURN_ON_SEGMENT: [number, number] = [73, 88];
 const OFF_FRAME = 29;
 const ON_FRAME = 88;
 
-// Container size (what affects layout) - matches old AnimatedSwitch "large" size
-const CONTAINER_WIDTH = 56;
-const CONTAINER_HEIGHT = 34;
-
-// Lottie animation size - the toggle shape in the 500x500 canvas is roughly 310x170
-// We scale it so the visible toggle is approximately 56x30 (similar to old switch)
-const LOTTIE_SIZE = 90;
+// Size configurations
+const SIZES = {
+  default: {
+    containerWidth: 56,
+    containerHeight: 34,
+    lottieSize: 90,
+  },
+  small: {
+    containerWidth: 44,
+    containerHeight: 27,
+    lottieSize: 70,
+  },
+};
 
 export default function LottieToggle({
   value,
   onValueChange,
   disabled = false,
+  size = 'default',
 }: LottieToggleProps) {
   const lottieRef = useRef<any>(null);
   const isFirstRender = useRef(true);
   const prevValue = useRef(value);
+
+  const { containerWidth, containerHeight, lottieSize } = SIZES[size];
 
   useEffect(() => {
     if (isFirstRender.current) {
@@ -67,8 +77,8 @@ export default function LottieToggle({
     <TouchableWithoutFeedback onPress={handlePress} disabled={disabled}>
       <View
         style={{
-          width: CONTAINER_WIDTH,
-          height: CONTAINER_HEIGHT,
+          width: containerWidth,
+          height: containerHeight,
           alignItems: 'center',
           justifyContent: 'center',
           opacity: disabled ? 0.5 : 1,
@@ -78,8 +88,8 @@ export default function LottieToggle({
           ref={lottieRef}
           source={require('../frontassets/On And Off Toggle Switch Button.json')}
           style={{
-            width: LOTTIE_SIZE,
-            height: LOTTIE_SIZE,
+            width: lottieSize,
+            height: lottieSize,
           }}
           autoPlay={false}
           loop={false}
