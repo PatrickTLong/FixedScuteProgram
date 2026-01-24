@@ -145,7 +145,7 @@ function GetStartedScreen({ onBack, onSuccess, onSignIn }: Props) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }}>
         <Lottie
-          source={require('../frontassets/Loading.json')}
+          source={require('../frontassets/Loading Animation 3 Dots.json')}
           autoPlay
           loop
           speed={2}
@@ -194,7 +194,7 @@ function GetStartedScreen({ onBack, onSuccess, onSignIn }: Props) {
                     autoCorrect={false}
                     editable={!loading}
                     style={{ backgroundColor: colors.bg, borderColor: colors.border, color: colors.text }}
-                    className="border rounded-full px-5 py-4 text-base font-nunito"
+                    className="border rounded-full px-5 py-4 text-sm font-nunito"
                   />
                 </View>
 
@@ -210,7 +210,7 @@ function GetStartedScreen({ onBack, onSuccess, onSignIn }: Props) {
                     autoCorrect={false}
                     editable={!loading}
                     style={{ backgroundColor: colors.bg, borderColor: colors.border, color: colors.text }}
-                    className="border rounded-full px-5 py-4 text-base font-nunito"
+                    className="border rounded-full px-5 py-4 text-sm font-nunito"
                   />
                 </View>
 
@@ -226,7 +226,7 @@ function GetStartedScreen({ onBack, onSuccess, onSignIn }: Props) {
                     autoCorrect={false}
                     editable={!loading}
                     style={{ backgroundColor: colors.bg, borderColor: colors.border, color: colors.text }}
-                    className="border rounded-full px-5 py-4 text-base font-nunito"
+                    className="border rounded-full px-5 py-4 text-sm font-nunito"
                   />
                 </View>
               </>
@@ -300,7 +300,7 @@ function GetStartedScreen({ onBack, onSuccess, onSignIn }: Props) {
                 activeOpacity={0.7}
                 className="items-center py-2 mt-4"
               >
-                <Text style={{ color: colors.textSecondary }} className="text-base font-nunito">
+                <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">
                   Already have an account?{' '}
                   <Text style={{ color: colors.text }} className="font-nunito-semibold">Sign In</Text>
                 </Text>

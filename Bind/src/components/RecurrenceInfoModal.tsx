@@ -46,7 +46,7 @@ function RecurrenceInfoModal({ visible, onClose }: RecurrenceInfoModalProps) {
             <TouchableOpacity
               onPress={() => { lightTap(); setDontShowAgain(!dontShowAgain); }}
               activeOpacity={0.7}
-              className="flex-row items-center mt-6"
+              className="flex-row items-center justify-center mt-6"
             >
               <View
                 style={{

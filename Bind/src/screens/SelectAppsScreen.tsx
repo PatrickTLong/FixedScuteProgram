@@ -226,7 +226,7 @@ function SelectAppsScreen({
           {loading ? (
             <View className="flex-1 items-center justify-center">
               <Lottie
-                source={require('../frontassets/Loading.json')}
+                source={require('../frontassets/Loading Animation 3 Dots.json')}
                 autoPlay
                 loop
                 speed={2}

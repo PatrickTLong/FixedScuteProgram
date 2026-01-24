@@ -776,11 +776,11 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               <TouchableOpacity onPress={handleSave} disabled={isSaving || !canSave} className="px-2 min-w-[50px] items-end justify-center" style={{ height: 24 }}>
                 {isSaving ? (
                   <Lottie
-                    source={require('../frontassets/Loading.json')}
+                    source={require('../frontassets/Loading Animation 3 Dots.json')}
                     autoPlay
                     loop
                     speed={2}
-                    style={{ width: 90, height: 90, position: 'absolute', right: -25, top: -33 }}
+                    style={{ width: 50, height: 50, position: 'absolute', right: -5, top: -13 }}
                   />
                 ) : (
                   <Text style={{ color: canSave ? '#FFFFFF' : colors.textMuted }} className="text-base font-nunito-semibold">Save</Text>
@@ -1607,7 +1607,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                 {loadingApps ? (
                   <View className="flex-1 items-center justify-center">
                     <Lottie
-                      source={require('../frontassets/Loading.json')}
+                      source={require('../frontassets/Loading Animation 3 Dots.json')}
                       autoPlay
                       loop
                       speed={2}

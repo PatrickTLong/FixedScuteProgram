@@ -113,7 +113,7 @@ export default function GoogleSignInBtn({ onSuccess, onError, disabled }: Props)
     >
       {loading ? (
         <Lottie
-          source={require('../frontassets/Loading.json')}
+          source={require('../frontassets/Loading Animation 3 Dots.json')}
           autoPlay
           loop
           speed={2}

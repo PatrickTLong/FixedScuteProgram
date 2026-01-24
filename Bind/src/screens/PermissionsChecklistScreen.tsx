@@ -44,6 +44,7 @@ interface Permission {
   isGranted: boolean;
   androidIntent?: string;
   iosAction?: 'screenTime' | 'notifications' | 'openSettings';
+  descriptionStyle?: string;
 }
 
 // Android permissions (8 total)
@@ -54,6 +55,7 @@ const ANDROID_PERMISSIONS: Permission[] = [
     description: 'Monitor notifications and send you updates about blocking sessions.',
     isGranted: false,
     androidIntent: 'android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS',
+    descriptionStyle: 'text-xs',
   },
   {
     id: 'accessibility',
@@ -302,7 +304,7 @@ function PermissionsChecklistScreen({ onComplete }: Props) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }} className="justify-center items-center">
         <Lottie
-          source={require('../frontassets/Loading.json')}
+          source={require('../frontassets/Loading Animation 3 Dots.json')}
           autoPlay
           loop
           speed={2}
@@ -330,7 +332,7 @@ function PermissionsChecklistScreen({ onComplete }: Props) {
         </Text>
 
         {/* Subtitle */}
-        <Text style={{ color: colors.textSecondary }} className="text-center text-base font-nunito mb-8 px-4">
+        <Text style={{ color: colors.textSecondary }} className="text-center text-sm font-nunito mb-8 px-4">
           Scute needs these permissions to block distractions & cheats.
         </Text>
 
@@ -347,7 +349,7 @@ function PermissionsChecklistScreen({ onComplete }: Props) {
               <Text style={{ color: colors.text }} className="text-base font-nunito-semibold mb-1">
                 {permission.title}
               </Text>
-              <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">
+              <Text style={{ color: colors.textSecondary }} className={`${permission.descriptionStyle || 'text-sm'} font-nunito`}>
                 {permission.description}
               </Text>
             </View>
