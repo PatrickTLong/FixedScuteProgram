@@ -38,7 +38,7 @@ function RecurrenceInfoModal({ visible, onClose }: RecurrenceInfoModalProps) {
               Recurring Blocks
             </Text>
 
-            <Text style={{ color: colors.textSecondary }} className="text-base font-nunito">
+            <Text style={{ color: colors.textSecondary }} className="text-base font-nunito text-center">
               Set your block to repeat automatically. Choose intervals from minutes to months.
             </Text>
 

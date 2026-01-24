@@ -684,7 +684,6 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
     };
   }, [isActivelyLocked, presetGlowOpacity]);
 
-
   // Elapsed time effect (for no-time-limit locks)
   useEffect(() => {
     if (!isLocked || lockEndsAt || !lockStartedAt) {
@@ -1193,25 +1192,30 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
                   marginTop: 24,
                 }}
               >
-                <View style={{
-                  backgroundColor: (() => {
-                    const now = new Date();
-                    // Check if any is currently active
-                    const hasActive = scheduledPresets.some(p => {
-                      const start = new Date(p.scheduleStartDate!);
-                      const end = new Date(p.scheduleEndDate!);
-                      return now >= start && now < end;
-                    });
-                    if (hasActive) return "#4ade80";
-                    // Check if any is pending
-                    const hasPending = scheduledPresets.some(p => {
-                      const start = new Date(p.scheduleStartDate!);
-                      return now < start;
-                    });
-                    if (hasPending) return colors.cyan;
-                    return colors.textSecondary;
-                  })()
-                }} className="w-2 h-2 rounded-full mr-2" />
+                {/* Status dot */}
+                <View
+                  style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: 4,
+                    marginRight: 8,
+                    backgroundColor: (() => {
+                      const now = new Date();
+                      const hasActive = scheduledPresets.some(p => {
+                        const start = new Date(p.scheduleStartDate!);
+                        const end = new Date(p.scheduleEndDate!);
+                        return now >= start && now < end;
+                      });
+                      if (hasActive) return "#4ade80";
+                      const hasPending = scheduledPresets.some(p => {
+                        const start = new Date(p.scheduleStartDate!);
+                        return now < start;
+                      });
+                      if (hasPending) return colors.cyan;
+                      return colors.textSecondary;
+                    })(),
+                  }}
+                />
                 <Text style={{ color: colors.text }} className="text-sm font-nunito-semibold">
                   {scheduledPresets.length} Scheduled
                 </Text>

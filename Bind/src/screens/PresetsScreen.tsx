@@ -11,6 +11,7 @@ import {
 import LottieView from 'lottie-react-native';
 const Lottie = LottieView as any;
 import { SafeAreaView } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import PresetCard, { Preset } from '../components/PresetCard';
 import PresetEditModal from '../components/PresetEditModal';
 import ConfirmationModal from '../components/ConfirmationModal';
@@ -60,7 +61,8 @@ function PresetsScreen({ userEmail }: Props) {
   const [editingPreset, setEditingPreset] = useState<Preset | null>(null);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [presetToDelete, setPresetToDelete] = useState<Preset | null>(null);
-  const [loading, setLoading] = useState(true); // Show inline spinner until first data loads
+  const [loading, setLoading] = useState(false); // Delayed loading state to avoid flash
+  const [showSpinner, setShowSpinner] = useState(false); // Only show spinner after delay
   const [isLocked, setIsLocked] = useState<boolean | null>(null); // null = loading
   const [lockChecked, setLockChecked] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -70,6 +72,7 @@ function PresetsScreen({ userEmail }: Props) {
   // Verification modal for enabling scheduled presets
   const [scheduleVerifyModalVisible, setScheduleVerifyModalVisible] = useState(false);
   const [pendingScheduledPreset, setPendingScheduledPreset] = useState<Preset | null>(null);
+
 
 
   const checkLockStatus = useCallback(async () => {
@@ -143,12 +146,25 @@ function PresetsScreen({ userEmail }: Props) {
 
   // Check lock status and load presets in parallel on initial mount
   useEffect(() => {
+    let spinnerTimeout: NodeJS.Timeout;
+
     async function init() {
+      setLoading(true);
+      // Only show spinner if loading takes more than 50ms (avoids flash)
+      spinnerTimeout = setTimeout(() => setShowSpinner(true), 50);
+
       // Load presets with cache on first render - HomeScreen handles cache invalidation on app restart
       await Promise.all([checkLockStatus(), loadPresets(false)]);
+
+      clearTimeout(spinnerTimeout);
+      setShowSpinner(false);
       setLoading(false);
     }
     init();
+
+    return () => {
+      clearTimeout(spinnerTimeout);
+    };
   }, [checkLockStatus, loadPresets, userEmail]);
 
 
@@ -225,6 +241,7 @@ function PresetsScreen({ userEmail }: Props) {
     setScheduleVerifyModalVisible(false);
     setPendingScheduledPreset(null);
   }, []);
+
 
   const handleTogglePreset = useCallback(async (preset: Preset, value: boolean) => {
     console.log(`[PresetsScreen] handleTogglePreset called - preset: ${preset.name}, value: ${value}, isScheduled: ${preset.isScheduled}`);
@@ -511,6 +528,7 @@ function PresetsScreen({ userEmail }: Props) {
       if (presetToSave.isScheduled) {
         await syncScheduledPresetsToNative(updatedPresets);
       }
+
     }
 
     setEditModalVisible(false);
@@ -606,7 +624,7 @@ function PresetsScreen({ userEmail }: Props) {
     </View>
   ), [loading, colors.textSecondary, colors.textMuted, s]);
 
-  if (loading) {
+  if (showSpinner) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }} edges={['top']}>
         <Lottie
@@ -712,6 +730,7 @@ function PresetsScreen({ userEmail }: Props) {
         onConfirm={handleScheduleVerifyConfirm}
         onCancel={handleScheduleVerifyCancel}
       />
+
 
     </SafeAreaView>
   );

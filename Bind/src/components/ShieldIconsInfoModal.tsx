@@ -5,15 +5,29 @@ import {
   TouchableOpacity,
   Modal,
 } from 'react-native';
+import Svg, { Path } from 'react-native-svg';
 import { useTheme } from '../context/ThemeContext';
 import { lightTap } from '../utils/haptics';
 
-interface ExcludedAppsInfoModalProps {
+interface ShieldIconsInfoModalProps {
   visible: boolean;
   onClose: (dontShowAgain: boolean) => void;
 }
 
-function ExcludedAppsInfoModal({ visible, onClose }: ExcludedAppsInfoModalProps) {
+// Shield icon with customizable color
+const ShieldIcon = ({ color, size = 24 }: { color: string; size?: number }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"
+      stroke={color}
+      strokeWidth={2.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+function ShieldIconsInfoModal({ visible, onClose }: ShieldIconsInfoModalProps) {
   const { colors } = useTheme();
   const [dontShowAgain, setDontShowAgain] = useState(false);
 
@@ -35,18 +49,44 @@ function ExcludedAppsInfoModal({ visible, onClose }: ExcludedAppsInfoModalProps)
           {/* Content */}
           <View className="p-6">
             <Text style={{ color: colors.text }} className="text-xl font-nunito-bold text-center mb-4">
-              Some Apps Are Hidden
+              Preset Icons
             </Text>
 
-            <Text style={{ color: colors.textSecondary }} className="text-base font-nunito text-center">
-              For your safety, essential apps like Phone, Camera, Messages, and Emergency services cannot be blocked. Settings has a separate toggle in preset options.
-            </Text>
+            {/* Cyan Shield - Scheduled */}
+            <View className="flex-row items-center mb-4">
+              <View className="mr-3">
+                <ShieldIcon color={colors.cyan} size={28} />
+              </View>
+              <View className="flex-1">
+                <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">
+                  Scheduled
+                </Text>
+                <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">
+                  This preset has a scheduled start and end time.
+                </Text>
+              </View>
+            </View>
+
+            {/* Purple Shield - Recurring */}
+            <View className="flex-row items-center">
+              <View className="mr-3">
+                <ShieldIcon color="#a855f7" size={28} />
+              </View>
+              <View className="flex-1">
+                <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">
+                  Recurring
+                </Text>
+                <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">
+                  This preset repeats automatically on a schedule.
+                </Text>
+              </View>
+            </View>
 
             {/* Don't show again checkbox */}
             <TouchableOpacity
               onPress={() => { lightTap(); setDontShowAgain(!dontShowAgain); }}
               activeOpacity={0.7}
-              className="flex-row items-center mt-6"
+              className="flex-row items-center justify-center mt-6"
             >
               <View
                 style={{
@@ -83,4 +123,4 @@ function ExcludedAppsInfoModal({ visible, onClose }: ExcludedAppsInfoModalProps)
   );
 }
 
-export default memo(ExcludedAppsInfoModal);
+export default memo(ShieldIconsInfoModal);

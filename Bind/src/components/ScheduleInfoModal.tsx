@@ -38,7 +38,7 @@ function ScheduleInfoModal({ visible, onClose }: ScheduleInfoModalProps) {
               Scheduled Blocking
             </Text>
 
-            <Text style={{ color: colors.textSecondary }} className="text-base font-nunito">
+            <Text style={{ color: colors.textSecondary }} className="text-base font-nunito text-center">
               Schedule presets to automatically activate and deactivate at set times. Multiple scheduled presets can run alongside your active preset.
             </Text>
 
