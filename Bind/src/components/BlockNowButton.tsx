@@ -252,7 +252,7 @@ function BlockNowButton({
     outputRange: ['0%', '100%'],
   });
 
-  const fillColor = '#4ade80';
+  const fillColor = '#22c55e';
 
   const getTextColor = () => {
     if (isLocked) return colors.text;

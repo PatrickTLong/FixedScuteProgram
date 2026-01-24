@@ -105,7 +105,7 @@ function EmergencyTapoutModal({
                 <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
                   <Path
                     d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0zM12 9v4M12 17h.01"
-                    stroke={canUseTapout ? '#4ade80' : colors.textMuted}
+                    stroke={canUseTapout ? '#22c55e' : colors.textMuted}
                     strokeWidth={2}
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -129,12 +129,12 @@ function EmergencyTapoutModal({
                 }}
                 disabled={!canUseTapout || isLoading}
                 activeOpacity={0.7}
-                style={{ backgroundColor: canUseTapout ? '#4ade80' : `${colors.textMuted}80` }}
+                style={{ backgroundColor: canUseTapout ? '#22c55e' : `${colors.textMuted}80` }}
                 className="py-3 rounded-xl items-center"
               >
                 {isLoading ? (
                   <Lottie
-                    source={require('../frontassets/Insider-loading.json')}
+                    source={require('../frontassets/Loading.json')}
                     autoPlay
                     loop
                     speed={2}

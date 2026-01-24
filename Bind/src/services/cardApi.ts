@@ -65,16 +65,10 @@ interface CacheEntry<T> {
 
 const cache: Map<string, CacheEntry<any>> = new Map();
 
-// Cache TTL in milliseconds
-const CACHE_TTL = {
-  presets: 30000,      // 30 seconds - presets change rarely
-  lockStatus: 10000,   // 10 seconds - balance between freshness and performance
-  tapoutStatus: 30000, // 30 seconds - tapout status changes rarely
-};
-
-function getCached<T>(key: string, ttl: number): T | null {
+// No TTLs - cache persists until explicitly invalidated
+function getCached<T>(key: string): T | null {
   const entry = cache.get(key);
-  if (entry && Date.now() - entry.timestamp < ttl) {
+  if (entry) {
     return entry.data as T;
   }
   return null;
@@ -112,7 +106,7 @@ export function invalidateUserCaches(email: string): void {
  */
 export function getCachedLockStatus(email: string): { isLocked: boolean; lockEndsAt: string | null; lockStartedAt: string | null } | null {
   const normalizedEmail = email.toLowerCase();
-  return getCached(`lockStatus:${normalizedEmail}`, CACHE_TTL.lockStatus);
+  return getCached(`lockStatus:${normalizedEmail}`);
 }
 
 /**
@@ -121,7 +115,7 @@ export function getCachedLockStatus(email: string): { isLocked: boolean; lockEnd
  */
 export function getCachedTapoutStatus(email: string): EmergencyTapoutStatus | null {
   const normalizedEmail = email.toLowerCase();
-  return getCached(`tapoutStatus:${normalizedEmail}`, CACHE_TTL.tapoutStatus);
+  return getCached(`tapoutStatus:${normalizedEmail}`);
 }
 
 // Track users who have already been initialized this session to prevent duplicate calls
@@ -282,7 +276,7 @@ export async function getPresets(email: string, skipCache = false): Promise<Pres
 
   // Check in-memory cache first
   if (!skipCache) {
-    const cached = getCached<Preset[]>(cacheKey, CACHE_TTL.presets);
+    const cached = getCached<Preset[]>(cacheKey);
     if (cached) {
       return cached;
     }
@@ -575,7 +569,7 @@ export async function getLockStatus(email: string, skipCache = false): Promise<L
 
   // Check in-memory cache first
   if (!skipCache) {
-    const cached = getCached<LockStatus>(cacheKey, CACHE_TTL.lockStatus);
+    const cached = getCached<LockStatus>(cacheKey);
     if (cached) {
       return cached;
     }
@@ -622,7 +616,7 @@ export async function getEmergencyTapoutStatus(email: string, skipCache = false)
 
   // Check cache first (unless skipCache is true)
   if (!skipCache) {
-    const cached = getCached<EmergencyTapoutStatus>(cacheKey, CACHE_TTL.tapoutStatus);
+    const cached = getCached<EmergencyTapoutStatus>(cacheKey);
     if (cached) return cached;
   }
 

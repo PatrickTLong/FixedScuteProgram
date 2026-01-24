@@ -394,7 +394,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }} edges={['top']}>
         <Lottie
-          source={require('../frontassets/Insider-loading.json')}
+          source={require('../frontassets/Loading.json')}
           autoPlay
           loop
           speed={2}
@@ -410,7 +410,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }} edges={['top']}>
         <Lottie
-          source={require('../frontassets/Insider-loading.json')}
+          source={require('../frontassets/Loading.json')}
           autoPlay
           loop
           speed={2}

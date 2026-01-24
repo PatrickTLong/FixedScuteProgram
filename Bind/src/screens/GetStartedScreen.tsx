@@ -145,7 +145,7 @@ function GetStartedScreen({ onBack, onSuccess, onSignIn }: Props) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }}>
         <Lottie
-          source={require('../frontassets/Insider-loading.json')}
+          source={require('../frontassets/Loading.json')}
           autoPlay
           loop
           speed={2}

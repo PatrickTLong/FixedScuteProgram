@@ -24,7 +24,7 @@ function ProgressBar({ currentStep, totalSteps }: ProgressBarProps) {
     <View style={{ backgroundColor: colors.border }} className="w-48 h-1 rounded-full overflow-hidden self-center mt-2">
       <Animated.View
         style={{
-          backgroundColor: '#4ade80',
+          backgroundColor: '#22c55e',
           width: progressAnim.interpolate({
             inputRange: [0, 100],
             outputRange: ['0%', '100%'],

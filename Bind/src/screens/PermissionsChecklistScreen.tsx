@@ -302,7 +302,7 @@ function PermissionsChecklistScreen({ onComplete }: Props) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }} className="justify-center items-center">
         <Lottie
-          source={require('../frontassets/Insider-loading.json')}
+          source={require('../frontassets/Loading.json')}
           autoPlay
           loop
           speed={2}
@@ -368,7 +368,7 @@ function PermissionsChecklistScreen({ onComplete }: Props) {
                 style={{ backgroundColor: `${colors.card}80` }}
                 className="flex-row items-center py-3 px-4 rounded-xl mb-2"
               >
-                <View style={{ backgroundColor: '#4ade80' }} className="w-6 h-6 rounded items-center justify-center mr-3">
+                <View style={{ backgroundColor: '#22c55e' }} className="w-6 h-6 rounded items-center justify-center mr-3">
                   <View style={{ borderColor: '#FFFFFF' }} className="w-2.5 h-4 border-r-2 border-b-2 rotate-45 -mt-1" />
                 </View>
                 <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">

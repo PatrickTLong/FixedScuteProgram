@@ -57,8 +57,8 @@ function StrictModeWarningModal({ visible, onConfirm, onCancel }: StrictModeWarn
             >
               <View
                 style={{
-                  backgroundColor: dontShowAgain ? '#4ade80' : 'transparent',
-                  borderColor: dontShowAgain ? '#4ade80' : colors.textSecondary,
+                  backgroundColor: dontShowAgain ? '#22c55e' : 'transparent',
+                  borderColor: dontShowAgain ? '#22c55e' : colors.textSecondary,
                 }}
                 className="w-5 h-5 rounded border-2 items-center justify-center mr-3"
               >

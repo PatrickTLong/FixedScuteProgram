@@ -7,7 +7,7 @@ import {
 import Svg, { Path } from 'react-native-svg';
 import { lightTap, mediumTap } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
-import LottieToggle from './LottieToggle';
+import AnimatedSwitch from './AnimatedSwitch';
 
 // Shield icon with customizable color
 const ShieldIcon = ({ color, size = 16 }: { color: string; size?: number }) => (
@@ -212,7 +212,7 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, disabled
       parts.push('Settings blocked');
     }
 
-    return parts.length > 0 ? parts.join(' • ') : null;
+    return parts.length > 0 ? parts.join(', ') : null;
   };
 
   const getSettingsDescription = () => {
@@ -304,7 +304,7 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, disabled
         </View>
 
         {/* Toggle Switch */}
-        <LottieToggle
+        <AnimatedSwitch
           value={isActive && !isExpired}
           onValueChange={handleToggle}
           disabled={disabled || isExpired}

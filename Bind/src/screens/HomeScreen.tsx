@@ -1065,7 +1065,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }} edges={['top']}>
         <Lottie
-          source={require('../frontassets/Insider-loading.json')}
+          source={require('../frontassets/Loading.json')}
           autoPlay
           loop
           speed={2}
@@ -1164,7 +1164,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
 
             {/* Active settings display */}
             {activePreset && getActiveSettingsDisplay().length > 0 && (
-              <Text style={{ color: colors.textSecondary }} className="text-base font-nunito mt-2 text-center px-4">
+              <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito mt-2 text-center px-4">
                 Blocking {getActiveSettingsDisplay().join(', ')}
               </Text>
             )}
@@ -1206,7 +1206,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
                         const end = new Date(p.scheduleEndDate!);
                         return now >= start && now < end;
                       });
-                      if (hasActive) return "#4ade80";
+                      if (hasActive) return "#22c55e";
                       const hasPending = scheduledPresets.some(p => {
                         const start = new Date(p.scheduleStartDate!);
                         return now < start;
@@ -1293,7 +1293,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
                     className={`p-4 ${index < scheduledPresets.length - 1 ? 'border-b' : ''}`}
                   >
                     <View className="flex-row items-center">
-                      <View style={{ backgroundColor: isCurrentlyActive ? '#4ade80' : colors.cyan }} className="w-2 h-2 rounded-full mr-3" />
+                      <View style={{ backgroundColor: isCurrentlyActive ? '#22c55e' : colors.cyan }} className="w-2 h-2 rounded-full mr-3" />
                       <View className="flex-1">
                         <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">
                           {preset.name}
@@ -1303,7 +1303,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
                         </Text>
                       </View>
                       <View style={{ backgroundColor: isCurrentlyActive ? 'rgba(74, 222, 128, 0.2)' : 'rgba(34, 211, 238, 0.2)' }} className="px-2 py-0.5 rounded-full">
-                        <Text style={{ color: isCurrentlyActive ? '#4ade80' : colors.cyan }} className="text-xs font-nunito-semibold">
+                        <Text style={{ color: isCurrentlyActive ? '#22c55e' : colors.cyan }} className="text-xs font-nunito-semibold">
                           {isCurrentlyActive ? 'Active' : isPending ? 'Pending' : 'Scheduled'}
                         </Text>
                       </View>

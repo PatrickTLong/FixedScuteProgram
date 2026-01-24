@@ -16,7 +16,7 @@ import {
 } from 'react-native';
 import LottieView from 'lottie-react-native';
 const Lottie = LottieView as any;
-import LottieToggle from './LottieToggle';
+import AnimatedSwitch from './AnimatedSwitch';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Svg, { Path, Rect } from 'react-native-svg';
@@ -421,6 +421,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
 
     // Android: Check if we have cached apps - show them instantly without loading state
     if (cachedInstalledApps) {
+      setLoadingApps(false); // Ensure loading is false when using cache
       setInstalledApps(cachedInstalledApps);
       // If editing a preset with mode 'all', select all apps
       if (presetMode === 'all' && cachedInstalledApps.length > 0) {
@@ -737,7 +738,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
         <Text style={{ color: colors.text }} className="flex-1 text-base font-nunito">{item.name}</Text>
 
         {/* Checkbox with checkmark */}
-        <View style={isSelected ? { backgroundColor: '#4ade80' } : { borderWidth: 2, borderColor: colors.border }} className="w-6 h-6 rounded items-center justify-center">
+        <View style={isSelected ? { backgroundColor: '#22c55e' } : { borderWidth: 2, borderColor: colors.border }} className="w-6 h-6 rounded items-center justify-center">
           {isSelected && (
             <View className="w-2.5 h-4 border-r-2 border-b-2 border-white rotate-45 -mt-1" />
           )}
@@ -775,7 +776,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               <TouchableOpacity onPress={handleSave} disabled={isSaving || !canSave} className="px-2 min-w-[50px] items-end justify-center" style={{ height: 24 }}>
                 {isSaving ? (
                   <Lottie
-                    source={require('../frontassets/Insider-loading.json')}
+                    source={require('../frontassets/Loading.json')}
                     autoPlay
                     loop
                     speed={2}
@@ -805,12 +806,11 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
 
             {/* No Time Limit Toggle */}
             <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between py-4">
-              <View>
+              <View style={{ maxWidth: '75%' }}>
                 <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">No Time Limit</Text>
-                <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">Block until manually unlocked</Text>
+                <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">Block until manually unlocked</Text>
               </View>
-              <LottieToggle
-                size="small"
+              <AnimatedSwitch
                 value={noTimeLimit}
                 onValueChange={(value: boolean) => {
                   setNoTimeLimit(value);
@@ -828,12 +828,11 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
 
             {/* Block Settings Toggle */}
             <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between py-4">
-              <View>
+              <View style={{ maxWidth: '75%' }}>
                 <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">Block Settings App</Text>
-                <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">WiFi settings remain accessible</Text>
+                <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">WiFi settings remain accessible</Text>
               </View>
-              <LottieToggle
-                size="small"
+              <AnimatedSwitch
                 value={blockSettings}
                 onValueChange={async (value: boolean) => {
                   mediumTap();
@@ -856,12 +855,11 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
             {/* Strict Mode Toggle - only for timed presets (hidden when No Time Limit is on) */}
             {!noTimeLimit && (
               <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between py-4">
-                <View className="flex-1">
+                <View style={{ maxWidth: '75%' }}>
                   <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">Strict Mode</Text>
-                  <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">Lock until timer ends or emergency tapout</Text>
+                  <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">Lock until timer ends or emergency tapout</Text>
                 </View>
-                <LottieToggle
-                  size="small"
+                <AnimatedSwitch
                   value={strictMode}
                   onValueChange={async (value: boolean) => {
                     mediumTap();
@@ -898,12 +896,11 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
             {/* Emergency Tapout Toggle - only available when Strict Mode is ON (hidden when No Time Limit or Strict Mode is off) */}
             {!noTimeLimit && strictMode && (
               <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between py-4">
-                <View className="flex-1">
+                <View style={{ maxWidth: '75%' }}>
                   <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">Allow Emergency Tapout</Text>
-                  <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">Use your emergency tapouts for this preset</Text>
+                  <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">Use your emergency tapouts for this preset</Text>
                 </View>
-                <LottieToggle
-                  size="small"
+                <AnimatedSwitch
                   value={allowEmergencyTapout}
                   onValueChange={handleEmergencyTapoutToggle}
                 />
@@ -912,12 +909,11 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
 
             {/* Schedule for Later Toggle */}
             <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between py-4">
-              <View className="flex-1">
+              <View style={{ maxWidth: '75%' }}>
                 <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">Schedule for Later</Text>
-                <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">Set a future start and end time</Text>
+                <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">Set a future start and end time</Text>
               </View>
-              <LottieToggle
-                size="small"
+              <AnimatedSwitch
                 value={isScheduled}
                 onValueChange={(value: boolean) => {
                   // Update visibility state immediately
@@ -1045,12 +1041,11 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                 {scheduleStartDate && scheduleEndDate && scheduleEndDate > scheduleStartDate && (
                   <View className="mt-4">
                     <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between py-4">
-                      <View className="flex-1">
+                      <View style={{ maxWidth: '75%' }}>
                         <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">Recurring Schedule</Text>
-                        <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">Repeat this block automatically</Text>
+                        <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">Repeat this block automatically</Text>
                       </View>
-                      <LottieToggle
-                        size="small"
+                      <AnimatedSwitch
                         value={isRecurring}
                         onValueChange={(value: boolean) => {
                           setIsRecurring(value);
@@ -1077,11 +1072,11 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                           Repeat Every
                         </Text>
 
-                        <View className="flex-row items-center">
+                        <View className="flex-row items-stretch">
                           {/* Number Input */}
                           <View
                             style={{ backgroundColor: colors.card }}
-                            className="flex-row items-center justify-center py-3 px-4 rounded-xl mr-3"
+                            className="flex-row items-center py-3 px-4 rounded-xl mr-3"
                           >
                             <View style={{ backgroundColor: colors.cardLight }} className="w-10 h-10 rounded-lg items-center justify-center mr-3">
                               <RepeatIcon size={22} />
@@ -1110,7 +1105,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                             }}
                             activeOpacity={0.7}
                             style={{ backgroundColor: colors.card }}
-                            className="flex-1 flex-row items-center justify-between h-[4.55rem] py-3 px-4 rounded-xl"
+                            className="flex-1 flex-row items-center justify-between py-3 px-4 rounded-xl"
                           >
                             <Text style={{ color: colors.text }} className="text-base font-nunito-semibold capitalize">
                               {recurringUnit}
@@ -1355,7 +1350,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                       }}
                       activeOpacity={0.7}
                       style={{
-                        backgroundColor: recurringUnit === unit ? "#4ade80" : colors.cardLight,
+                        backgroundColor: recurringUnit === unit ? "#22c55e" : colors.cardLight,
                       }}
                       className="flex-row items-center justify-between py-4 px-4 rounded-xl mb-2"
                     >
@@ -1366,7 +1361,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                         {unit}
                       </Text>
                       {recurringUnit === unit && (
-                        <View className="w-5 h-5 rounded-full items-center justify-center" style={{ backgroundColor: "#4ade80" }}>
+                        <View className="w-5 h-5 rounded-full items-center justify-center" style={{ backgroundColor: "#22c55e" }}>
                           <View className="w-3 h-5 border-r-2 border-b-2 border-white rotate-45 -mt-0.5" />
                         </View>
                       )}
@@ -1497,7 +1492,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               onChangeText={setName}
               maxLength={15}
               style={{ backgroundColor: colors.card, color: colors.text }}
-              className="rounded-xl px-4 py-3 text-base font-nunito-semibold"
+              className="rounded-xl px-4 py-3 text-sm font-nunito-semibold"
             />
           </View>
 
@@ -1559,14 +1554,14 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               // Android: Show searchable list of apps
               <>
                 {/* Search */}
-                <View className="px-6 mb-4">
+                <View className="px-6  mb-4">
                   <TextInput
                     placeholder="Search apps..."
                     placeholderTextColor={colors.textMuted}
                     value={searchQuery}
                     onChangeText={setSearchQuery}
                     style={{ backgroundColor: colors.card, color: colors.text }}
-                    className="rounded-xl px-4 py-3 text-base font-nunito-semibold"
+                    className="rounded-xl px-4 py-3 text-sm font-nunito-semibold"
                   />
                 </View>
 
@@ -1612,7 +1607,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                 {loadingApps ? (
                   <View className="flex-1 items-center justify-center">
                     <Lottie
-                      source={require('../frontassets/Insider-loading.json')}
+                      source={require('../frontassets/Loading.json')}
                       autoPlay
                       loop
                       speed={2}
@@ -1652,7 +1647,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                       includeFontPadding: false,
                       paddingVertical: 0,
                     }}
-                    className="flex-1 rounded-xl px-4 h-12 text-base font-nunito-semibold mr-2"
+                    className="flex-1 rounded-xl px-4 h-12 text-sm  font-nunito-semibold mr-2"
                   />
                   <TouchableOpacity
                     onPress={addWebsite}

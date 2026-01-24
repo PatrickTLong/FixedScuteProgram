@@ -73,7 +73,7 @@ function Button({
     >
       {loading ? (
         <Lottie
-          source={require('../frontassets/Insider-loading.json')}
+          source={require('../frontassets/Loading.json')}
           autoPlay
           loop
           speed={2}

@@ -7,7 +7,6 @@ import {
   ScrollView,
   NativeSyntheticEvent,
   NativeScrollEvent,
-  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { lightTap } from '../utils/haptics';
@@ -152,7 +151,7 @@ const AmPmSelector = memo(({ value, onChange, greenColor, cardColor, textMutedCo
   <View className="ml-2">
     <TouchableOpacity
       onPress={() => { lightTap(); onChange('AM'); }}
-      style={{ backgroundColor: value === 'AM' ? '#4ade80' : cardColor }}
+      style={{ backgroundColor: value === 'AM' ? '#22c55e' : cardColor }}
       className="px-3 py-2 rounded-lg"
     >
       <Text style={{ color: value === 'AM' ? '#FFFFFF' : textMutedColor }} className="text-base font-nunito-semibold">
@@ -161,7 +160,7 @@ const AmPmSelector = memo(({ value, onChange, greenColor, cardColor, textMutedCo
     </TouchableOpacity>
     <TouchableOpacity
       onPress={() => { lightTap(); onChange('PM'); }}
-      style={{ backgroundColor: value === 'PM' ? '#4ade80' : cardColor }}
+      style={{ backgroundColor: value === 'PM' ? '#22c55e' : cardColor }}
       className="px-3 py-2 rounded-lg mt-1"
     >
       <Text style={{ color: value === 'PM' ? '#FFFFFF' : textMutedColor }} className="text-base font-nunito-semibold">
@@ -198,9 +197,6 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
   const [selectedMinute, setSelectedMinute] = useState(0);
   const [selectedAmPm, setSelectedAmPm] = useState<'AM' | 'PM'>('PM');
 
-  // Content fade animation
-  const contentFadeAnim = useRef(new Animated.Value(0)).current;
-
   // Reset when modal opens
   useEffect(() => {
     if (visible) {
@@ -224,18 +220,8 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
         setSelectedHour(hours % 12 === 0 ? 12 : hours % 12);
         setSelectedMinute(now.getMinutes());
       }
-
-      // Fade in content
-      contentFadeAnim.setValue(0);
-      requestAnimationFrame(() => {
-        Animated.timing(contentFadeAnim, {
-          toValue: 1,
-          duration: 400,
-          useNativeDriver: true,
-        }).start();
-      });
     }
-  }, [visible, selectedDate, today, contentFadeAnim]);
+  }, [visible, selectedDate, today]);
 
   const getDaysInMonth = useCallback((month: number, year: number) => {
     return new Date(year, month + 1, 0).getDate();
@@ -394,12 +380,11 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
   return (
     <Modal
       visible={visible}
-      animationType="none"
+      animationType="fade"
+      presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <View style={{ flex: 1, backgroundColor: colors.bg }}>
-        <Animated.View style={{ flex: 1, opacity: contentFadeAnim }}>
-          <SafeAreaView style={{ flex: 1 }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
             {/* Header */}
           <View style={{ borderBottomColor: colors.border }} className="flex-row items-center justify-between px-4 py-3 border-b">
             <TouchableOpacity onPress={() => { lightTap(); onClose(); }} className="px-2">
@@ -475,8 +460,8 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
                 >
                   <View
                     style={{
-                      backgroundColor: selected ? '#4ade80' : 'transparent',
-                      borderColor: todayDay && !selected ? '#4ade80' : 'transparent',
+                      backgroundColor: selected ? '#22c55e' : 'transparent',
+                      borderColor: todayDay && !selected ? '#22c55e' : 'transparent',
                       borderWidth: todayDay && !selected ? 1 : 0,
                     }}
                     className="w-9 h-9 rounded-full items-center justify-center"
@@ -528,7 +513,7 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
                 <AmPmSelector
                   value={selectedAmPm}
                   onChange={setSelectedAmPm}
-                  greenColor={'#4ade80'}
+                  greenColor={'#22c55e'}
                   cardColor={colors.card}
                   textMutedColor={colors.textSecondary}
                 />
@@ -564,9 +549,7 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
           {/* Bottom padding for Android navigation */}
           <View className="h-8" />
         </ScrollView>
-          </SafeAreaView>
-        </Animated.View>
-      </View>
+      </SafeAreaView>
     </Modal>
   );
 }
