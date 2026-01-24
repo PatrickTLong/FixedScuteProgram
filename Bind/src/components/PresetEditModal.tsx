@@ -17,6 +17,7 @@ import {
 import LottieView from 'lottie-react-native';
 const Lottie = LottieView as any;
 import AnimatedSwitch from './AnimatedSwitch';
+import AnimatedCheckbox from './AnimatedCheckbox';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Svg, { Path, Rect } from 'react-native-svg';
@@ -274,6 +275,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
   const { colors } = useTheme();
   const [name, setName] = useState('');
   const [selectedApps, setSelectedApps] = useState<string[]>([]);
+  const [skipCheckboxAnimation, setSkipCheckboxAnimation] = useState(false);
   const [blockedWebsites, setBlockedWebsites] = useState<string[]>([]);
   const [websiteInput, setWebsiteInput] = useState('');
   const [blockSettings, setBlockSettings] = useState(false);
@@ -737,15 +739,11 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
         {/* App Name */}
         <Text style={{ color: colors.text }} className="flex-1 text-base font-nunito">{item.name}</Text>
 
-        {/* Checkbox with checkmark */}
-        <View style={isSelected ? { backgroundColor: '#22c55e' } : { borderWidth: 2, borderColor: colors.border }} className="w-6 h-6 rounded items-center justify-center">
-          {isSelected && (
-            <View className="w-2.5 h-4 border-r-2 border-b-2 border-white rotate-45 -mt-1" />
-          )}
-        </View>
+        {/* Animated Checkbox */}
+        <AnimatedCheckbox checked={isSelected} size={24} skipAnimation={skipCheckboxAnimation} />
       </TouchableOpacity>
     );
-  }, [selectedApps, toggleApp, colors]);
+  }, [selectedApps, toggleApp, colors, skipCheckboxAnimation]);
 
   const keyExtractor = useCallback((item: InstalledApp) => item.id, []);
 
@@ -1571,6 +1569,9 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                     <TouchableOpacity
                       onPress={() => {
                         lightTap();
+                        // Always skip animation for bulk select
+                        setSkipCheckboxAnimation(true);
+                        setTimeout(() => setSkipCheckboxAnimation(false), 50);
                         // Select all currently filtered apps
                         const filteredIds = filteredApps.map(app => app.id);
                         setSelectedApps(prev => {
@@ -1589,6 +1590,9 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                     <TouchableOpacity
                       onPress={() => {
                         lightTap();
+                        // Always skip animation for bulk deselect
+                        setSkipCheckboxAnimation(true);
+                        setTimeout(() => setSkipCheckboxAnimation(false), 50);
                         // Deselect all currently filtered apps
                         const filteredIds = new Set(filteredApps.map(app => app.id));
                         setSelectedApps(prev => prev.filter(id => !filteredIds.has(id)));
