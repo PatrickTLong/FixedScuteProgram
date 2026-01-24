@@ -16,7 +16,7 @@ import {
 } from 'react-native';
 import LottieView from 'lottie-react-native';
 const Lottie = LottieView as any;
-import AnimatedSwitch from './AnimatedSwitch';
+import LottieToggle from './LottieToggle';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Svg, { Path, Rect } from 'react-native-svg';
@@ -805,7 +805,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                 <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">No Time Limit</Text>
                 <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">Block until manually unlocked</Text>
               </View>
-              <AnimatedSwitch
+              <LottieToggle
                 value={noTimeLimit}
                 onValueChange={(value: boolean) => {
                   setNoTimeLimit(value);
@@ -818,11 +818,6 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                     mediumTap();
                   });
                 }}
-                trackColorFalse={colors.border}
-                trackColorTrue="#4ade80"
-                thumbColorOn="#86efac"
-                thumbColorOff="#9ca3af"
-                size="large"
               />
             </View>
 
@@ -832,7 +827,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                 <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">Block Settings App</Text>
                 <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">WiFi settings remain accessible</Text>
               </View>
-              <AnimatedSwitch
+              <LottieToggle
                 value={blockSettings}
                 onValueChange={async (value: boolean) => {
                   mediumTap();
@@ -849,11 +844,6 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                     setBlockSettings(false);
                   }
                 }}
-                trackColorFalse={colors.border}
-                trackColorTrue="#4ade80"
-                thumbColorOn="#86efac"
-                thumbColorOff="#9ca3af"
-                size="large"
               />
             </View>
 
@@ -864,7 +854,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                   <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">Strict Mode</Text>
                   <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">Lock until timer ends or emergency tapout</Text>
                 </View>
-                <AnimatedSwitch
+                <LottieToggle
                   value={strictMode}
                   onValueChange={async (value: boolean) => {
                     mediumTap();
@@ -894,11 +884,6 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                       setAllowEmergencyTapout(false);
                     }
                   }}
-                  trackColorFalse={colors.border}
-                  trackColorTrue="#4ade80"
-                  thumbColorOn="#86efac"
-                  thumbColorOff="#9ca3af"
-                  size="large"
                 />
               </View>
             )}
@@ -910,14 +895,9 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                   <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">Allow Emergency Tapout</Text>
                   <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">Use your emergency tapouts for this preset</Text>
                 </View>
-                <AnimatedSwitch
+                <LottieToggle
                   value={allowEmergencyTapout}
                   onValueChange={handleEmergencyTapoutToggle}
-                  trackColorFalse={colors.border}
-                  trackColorTrue="#4ade80"
-                  thumbColorOn="#86efac"
-                  thumbColorOff="#9ca3af"
-                  size="large"
                 />
               </View>
             )}
@@ -928,7 +908,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                 <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">Schedule for Later</Text>
                 <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">Set a future start and end time</Text>
               </View>
-              <AnimatedSwitch
+              <LottieToggle
                 value={isScheduled}
                 onValueChange={(value: boolean) => {
                   // Update visibility state immediately
@@ -955,11 +935,6 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                     }
                   });
                 }}
-                trackColorFalse={colors.border}
-                trackColorTrue="#4ade80"
-                thumbColorOn="#86efac"
-                thumbColorOff="#9ca3af"
-                size="large"
               />
             </View>
 
@@ -1065,7 +1040,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                         <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">Recurring Schedule</Text>
                         <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">Repeat this block automatically</Text>
                       </View>
-                      <AnimatedSwitch
+                      <LottieToggle
                         value={isRecurring}
                         onValueChange={(value: boolean) => {
                           setIsRecurring(value);
@@ -1082,11 +1057,6 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                             mediumTap();
                           }
                         }}
-                        trackColorFalse={colors.border}
-                        trackColorTrue="#4ade80"
-                        thumbColorOn="#86efac"
-                        thumbColorOff="#9ca3af"
-                        size="large"
                       />
                     </View>
 
@@ -1530,7 +1500,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               placeholderTextColor={colors.textMuted}
               value={name}
               onChangeText={setName}
-              maxLength={20}
+              maxLength={15}
               style={{ backgroundColor: colors.card, color: colors.text }}
               className="rounded-xl px-4 py-3 text-base font-nunito-semibold"
             />

@@ -25,7 +25,8 @@
       "Bash(tree:*)",
       "Bash(git checkout:*)",
       "Bash(./gradlew signingReport:*)",
-      "Bash(adb uninstall:*)"
+      "Bash(adb uninstall:*)",
+      "Bash(git log:*)"
     ]
   }
 }

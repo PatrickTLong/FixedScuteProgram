@@ -4,9 +4,23 @@ import {
   Text,
   Pressable,
 } from 'react-native';
+import Svg, { Path } from 'react-native-svg';
 import { lightTap, mediumTap } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
-import AnimatedSwitch from './AnimatedSwitch';
+import LottieToggle from './LottieToggle';
+
+// Shield icon with customizable color
+const ShieldIcon = ({ color, size = 16 }: { color: string; size?: number }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"
+      stroke={color}
+      strokeWidth={2.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
 
 export interface Preset {
   id: string;
@@ -144,17 +158,15 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, disabled
   };
 
   const getTimeDescription = () => {
-    const parts = [];
-
     // Handle scheduled presets
     if (preset.isScheduled) {
       if (preset.scheduleStartDate && preset.scheduleEndDate) {
-        parts.push(`${formatScheduleDate(preset.scheduleStartDate)} - ${formatScheduleDate(preset.scheduleEndDate)}`);
+        return `${formatScheduleDate(preset.scheduleStartDate)} - ${formatScheduleDate(preset.scheduleEndDate)}`;
       } else {
-        parts.push('No schedule set');
+        return 'No schedule set';
       }
     } else if (preset.noTimeLimit) {
-      parts.push('No time limit');
+      return 'No time limit';
     } else if (preset.targetDate) {
       // Show target date and time
       const date = new Date(preset.targetDate);
@@ -168,7 +180,7 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, disabled
         minute: '2-digit',
         hour12: true,
       });
-      parts.push(`Until ${dateStr} at ${timeStr}`);
+      return `Until ${dateStr} at ${timeStr}`;
     } else {
       const timeParts = [];
       const seconds = preset.timerSeconds ?? 0;
@@ -177,9 +189,14 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, disabled
       if (preset.timerMinutes > 0) timeParts.push(`${preset.timerMinutes}m`);
       if (seconds > 0) timeParts.push(`${seconds}s`);
       if (timeParts.length > 0) {
-        parts.push(timeParts.join(' '));
+        return timeParts.join(' ');
       }
     }
+    return 'No time set';
+  };
+
+  const getDetailsDescription = () => {
+    const parts = [];
 
     // Add strict mode info (only for timed presets)
     if (preset.strictMode && !preset.noTimeLimit) {
@@ -195,7 +212,7 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, disabled
       parts.push('Settings blocked');
     }
 
-    return parts.length > 0 ? parts.join(' • ') : 'No time set';
+    return parts.length > 0 ? parts.join(' • ') : null;
   };
 
   const getSettingsDescription = () => {
@@ -255,17 +272,13 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, disabled
             ) : (
               <>
                 {preset.isScheduled && (
-                  <View style={{ backgroundColor: `${colors.cyan}33` }} className="ml-2 px-2 py-0.5 rounded-full">
-                    <Text style={{ color: colors.cyan }} className="text-xs font-nunito-semibold">
-                      Scheduled
-                    </Text>
+                  <View className="ml-2">
+                    <ShieldIcon color={colors.cyan} size={18} />
                   </View>
                 )}
                 {preset.repeat_enabled && (
-                  <View style={{ backgroundColor: '#a855f733' }} className="ml-2 px-2 py-0.5 rounded-full">
-                    <Text style={{ color: '#a855f7' }} className="text-xs font-nunito-semibold">
-                      Recurring
-                    </Text>
+                  <View className="ml-1.5">
+                    <ShieldIcon color="#a855f7" size={18} />
                   </View>
                 )}
               </>
@@ -278,21 +291,23 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, disabled
           </Text>
 
           {/* Time */}
-          <Text style={{ color: colors.textMuted }} className="text-sm font-nunito mt-1">
+          <Text style={{ color: colors.textMuted }} className="text-xs font-nunito mt-1">
             {getTimeDescription()}
           </Text>
+
+          {/* Details (strict mode, emergency tapout, settings blocked) */}
+          {getDetailsDescription() && (
+            <Text style={{ color: colors.textMuted }} className="text-xs font-nunito mt-0.5">
+              {getDetailsDescription()}
+            </Text>
+          )}
         </View>
 
         {/* Toggle Switch */}
-        <AnimatedSwitch
+        <LottieToggle
           value={isActive && !isExpired}
           onValueChange={handleToggle}
           disabled={disabled || isExpired}
-          trackColorFalse={colors.border}
-          trackColorTrue="#4ade80"
-          thumbColorOn="#86efac"
-          thumbColorOff="#9ca3af"
-          size="large"
         />
       </View>
     </Pressable>

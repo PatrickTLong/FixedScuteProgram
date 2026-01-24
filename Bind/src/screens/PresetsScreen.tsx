@@ -15,6 +15,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import PresetCard, { Preset } from '../components/PresetCard';
 import PresetEditModal from '../components/PresetEditModal';
 import ConfirmationModal from '../components/ConfirmationModal';
+import ShieldIconsInfoModal from '../components/ShieldIconsInfoModal';
 import {
   getPresets,
   savePreset,
@@ -61,7 +62,7 @@ function PresetsScreen({ userEmail }: Props) {
   const [editingPreset, setEditingPreset] = useState<Preset | null>(null);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [presetToDelete, setPresetToDelete] = useState<Preset | null>(null);
-  const [loading, setLoading] = useState(false); // Delayed loading state to avoid flash
+  const [loading, setLoading] = useState(true); // Start true to prevent flash of content
   const [showSpinner, setShowSpinner] = useState(false); // Only show spinner after delay
   const [isLocked, setIsLocked] = useState<boolean | null>(null); // null = loading
   const [lockChecked, setLockChecked] = useState(false);
@@ -72,6 +73,9 @@ function PresetsScreen({ userEmail }: Props) {
   // Verification modal for enabling scheduled presets
   const [scheduleVerifyModalVisible, setScheduleVerifyModalVisible] = useState(false);
   const [pendingScheduledPreset, setPendingScheduledPreset] = useState<Preset | null>(null);
+
+  // Shield icons info modal (shown after saving a scheduled preset)
+  const [shieldIconsModalVisible, setShieldIconsModalVisible] = useState(false);
 
 
 
@@ -527,6 +531,12 @@ function PresetsScreen({ userEmail }: Props) {
       // This will reschedule with the NEW times now that old alarms are cancelled
       if (presetToSave.isScheduled) {
         await syncScheduledPresetsToNative(updatedPresets);
+
+        // Show shield icons info modal if user hasn't dismissed it before
+        const dontShowAgain = await AsyncStorage.getItem('hideShieldIconsModal');
+        if (dontShowAgain !== 'true') {
+          setShieldIconsModalVisible(true);
+        }
       }
 
     }
@@ -539,6 +549,13 @@ function PresetsScreen({ userEmail }: Props) {
   const handleCloseEditModal = useCallback(() => {
     setEditModalVisible(false);
     setEditingPreset(null);
+  }, []);
+
+  const handleCloseShieldIconsModal = useCallback(async (dontShowAgain: boolean) => {
+    setShieldIconsModalVisible(false);
+    if (dontShowAgain) {
+      await AsyncStorage.setItem('hideShieldIconsModal', 'true');
+    }
   }, []);
 
   const handleCloseDeleteModal = useCallback(() => {
@@ -624,16 +641,21 @@ function PresetsScreen({ userEmail }: Props) {
     </View>
   ), [loading, colors.textSecondary, colors.textMuted, s]);
 
-  if (showSpinner) {
+  // Show loading state until initial data is loaded - prevents flash of incomplete content
+  if (loading) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }} edges={['top']}>
-        <Lottie
-          source={require('../frontassets/Insider-loading.json')}
-          autoPlay
-          loop
-          speed={2}
-          style={{ width: 150, height: 150 }}
-        />
+      <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }} edges={['top']}>
+        {showSpinner && (
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+            <Lottie
+              source={require('../frontassets/Insider-loading.json')}
+              autoPlay
+              loop
+              speed={2}
+              style={{ width: 150, height: 150 }}
+            />
+          </View>
+        )}
       </SafeAreaView>
     );
   }
@@ -731,6 +753,11 @@ function PresetsScreen({ userEmail }: Props) {
         onCancel={handleScheduleVerifyCancel}
       />
 
+      {/* Shield Icons Info Modal */}
+      <ShieldIconsInfoModal
+        visible={shieldIconsModalVisible}
+        onClose={handleCloseShieldIconsModal}
+      />
 
     </SafeAreaView>
   );
