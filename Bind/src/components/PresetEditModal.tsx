@@ -315,7 +315,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
         }).start(() => {
           setShowStepOverlay(false);
         });
-      }, 120);
+      }, 60);
     });
   }, [stepOverlayAnim]);
 
@@ -981,7 +981,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                       <Text style={{ color: '#FFFFFF' }} className="text-lg">✕</Text>
                     </TouchableOpacity>
                   ) : (
-                    <Text style={{ color: '#FFFFFF' }} className="text-xl">›</Text>
+                    <ChevronRightIcon size={20} color="#FFFFFF" />
                   )}
                 </TouchableOpacity>
 
@@ -1021,7 +1021,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                       <Text style={{ color: '#FFFFFF' }} className="text-lg">✕</Text>
                     </TouchableOpacity>
                   ) : (
-                    <Text style={{ color: '#FFFFFF' }} className="text-xl">›</Text>
+                    <ChevronRightIcon size={20} color="#FFFFFF" />
                   )}
                 </TouchableOpacity>
 
@@ -1105,7 +1105,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                             <Text style={{ color: colors.text }} className="text-base font-nunito-semibold capitalize">
                               {recurringUnit}
                             </Text>
-                            <ChevronRightIcon size={25} color={'#FFFFFF'} />
+                            <ChevronRightIcon size={20} color="#FFFFFF" />
                           </TouchableOpacity>
                         </View>
 
@@ -1248,7 +1248,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                       <Text style={{ color: '#FFFFFF' }} className="text-lg">✕</Text>
                     </TouchableOpacity>
                   ) : (
-                    <Text style={{ color: '#FFFFFF' }} className="text-xl">›</Text>
+                    <ChevronRightIcon size={20} color="#FFFFFF" />
                   )}
                 </TouchableOpacity>
               </View>
@@ -1457,6 +1457,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               pointerEvents="none"
             />
           )}
+
         </SafeAreaView>
       </Modal>
     );
