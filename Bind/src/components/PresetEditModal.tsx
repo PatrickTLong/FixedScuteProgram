@@ -292,32 +292,36 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
   // iOS-specific: track selected app count from native picker
   const [iosSelectedAppsCount, setIosSelectedAppsCount] = useState(0);
 
-  // Step transition overlay
-  const stepOverlayAnim = useRef(new Animated.Value(0)).current;
-  const [showStepOverlay, setShowStepOverlay] = useState(false);
+  // Step transition animation (same pattern as App.tsx tab transitions)
+  const stepFadeAnim = useRef(new Animated.Value(1)).current;
+  const isStepTransitioning = useRef(false);
 
   // Step transition (first step <-> final step)
   const goToStep = useCallback((toFinal: boolean) => {
-    setShowStepOverlay(true);
-    Animated.timing(stepOverlayAnim, {
-      toValue: 1,
+    if (isStepTransitioning.current) return;
+    isStepTransitioning.current = true;
+
+    // Fade out
+    Animated.timing(stepFadeAnim, {
+      toValue: 0,
       duration: 120,
       useNativeDriver: true,
     }).start(() => {
-      // Switch step immediately after fade in completes
+      // Swap step while invisible
       setDisplayedStep(toFinal ? 'final' : 'first');
-      // Wait 60ms after step switch, then fade out
-      setTimeout(() => {
-        Animated.timing(stepOverlayAnim, {
-          toValue: 0,
+      // Small delay to ensure render completes before fading in
+      requestAnimationFrame(() => {
+        // Fade in
+        Animated.timing(stepFadeAnim, {
+          toValue: 1,
           duration: 120,
           useNativeDriver: true,
         }).start(() => {
-          setShowStepOverlay(false);
+          isStepTransitioning.current = false;
         });
-      }, 60);
+      });
     });
-  }, [stepOverlayAnim]);
+  }, [stepFadeAnim]);
 
   // Tab switch (apps <-> websites)
   const switchTab = useCallback((newTab: TabType) => {
@@ -761,7 +765,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
         presentationStyle="pageSheet"
       >
         <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
-          <View style={{ flex: 1 }}>
+          <Animated.View style={{ flex: 1, opacity: stepFadeAnim }}>
             {/* Header */}
             <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between px-4 py-3">
               <TouchableOpacity onPress={() => { lightTap(); goToStep(false); }} disabled={isSaving} className="px-2">
@@ -1367,7 +1371,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
             </TouchableOpacity>
           </Modal>
 
-          </View>
+          </Animated.View>
 
           {/* No Tapouts Remaining Modal */}
           <InfoModal
@@ -1442,22 +1446,6 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
             onClose={() => setGuideModalVisible(false)}
           />
 
-          {/* Step Transition Overlay */}
-          {showStepOverlay && (
-            <Animated.View
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                backgroundColor: colors.bg,
-                opacity: stepOverlayAnim,
-              }}
-              pointerEvents="none"
-            />
-          )}
-
         </SafeAreaView>
       </Modal>
     );
@@ -1470,7 +1458,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
       presentationStyle="pageSheet"
     >
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
-        <View style={{ flex: 1 }}>
+        <Animated.View style={{ flex: 1, opacity: stepFadeAnim }}>
           {/* Header */}
           <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between px-4 py-3">
             <TouchableOpacity onPress={() => { lightTap(); onClose(); }} className="px-2">
@@ -1704,7 +1692,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
             )}
           </View>
         </KeyboardAvoidingView>
-        </View>
+        </Animated.View>
 
         {/* Excluded Apps Info Modal */}
         <ExcludedAppsInfoModal
@@ -1716,22 +1704,6 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
             }
           }}
         />
-
-        {/* Step Transition Overlay */}
-        {showStepOverlay && (
-          <Animated.View
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              backgroundColor: colors.bg,
-              opacity: stepOverlayAnim,
-            }}
-            pointerEvents="none"
-          />
-        )}
       </SafeAreaView>
     </Modal>
   );
