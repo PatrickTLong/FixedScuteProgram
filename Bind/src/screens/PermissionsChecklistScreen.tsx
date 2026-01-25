@@ -55,7 +55,6 @@ const ANDROID_PERMISSIONS: Permission[] = [
     description: 'Monitor notifications and send you updates about blocking sessions.',
     isGranted: false,
     androidIntent: 'android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS',
-    descriptionStyle: 'text-xs',
   },
   {
     id: 'accessibility',
@@ -304,7 +303,7 @@ function PermissionsChecklistScreen({ onComplete }: Props) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }} className="justify-center items-center">
         <Lottie
-          source={require('../frontassets/Loading Animation 3 Dots.json')}
+          source={require('../frontassets/Loading.json')}
           autoPlay
           loop
           speed={2}

@@ -1490,7 +1490,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               onChangeText={setName}
               maxLength={15}
               style={{ backgroundColor: colors.card, color: colors.text }}
-              className="rounded-xl px-4 py-3 text-sm font-nunito-semibold"
+              className="rounded-xl px-4 py-3 text-base font-nunito-semibold"
             />
           </View>
 
@@ -1559,7 +1559,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                     value={searchQuery}
                     onChangeText={setSearchQuery}
                     style={{ backgroundColor: colors.card, color: colors.text }}
-                    className="rounded-xl px-4 py-3 text-sm font-nunito-semibold"
+                    className="rounded-xl px-4 py-3 text-base font-nunito-semibold"
                   />
                 </View>
 
@@ -1651,7 +1651,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                       includeFontPadding: false,
                       paddingVertical: 0,
                     }}
-                    className="flex-1 rounded-xl px-4 h-12 text-sm  font-nunito-semibold mr-2"
+                    className="flex-1 rounded-xl px-4 h-12 text-base  font-nunito-semibold mr-2"
                   />
                   <TouchableOpacity
                     onPress={addWebsite}

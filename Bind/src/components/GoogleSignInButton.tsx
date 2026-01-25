@@ -95,6 +95,8 @@ export default function GoogleSignInBtn({ onSuccess, onError, disabled }: Props)
         // Sign-in already in progress
       } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
         onError?.('Google Play Services not available');
+      } else if (error.message?.includes('getTokens') || error.message?.includes('token')) {
+        // User backed out before completing sign-in, ignore silently
       } else {
         onError?.(error.message || 'Google sign-in failed');
       }

@@ -192,7 +192,7 @@ function SignInScreen({ onBack, onSuccess, onForgotPassword }: Props) {
                     autoCorrect={false}
                     editable={!loading}
                     style={{ backgroundColor: colors.bg, borderColor: colors.border, color: colors.text }}
-                    className="border rounded-full px-5 py-4 text-sm font-nunito"
+                    className="border rounded-full px-5 py-4 text-base font-nunito"
                   />
                 </View>
 
@@ -208,7 +208,7 @@ function SignInScreen({ onBack, onSuccess, onForgotPassword }: Props) {
                     autoCorrect={false}
                     editable={!loading}
                     style={{ backgroundColor: colors.bg, borderColor: colors.border, color: colors.text }}
-                    className="border rounded-full px-5 py-4 text-sm font-nunito"
+                    className="border rounded-full px-5 py-4 text-base font-nunito"
                   />
                 </View>
 
