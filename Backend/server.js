@@ -139,6 +139,115 @@ app.get('/delete-account', (req, res) => {
   `);
 });
 
+// GET /privacy-policy - Public privacy policy page (for Google Play)
+app.get('/privacy-policy', (req, res) => {
+  res.send(`
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Privacy Policy - Scute</title>
+      <style>
+        body {
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          max-width: 700px;
+          margin: 0 auto;
+          padding: 40px 20px;
+          background: #f5f5f5;
+          color: #333;
+          line-height: 1.6;
+        }
+        .container {
+          background: white;
+          padding: 40px;
+          border-radius: 12px;
+          box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #1a1a1a; margin-bottom: 8px; }
+        h2 { color: #333; margin-top: 28px; margin-bottom: 12px; font-size: 1.1em; }
+        p { color: #555; margin-bottom: 16px; }
+        .effective-date { color: #888; font-size: 0.9em; margin-bottom: 24px; }
+        ul { padding-left: 20px; color: #555; }
+        li { margin: 8px 0; }
+        a { color: #007AFF; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <h1>Privacy Policy</h1>
+        <p class="effective-date">Effective Date: January 6, 2026</p>
+
+        <p>Thank you for using Scute. Your privacy is important to us, and this Privacy Policy explains how we collect, use, and protect your information when you use our mobile application.</p>
+
+        <h2>1. Information We Collect</h2>
+        <p>We collect the following types of information:</p>
+        <ul>
+          <li><strong>Email Address:</strong> Collected during account registration to identify your account.</li>
+          <li><strong>App Usage Data:</strong> We access app usage statistics on your device to track screen time and enforce app-blocking features. This data is processed locally on your device and is not transmitted to our servers.</li>
+        </ul>
+
+        <h2>2. How We Use Your Information</h2>
+        <p>We use your information for the following purposes:</p>
+        <ul>
+          <li>To create and manage your account.</li>
+          <li>To enable core app functionality, such as app blocking and screen time tracking.</li>
+        </ul>
+
+        <h2>3. Data Storage and Security</h2>
+        <ul>
+          <li>Your email address is stored securely in our cloud database (powered by Supabase).</li>
+          <li>App usage data is stored locally on your device and is not uploaded to our servers.</li>
+          <li>We use industry-standard encryption to protect data in transit and at rest.</li>
+        </ul>
+
+        <h2>4. Third-Party Services</h2>
+        <p>We use the following third-party services:</p>
+        <ul>
+          <li><strong>Supabase:</strong> For secure cloud storage and authentication.</li>
+          <li><strong>Google Play:</strong> For processing subscription and one-time payments. We do not store your payment information (credit card details, billing address, etc.). All payment processing is handled securely by Google Play. We only receive confirmation of your subscription status.</li>
+        </ul>
+        <p>These services have their own privacy policies, and we encourage you to review them.</p>
+
+        <h2>5. Permissions</h2>
+        <p>To provide our services, the app requires the following permissions:</p>
+        <ul>
+          <li><strong>Usage Access:</strong> To monitor and block apps on your device.</li>
+          <li><strong>Display Over Other Apps:</strong> To show blocking overlays.</li>
+          <li><strong>Accessibility Services:</strong> To enforce app-blocking functionality.</li>
+        </ul>
+        <p>These permissions are used solely for the app's intended functionality.</p>
+
+        <h2>6. Data Sharing</h2>
+        <p>We do not sell, rent, or share your personal information with third parties, except:</p>
+        <ul>
+          <li>When required by law.</li>
+          <li>To protect the rights, safety, or property of Scute or its users.</li>
+        </ul>
+
+        <h2>7. Your Rights</h2>
+        <p>You have the right to:</p>
+        <ul>
+          <li>Access, update, or delete your account information.</li>
+          <li>Revoke app permissions at any time through your device settings.</li>
+        </ul>
+        <p>To exercise these rights, contact us at <a href="mailto:info@scuteapp.com">info@scuteapp.com</a>.</p>
+
+        <h2>8. Children's Privacy</h2>
+        <p>Scute is not intended for children under the age of 13. We do not knowingly collect personal information from children.</p>
+
+        <h2>9. Changes to This Policy</h2>
+        <p>We may update this Privacy Policy from time to time. Any changes will be posted in the app, and the "Effective Date" will be updated accordingly.</p>
+
+        <h2>10. Contact Us</h2>
+        <p>If you have any questions or concerns about this Privacy Policy, please contact us at:</p>
+        <p>Email: <a href="mailto:info@scuteapp.com">info@scuteapp.com</a></p>
+      </div>
+    </body>
+    </html>
+  `);
+});
+
 function generateCode() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
