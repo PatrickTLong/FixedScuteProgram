@@ -68,6 +68,77 @@ function authenticateToken(req, res, next) {
 app.use(cors());
 app.use(express.json());
 
+// GET /delete-account - Public page for account deletion instructions (for Google Play)
+app.get('/delete-account', (req, res) => {
+  res.send(`
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Delete Your Scute Account</title>
+      <style>
+        body {
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          max-width: 600px;
+          margin: 0 auto;
+          padding: 40px 20px;
+          background: #f5f5f5;
+          color: #333;
+        }
+        .container {
+          background: white;
+          padding: 40px;
+          border-radius: 12px;
+          box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #1a1a1a; margin-bottom: 24px; }
+        h2 { color: #333; margin-top: 32px; }
+        p { line-height: 1.6; color: #555; }
+        ol { padding-left: 20px; }
+        li { margin: 12px 0; line-height: 1.6; }
+        .highlight { background: #f0f7ff; padding: 16px; border-radius: 8px; margin: 20px 0; }
+        .warning { background: #fff3e0; padding: 16px; border-radius: 8px; margin: 20px 0; }
+        a { color: #007AFF; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <h1>Delete Your Scute Account</h1>
+
+        <p>We're sorry to see you go. You can delete your Scute account and all associated data directly from the app.</p>
+
+        <h2>How to Delete Your Account</h2>
+        <ol>
+          <li>Open the <strong>Scute</strong> app on your device</li>
+          <li>Go to <strong>Settings</strong> (gear icon)</li>
+          <li>Scroll down to the <strong>Account</strong> section</li>
+          <li>Tap <strong>"Delete Account"</strong></li>
+          <li>Confirm the deletion when prompted</li>
+        </ol>
+
+        <div class="highlight">
+          <strong>What gets deleted:</strong>
+          <ul>
+            <li>Your account and login credentials</li>
+            <li>All presets and blocking configurations</li>
+            <li>Your membership and subscription data</li>
+            <li>All personal information stored on our servers</li>
+          </ul>
+        </div>
+
+        <div class="warning">
+          <strong>Please note:</strong> Account deletion is permanent and cannot be undone. If you have an active subscription, please cancel it through Google Play before deleting your account.
+        </div>
+
+        <h2>Need Help?</h2>
+        <p>If you're unable to access the app or need assistance, please contact us at <a href="mailto:support@scuteapp.com">support@scuteapp.com</a> with your registered email address, and we'll process your deletion request within 30 days.</p>
+      </div>
+    </body>
+    </html>
+  `);
+});
+
 function generateCode() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }

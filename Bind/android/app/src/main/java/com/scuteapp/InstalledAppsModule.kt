@@ -1,4 +1,4 @@
-package com.bind
+package com.scuteapp
 
 import android.content.BroadcastReceiver
 import android.content.Context

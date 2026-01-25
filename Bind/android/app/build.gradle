@@ -78,15 +78,15 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace "com.bind"
+    namespace "com.scuteapp"
     defaultConfig {
-        applicationId "com.bind"
+        applicationId "com.scuteapp"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
         // API URL is now loaded from .env file via react-native-config
-        resValue "string", "build_config_package", "com.bind"
+        resValue "string", "build_config_package", "com.scuteapp"
     }
     buildFeatures {
         buildConfig true
@@ -98,15 +98,19 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
+        release {
+            storeFile file('scute-release.keystore')
+            storePassword 'Pmeja262626!'
+            keyAlias 'scute-key'
+            keyPassword 'Pmeja262626!'
+        }
     }
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
         }
         release {
-            // Caution! In production, you need to generate your own keystore file.
-            // see https://reactnative.dev/docs/signed-apk-android.
-            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.release
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }

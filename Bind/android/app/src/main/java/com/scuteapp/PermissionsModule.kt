@@ -1,4 +1,4 @@
-package com.bind
+package com.scuteapp
 
 import android.accessibilityservice.AccessibilityServiceInfo
 import android.app.AlarmManager

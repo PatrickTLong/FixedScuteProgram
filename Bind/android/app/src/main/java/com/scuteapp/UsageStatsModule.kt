@@ -1,4 +1,4 @@
-package com.bind
+package com.scuteapp
 
 import android.app.usage.UsageStats
 import android.app.usage.UsageStatsManager

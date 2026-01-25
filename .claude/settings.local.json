@@ -27,7 +27,11 @@
       "Bash(./gradlew signingReport:*)",
       "Bash(adb uninstall:*)",
       "Bash(git log:*)",
-      "Bash(git ls-tree:*)"
+      "Bash(git ls-tree:*)",
+      "Bash(./gradlew bundleRelease:*)",
+      "Bash(ls:*)",
+      "Bash(keytool:*)",
+      "Bash(./gradlew clean:*)"
     ]
   }
 }

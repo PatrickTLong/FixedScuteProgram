@@ -1,4 +1,4 @@
-package com.bind
+package com.scuteapp
 
 import android.accessibilityservice.AccessibilityService
 import android.app.NotificationChannel

@@ -1,4 +1,4 @@
-package com.bind
+package com.scuteapp
 
 import android.app.Activity
 import android.content.Context

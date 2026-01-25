@@ -133,10 +133,10 @@
         android:enabled="true"
         android:exported="true">
         <intent-filter>
-          <action android:name="com.bind.ACTION_ACTIVATE_PRESET" />
+          <action android:name="com.scuteapp.ACTION_ACTIVATE_PRESET" />
         </intent-filter>
         <intent-filter>
-          <action android:name="com.bind.ACTION_END_PRESET" />
+          <action android:name="com.scuteapp.ACTION_END_PRESET" />
         </intent-filter>
         <intent-filter>
           <action android:name="android.intent.action.BOOT_COMPLETED" />
@@ -149,7 +149,7 @@
         android:enabled="true"
         android:exported="true">
         <intent-filter>
-          <action android:name="com.bind.ACTION_TIMER_END" />
+          <action android:name="com.scuteapp.ACTION_TIMER_END" />
         </intent-filter>
         <intent-filter>
           <action android:name="android.intent.action.BOOT_COMPLETED" />

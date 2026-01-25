@@ -1,4 +1,4 @@
-package com.bind
+package com.scuteapp
 
 import android.app.Application
 import com.facebook.react.PackageList
