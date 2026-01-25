@@ -1,6 +1,6 @@
 import './global.css';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { View, Vibration, NativeModules, AppState, Animated, ActivityIndicator } from 'react-native';
+import { View, Vibration, NativeModules, AppState, Animated } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ThemeProvider, useTheme } from './src/context/ThemeContext';
@@ -372,7 +372,7 @@ function App() {
       try {
         if (PermissionsModule) {
           const states = await PermissionsModule.checkAllPermissions();
-          const requiredPermissions = ['notification', 'accessibility', 'usageAccess', 'displayOverlay', 'deviceAdmin', 'postNotifications', 'exactAlarm'];
+          const requiredPermissions = ['notification', 'accessibility', 'usageAccess', 'displayOverlay', 'deviceAdmin', 'postNotifications', 'alarms'];
           const allGranted = requiredPermissions.every(perm => states[perm]);
 
           if (allGranted) {
@@ -426,7 +426,7 @@ function App() {
     try {
       if (PermissionsModule) {
         const states = await PermissionsModule.checkAllPermissions();
-        const requiredPermissions = ['notification', 'accessibility', 'usageAccess', 'displayOverlay', 'deviceAdmin', 'postNotifications', 'exactAlarm'];
+        const requiredPermissions = ['notification', 'accessibility', 'usageAccess', 'displayOverlay', 'deviceAdmin', 'postNotifications', 'alarms'];
         const allGranted = requiredPermissions.every(perm => states[perm]);
 
         if (allGranted) {
@@ -463,7 +463,7 @@ function App() {
     try {
       if (PermissionsModule) {
         const states = await PermissionsModule.checkAllPermissions();
-        const requiredPermissions = ['notification', 'accessibility', 'usageAccess', 'displayOverlay', 'deviceAdmin', 'postNotifications', 'exactAlarm'];
+        const requiredPermissions = ['notification', 'accessibility', 'usageAccess', 'displayOverlay', 'deviceAdmin', 'postNotifications', 'alarms'];
         const allGranted = requiredPermissions.every(perm => states[perm]);
 
         if (allGranted) {
@@ -582,12 +582,10 @@ function App() {
   }, [userEmail]);
 
   const renderScreen = () => {
-    // Show loading screen while checking login status and permissions
+    // Show blank screen while checking login status and permissions
     if (isInitializing) {
       return (
-        <View style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }}>
-          <ActivityIndicator size="large" color={colors.green} />
-        </View>
+        <View style={{ flex: 1, backgroundColor: colors.bg }} />
       );
     }
 
