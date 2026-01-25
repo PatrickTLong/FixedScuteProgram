@@ -13,7 +13,7 @@ const Lottie = LottieView as any;
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import ConfirmationModal from '../components/ConfirmationModal';
-import { getLockStatus, getEmergencyTapoutStatus, EmergencyTapoutStatus, saveUserTheme, getCachedLockStatus, getCachedTapoutStatus } from '../services/cardApi';
+import { getLockStatus, getEmergencyTapoutStatus, EmergencyTapoutStatus, saveUserTheme, getCachedLockStatus, getCachedTapoutStatus, getMembershipStatus, MembershipStatus, getCachedMembershipStatus } from '../services/cardApi';
 import { useTheme } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { lightTap } from '../utils/haptics';
@@ -37,6 +37,39 @@ const MailIcon = () => (
     />
     <Path
       d="M22 6l-10 7L2 6"
+      stroke="#FFFFFF"
+      strokeWidth={2.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+const MembershipIcon = () => (
+  <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"
+      stroke="#FFFFFF"
+      strokeWidth={2.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M9 11a4 4 0 100-8 4 4 0 000 8z"
+      stroke="#FFFFFF"
+      strokeWidth={2.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M23 21v-2a4 4 0 00-3-3.87"
+      stroke="#FFFFFF"
+      strokeWidth={2.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M16 3.13a4 4 0 010 7.75"
       stroke="#FFFFFF"
       strokeWidth={2.5}
       strokeLinecap="round"
@@ -260,11 +293,14 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
   // Check cache synchronously for initial render - avoids flash if cache exists
   const cachedLockStatus = getCachedLockStatus(email);
   const cachedTapoutStatus = getCachedTapoutStatus(email);
+  const cachedMembership = getCachedMembershipStatus(email);
   const hasCache = cachedLockStatus !== null && cachedTapoutStatus !== null;
 
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
   const [resetModalVisible, setResetModalVisible] = useState(false);
   const [deleteAccountModalVisible, setDeleteAccountModalVisible] = useState(false);
+  const [membershipModalVisible, setMembershipModalVisible] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'yearly' | 'lifetime' | null>(null);
   const [isLocked, setIsLocked] = useState<boolean | null>(hasCache ? cachedLockStatus.isLocked : null);
   const [lockChecked, setLockChecked] = useState(hasCache);
   const [privacyModalVisible, setPrivacyModalVisible] = useState(false);
@@ -282,19 +318,24 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
   const [tapoutStatus, setTapoutStatus] = useState<EmergencyTapoutStatus | null>(cachedTapoutStatus);
   const [loading, setLoading] = useState(!hasCache);
 
+  // Membership state - initialize from cache if available
+  const [membershipStatus, setMembershipStatus] = useState<MembershipStatus | null>(cachedMembership);
+
   // Load data on mount - only fetch if cache miss
   useEffect(() => {
     // If we already have cached data, no need to fetch
     if (hasCache) return;
 
     async function init() {
-      const [status, tapout] = await Promise.all([
+      const [status, tapout, membership] = await Promise.all([
         getLockStatus(email, false),
         getEmergencyTapoutStatus(email, false),
+        getMembershipStatus(email, false),
       ]);
 
       setIsLocked(status.isLocked);
       setTapoutStatus(tapout);
+      setMembershipStatus(membership);
       setLockChecked(true);
       setLoading(false);
     }
@@ -329,6 +370,35 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
       return `+1 in ${minutes}m`;
     }
   };
+
+  // Format time until trial ends
+  const getTrialTimeRemaining = () => {
+    // Don't show if already a member or no trial end date
+    if (membershipStatus?.isMember) return null;
+    if (!membershipStatus?.trialEnd) return null;
+
+    const now = new Date();
+    const trialEnd = new Date(membershipStatus.trialEnd);
+    const diffMs = trialEnd.getTime() - now.getTime();
+
+    // Trial expired
+    if (diffMs <= 0) return null;
+
+    const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+
+    if (days > 0) {
+      return `${days}d ${hours}h ${minutes}m`;
+    } else if (hours > 0) {
+      return `${hours}h ${minutes}m`;
+    } else {
+      return `${minutes}m`;
+    }
+  };
+
+  // Note: Trial expiry is now handled at the App level with MembershipScreen
+  // The modal here is for users to view/change their membership during trial or as members
 
   const handleContactSupport = () => {
     if (isLocked) return;
@@ -456,45 +526,38 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
             labelColor={colors.text}
             borderColor={colors.border}
           />
+          {/* Membership Row with Trial Countdown */}
+          <TouchableOpacity
+            onPress={() => { lightTap(); setMembershipModalVisible(true); }}
+            style={{ borderBottomWidth: 1, borderBottomColor: colors.border }}
+            className="py-4"
+          >
+            <View className="flex-row items-center">
+              <View className="mr-4"><MembershipIcon /></View>
+              <View className="flex-1">
+                <Text style={{ color: colors.text }} className="text-base font-nunito">Membership</Text>
+                {membershipStatus?.isMember ? (
+                  <Text style={{ color: '#4CAF50' }} className="text-xs font-nunito mt-0.5">
+                    Active Member
+                  </Text>
+                ) : getTrialTimeRemaining() ? (
+                  <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito mt-0.5">
+                    Trial ends in {getTrialTimeRemaining()}
+                  </Text>
+                ) : (
+                  <Text style={{ color: '#FF5C5C' }} className="text-xs font-nunito mt-0.5">
+                    Trial expired
+                  </Text>
+                )}
+              </View>
+              <ChevronRightIcon size={20} />
+            </View>
+          </TouchableOpacity>
           <SettingsRow
             icon={<LogoutIcon />}
             label="Log Out"
             onPress={isDisabled ? undefined : () => setLogoutModalVisible(true)}
             labelColor={colors.text}
-            borderColor={colors.border}
-            arrowColor={colors.textSecondary}
-            isLast
-          />
-        </View>
-
-        {/* DATA Section */}
-        <Text style={{ color: colors.textMuted }} className="text-xs font-nunito uppercase tracking-wider mb-2">
-          Data
-        </Text>
-        {resetError && (
-          <View style={{ backgroundColor: 'rgba(239, 68, 68, 0.2)' }} className="rounded-xl px-4 py-3 mb-3">
-            <Text style={{ color: '#FF5C5C' }} className="text-sm font-nunito">{resetError}</Text>
-          </View>
-        )}
-        {deleteError && (
-          <View style={{ backgroundColor: 'rgba(239, 68, 68, 0.2)' }} className="rounded-xl px-4 py-3 mb-3">
-            <Text style={{ color: '#FF5C5C' }} className="text-sm font-nunito">{deleteError}</Text>
-          </View>
-        )}
-        <View style={{ backgroundColor: colors.card }} className="rounded-2xl px-4 mb-6">
-          <SettingsRow
-            icon={<RefreshIcon />}
-            label="Reset Account"
-            onPress={isDisabled ? undefined : () => setResetModalVisible(true)}
-            labelColor={colors.text}
-            borderColor={colors.border}
-            arrowColor={colors.textSecondary}
-          />
-          <SettingsRow
-            icon={<TrashIcon color="#FF5C5C" />}
-            label="Delete Account"
-            onPress={isDisabled ? undefined : () => setDeleteAccountModalVisible(true)}
-            labelColor="#FF5C5C"
             borderColor={colors.border}
             arrowColor={colors.textSecondary}
             isLast
@@ -575,6 +638,40 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
             isLast
           />
         </View>
+
+        {/* DATA Section */}
+        <Text style={{ color: colors.textMuted }} className="text-xs font-nunito uppercase tracking-wider mb-2 mt-6">
+          Data
+        </Text>
+        {resetError && (
+          <View style={{ backgroundColor: 'rgba(239, 68, 68, 0.2)' }} className="rounded-xl px-4 py-3 mb-3">
+            <Text style={{ color: '#FF5C5C' }} className="text-sm font-nunito">{resetError}</Text>
+          </View>
+        )}
+        {deleteError && (
+          <View style={{ backgroundColor: 'rgba(239, 68, 68, 0.2)' }} className="rounded-xl px-4 py-3 mb-3">
+            <Text style={{ color: '#FF5C5C' }} className="text-sm font-nunito">{deleteError}</Text>
+          </View>
+        )}
+        <View style={{ backgroundColor: colors.card }} className="rounded-2xl px-4">
+          <SettingsRow
+            icon={<RefreshIcon />}
+            label="Reset Account"
+            onPress={isDisabled ? undefined : () => setResetModalVisible(true)}
+            labelColor={colors.text}
+            borderColor={colors.border}
+            arrowColor={colors.textSecondary}
+          />
+          <SettingsRow
+            icon={<TrashIcon color="#FF5C5C" />}
+            label="Delete Account"
+            onPress={isDisabled ? undefined : () => setDeleteAccountModalVisible(true)}
+            labelColor="#FF5C5C"
+            borderColor={colors.border}
+            arrowColor={colors.textSecondary}
+            isLast
+          />
+        </View>
       </ScrollView>
 
       {/* Logout Modal */}
@@ -592,7 +689,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
       <ConfirmationModal
         visible={resetModalVisible}
         title="Reset Account Data"
-        message="This will delete all your presets and settings. Your account will remain active."
+        message="This will delete all your presets and settings. Your account and membership status will be preserved."
         confirmText="Reset"
         cancelText="Cancel"
         isDestructive
@@ -604,7 +701,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
       <ConfirmationModal
         visible={deleteAccountModalVisible}
         title="Delete Account"
-        message="This will permanently delete your account, delete all the data associated with your account, and return you to the onboarding screen. This action cannot be undone."
+        message="This will permanently delete your account and all associated data. Your subscription will be cancelled automatically. Previous purchases will not be refunded. This action cannot be undone."
         confirmText="Delete Account"
         cancelText="Cancel"
         isDestructive
@@ -665,6 +762,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
             <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
               We use the following third-party services:{'\n'}
               • Supabase: For secure cloud storage and authentication.{'\n'}
+              • Google Play: For processing subscription and one-time payments. We do not store your payment information (credit card details, billing address, etc.). All payment processing is handled securely by Google Play. We only receive confirmation of your subscription status.{'\n'}
               These services have their own privacy policies, and we encourage you to review them.
             </Text>
 
@@ -795,25 +893,184 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
               We reserve the right to suspend or terminate your account at any time for any reason, including but not limited to violation of these Terms. You may delete your account at any time through the App's settings if unblocked.
             </Text>
 
-            <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">10. Modifications to Terms</Text>
+            <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">10. Subscriptions and Payments</Text>
+            <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
+              Scute offers subscription plans and a lifetime purchase option:{'\n'}
+              • Free Trial: New users receive a 7-day free trial with full access to all features.{'\n'}
+              • Monthly Subscription: $6.95/month, billed monthly.{'\n'}
+              • Yearly Subscription: $4.95/month ($59.40/year), billed annually.{'\n'}
+              • Lifetime Purchase: $49.95 one-time payment for permanent access.{'\n\n'}
+              Subscriptions are processed through Google Play. By subscribing, you agree to Google Play's terms of service. Subscriptions automatically renew unless cancelled at least 24 hours before the end of the current billing period. You can manage or cancel your subscription through Google Play Store settings. Refunds are handled according to Google Play's refund policy.
+            </Text>
+
+            <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">11. Modifications to Terms</Text>
             <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
               We reserve the right to modify these Terms at any time. Changes will be effective upon posting within the App. Your continued use of the App after any modifications constitutes acceptance of the updated Terms.
             </Text>
 
-            <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">11. Governing Law</Text>
+            <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">12. Governing Law</Text>
             <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
               These Terms shall be governed by and construed in accordance with the laws of the jurisdiction in which Scute operates, without regard to conflict of law principles.
             </Text>
 
-            <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">12. Severability</Text>
+            <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">13. Severability</Text>
             <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
               If any provision of these Terms is found to be unenforceable or invalid, that provision shall be limited or eliminated to the minimum extent necessary, and the remaining provisions shall remain in full force and effect.
             </Text>
 
-            <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">13. Contact Us</Text>
+            <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">14. Contact Us</Text>
             <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-8">
               If you have any questions about these Terms of Service, please contact us at:{'\n'}
               Email: info@scuteapp.com
+            </Text>
+          </ScrollView>
+        </SafeAreaView>
+      </Modal>
+
+      {/* Membership Modal */}
+      <Modal
+        visible={membershipModalVisible}
+        animationType="fade"
+        presentationStyle="pageSheet"
+        onRequestClose={() => {
+          // Only allow dismissal if trial hasn't expired
+          if (!membershipStatus?.trialExpired) {
+            setMembershipModalVisible(false);
+          }
+        }}
+      >
+        <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
+          {/* Header */}
+          <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between px-4 py-3">
+            {/* Only show back button if trial hasn't expired */}
+            {!membershipStatus?.trialExpired ? (
+              <TouchableOpacity onPress={() => { lightTap(); setMembershipModalVisible(false); }} className="w-16">
+                <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
+                  <Path
+                    d="M19 12H5M12 19l-7-7 7-7"
+                    stroke={colors.text}
+                    strokeWidth={2.5}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </Svg>
+              </TouchableOpacity>
+            ) : (
+              <View className="w-16" />
+            )}
+            <Text style={{ color: colors.text }} className="text-lg font-nunito-semibold">Membership</Text>
+            <View className="w-16" />
+          </View>
+
+          <ScrollView className="flex-1 px-5 py-6" showsVerticalScrollIndicator={false}>
+            {/* Title Section */}
+            <View className="items-center mb-8">
+              <Text style={{ color: colors.text }} className="text-2xl font-nunito-bold mb-2">Choose Your Plan</Text>
+              <Text style={{ color: colors.textSecondary }} className="text-center font-nunito">
+                Features will remain enabled after trial during membership activation
+              </Text>
+            </View>
+
+            {/* Monthly Plan */}
+            <TouchableOpacity
+              onPress={() => { lightTap(); setSelectedPlan('monthly'); }}
+              style={{
+                backgroundColor: colors.card,
+                borderWidth: 2,
+                borderColor: selectedPlan === 'monthly' ? '#FFFFFF' : colors.border,
+              }}
+              className="rounded-2xl p-4 mb-4"
+            >
+              <View className="flex-row items-center justify-between">
+                <View className="flex-1">
+                  <Text style={{ color: colors.text }} className="text-lg font-nunito-bold">Monthly</Text>
+                  <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito mt-1">
+                    Billed monthly
+                  </Text>
+                </View>
+                <View className="items-end">
+                  <Text style={{ color: colors.text }} className="text-2xl font-nunito-bold">$6.95</Text>
+                  <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">/month</Text>
+                </View>
+              </View>
+            </TouchableOpacity>
+
+            {/* Yearly Plan */}
+            <TouchableOpacity
+              onPress={() => { lightTap(); setSelectedPlan('yearly'); }}
+              style={{
+                backgroundColor: colors.card,
+                borderWidth: 2,
+                borderColor: selectedPlan === 'yearly' ? '#FFFFFF' : colors.border,
+              }}
+              className="rounded-2xl p-4 mb-4"
+            >
+              <View className="flex-row items-center justify-between">
+                <View className="flex-1">
+                  <View className="flex-row items-center">
+                    <Text style={{ color: colors.text }} className="text-lg font-nunito-bold">Yearly</Text>
+                    <View style={{ backgroundColor: '#4CAF50' }} className="ml-2 px-2 py-0.5 rounded-full">
+                      <Text className="text-xs font-nunito-bold text-white">SAVE 29%</Text>
+                    </View>
+                  </View>
+                  <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito mt-1">
+                    $59.40 billed annually
+                  </Text>
+                </View>
+                <View className="items-end">
+                  <Text style={{ color: colors.text }} className="text-2xl font-nunito-bold">$4.95</Text>
+                  <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">/month</Text>
+                </View>
+              </View>
+            </TouchableOpacity>
+
+            {/* Lifetime Plan */}
+            <TouchableOpacity
+              onPress={() => { lightTap(); setSelectedPlan('lifetime'); }}
+              style={{
+                backgroundColor: colors.card,
+                borderWidth: 2,
+                borderColor: selectedPlan === 'lifetime' ? '#FFFFFF' : colors.border,
+              }}
+              className="rounded-2xl p-4 mb-8"
+            >
+              <View className="flex-row items-center justify-between">
+                <View className="flex-1">
+                  <View className="flex-row items-center">
+                    <Text style={{ color: colors.text }} className="text-lg font-nunito-bold">Lifetime</Text>
+                    <View style={{ backgroundColor: '#FFD700' }} className="ml-2 px-2 py-0.5 rounded-full">
+                      <Text className="text-xs font-nunito-bold text-black">BEST VALUE</Text>
+                    </View>
+                  </View>
+                  <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito mt-1">
+                    One-time payment, forever access
+                  </Text>
+                </View>
+                <View className="items-end">
+                  <Text style={{ color: colors.text }} className="text-2xl font-nunito-bold">$49.95</Text>
+                  <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">one-time</Text>
+                </View>
+              </View>
+            </TouchableOpacity>
+
+            {/* Subscribe Button */}
+            <TouchableOpacity
+              onPress={() => { lightTap(); }}
+              disabled={!selectedPlan}
+              style={{
+                backgroundColor: selectedPlan ? '#FFFFFF' : colors.border,
+                opacity: selectedPlan ? 1 : 0.5,
+              }}
+              className="rounded-full py-4 items-center mb-4"
+            >
+              <Text style={{ color: selectedPlan ? '#000000' : colors.textSecondary }} className="text-base font-nunito-bold">
+                {selectedPlan ? 'Continue' : 'Select a Plan'}
+              </Text>
+            </TouchableOpacity>
+
+            {/* Terms Text */}
+            <Text style={{ color: colors.textMuted }} className="text-xs font-nunito text-center leading-4">
+              By subscribing, you agree to our Terms of Service and Privacy Policy. Subscriptions auto-renew unless cancelled.
             </Text>
           </ScrollView>
         </SafeAreaView>

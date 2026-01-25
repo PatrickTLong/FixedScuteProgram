@@ -16,14 +16,15 @@ import TermsAcceptScreen from './src/screens/TermsAcceptScreen';
 import BottomTabBar from './src/components/BottomTabBar';
 import InfoModal from './src/components/InfoModal';
 import EmergencyTapoutModal from './src/components/EmergencyTapoutModal';
-import { deleteAccount, updateLockStatus, getLockStatus, getPresets, resetPresets, deactivateAllPresets, getEmergencyTapoutStatus, useEmergencyTapout, savePreset, Preset, EmergencyTapoutStatus, invalidateUserCaches, saveUserTheme, clearAuthToken } from './src/services/cardApi';
+import { deleteAccount, updateLockStatus, getLockStatus, getPresets, resetPresets, deactivateAllPresets, getEmergencyTapoutStatus, useEmergencyTapout, savePreset, Preset, EmergencyTapoutStatus, invalidateUserCaches, saveUserTheme, clearAuthToken, getMembershipStatus } from './src/services/cardApi';
+import MembershipScreen from './src/screens/MembershipScreen';
 
 const { BlockingModule, PermissionsModule, ScheduleModule } = NativeModules;
 
 // Track which scheduled preset we've already navigated for (to avoid repeat navigations)
 let lastNavigatedScheduledPresetId: string | null = null;
 
-type Screen = 'landing' | 'signin' | 'getstarted' | 'forgotpassword' | 'terms' | 'permissions' | 'main';
+type Screen = 'landing' | 'signin' | 'getstarted' | 'forgotpassword' | 'terms' | 'permissions' | 'membership' | 'main';
 type TabName = 'home' | 'presets' | 'settings';
 
 function App() {
@@ -375,7 +376,21 @@ function App() {
           const allGranted = requiredPermissions.every(perm => states[perm]);
 
           if (allGranted) {
-            // All permissions granted, go directly to main screen
+            // All permissions granted, check membership status
+            try {
+              const membership = await getMembershipStatus(email, true);
+              if (membership.trialExpired && !membership.isMember) {
+                // Trial expired, deactivate presets and show membership screen
+                await deactivateAllPresets(email);
+                await ScheduleModule?.saveScheduledPresets('[]');
+                setDisplayedScreen('membership');
+                setCurrentScreen('membership');
+                setIsInitializing(false);
+                return;
+              }
+            } catch (error) {
+              // Error checking membership, proceed to main
+            }
             setDisplayedScreen('main');
             setCurrentScreen('main');
             setIsInitializing(false);
@@ -415,7 +430,20 @@ function App() {
         const allGranted = requiredPermissions.every(perm => states[perm]);
 
         if (allGranted) {
-          // All permissions granted, go directly to main screen
+          // All permissions granted, check membership status
+          try {
+            const membership = await getMembershipStatus(email, true);
+            if (membership.trialExpired && !membership.isMember) {
+              // Trial expired, deactivate presets and show membership screen
+              await deactivateAllPresets(email);
+              await ScheduleModule?.saveScheduledPresets('[]');
+              setDisplayedScreen('membership');
+              setCurrentScreen('membership');
+              return;
+            }
+          } catch (error) {
+            // Error checking membership, proceed to main
+          }
           setDisplayedScreen('main');
           setCurrentScreen('main');
           return;
@@ -439,7 +467,20 @@ function App() {
         const allGranted = requiredPermissions.every(perm => states[perm]);
 
         if (allGranted) {
-          // All permissions granted, go directly to main screen
+          // All permissions granted, check membership status
+          try {
+            const membership = await getMembershipStatus(userEmail, true);
+            if (membership.trialExpired && !membership.isMember) {
+              // Trial expired, deactivate presets and show membership screen
+              await deactivateAllPresets(userEmail);
+              await ScheduleModule?.saveScheduledPresets('[]');
+              setDisplayedScreen('membership');
+              setCurrentScreen('membership');
+              return;
+            }
+          } catch (error) {
+            // Error checking membership, proceed to main
+          }
           setDisplayedScreen('main');
           setCurrentScreen('main');
           return;
@@ -452,9 +493,28 @@ function App() {
     // Permissions not all granted or check failed, show permissions screen
     setDisplayedScreen('permissions');
     setCurrentScreen('permissions');
-  }, []);
+  }, [userEmail]);
 
-  const handlePermissionsComplete = useCallback(() => {
+  const handlePermissionsComplete = useCallback(async () => {
+    // Check membership status before going to main
+    try {
+      const membership = await getMembershipStatus(userEmail, true);
+      if (membership.trialExpired && !membership.isMember) {
+        // Trial expired, deactivate presets and show membership screen
+        await deactivateAllPresets(userEmail);
+        await ScheduleModule?.saveScheduledPresets('[]');
+        setDisplayedScreen('membership');
+        setCurrentScreen('membership');
+        return;
+      }
+    } catch (error) {
+      // Error checking membership, proceed to main
+    }
+    setDisplayedScreen('main');
+    setCurrentScreen('main');
+  }, [userEmail]);
+
+  const handleMembershipComplete = useCallback(() => {
     setDisplayedScreen('main');
     setCurrentScreen('main');
   }, []);
@@ -577,6 +637,12 @@ function App() {
           return (
             <PermissionsChecklistScreen
               onComplete={handlePermissionsComplete}
+            />
+          );
+        case 'membership':
+          return (
+            <MembershipScreen
+              onPurchaseComplete={handleMembershipComplete}
             />
           );
         case 'main':

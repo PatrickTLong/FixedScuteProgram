@@ -694,6 +694,63 @@ export async function useEmergencyTapout(email: string, presetId?: string, skipT
   }
 }
 
+// ============ Membership Functions ============
+
+export interface MembershipStatus {
+  isMember: boolean;
+  trialEnd: string | null; // ISO date string when trial expires
+  trialExpired: boolean;
+}
+
+// In-memory cache for synchronous access (like lock status)
+let cachedMembershipStatus: { [email: string]: MembershipStatus } = {};
+
+/**
+ * Get cached membership status synchronously (for initial render)
+ */
+export function getCachedMembershipStatus(email: string): MembershipStatus | null {
+  const normalizedEmail = email.toLowerCase();
+  return cachedMembershipStatus[normalizedEmail] || null;
+}
+
+/**
+ * Get user's membership and trial status
+ */
+export async function getMembershipStatus(email: string, skipCache = false): Promise<MembershipStatus> {
+  const normalizedEmail = email.toLowerCase();
+  const cacheKey = `membershipStatus:${normalizedEmail}`;
+
+  // Check cache first (unless skipCache is true)
+  if (!skipCache) {
+    const cached = getCached<MembershipStatus>(cacheKey);
+    if (cached) return cached;
+  }
+
+  try {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_URL}/api/membership-status`, { headers });
+    const data = await response.json();
+
+    if (!response.ok || data.error) {
+      return { isMember: false, trialEnd: null, trialExpired: true };
+    }
+
+    const result: MembershipStatus = {
+      isMember: data.isMember ?? false,
+      trialEnd: data.trialEnd ?? null,
+      trialExpired: data.trialExpired ?? true,
+    };
+
+    // Cache the result
+    setCache(cacheKey, result);
+    cachedMembershipStatus[normalizedEmail] = result;
+
+    return result;
+  } catch (error) {
+    return { isMember: false, trialEnd: null, trialExpired: true };
+  }
+}
+
 // ============ Theme Functions ============
 
 export type ThemeType = 'dark' | 'light';

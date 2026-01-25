@@ -244,12 +244,15 @@ app.post('/api/verify-and-register', async (req, res) => {
       return res.status(500).json({ error: 'Failed to create account' });
     }
 
-    // Create user_cards entry for this user
+    // Create user_cards entry for this user with 7-day trial
+    const trialEnd = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days from now
     const { error: cardError } = await supabase
       .from('user_cards')
       .insert({
         email: normalizedEmail,
         settings: null,
+        is_member: false,
+        trial_end: trialEnd.toISOString(),
       });
 
     if (cardError && !cardError.message.includes('duplicate')) {
@@ -327,11 +330,14 @@ app.post('/api/google-auth', async (req, res) => {
       .single();
 
     if (!existingCard) {
+      const trialEnd = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days from now
       await supabase
         .from('user_cards')
         .insert({
           email: normalizedEmail,
           settings: null,
+          is_member: false,
+          trial_end: trialEnd.toISOString(),
         });
       console.log(`Created user_cards entry for Google user: ${normalizedEmail}`);
     }
@@ -1304,6 +1310,42 @@ app.get('/api/emergency-tapout', authenticateToken, async (req, res) => {
   } catch (error) {
     console.error('Get emergency tapout error:', error);
     res.status(500).json({ error: 'Failed to get emergency tapout status' });
+  }
+});
+
+// GET /api/membership-status - Get user's membership and trial status (PROTECTED)
+app.get('/api/membership-status', authenticateToken, async (req, res) => {
+  const normalizedEmail = req.userEmail;
+
+  try {
+    const { data, error } = await supabase
+      .from('user_cards')
+      .select('is_member, trial_end')
+      .eq('email', normalizedEmail)
+      .single();
+
+    if (error || !data) {
+      // Default: not a member, no trial (will force membership modal)
+      return res.json({
+        isMember: false,
+        trialEnd: null,
+        trialExpired: true,
+      });
+    }
+
+    const now = new Date();
+    const isMember = data.is_member || false;
+    const trialEnd = data.trial_end ? new Date(data.trial_end) : null;
+    const trialExpired = !isMember && (!trialEnd || now >= trialEnd);
+
+    res.json({
+      isMember,
+      trialEnd: trialEnd ? trialEnd.toISOString() : null,
+      trialExpired,
+    });
+  } catch (error) {
+    console.error('Get membership status error:', error);
+    res.status(500).json({ error: 'Failed to get membership status' });
   }
 });
 
