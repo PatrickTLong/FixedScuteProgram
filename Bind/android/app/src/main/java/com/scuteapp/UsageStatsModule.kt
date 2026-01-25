@@ -42,7 +42,7 @@ class UsageStatsModule(reactContext: ReactApplicationContext) :
             "com.android.vending", // Play Store
             "com.google.android.gms", // Google Play Services
             "com.google.android.gsf", // Google Services Framework
-            "com.bind" // Our own app
+            "com.scuteapp" // Our own app
         )
     }
 

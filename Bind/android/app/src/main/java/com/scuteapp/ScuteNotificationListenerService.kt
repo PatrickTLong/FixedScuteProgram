@@ -38,7 +38,7 @@ class ScuteNotificationListenerService : NotificationListenerService() {
         val packageName = sbn.packageName
 
         // Don't block our own notifications
-        if (packageName == "com.bind") return
+        if (packageName == "com.scuteapp") return
 
         // Check if this app's notifications should be blocked
         if (shouldBlockNotification(packageName)) {

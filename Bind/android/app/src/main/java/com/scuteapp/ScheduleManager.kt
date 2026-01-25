@@ -223,7 +223,7 @@ object ScheduleManager {
         try {
             val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
             val intent = Intent(context, ScheduledPresetReceiver::class.java).apply {
-                action = "com.bind.ACTION_END_PRESET"
+                action = "com.scuteapp.ACTION_END_PRESET"
                 putExtra(ScheduledPresetReceiver.EXTRA_PRESET_ID, presetId)
             }
 
@@ -272,7 +272,7 @@ object ScheduleManager {
 
             // Cancel end alarm
             val endIntent = Intent(context, ScheduledPresetReceiver::class.java).apply {
-                action = "com.bind.ACTION_END_PRESET"
+                action = "com.scuteapp.ACTION_END_PRESET"
                 putExtra(ScheduledPresetReceiver.EXTRA_PRESET_ID, presetId)
             }
             val endPendingIntent = PendingIntent.getBroadcast(

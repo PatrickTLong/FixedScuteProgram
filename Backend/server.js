@@ -557,6 +557,11 @@ app.post('/api/signin', async (req, res) => {
       return res.status(404).json({ error: 'Account not found' });
     }
 
+    // Check if user has a password (OAuth users won't have one)
+    if (!user.password_hash) {
+      return res.status(400).json({ error: 'This account uses Google Sign-In. Please use the Google Sign-In button instead.' });
+    }
+
     // Verify password
     const passwordMatch = await bcrypt.compare(password, user.password_hash);
 

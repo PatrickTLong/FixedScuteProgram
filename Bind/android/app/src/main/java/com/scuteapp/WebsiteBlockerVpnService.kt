@@ -28,8 +28,8 @@ class WebsiteBlockerVpnService : VpnService() {
         private const val CHANNEL_ID = "website_blocker_vpn"
         private const val NOTIFICATION_ID = 2001
 
-        const val ACTION_START = "com.bind.vpn.START"
-        const val ACTION_STOP = "com.bind.vpn.STOP"
+        const val ACTION_START = "com.scuteapp.vpn.START"
+        const val ACTION_STOP = "com.scuteapp.vpn.STOP"
 
         @Volatile
         var isRunning = false

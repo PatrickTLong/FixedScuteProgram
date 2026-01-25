@@ -33,7 +33,7 @@ class ScuteAccessibilityService : AccessibilityService() {
 
         // Packages that should NEVER be blocked
         private val EXCLUDED_PACKAGES = setOf(
-            "com.bind" // Our own app - never block
+            "com.scuteapp" // Our own app - never block
         )
 
         @Volatile
@@ -658,7 +658,7 @@ class ScuteAccessibilityService : AccessibilityService() {
 
                     for (resolveInfo in resolvedInfos) {
                         val packageName = resolveInfo.activityInfo.packageName
-                        if (packageName != "com.bind") {
+                        if (packageName != "com.scuteapp") {
                             selectedApps.add(packageName)
                         }
                     }

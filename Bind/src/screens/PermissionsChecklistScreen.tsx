@@ -260,7 +260,7 @@ function PermissionsChecklistScreen({ onComplete }: Props) {
       // Handle post notifications specially - needs package extra
       if (permission.id === 'postNotifications') {
         Linking.sendIntent(permission.androidIntent, [
-          { key: 'android.provider.extra.APP_PACKAGE', value: 'com.bind' },
+          { key: 'android.provider.extra.APP_PACKAGE', value: 'com.scuteapp' },
         ]).catch(() => {
           Linking.openSettings();
         });

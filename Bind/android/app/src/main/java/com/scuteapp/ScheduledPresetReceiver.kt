@@ -25,8 +25,8 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
 
     companion object {
         private const val TAG = "ScheduledPresetReceiver"
-        const val ACTION_ACTIVATE_PRESET = "com.bind.ACTION_ACTIVATE_PRESET"
-        const val ACTION_END_PRESET = "com.bind.ACTION_END_PRESET"
+        const val ACTION_ACTIVATE_PRESET = "com.scuteapp.ACTION_ACTIVATE_PRESET"
+        const val ACTION_END_PRESET = "com.scuteapp.ACTION_END_PRESET"
         const val EXTRA_PRESET_ID = "preset_id"
 
         // Notification channel for schedule alerts (high priority, heads-up)

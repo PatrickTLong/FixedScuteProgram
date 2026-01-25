@@ -22,7 +22,7 @@ class TimerPresetReceiver : BroadcastReceiver() {
 
     companion object {
         private const val TAG = "TimerPresetReceiver"
-        const val ACTION_TIMER_END = "com.bind.ACTION_TIMER_END"
+        const val ACTION_TIMER_END = "com.scuteapp.ACTION_TIMER_END"
         const val EXTRA_PRESET_ID = "preset_id"
         const val EXTRA_PRESET_NAME = "preset_name"
 
