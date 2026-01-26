@@ -210,6 +210,16 @@ const GlobeIcon = ({ size = 18, color = "#FFFFFF" }: { size?: number; color?: st
   </Svg>
 );
 
+// Android icon for Apps tab
+const AndroidIcon = ({ size = 18, color = "#FFFFFF" }: { size?: number; color?: string }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M17.6 9.48l1.84-3.18c.16-.31.04-.69-.26-.85a.637.637 0 0 0-.83.22l-1.88 3.24a11.46 11.46 0 0 0-8.94 0L5.65 5.67a.643.643 0 0 0-.87-.2c-.28.18-.37.54-.22.83L6.4 9.48C3.3 11.25 1.28 14.44 1 18h22c-.28-3.56-2.3-6.75-5.4-8.52M7 15.25a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5m10 0a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5"
+      fill={color}
+    />
+  </Svg>
+);
+
 // Repeat/Recurrence icon - white with thicker strokes
 const RepeatIcon = ({ size = 24 }: { size?: number }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
@@ -715,11 +725,12 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
         {item.icon ? (
           <Image
             source={{ uri: item.icon }}
-            style={{ width: 40, height: 40, marginRight: 12 }}
+            style={{ width: 48, height: 48, marginRight: 12 }}
+            resizeMode="contain"
           />
         ) : (
-          <View style={{ width: 40, height: 40, marginRight: 12, backgroundColor: colors.cardLight, borderRadius: 10, alignItems: 'center', justifyContent: 'center' }}>
-            <Text style={{ color: colors.textSecondary, fontSize: 16, fontWeight: 'bold' }}>
+          <View style={{ width: 48, height: 48, marginRight: 12, backgroundColor: colors.cardLight, borderRadius: 12, alignItems: 'center', justifyContent: 'center' }}>
+            <Text style={{ color: colors.textSecondary, fontSize: 18, fontWeight: 'bold' }}>
               {item.name.charAt(0)}
             </Text>
           </View>
@@ -944,8 +955,8 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                   style={{ backgroundColor: colors.card }}
                   className="flex-row items-center py-3 px-4 rounded-xl mb-3"
                 >
-                  <View style={{ backgroundColor: colors.cardLight }} className="w-10 h-10 rounded-lg items-center justify-center mr-3">
-                    <CalendarIcon size={22} />
+                  <View  className="w-10 h-10 rounded-lg items-center justify-center mr-3">
+                    <CalendarIcon size={26} />
                   </View>
                   <View className="flex-1">
                     <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">
@@ -984,8 +995,8 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                   style={{ backgroundColor: colors.card }}
                   className="flex-row items-center py-3 px-4 rounded-xl"
                 >
-                  <View style={{ backgroundColor: colors.cardLight }} className="w-10 h-10 rounded-lg items-center justify-center mr-3">
-                    <FlagIcon size={22} />
+                  <View  className="w-10 h-10 rounded-lg items-center justify-center mr-3">
+                    <FlagIcon size={26} />
                   </View>
                   <View className="flex-1">
                     <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">
@@ -1065,8 +1076,8 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                             style={{ backgroundColor: colors.card }}
                             className="flex-row items-center py-3 px-4 rounded-xl mr-3"
                           >
-                            <View style={{ backgroundColor: colors.cardLight }} className="w-10 h-10 rounded-lg items-center justify-center mr-3">
-                              <RepeatIcon size={22} />
+                            <View  className="w-10 h-10 rounded-lg items-center justify-center mr-3">
+                              <RepeatIcon size={26} />
                             </View>
                             <TextInput
                               style={{ color: colors.text, minWidth: 50, textAlign: 'center' }}
@@ -1211,8 +1222,8 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                   style={{ backgroundColor: colors.card }}
                   className="flex-row items-center py-3 px-4 rounded-xl"
                 >
-                  <View style={{ backgroundColor: colors.cardLight }} className="w-10 h-10 rounded-lg items-center justify-center mr-3">
-                    <CalendarIcon size={22} />
+                  <View className="w-10 h-10 rounded-lg items-center justify-center mr-3">
+                    <CalendarIcon size={26} />
                   </View>
                   <View className="flex-1">
                     <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">
@@ -1479,7 +1490,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               onChangeText={setName}
               maxLength={20}
               style={{ backgroundColor: colors.card, color: colors.text }}
-              className="rounded-xl px-4 py-3 text-base font-nunito-semibold"
+              className="rounded-xl px-4 py-3 text-sm font-nunito-semibold"
             />
           </View>
 
@@ -1488,9 +1499,10 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
             <TouchableOpacity
               onPress={() => { lightTap(); switchTab('apps'); }}
               style={{ backgroundColor: activeTab === 'apps' ? colors.text : colors.card }}
-              className="flex-1 py-2 rounded-full items-center"
+              className="flex-1 py-2 rounded-full items-center justify-center flex-row"
             >
-              <Text style={{ color: activeTab === 'apps' ? colors.bg : colors.text }} className="text-base font-nunito-semibold">
+              <AndroidIcon size={16} color={activeTab === 'apps' ? colors.bg : colors.text} />
+              <Text style={{ color: activeTab === 'apps' ? colors.bg : colors.text, marginLeft: 6 }} className="text-base font-nunito-semibold">
                 Apps
               </Text>
             </TouchableOpacity>
@@ -1498,9 +1510,10 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
             <TouchableOpacity
               onPress={() => { lightTap(); switchTab('websites'); }}
               style={{ backgroundColor: activeTab === 'websites' ? colors.text : colors.card }}
-              className="flex-1 py-2 rounded-full items-center"
+              className="flex-1 py-2 rounded-full items-center justify-center flex-row"
             >
-              <Text style={{ color: activeTab === 'websites' ? colors.bg : colors.text }} className="text-base font-nunito-semibold">
+              <GlobeIcon size={16} color={activeTab === 'websites' ? colors.bg : colors.text} />
+              <Text style={{ color: activeTab === 'websites' ? colors.bg : colors.text, marginLeft: 6 }} className="text-base font-nunito-semibold">
                 Websites
               </Text>
             </TouchableOpacity>
@@ -1517,8 +1530,8 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                     style={{ backgroundColor: colors.card }}
                     className="flex-row items-center py-4 px-4 rounded-xl mb-4"
                   >
-                    <View style={{ backgroundColor: colors.cardLight }} className="w-12 h-12 rounded-xl items-center justify-center mr-4">
-                      <AppsIcon size={24} color={colors.text} />
+                    <View className="w-12 h-12 rounded-xl items-center justify-center mr-4">
+                      <AppsIcon size={26} color={colors.text} />
                     </View>
                     <View className="flex-1">
                       <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">
@@ -1548,7 +1561,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                     value={searchQuery}
                     onChangeText={setSearchQuery}
                     style={{ backgroundColor: colors.card, color: colors.text }}
-                    className="rounded-xl px-4 py-3 text-base font-nunito-semibold"
+                    className="rounded-xl px-4 py-3 text-sm font-nunito-semibold"
                   />
                 </View>
 
@@ -1640,7 +1653,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                       includeFontPadding: false,
                       paddingVertical: 0,
                     }}
-                    className="flex-1 rounded-xl px-4 h-12 text-base  font-nunito-semibold mr-2"
+                    className="flex-1 rounded-xl px-4 h-12 text-sm  font-nunito-semibold mr-2"
                   />
                   <TouchableOpacity
                     onPress={addWebsite}

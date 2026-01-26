@@ -21,7 +21,7 @@ function ProgressBar({ currentStep, totalSteps }: ProgressBarProps) {
   }, [currentStep, totalSteps]);
 
   return (
-    <View style={{ backgroundColor: colors.border }} className="w-48 h-1 rounded-full overflow-hidden self-center mt-2">
+    <View style={{ backgroundColor: colors.border }} className="w-48 h-2 rounded-full overflow-hidden self-center mt-5">
       <Animated.View
         style={{
           backgroundColor: '#22c55e',
