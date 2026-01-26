@@ -99,16 +99,12 @@ function LandingScreen({ onGetStarted }: Props) {
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
       <Pressable onPress={handleTap} style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         {/* Logo centered */}
-        {isDark ? (
-          <GlowingLogo glowOpacity={glowOpacity} tintColor={colors.logoTint} />
-        ) : (
-          <Image
-            source={require('../frontassets/TrueScute-Photoroom.png')}
-            className="w-96 h-96"
-            resizeMode="contain"
-            style={{ tintColor: colors.logoTint }}
-          />
-        )}
+        <Image
+          source={require('../frontassets/TrueScute-Photoroom.png')}
+          className="w-96 h-96"
+          resizeMode="contain"
+          style={{ tintColor: colors.logoTint }}
+        />
 
         {/* Tap to continue text below logo */}
         <Animated.View style={{ opacity: tapTextOpacity, marginTop: 24 }}>

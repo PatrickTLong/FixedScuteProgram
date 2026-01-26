@@ -1350,7 +1350,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                       style={{
                         backgroundColor: recurringUnit === unit ? "#22c55e" : colors.cardLight,
                       }}
-                      className="flex-row items-center justify-between py-4 px-4 rounded-xl mb-2"
+                      className="items-center justify-center py-4 px-4 rounded-xl mb-2"
                     >
                       <Text
                         style={{ color: recurringUnit === unit ? colors.text : colors.text }}
@@ -1358,11 +1358,6 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                       >
                         {unit}
                       </Text>
-                      {recurringUnit === unit && (
-                        <View className="w-5 h-5 rounded-full items-center justify-center" style={{ backgroundColor: "#22c55e" }}>
-                          <View className="w-3 h-5 border-r-2 border-b-2 border-white rotate-45 -mt-0.5" />
-                        </View>
-                      )}
                     </TouchableOpacity>
                   ))}
                 </View>

@@ -63,7 +63,7 @@ function PresetGuideModal({ visible, onClose }: PresetGuideModalProps) {
           {/* Strict Mode */}
           <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-1">Strict Mode</Text>
           <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-3">
-            Removes the slide-to-unlock option. Only exits: timer expiring or Emergency Tapout (if enabled). Only available with a time limit set.
+            Removes the slide-to-unlock option & the ability to dismiss a blocked app. Only exits: timer expiring or Emergency Tapout (if enabled). Only available with a time limit set.
           </Text>
 
           {/* Continue Anyway */}

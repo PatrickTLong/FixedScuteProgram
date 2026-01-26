@@ -74,7 +74,6 @@ function GetStartedScreen({ onBack, onSuccess, onSignIn }: Props) {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [code, setCode] = useState('');
   const [step, setStep] = useState<'form' | 'code'>('form');
   const [loading, setLoading] = useState(false);
@@ -213,7 +212,7 @@ function GetStartedScreen({ onBack, onSuccess, onSignIn }: Props) {
       >
         <ScrollView
           keyboardShouldPersistTaps="handled"
-          contentContainerStyle={{ flexGrow: 1, paddingTop: '10%' }}
+          contentContainerStyle={{ flexGrow: 1, paddingTop: '5%' }}
           className="flex-1"
         >
           <View className="px-6 pt-12">
@@ -275,7 +274,7 @@ function GetStartedScreen({ onBack, onSuccess, onSignIn }: Props) {
                     <TextInput
                       value={confirmPassword}
                       onChangeText={setConfirmPassword}
-                      secureTextEntry={!showConfirmPassword}
+                      secureTextEntry={!showPassword}
                       autoCapitalize="none"
                       autoCorrect={false}
                       editable={!loading}
@@ -283,10 +282,10 @@ function GetStartedScreen({ onBack, onSuccess, onSignIn }: Props) {
                       className="border rounded-full px-5 py-4 text-base font-nunito"
                     />
                     <TouchableOpacity
-                      onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                      onPress={() => setShowPassword(!showPassword)}
                       style={{ position: 'absolute', right: 16, top: 0, bottom: 0, justifyContent: 'center' }}
                     >
-                      {showConfirmPassword ? <EyeIcon color={colors.text} /> : <EyeOffIcon color={colors.text} />}
+                      {showPassword ? <EyeIcon color={colors.text} /> : <EyeOffIcon color={colors.text} />}
                     </TouchableOpacity>
                   </View>
                 </View>
