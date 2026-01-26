@@ -143,7 +143,6 @@ class BlockedActivity : Activity() {
 
     /**
      * Remove the blocked app/website from the blocked list and dismiss.
-     * If this was the last blocked item, cancel the entire session (like emergency tapout).
      */
     private fun unblockAndContinue() {
         if (isDismissing) return
@@ -152,33 +151,17 @@ class BlockedActivity : Activity() {
         try {
             val prefs = getSharedPreferences(UninstallBlockerService.PREFS_NAME, Context.MODE_PRIVATE)
 
-            // Get current lists
-            val blockedApps = prefs.getStringSet(UninstallBlockerService.KEY_BLOCKED_APPS, emptySet())?.toMutableSet() ?: mutableSetOf()
-            val blockedWebsites = prefs.getStringSet("blocked_websites", emptySet())?.toMutableSet() ?: mutableSetOf()
-
-            // Remove the item from the appropriate list
             when (blockedType) {
                 TYPE_APP -> {
+                    val blockedApps = prefs.getStringSet(UninstallBlockerService.KEY_BLOCKED_APPS, emptySet())?.toMutableSet() ?: mutableSetOf()
                     blockedItem?.let { blockedApps.remove(it) }
+                    prefs.edit().putStringSet(UninstallBlockerService.KEY_BLOCKED_APPS, blockedApps).apply()
                 }
                 TYPE_WEBSITE -> {
+                    val blockedWebsites = prefs.getStringSet("blocked_websites", emptySet())?.toMutableSet() ?: mutableSetOf()
                     blockedItem?.let { blockedWebsites.remove(it) }
+                    prefs.edit().putStringSet("blocked_websites", blockedWebsites).apply()
                 }
-            }
-
-            // Check if both lists are now empty
-            val bothListsEmpty = blockedApps.isEmpty() && blockedWebsites.isEmpty()
-
-            if (bothListsEmpty) {
-                // No more blocked items - perform full session cleanup (like forceUnlock)
-                Log.d(TAG, "Last blocked item removed - cancelling session")
-                cancelSession(prefs)
-            } else {
-                // Still have items - just update the lists
-                prefs.edit()
-                    .putStringSet(UninstallBlockerService.KEY_BLOCKED_APPS, blockedApps)
-                    .putStringSet("blocked_websites", blockedWebsites)
-                    .apply()
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error unblocking item", e)
@@ -186,78 +169,6 @@ class BlockedActivity : Activity() {
 
         // Just finish - user can now open the app/website
         finish()
-    }
-
-    /**
-     * Cancel the entire blocking session (same logic as forceUnlock/emergency tapout)
-     */
-    private fun cancelSession(prefs: android.content.SharedPreferences) {
-        try {
-            // Get the active preset ID before clearing
-            val activePresetId = prefs.getString("active_preset_id", null)
-
-            // Clear all session data
-            prefs.edit()
-                .putBoolean(UninstallBlockerService.KEY_SESSION_ACTIVE, false)
-                .putStringSet(UninstallBlockerService.KEY_BLOCKED_APPS, emptySet())
-                .putStringSet("blocked_websites", emptySet())
-                .putLong(UninstallBlockerService.KEY_SESSION_END_TIME, 0)
-                .putBoolean("no_time_limit", false)
-                .remove("active_preset_id")
-                .remove("active_preset_name")
-                .remove("is_scheduled_preset")
-                .apply()
-
-            // Cancel any pending timer alarm
-            TimerAlarmManager.cancelTimerAlarm(this)
-
-            // Deactivate preset in ScheduleManager if applicable
-            if (activePresetId != null) {
-                deactivatePresetInScheduleManager(activePresetId)
-            }
-
-            // Stop the foreground service
-            val serviceIntent = Intent(this, UninstallBlockerService::class.java)
-            stopService(serviceIntent)
-
-            Log.d(TAG, "Session cancelled - all blocking stopped")
-        } catch (e: Exception) {
-            Log.e(TAG, "Error cancelling session", e)
-        }
-    }
-
-    /**
-     * Deactivate a preset in ScheduleManager's local storage
-     */
-    private fun deactivatePresetInScheduleManager(presetId: String) {
-        try {
-            val schedulePrefs = getSharedPreferences(ScheduleManager.PREFS_NAME, Context.MODE_PRIVATE)
-            val presetsJson = schedulePrefs.getString(ScheduleManager.KEY_SCHEDULED_PRESETS, null)
-
-            if (presetsJson == null) {
-                return
-            }
-
-            val presetsArray = org.json.JSONArray(presetsJson)
-            var modified = false
-
-            for (i in 0 until presetsArray.length()) {
-                val preset = presetsArray.getJSONObject(i)
-                if (preset.getString("id") == presetId) {
-                    preset.put("isActive", false)
-                    modified = true
-                    Log.d(TAG, "Deactivated preset $presetId in ScheduleManager")
-                    break
-                }
-            }
-
-            if (modified) {
-                schedulePrefs.edit().putString(ScheduleManager.KEY_SCHEDULED_PRESETS, presetsArray.toString()).apply()
-                ScheduleManager.cancelPresetAlarm(this, presetId)
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Error deactivating preset in ScheduleManager", e)
-        }
     }
 
     override fun onBackPressed() {

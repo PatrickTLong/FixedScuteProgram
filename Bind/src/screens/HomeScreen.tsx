@@ -500,24 +500,6 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
     // Refresh preset when app comes to foreground
     const subscription = AppState.addEventListener('change', async (nextAppState) => {
       if (nextAppState === 'active') {
-        // Check if native session was cancelled (e.g., via "Continue anyway" on last blocked item)
-        // If native says not blocking but backend says locked, sync the state
-        if (BlockingModule) {
-          try {
-            const nativeIsBlocking = await BlockingModule.isBlocking();
-            const lockStatus = await getLockStatus(email, true); // skipCache
-
-            if (lockStatus.isLocked && !nativeIsBlocking) {
-              // Native session was cancelled - sync backend state
-              await updateLockStatus(email, false, null);
-              await activatePreset(email, null); // Deactivate preset
-              invalidateUserCaches(email);
-            }
-          } catch (e) {
-            // Continue with normal flow if check fails
-          }
-        }
-
         // Fetch fresh data when returning to foreground with loading spinner
         invalidateUserCaches(email);
         await loadStats(true, true); // skipCache=true, showLoading=true
