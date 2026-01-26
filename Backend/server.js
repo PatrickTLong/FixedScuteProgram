@@ -439,6 +439,9 @@ app.post('/api/verify-and-register', async (req, res) => {
       console.error('Error creating user_cards entry:', cardError);
     }
 
+    // Create default presets for the new user
+    await createDefaultPresetsForUser(normalizedEmail);
+
     // Delete verification code
     await supabase.from('verification_codes').delete().eq('email', normalizedEmail);
 
@@ -520,6 +523,9 @@ app.post('/api/google-auth', async (req, res) => {
           trial_end: trialEnd.toISOString(),
         });
       console.log(`Created user_cards entry for Google user: ${normalizedEmail}`);
+
+      // Create default presets for the new Google user
+      await createDefaultPresetsForUser(normalizedEmail);
     }
 
     // Generate JWT token for authenticated session
@@ -1509,8 +1515,13 @@ app.get('/api/membership-status', authenticateToken, async (req, res) => {
       .eq('email', normalizedEmail)
       .single();
 
+    console.log('[membership-status] Email:', normalizedEmail);
+    console.log('[membership-status] DB data:', data);
+    console.log('[membership-status] DB error:', error);
+
     if (error || !data) {
       // Default: not a member, no trial (will force membership modal)
+      console.log('[membership-status] No data found, returning expired');
       return res.json({
         isMember: false,
         trialEnd: null,
@@ -1522,6 +1533,12 @@ app.get('/api/membership-status', authenticateToken, async (req, res) => {
     const isMember = data.is_member || false;
     const trialEnd = data.trial_end ? new Date(data.trial_end) : null;
     const trialExpired = !isMember && (!trialEnd || now >= trialEnd);
+
+    console.log('[membership-status] now:', now.toISOString());
+    console.log('[membership-status] trialEnd:', trialEnd ? trialEnd.toISOString() : null);
+    console.log('[membership-status] isMember:', isMember);
+    console.log('[membership-status] trialExpired:', trialExpired);
+    console.log('[membership-status] now >= trialEnd:', trialEnd ? now >= trialEnd : 'N/A');
 
     res.json({
       isMember,
@@ -1744,6 +1761,167 @@ app.post('/api/user-theme', authenticateToken, async (req, res) => {
     res.status(500).json({ error: 'Failed to save theme' });
   }
 });
+
+// ============ DEFAULT PRESETS HELPER ============
+
+// Create default presets for new users
+async function createDefaultPresetsForUser(email) {
+  const normalizedEmail = email.toLowerCase();
+
+  try {
+    // Check if user already has presets (safety check)
+    const { data: existing } = await supabase
+      .from('user_presets')
+      .select('id')
+      .eq('email', normalizedEmail)
+      .limit(1);
+
+    if (existing && existing.length > 0) {
+      console.log(`User ${normalizedEmail} already has presets, skipping default creation`);
+      return;
+    }
+
+    // Default preset 1: XXX Sites
+    const xxxSitesPreset = {
+      email: normalizedEmail,
+      preset_id: `xxx-sites-${Date.now()}`,
+      name: 'XXX Sites',
+      mode: 'specific',
+      selected_apps: [],
+      blocked_websites: [
+        'pornhub.com',
+        'xvideos.com',
+        'xnxx.com',
+        'xhamster.com',
+        'redtube.com',
+        'youporn.com',
+        'tube8.com',
+        'spankbang.com',
+        'beeg.com',
+        'porn.com',
+        'brazzers.com',
+        'bangbros.com',
+        'realitykings.com',
+        'naughtyamerica.com',
+        'mofos.com',
+        'digitalplayground.com',
+        'fakehub.com',
+        'teamskeet.com',
+        'vixen.com',
+        'tushy.com',
+        'blacked.com',
+        'eporner.com',
+        'pornone.com',
+        'hqporner.com',
+        'daftsex.com',
+        'onlyfans.com',
+        'fansly.com',
+        'chaturbate.com',
+        'stripchat.com',
+        'livejasmin.com',
+        'bongacams.com',
+        'myfreecams.com',
+        'cam4.com',
+        'camsoda.com',
+        'streamate.com',
+      ],
+      timer_days: 0,
+      timer_hours: 0,
+      timer_minutes: 0,
+      timer_seconds: 0,
+      no_time_limit: true,
+      block_settings: false,
+      is_active: false,
+      is_default: false,
+      target_date: null,
+      allow_emergency_tapout: true,
+      is_scheduled: false,
+      schedule_start_date: null,
+      schedule_end_date: null,
+      repeat_enabled: false,
+      repeat_unit: null,
+      repeat_interval: null,
+      strict_mode: false,
+    };
+
+    // Default preset 2: Social Media Apps & Sites
+    const socialMediaPreset = {
+      email: normalizedEmail,
+      preset_id: `social-media-${Date.now() + 1}`,
+      name: 'Social Media Apps & Sites',
+      mode: 'specific',
+      selected_apps: [
+        'com.instagram.android',
+        'com.zhiliaoapp.musically', // TikTok
+        'com.google.android.youtube',
+        'com.twitter.android',
+        'com.facebook.katana',
+        'com.snapchat.android',
+        'com.whatsapp',
+        'com.facebook.orca', // Messenger
+        'com.reddit.frontpage',
+        'com.discord',
+        'com.pinterest',
+        'com.linkedin.android',
+        'tv.twitch.android.app',
+        'com.tumblr',
+        'org.telegram.messenger',
+        'com.bereal.ft',
+        'com.lemon8.android',
+      ],
+      blocked_websites: [
+        'instagram.com',
+        'tiktok.com',
+        'youtube.com',
+        'twitter.com',
+        'x.com',
+        'facebook.com',
+        'snapchat.com',
+        'whatsapp.com',
+        'reddit.com',
+        'discord.com',
+        'pinterest.com',
+        'linkedin.com',
+        'twitch.tv',
+        'tumblr.com',
+        'telegram.org',
+        'bereal.com',
+        'lemon8-app.com',
+        'threads.net',
+      ],
+      timer_days: 0,
+      timer_hours: 0,
+      timer_minutes: 0,
+      timer_seconds: 0,
+      no_time_limit: true,
+      block_settings: false,
+      is_active: false,
+      is_default: false,
+      target_date: null,
+      allow_emergency_tapout: true,
+      is_scheduled: false,
+      schedule_start_date: null,
+      schedule_end_date: null,
+      repeat_enabled: false,
+      repeat_unit: null,
+      repeat_interval: null,
+      strict_mode: false,
+    };
+
+    // Insert both presets
+    const { error: insertError } = await supabase
+      .from('user_presets')
+      .insert([xxxSitesPreset, socialMediaPreset]);
+
+    if (insertError) {
+      console.error('Error creating default presets:', insertError);
+    } else {
+      console.log(`Default presets created for ${normalizedEmail}`);
+    }
+  } catch (error) {
+    console.error('Error in createDefaultPresetsForUser:', error);
+  }
+}
 
 // Health check
 app.get('/', (req, res) => {

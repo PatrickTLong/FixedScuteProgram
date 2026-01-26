@@ -141,12 +141,15 @@ function BlockNowButton({
   // Slide-to-unlock functions
   const resetSlider = useCallback(() => {
     hapticTriggeredRef.current = { first: false, second: false, third: false };
-    setIsSliding(false);
+    // Keep isSliding true during the spring animation so the fill remains visible
     Animated.spring(slidePosition, {
       toValue: 0,
       useNativeDriver: false,
       friction: 5,
-    }).start();
+    }).start(() => {
+      // Only set isSliding to false after the animation completes
+      setIsSliding(false);
+    });
   }, [slidePosition]);
 
   const handleSlideComplete = useCallback(async () => {
@@ -308,21 +311,19 @@ function BlockNowButton({
           </Text>
         </View>
 
-        {/* Slide fill animation - only visible when sliding, rendered on top to cover text */}
-        {isSliding && (
-          <Animated.View
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              bottom: 0,
-              width: slideFillWidth,
-              backgroundColor: fillColor,
-              borderRadius: 16,
-              zIndex: 2,
-            }}
-          />
-        )}
+        {/* Slide fill animation - always rendered so it's ready to animate */}
+        <Animated.View
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            bottom: 0,
+            width: slideFillWidth,
+            backgroundColor: fillColor,
+            borderRadius: 16,
+            zIndex: 2,
+          }}
+        />
 
       </View>
     );
