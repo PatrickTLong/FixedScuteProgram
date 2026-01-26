@@ -27,7 +27,6 @@ class UninstallBlockerService : Service() {
         private const val NOTIFICATION_ID = 1001
         private const val SESSION_END_NOTIFICATION_ID = 2003
 
-        // SharedPreferences key for blocked apps
         const val PREFS_NAME = "ScuteBlockerPrefs"
         const val KEY_BLOCKED_APPS = "blocked_apps"
         const val KEY_SESSION_ACTIVE = "session_active"
@@ -91,12 +90,23 @@ class UninstallBlockerService : Service() {
     }
 
     private var packageRemovedReceiver: BroadcastReceiver? = null
+    private var appMonitor: AppMonitorService? = null
 
     override fun onCreate() {
         super.onCreate()
         Log.d(TAG, "UninstallBlockerService created")
         createNotificationChannel()
         registerPackageReceiver()
+
+        // Start app monitoring with UsageStats (fast polling)
+        appMonitor = AppMonitorService(this).apply {
+            onGoHome = {
+                // Use accessibility service to go home if available
+                ScuteAccessibilityService.instance?.goHome()
+            }
+            startMonitoring()
+        }
+        Log.d(TAG, "AppMonitorService started")
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -114,6 +124,11 @@ class UninstallBlockerService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
+
+        // Stop app monitoring
+        appMonitor?.stopMonitoring()
+        appMonitor = null
+
         unregisterPackageReceiver()
 
         // Explicitly cancel the foreground notification

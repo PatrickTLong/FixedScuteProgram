@@ -195,10 +195,7 @@ class BlockedActivity : Activity() {
     }
 
     override fun onDestroy() {
-        // Ensure we notify service if destroyed without explicit dismiss
-        if (!isDismissing) {
-            ScuteAccessibilityService.instance?.onOverlayDismissed()
-        }
+        // Don't call goHome on destroy - only on explicit tap dismiss
         super.onDestroy()
     }
 }
