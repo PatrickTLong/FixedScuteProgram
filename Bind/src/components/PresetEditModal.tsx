@@ -1477,7 +1477,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               placeholderTextColor={colors.textMuted}
               value={name}
               onChangeText={setName}
-              maxLength={15}
+              maxLength={20}
               style={{ backgroundColor: colors.card, color: colors.text }}
               className="rounded-xl px-4 py-3 text-base font-nunito-semibold"
             />

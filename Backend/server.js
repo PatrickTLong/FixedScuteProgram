@@ -1848,7 +1848,7 @@ async function createDefaultPresetsForUser(email) {
     const socialMediaPreset = {
       email: normalizedEmail,
       preset_id: `social-media-${Date.now() + 1}`,
-      name: 'Social Media Apps & Sites',
+      name: 'Social Media',
       mode: 'specific',
       selected_apps: [
         'com.instagram.android',
