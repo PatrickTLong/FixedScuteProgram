@@ -111,9 +111,12 @@ class UninstallBlockerService : Service() {
 
         // Start website monitoring with fast polling
         websiteMonitor = WebsiteMonitorService(this).apply {
-            onPressBack = {
-                // Use accessibility service to press back (goes back in browser)
-                ScuteAccessibilityService.instance?.pressBack()
+            onRedirectToSafeUrl = {
+                // Redirect to google.com while overlay is showing (underneath)
+                ScuteAccessibilityService.instance?.navigateToUrl("https://google.com")
+            }
+            onDismissed = {
+                // Nothing needed on dismiss - user is already on google.com
             }
             startMonitoring()
         }

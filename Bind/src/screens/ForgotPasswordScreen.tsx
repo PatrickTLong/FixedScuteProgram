@@ -240,10 +240,11 @@ function ForgotPasswordScreen({ onBack, onSuccess }: Props) {
                   Enter your email address and we'll send you a code to reset your password.
                 </Text>
 
-                <View className="mb-8">
+                <View className="mb-8 mt-6">
+                  <Text style={{ color: colors.text, position: 'absolute', top: -22, left: 8 }} className="text-sm font-nunito">
+                    Email
+                  </Text>
                   <TextInput
-                    placeholder="Email"
-                    placeholderTextColor={colors.textMuted}
                     value={email}
                     onChangeText={setEmail}
                     keyboardType="email-address"
@@ -300,11 +301,12 @@ function ForgotPasswordScreen({ onBack, onSuccess }: Props) {
                   Create a new password for your account.
                 </Text>
 
-                <View className="mb-4">
+                <View className="mb-4 mt-6">
+                  <Text style={{ color: colors.text, position: 'absolute', top: -22, left: 8 }} className="text-sm font-nunito">
+                    New Password
+                  </Text>
                   <View style={{ position: 'relative' }}>
                     <TextInput
-                      placeholder="New Password"
-                      placeholderTextColor={colors.textMuted}
                       value={newPassword}
                       onChangeText={setNewPassword}
                       secureTextEntry={!showNewPassword}
@@ -323,11 +325,12 @@ function ForgotPasswordScreen({ onBack, onSuccess }: Props) {
                   </View>
                 </View>
 
-                <View className="mb-8">
+                <View className="mb-8 mt-6">
+                  <Text style={{ color: colors.text, position: 'absolute', top: -22, left: 8 }} className="text-sm font-nunito">
+                    Confirm New Password
+                  </Text>
                   <View style={{ position: 'relative' }}>
                     <TextInput
-                      placeholder="Confirm New Password"
-                      placeholderTextColor={colors.textMuted}
                       value={confirmPassword}
                       onChangeText={setConfirmPassword}
                       secureTextEntry={!showConfirmPassword}

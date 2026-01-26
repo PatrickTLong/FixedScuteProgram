@@ -29,8 +29,11 @@ class WebsiteMonitorService(private val context: Context) {
     private var lastCheckedUrl: String? = null
     private var overlayManager: BlockedOverlayManager? = null
 
-    // Callback to press back (will be set by whoever starts monitoring)
-    var onPressBack: (() -> Unit)? = null
+    // Callback to redirect to safe URL (called when blocking, before showing overlay)
+    var onRedirectToSafeUrl: (() -> Unit)? = null
+
+    // Callback for when overlay is dismissed
+    var onDismissed: (() -> Unit)? = null
 
     private val monitorRunnable = object : Runnable {
         override fun run() {
@@ -52,8 +55,8 @@ class WebsiteMonitorService(private val context: Context) {
         // Create overlay manager
         overlayManager = BlockedOverlayManager(context).apply {
             onDismissed = {
-                // Press back for websites (goes back in browser instead of home)
-                onPressBack?.invoke()
+                // Just dismiss - redirect already happened when overlay was shown
+                this@WebsiteMonitorService.onDismissed?.invoke()
             }
         }
 
@@ -168,5 +171,8 @@ class WebsiteMonitorService(private val context: Context) {
             // Fallback: launch BlockedActivity
             BlockedActivity.launchNoAnimation(context, BlockedActivity.TYPE_WEBSITE, blockedSite, strictMode)
         }
+
+        // Redirect to safe URL while overlay is showing (happens underneath the overlay)
+        onRedirectToSafeUrl?.invoke()
     }
 }

@@ -222,10 +222,11 @@ function SignInScreen({ onBack, onSuccess, onForgotPassword }: Props) {
                 </Text>
 
                 {/* Email Input */}
-                <View className="mb-4">
+                <View className="mb-4 mt-6">
+                  <Text style={{ color: colors.text, position: 'absolute', top: -22, left: 8 }} className="text-sm font-nunito">
+                    Email
+                  </Text>
                   <TextInput
-                    placeholder="Email"
-                    placeholderTextColor={colors.textMuted}
                     value={email}
                     onChangeText={setEmail}
                     keyboardType="email-address"
@@ -238,11 +239,12 @@ function SignInScreen({ onBack, onSuccess, onForgotPassword }: Props) {
                 </View>
 
                 {/* Password Input */}
-                <View className="mb-4">
+                <View className="mb-4 mt-6">
+                  <Text style={{ color: colors.text, position: 'absolute', top: -22, left: 8 }} className="text-sm font-nunito">
+                    Password
+                  </Text>
                   <View style={{ position: 'relative' }}>
                     <TextInput
-                      placeholder="Password"
-                      placeholderTextColor={colors.textMuted}
                       value={password}
                       onChangeText={setPassword}
                       secureTextEntry={!showPassword}

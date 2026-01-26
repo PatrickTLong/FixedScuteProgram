@@ -225,10 +225,11 @@ function GetStartedScreen({ onBack, onSuccess, onSignIn }: Props) {
                 </Text>
 
                 {/* Email Input */}
-                <View className="mb-4">
+                <View className="mb-4 mt-6">
+                  <Text style={{ color: colors.text, position: 'absolute', top: -22, left: 8 }} className="text-sm font-nunito">
+                    Email
+                  </Text>
                   <TextInput
-                    placeholder="Email"
-                    placeholderTextColor={colors.textMuted}
                     value={email}
                     onChangeText={setEmail}
                     keyboardType="email-address"
@@ -241,11 +242,12 @@ function GetStartedScreen({ onBack, onSuccess, onSignIn }: Props) {
                 </View>
 
                 {/* Password Input */}
-                <View className="mb-4">
+                <View className="mb-4 mt-6">
+                  <Text style={{ color: colors.text, position: 'absolute', top: -22, left: 8 }} className="text-sm font-nunito">
+                    Password
+                  </Text>
                   <View style={{ position: 'relative' }}>
                     <TextInput
-                      placeholder="Password"
-                      placeholderTextColor={colors.textMuted}
                       value={password}
                       onChangeText={setPassword}
                       secureTextEntry={!showPassword}
@@ -265,11 +267,12 @@ function GetStartedScreen({ onBack, onSuccess, onSignIn }: Props) {
                 </View>
 
                 {/* Confirm Password Input */}
-                <View className="mb-8">
+                <View className="mb-8 mt-6">
+                  <Text style={{ color: colors.text, position: 'absolute', top: -22, left: 8 }} className="text-sm font-nunito">
+                    Confirm Password
+                  </Text>
                   <View style={{ position: 'relative' }}>
                     <TextInput
-                      placeholder="Confirm Password"
-                      placeholderTextColor={colors.textMuted}
                       value={confirmPassword}
                       onChangeText={setConfirmPassword}
                       secureTextEntry={!showConfirmPassword}

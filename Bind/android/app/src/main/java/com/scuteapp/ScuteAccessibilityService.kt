@@ -355,6 +355,37 @@ class ScuteAccessibilityService : AccessibilityService() {
     fun onOverlayDismissed() = performGlobalAction(GLOBAL_ACTION_HOME)
 
     /**
+     * Navigate to a URL in the current browser by sending a VIEW intent
+     * to the same browser package. This opens the URL in the current browser
+     * and replaces the current tab in most browsers.
+     */
+    fun navigateToUrl(url: String): Boolean {
+        return try {
+            val rootNode = rootInActiveWindow ?: return false
+            val packageName = rootNode.packageName?.toString()
+            rootNode.recycle()
+
+            if (packageName == null || !BROWSER_PACKAGES.contains(packageName)) {
+                return false
+            }
+
+            // Create intent to open URL in the same browser
+            val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url)).apply {
+                setPackage(packageName) // Open in the same browser
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP) // This helps replace current tab
+            }
+
+            startActivity(intent)
+            Log.d(TAG, "Navigated to $url in $packageName")
+            true
+        } catch (e: Exception) {
+            Log.e(TAG, "Error navigating to URL", e)
+            false
+        }
+    }
+
+    /**
      * Get the current browser URL if a browser is in the foreground.
      * Called by WebsiteMonitorService for fast polling.
      * Returns Pair(packageName, url) or null if not in a browser or can't get URL.
