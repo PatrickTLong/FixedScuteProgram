@@ -100,6 +100,22 @@ function PresetGuideModal({ visible, onClose }: PresetGuideModalProps) {
             Strict Mode is serious - once activated, you cannot easily exit the block. Make sure you really want to commit to the full duration before enabling this.
           </Text>
 
+          {/* Continue Anyway (Non-Strict Mode) */}
+          <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">5b. Continue Anyway (Non-Strict Mode)</Text>
+          <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-2">
+            When Strict Mode is OFF, a "Continue anyway" button appears on the blocking overlay. Pressing this button removes that specific app or website from the blocked list for the current session.
+          </Text>
+          <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-2">
+            <Text style={{ color: colors.text }} className="font-nunito-semibold">How it works: </Text>
+            {'\n'}• Tap "Continue anyway" to unblock the app/website you tried to open
+            {'\n'}• The app/website is removed from the blocked list for this session only
+            {'\n'}• If this was the last blocked item, the entire session ends automatically
+          </Text>
+          <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
+            <Text style={{ color: colors.text }} className="font-nunito-semibold">Note: </Text>
+            This feature is designed for flexible blocking where you might need occasional access. If you want no escape, enable Strict Mode instead.
+          </Text>
+
           {/* Allow Emergency Tapout */}
           <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">6. Allow Emergency Tapout</Text>
           <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-2">

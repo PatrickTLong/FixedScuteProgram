@@ -8,9 +8,49 @@ import {
   ScrollView,
   TextInput,
 } from 'react-native';
+import Svg, { Path } from 'react-native-svg';
 import LottieView from 'lottie-react-native';
 const Lottie = LottieView as any;
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+// Eye icons for password visibility
+const EyeIcon = ({ color }: { color: string }) => (
+  <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
+      stroke={color}
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M12 15a3 3 0 100-6 3 3 0 000 6z"
+      stroke={color}
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+const EyeOffIcon = ({ color }: { color: string }) => (
+  <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"
+      stroke={color}
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M1 1l22 22"
+      stroke={color}
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
 import ProgressBar from '../components/ProgressBar';
 import BackButton from '../components/BackButton';
 import InfoModal from '../components/InfoModal';
@@ -29,7 +69,9 @@ function ForgotPasswordScreen({ onBack, onSuccess }: Props) {
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [newPassword, setNewPassword] = useState('');
+  const [showNewPassword, setShowNewPassword] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [step, setStep] = useState<'email' | 'code' | 'password'>('email');
   const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
@@ -259,33 +301,49 @@ function ForgotPasswordScreen({ onBack, onSuccess }: Props) {
                 </Text>
 
                 <View className="mb-4">
-                  <TextInput
-                    placeholder="New Password"
-                    placeholderTextColor={colors.textMuted}
-                    value={newPassword}
-                    onChangeText={setNewPassword}
-                    secureTextEntry
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    editable={!loading}
-                    style={{ backgroundColor: colors.bg, borderColor: colors.border, color: colors.text }}
-                    className="border rounded-full px-5 py-4 text-base font-nunito"
-                  />
+                  <View style={{ position: 'relative' }}>
+                    <TextInput
+                      placeholder="New Password"
+                      placeholderTextColor={colors.textMuted}
+                      value={newPassword}
+                      onChangeText={setNewPassword}
+                      secureTextEntry={!showNewPassword}
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                      editable={!loading}
+                      style={{ backgroundColor: colors.bg, borderColor: colors.border, color: colors.text, paddingRight: 50 }}
+                      className="border rounded-full px-5 py-4 text-base font-nunito"
+                    />
+                    <TouchableOpacity
+                      onPress={() => setShowNewPassword(!showNewPassword)}
+                      style={{ position: 'absolute', right: 16, top: 0, bottom: 0, justifyContent: 'center' }}
+                    >
+                      {showNewPassword ? <EyeIcon color={colors.text} /> : <EyeOffIcon color={colors.text} />}
+                    </TouchableOpacity>
+                  </View>
                 </View>
 
                 <View className="mb-8">
-                  <TextInput
-                    placeholder="Confirm New Password"
-                    placeholderTextColor={colors.textMuted}
-                    value={confirmPassword}
-                    onChangeText={setConfirmPassword}
-                    secureTextEntry
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    editable={!loading}
-                    style={{ backgroundColor: colors.bg, borderColor: colors.border, color: colors.text }}
-                    className="border rounded-full px-5 py-4 text-sm font-nunito"
-                  />
+                  <View style={{ position: 'relative' }}>
+                    <TextInput
+                      placeholder="Confirm New Password"
+                      placeholderTextColor={colors.textMuted}
+                      value={confirmPassword}
+                      onChangeText={setConfirmPassword}
+                      secureTextEntry={!showConfirmPassword}
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                      editable={!loading}
+                      style={{ backgroundColor: colors.bg, borderColor: colors.border, color: colors.text, paddingRight: 50 }}
+                      className="border rounded-full px-5 py-4 text-base font-nunito"
+                    />
+                    <TouchableOpacity
+                      onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                      style={{ position: 'absolute', right: 16, top: 0, bottom: 0, justifyContent: 'center' }}
+                    >
+                      {showConfirmPassword ? <EyeIcon color={colors.text} /> : <EyeOffIcon color={colors.text} />}
+                    </TouchableOpacity>
+                  </View>
                 </View>
               </>
             )}

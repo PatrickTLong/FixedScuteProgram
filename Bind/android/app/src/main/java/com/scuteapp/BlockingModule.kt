@@ -101,6 +101,9 @@ class BlockingModule(reactContext: ReactApplicationContext) :
             val presetName = if (config.hasKey("presetName")) config.getString("presetName") else "Preset"
             val presetId = if (config.hasKey("presetId")) config.getString("presetId") else null
 
+            // Get strict mode setting (default to true for safety)
+            val strictMode = if (config.hasKey("strictMode")) config.getBoolean("strictMode") else true
+
             // Save to SharedPreferences
             sessionPrefs.edit()
                 .putStringSet(UninstallBlockerService.KEY_BLOCKED_APPS, appSet)
@@ -108,6 +111,7 @@ class BlockingModule(reactContext: ReactApplicationContext) :
                 .putBoolean(UninstallBlockerService.KEY_SESSION_ACTIVE, true)
                 .putLong(UninstallBlockerService.KEY_SESSION_END_TIME, endTime)
                 .putBoolean("no_time_limit", noTimeLimit)
+                .putBoolean("strict_mode", strictMode)
                 .putString("active_preset_name", presetName)
                 .putString("active_preset_id", presetId)
                 .apply()

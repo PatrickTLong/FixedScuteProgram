@@ -3,7 +3,12 @@ package com.scuteapp
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.util.Log
+import android.view.HapticFeedbackConstants
 import android.view.View
 import android.view.WindowManager
 import android.widget.TextView
@@ -23,21 +28,29 @@ class BlockedActivity : Activity() {
     companion object {
         private const val TAG = "BlockedActivity"
         private const val EXTRA_BLOCKED_TYPE = "blocked_type"
+        private const val EXTRA_BLOCKED_ITEM = "blocked_item"
+        private const val EXTRA_STRICT_MODE = "strict_mode"
 
         const val TYPE_APP = "app"
         const val TYPE_WEBSITE = "website"
         const val TYPE_SETTINGS = "settings"
 
+        // Flag to ignore back presses during automatic cleanup
+        @Volatile
+        var ignoreBackPresses = false
+
         /**
          * Launch the blocked overlay activity (no animation)
          */
-        fun launch(context: Context, blockedType: String = TYPE_APP) {
+        fun launch(context: Context, blockedType: String = TYPE_APP, blockedItem: String? = null, strictMode: Boolean = true) {
             val intent = Intent(context, BlockedActivity::class.java).apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
                 addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS)
                 addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
                 putExtra(EXTRA_BLOCKED_TYPE, blockedType)
+                putExtra(EXTRA_BLOCKED_ITEM, blockedItem)
+                putExtra(EXTRA_STRICT_MODE, strictMode)
             }
             context.startActivity(intent)
         }
@@ -45,13 +58,18 @@ class BlockedActivity : Activity() {
         /**
          * Launch with explicit no animation (called from AccessibilityService)
          */
-        fun launchNoAnimation(context: Context, blockedType: String = TYPE_APP) {
-            launch(context, blockedType) // Already has NO_ANIMATION flag
+        fun launchNoAnimation(context: Context, blockedType: String = TYPE_APP, blockedItem: String? = null, strictMode: Boolean = true) {
+            launch(context, blockedType, blockedItem, strictMode)
         }
     }
 
     // Prevent multiple dismiss calls
     private var isDismissing = false
+
+    // Store blocked item info for "Continue anyway" functionality
+    private var blockedType: String = TYPE_APP
+    private var blockedItem: String? = null
+    private var isStrictMode: Boolean = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -69,7 +87,10 @@ class BlockedActivity : Activity() {
         setContentView(R.layout.activity_blocked)
 
         // Get the blocked type and customize message
-        val blockedType = intent.getStringExtra(EXTRA_BLOCKED_TYPE) ?: TYPE_APP
+        blockedType = intent.getStringExtra(EXTRA_BLOCKED_TYPE) ?: TYPE_APP
+        blockedItem = intent.getStringExtra(EXTRA_BLOCKED_ITEM)
+        isStrictMode = intent.getBooleanExtra(EXTRA_STRICT_MODE, true)
+
         val messageView = findViewById<TextView>(R.id.blocked_message)
 
         messageView.text = when (blockedType) {
@@ -85,9 +106,165 @@ class BlockedActivity : Activity() {
         rootView.setOnClickListener {
             dismissAndGoHome()
         }
+
+        // Show "Continue anyway" button only in non-strict mode (and not for settings)
+        val continueButton = findViewById<TextView>(R.id.continue_anyway_button)
+        if (!isStrictMode && blockedType != TYPE_SETTINGS && blockedItem != null) {
+            continueButton.visibility = View.VISIBLE
+            continueButton.setOnClickListener { view ->
+                // Haptic feedback
+                view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+                vibrate()
+                unblockAndContinue()
+            }
+        } else {
+            continueButton.visibility = View.GONE
+        }
+    }
+
+    /**
+     * Vibrate for haptic feedback
+     */
+    private fun vibrate() {
+        try {
+            val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
+            if (vibrator?.hasVibrator() == true) {
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                    vibrator.vibrate(VibrationEffect.createOneShot(50, VibrationEffect.DEFAULT_AMPLITUDE))
+                } else {
+                    @Suppress("DEPRECATION")
+                    vibrator.vibrate(50)
+                }
+            }
+        } catch (e: Exception) {
+            // Ignore vibration errors
+        }
+    }
+
+    /**
+     * Remove the blocked app/website from the blocked list and dismiss.
+     * If this was the last blocked item, cancel the entire session (like emergency tapout).
+     */
+    private fun unblockAndContinue() {
+        if (isDismissing) return
+        isDismissing = true
+
+        try {
+            val prefs = getSharedPreferences(UninstallBlockerService.PREFS_NAME, Context.MODE_PRIVATE)
+
+            // Get current lists
+            val blockedApps = prefs.getStringSet(UninstallBlockerService.KEY_BLOCKED_APPS, emptySet())?.toMutableSet() ?: mutableSetOf()
+            val blockedWebsites = prefs.getStringSet("blocked_websites", emptySet())?.toMutableSet() ?: mutableSetOf()
+
+            // Remove the item from the appropriate list
+            when (blockedType) {
+                TYPE_APP -> {
+                    blockedItem?.let { blockedApps.remove(it) }
+                }
+                TYPE_WEBSITE -> {
+                    blockedItem?.let { blockedWebsites.remove(it) }
+                }
+            }
+
+            // Check if both lists are now empty
+            val bothListsEmpty = blockedApps.isEmpty() && blockedWebsites.isEmpty()
+
+            if (bothListsEmpty) {
+                // No more blocked items - perform full session cleanup (like forceUnlock)
+                Log.d(TAG, "Last blocked item removed - cancelling session")
+                cancelSession(prefs)
+            } else {
+                // Still have items - just update the lists
+                prefs.edit()
+                    .putStringSet(UninstallBlockerService.KEY_BLOCKED_APPS, blockedApps)
+                    .putStringSet("blocked_websites", blockedWebsites)
+                    .apply()
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error unblocking item", e)
+        }
+
+        // Just finish - user can now open the app/website
+        finish()
+    }
+
+    /**
+     * Cancel the entire blocking session (same logic as forceUnlock/emergency tapout)
+     */
+    private fun cancelSession(prefs: android.content.SharedPreferences) {
+        try {
+            // Get the active preset ID before clearing
+            val activePresetId = prefs.getString("active_preset_id", null)
+
+            // Clear all session data
+            prefs.edit()
+                .putBoolean(UninstallBlockerService.KEY_SESSION_ACTIVE, false)
+                .putStringSet(UninstallBlockerService.KEY_BLOCKED_APPS, emptySet())
+                .putStringSet("blocked_websites", emptySet())
+                .putLong(UninstallBlockerService.KEY_SESSION_END_TIME, 0)
+                .putBoolean("no_time_limit", false)
+                .remove("active_preset_id")
+                .remove("active_preset_name")
+                .remove("is_scheduled_preset")
+                .apply()
+
+            // Cancel any pending timer alarm
+            TimerAlarmManager.cancelTimerAlarm(this)
+
+            // Deactivate preset in ScheduleManager if applicable
+            if (activePresetId != null) {
+                deactivatePresetInScheduleManager(activePresetId)
+            }
+
+            // Stop the foreground service
+            val serviceIntent = Intent(this, UninstallBlockerService::class.java)
+            stopService(serviceIntent)
+
+            Log.d(TAG, "Session cancelled - all blocking stopped")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error cancelling session", e)
+        }
+    }
+
+    /**
+     * Deactivate a preset in ScheduleManager's local storage
+     */
+    private fun deactivatePresetInScheduleManager(presetId: String) {
+        try {
+            val schedulePrefs = getSharedPreferences(ScheduleManager.PREFS_NAME, Context.MODE_PRIVATE)
+            val presetsJson = schedulePrefs.getString(ScheduleManager.KEY_SCHEDULED_PRESETS, null)
+
+            if (presetsJson == null) {
+                return
+            }
+
+            val presetsArray = org.json.JSONArray(presetsJson)
+            var modified = false
+
+            for (i in 0 until presetsArray.length()) {
+                val preset = presetsArray.getJSONObject(i)
+                if (preset.getString("id") == presetId) {
+                    preset.put("isActive", false)
+                    modified = true
+                    Log.d(TAG, "Deactivated preset $presetId in ScheduleManager")
+                    break
+                }
+            }
+
+            if (modified) {
+                schedulePrefs.edit().putString(ScheduleManager.KEY_SCHEDULED_PRESETS, presetsArray.toString()).apply()
+                ScheduleManager.cancelPresetAlarm(this, presetId)
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error deactivating preset in ScheduleManager", e)
+        }
     }
 
     override fun onBackPressed() {
+        // Ignore back presses during automatic cleanup (from AccessibilityService)
+        if (ignoreBackPresses) {
+            return
+        }
         // Override back button - dismiss and go to home
         dismissAndGoHome()
     }

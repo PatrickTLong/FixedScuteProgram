@@ -153,7 +153,7 @@ class ScuteAccessibilityService : AccessibilityService() {
                     } else {
                         BlockedActivity.TYPE_APP
                     }
-                    showBlockedOverlay(blockedType)
+                    showBlockedOverlay(blockedType, packageName)
                     return
                 }
 
@@ -171,7 +171,7 @@ class ScuteAccessibilityService : AccessibilityService() {
                 // Also check if Settings should be blocked
                 if (isSettingsApp(packageName) && shouldBlockApp(packageName)) {
                     Log.d(TAG, "BLOCKING settings app on content change: $packageName")
-                    showBlockedOverlay(BlockedActivity.TYPE_SETTINGS)
+                    showBlockedOverlay(BlockedActivity.TYPE_SETTINGS, packageName)
                     return
                 }
             }
@@ -229,8 +229,8 @@ class ScuteAccessibilityService : AccessibilityService() {
                 lastBlockedUrl = url
                 lastBlockTime = now
 
-                // Show blocking overlay for website
-                showBlockedOverlay(BlockedActivity.TYPE_WEBSITE)
+                // Show blocking overlay for website (pass the blocked site domain)
+                showBlockedOverlay(BlockedActivity.TYPE_WEBSITE, blockedSite)
                 return
             }
         }
@@ -443,7 +443,7 @@ class ScuteAccessibilityService : AccessibilityService() {
      * Show the blocking overlay activity.
      * Sequence: back x3 -> home -> overlay
      */
-    private fun showBlockedOverlay(blockedType: String) {
+    private fun showBlockedOverlay(blockedType: String, blockedItem: String? = null) {
         val now = System.currentTimeMillis()
 
         // Simple throttle to prevent rapid-fire overlays
@@ -453,7 +453,11 @@ class ScuteAccessibilityService : AccessibilityService() {
         }
         lastOverlayLaunchTime = now
 
-        Log.d(TAG, "Launching BlockedActivity with type: $blockedType")
+        // Read strict mode from SharedPreferences
+        val prefs = getSharedPreferences(UninstallBlockerService.PREFS_NAME, Context.MODE_PRIVATE)
+        val strictMode = prefs.getBoolean("strict_mode", true)
+
+        Log.d(TAG, "Launching BlockedActivity with type: $blockedType, item: $blockedItem, strictMode: $strictMode")
 
         // Back presses first (0, 100, 200ms)
         performGlobalAction(GLOBAL_ACTION_BACK)
@@ -475,7 +479,7 @@ class ScuteAccessibilityService : AccessibilityService() {
 
         // Overlay after home (450ms)
         handler.postDelayed({
-            BlockedActivity.launchNoAnimation(this, blockedType)
+            BlockedActivity.launchNoAnimation(this, blockedType, blockedItem, strictMode)
             lastOverlayLaunchTime = System.currentTimeMillis()
         }, 450L)
     }
