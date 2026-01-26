@@ -183,7 +183,7 @@ class InstalledAppsModule(reactContext: ReactApplicationContext) : ReactContextB
 
     private fun drawableToBase64(drawable: Drawable): String? {
         return try {
-            val size = 192
+            val size = 256
             val bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && drawable is AdaptiveIconDrawable) {
                 // Render adaptive icon with rounded square mask like Android launcher
                 renderAdaptiveIcon(drawable, size)
@@ -234,8 +234,8 @@ class InstalledAppsModule(reactContext: ReactApplicationContext) : ReactContextB
         val path = Path()
         val radius = size / 2f
         val center = size / 2f
-        // Squircle exponent - 4.0 gives the classic iOS look
-        val n = 4.0
+        // Squircle exponent - 3.0 gives a more rounded look
+        val n = 3.0
 
         val points = 100
         for (i in 0 until points) {
