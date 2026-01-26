@@ -35,37 +35,79 @@ class ScuteAccessibilityService : AccessibilityService() {
 
         // Browser URL bar IDs for website blocking
         private val BROWSER_URL_BAR_IDS = mapOf(
+            // Chrome variants
             "com.android.chrome" to "com.android.chrome:id/url_bar",
             "com.chrome.beta" to "com.chrome.beta:id/url_bar",
             "com.chrome.dev" to "com.chrome.dev:id/url_bar",
             "com.chrome.canary" to "com.chrome.canary:id/url_bar",
+            // Firefox variants
             "org.mozilla.firefox" to "org.mozilla.firefox:id/url_bar_title",
             "org.mozilla.firefox_beta" to "org.mozilla.firefox_beta:id/url_bar_title",
+            "org.mozilla.fenix" to "org.mozilla.fenix:id/url_bar_title",
+            "org.mozilla.focus" to "org.mozilla.focus:id/display_url",
+            "org.mozilla.rocket" to "org.mozilla.rocket:id/display_url",
+            // Opera variants
             "com.opera.browser" to "com.opera.browser:id/url_field",
+            "com.opera.browser.beta" to "com.opera.browser.beta:id/url_field",
             "com.opera.mini.native" to "com.opera.mini.native:id/url_field",
+            "com.opera.gx.gaming" to "com.opera.gx.gaming:id/url_field",
+            // Brave
             "com.brave.browser" to "com.brave.browser:id/url_bar",
+            "com.brave.browser_beta" to "com.brave.browser_beta:id/url_bar",
+            "com.brave.browser_nightly" to "com.brave.browser_nightly:id/url_bar",
+            // Microsoft Edge
             "com.microsoft.emmx" to "com.microsoft.emmx:id/url_bar",
+            "com.microsoft.emmx.beta" to "com.microsoft.emmx.beta:id/url_bar",
+            "com.microsoft.emmx.dev" to "com.microsoft.emmx.dev:id/url_bar",
+            "com.microsoft.emmx.canary" to "com.microsoft.emmx.canary:id/url_bar",
+            // Samsung Internet
             "com.sec.android.app.sbrowser" to "com.sec.android.app.sbrowser:id/location_bar_edit_text",
-            "com.duckduckgo.mobile.android" to "com.duckduckgo.mobile.android:id/omnibarTextInput"
+            "com.sec.android.app.sbrowser.beta" to "com.sec.android.app.sbrowser.beta:id/location_bar_edit_text",
+            // DuckDuckGo
+            "com.duckduckgo.mobile.android" to "com.duckduckgo.mobile.android:id/omnibarTextInput",
+            // Vivaldi
+            "com.vivaldi.browser" to "com.vivaldi.browser:id/url_bar",
+            "com.vivaldi.browser.snapshot" to "com.vivaldi.browser.snapshot:id/url_bar",
+            // Kiwi Browser (Chromium-based)
+            "com.kiwibrowser.browser" to "com.kiwibrowser.browser:id/url_bar",
+            // Ecosia
+            "com.ecosia.android" to "com.ecosia.android:id/url_bar",
+            // Yandex
+            "com.yandex.browser" to "com.yandex.browser:id/bro_omnibar_address_title_text",
+            "ru.yandex.searchplugin" to "ru.yandex.searchplugin:id/bro_omnibar_address_title_text",
+            // UC Browser
+            "com.UCMobile.intl" to "com.UCMobile.intl:id/url_edittext_container",
+            // Puffin
+            "com.cloudmosa.puffinFree" to "com.cloudmosa.puffinFree:id/addressbarEdit",
+            "com.cloudmosa.puffin" to "com.cloudmosa.puffin:id/addressbarEdit",
+            // Tor Browser
+            "org.torproject.torbrowser" to "org.torproject.torbrowser:id/url_bar_title",
+            // Bromite (privacy-focused Chromium)
+            "org.bromite.bromite" to "org.bromite.bromite:id/url_bar",
+            // Ungoogled Chromium
+            "org.nicotine.nicotine" to "org.nicotine.nicotine:id/url_bar",
+            // Flynx (floating browser)
+            "com.nicework.flynx" to "com.nicework.flynx:id/url_text",
+            // Whale (Naver)
+            "com.naver.whale" to "com.naver.whale:id/url_bar",
+            // Phoenix Browser
+            "com.nicework.nicebrowser" to "com.nicework.nicebrowser:id/url_edit_text",
+            // Via Browser
+            "mark.via.gp" to "mark.via.gp:id/aw",
+            // Mint Browser (Xiaomi)
+            "com.mi.globalbrowser" to "com.mi.globalbrowser:id/url",
+            "com.mi.globalbrowser.mini" to "com.mi.globalbrowser.mini:id/url"
         )
 
         private val BROWSER_PACKAGES = BROWSER_URL_BAR_IDS.keys
     }
 
     private var lastScheduleCheckTime = 0L
-    private var lastBlockedUrl: String? = null
-    private var lastBlockTime: Long = 0
-    private var overlayManager: BlockedOverlayManager? = null
 
     override fun onServiceConnected() {
         super.onServiceConnected()
         isRunning = true
         instance = this
-
-        // Create overlay manager for website blocking
-        overlayManager = BlockedOverlayManager(this).apply {
-            onDismissed = { performGlobalAction(GLOBAL_ACTION_HOME) }
-        }
 
         Log.d(TAG, "Accessibility service connected")
         checkAndActivateScheduledPresets()
@@ -98,82 +140,7 @@ class ScuteAccessibilityService : AccessibilityService() {
             return
         }
 
-        // Website blocking (browsers only)
-        if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED ||
-            event.eventType == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
-            if (BROWSER_PACKAGES.contains(packageName)) {
-                checkBrowserUrl(packageName)
-            }
-        }
-    }
-
-    private fun checkBrowserUrl(packageName: String) {
-        val prefs = getSharedPreferences(UninstallBlockerService.PREFS_NAME, Context.MODE_PRIVATE)
-
-        if (!prefs.getBoolean(UninstallBlockerService.KEY_SESSION_ACTIVE, false)) return
-        if (System.currentTimeMillis() > prefs.getLong(UninstallBlockerService.KEY_SESSION_END_TIME, 0)) return
-
-        val blockedWebsites = prefs.getStringSet("blocked_websites", emptySet()) ?: emptySet()
-        if (blockedWebsites.isEmpty()) return
-
-        if (isUrlBarFocused(packageName)) return
-
-        val url = getBrowserUrl(packageName)
-        if (url.isNullOrEmpty() || url.length < 4 || !url.contains(".") || url.contains(" ")) return
-
-        for (blockedSite in blockedWebsites) {
-            if (urlMatchesDomain(url, blockedSite)) {
-                val now = System.currentTimeMillis()
-                if (url == lastBlockedUrl && now - lastBlockTime < 2000) return
-
-                Log.d(TAG, "BLOCKING website: $blockedSite")
-                lastBlockedUrl = url
-                lastBlockTime = now
-
-                val strictMode = prefs.getBoolean("strict_mode", true)
-                overlayManager?.show(BlockedOverlayManager.TYPE_WEBSITE, blockedSite, strictMode)
-                return
-            }
-        }
-    }
-
-    private fun isUrlBarFocused(packageName: String): Boolean {
-        return try {
-            val rootNode = rootInActiveWindow ?: return false
-            val urlBarId = BROWSER_URL_BAR_IDS[packageName] ?: return false
-            val urlNodes = rootNode.findAccessibilityNodeInfosByViewId(urlBarId)
-            val isFocused = urlNodes.firstOrNull()?.isFocused == true
-            urlNodes.forEach { it.recycle() }
-            rootNode.recycle()
-            isFocused
-        } catch (e: Exception) {
-            false
-        }
-    }
-
-    private fun getBrowserUrl(packageName: String): String? {
-        return try {
-            val rootNode = rootInActiveWindow ?: return null
-            val urlBarId = BROWSER_URL_BAR_IDS[packageName]
-            if (urlBarId != null) {
-                val urlNodes = rootNode.findAccessibilityNodeInfosByViewId(urlBarId)
-                val url = urlNodes.firstOrNull()?.text?.toString()
-                urlNodes.forEach { it.recycle() }
-                rootNode.recycle()
-                url
-            } else {
-                rootNode.recycle()
-                null
-            }
-        } catch (e: Exception) {
-            null
-        }
-    }
-
-    private fun urlMatchesDomain(url: String, blockedDomain: String): Boolean {
-        val normalizedUrl = url.lowercase().removePrefix("https://").removePrefix("http://").removePrefix("www.")
-        val normalizedDomain = blockedDomain.lowercase().removePrefix("https://").removePrefix("http://").removePrefix("www.")
-        return normalizedUrl.startsWith(normalizedDomain) || normalizedUrl.contains(".$normalizedDomain")
+        // Website blocking is now handled by WebsiteMonitorService with fast polling
     }
 
     private fun isScuteUninstallDialog(): Boolean {
@@ -384,15 +351,66 @@ class ScuteAccessibilityService : AccessibilityService() {
 
     // Public methods
     fun goHome() = performGlobalAction(GLOBAL_ACTION_HOME)
+    fun pressBack() = performGlobalAction(GLOBAL_ACTION_BACK)
     fun onOverlayDismissed() = performGlobalAction(GLOBAL_ACTION_HOME)
+
+    /**
+     * Get the current browser URL if a browser is in the foreground.
+     * Called by WebsiteMonitorService for fast polling.
+     * Returns Pair(packageName, url) or null if not in a browser or can't get URL.
+     */
+    fun getCurrentBrowserUrl(): Pair<String, String>? {
+        return try {
+            val rootNode = rootInActiveWindow ?: return null
+            val packageName = rootNode.packageName?.toString()
+
+            if (packageName == null || !BROWSER_PACKAGES.contains(packageName)) {
+                rootNode.recycle()
+                return null
+            }
+
+            // Check if URL bar is focused (user is typing)
+            val urlBarId = BROWSER_URL_BAR_IDS[packageName]
+            if (urlBarId != null) {
+                val urlNodes = rootNode.findAccessibilityNodeInfosByViewId(urlBarId)
+                val urlNode = urlNodes.firstOrNull()
+
+                if (urlNode != null) {
+                    // Skip if URL bar is focused (user is typing)
+                    if (urlNode.isFocused) {
+                        urlNodes.forEach { it.recycle() }
+                        rootNode.recycle()
+                        return null
+                    }
+
+                    val url = urlNode.text?.toString()
+                    urlNodes.forEach { it.recycle() }
+                    rootNode.recycle()
+
+                    // Validate URL
+                    if (url.isNullOrEmpty() || url.length < 4 || !url.contains(".") || url.contains(" ")) {
+                        return null
+                    }
+
+                    return Pair(packageName, url)
+                }
+
+                urlNodes.forEach { it.recycle() }
+            }
+
+            rootNode.recycle()
+            null
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting browser URL", e)
+            null
+        }
+    }
 
     override fun onInterrupt() {
         Log.d(TAG, "Accessibility service interrupted")
     }
 
     override fun onDestroy() {
-        overlayManager?.dismiss()
-        overlayManager = null
         isRunning = false
         instance = null
         Log.d(TAG, "Accessibility service destroyed")

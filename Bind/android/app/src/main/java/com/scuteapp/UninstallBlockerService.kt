@@ -91,6 +91,7 @@ class UninstallBlockerService : Service() {
 
     private var packageRemovedReceiver: BroadcastReceiver? = null
     private var appMonitor: AppMonitorService? = null
+    private var websiteMonitor: WebsiteMonitorService? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -107,6 +108,16 @@ class UninstallBlockerService : Service() {
             startMonitoring()
         }
         Log.d(TAG, "AppMonitorService started")
+
+        // Start website monitoring with fast polling
+        websiteMonitor = WebsiteMonitorService(this).apply {
+            onPressBack = {
+                // Use accessibility service to press back (goes back in browser)
+                ScuteAccessibilityService.instance?.pressBack()
+            }
+            startMonitoring()
+        }
+        Log.d(TAG, "WebsiteMonitorService started")
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -128,6 +139,10 @@ class UninstallBlockerService : Service() {
         // Stop app monitoring
         appMonitor?.stopMonitoring()
         appMonitor = null
+
+        // Stop website monitoring
+        websiteMonitor?.stopMonitoring()
+        websiteMonitor = null
 
         unregisterPackageReceiver()
 
