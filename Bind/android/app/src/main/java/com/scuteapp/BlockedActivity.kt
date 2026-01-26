@@ -172,12 +172,8 @@ class BlockedActivity : Activity() {
     }
 
     override fun onBackPressed() {
-        // Ignore back presses during automatic cleanup (from AccessibilityService)
-        if (ignoreBackPresses) {
-            return
-        }
-        // Override back button - dismiss and go to home
-        dismissAndGoHome()
+        // Back button is disabled on the blocked overlay
+        // User must tap anywhere to dismiss
     }
 
     private fun dismissAndGoHome() {

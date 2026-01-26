@@ -8,8 +8,15 @@ import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.Path
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffXfermode
+import android.graphics.RectF
+import android.graphics.drawable.AdaptiveIconDrawable
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import android.os.Build
 import android.util.Base64
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
@@ -176,11 +183,18 @@ class InstalledAppsModule(reactContext: ReactApplicationContext) : ReactContextB
 
     private fun drawableToBase64(drawable: Drawable): String? {
         return try {
-            val bitmap = drawableToBitmap(drawable)
+            val size = 192
+            val bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && drawable is AdaptiveIconDrawable) {
+                // Render adaptive icon with rounded square mask like Android launcher
+                renderAdaptiveIcon(drawable, size)
+            } else {
+                // For legacy icons, just render and apply rounded corners
+                val rawBitmap = drawableToBitmap(drawable, size)
+                applyRoundedSquareMask(rawBitmap, size)
+            }
+
             val outputStream = ByteArrayOutputStream()
-            // Higher quality icons (128x128 at 100% quality)
-            val scaledBitmap = Bitmap.createScaledBitmap(bitmap, 128, 128, true)
-            scaledBitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
             val byteArray = outputStream.toByteArray()
             Base64.encodeToString(byteArray, Base64.NO_WRAP)
         } catch (e: Exception) {
@@ -188,19 +202,94 @@ class InstalledAppsModule(reactContext: ReactApplicationContext) : ReactContextB
         }
     }
 
-    private fun drawableToBitmap(drawable: Drawable): Bitmap {
-        if (drawable is BitmapDrawable) {
-            return drawable.bitmap
+    private fun renderAdaptiveIcon(drawable: AdaptiveIconDrawable, size: Int): Bitmap {
+        // Adaptive icons need extra canvas space for the layers
+        val layerSize = (size * 1.5).toInt()
+        val offset = (layerSize - size) / 2
+
+        val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+
+        // Create squircle path (superellipse) like iOS/modern Android launchers
+        val path = createSquirclePath(size.toFloat())
+        canvas.clipPath(path)
+
+        // Draw background layer
+        drawable.background?.let { bg ->
+            bg.setBounds(-offset, -offset, layerSize - offset, layerSize - offset)
+            bg.draw(canvas)
         }
 
-        val width = if (drawable.intrinsicWidth > 0) drawable.intrinsicWidth else 128
-        val height = if (drawable.intrinsicHeight > 0) drawable.intrinsicHeight else 128
+        // Draw foreground layer
+        drawable.foreground?.let { fg ->
+            fg.setBounds(-offset, -offset, layerSize - offset, layerSize - offset)
+            fg.draw(canvas)
+        }
+
+        return bitmap
+    }
+
+    // Creates a true squircle (superellipse) path like iOS app icons
+    private fun createSquirclePath(size: Float): Path {
+        val path = Path()
+        val radius = size / 2f
+        val center = size / 2f
+        // Squircle exponent - 4.0 gives the classic iOS look
+        val n = 4.0
+
+        val points = 100
+        for (i in 0 until points) {
+            val angle = 2.0 * Math.PI * i / points
+            val cosA = Math.cos(angle)
+            val sinA = Math.sin(angle)
+
+            // Superellipse formula: |x/a|^n + |y/b|^n = 1
+            val signCos = if (cosA >= 0) 1.0 else -1.0
+            val signSin = if (sinA >= 0) 1.0 else -1.0
+            val x = center + radius * signCos * Math.pow(Math.abs(cosA), 2.0 / n)
+            val y = center + radius * signSin * Math.pow(Math.abs(sinA), 2.0 / n)
+
+            if (i == 0) {
+                path.moveTo(x.toFloat(), y.toFloat())
+            } else {
+                path.lineTo(x.toFloat(), y.toFloat())
+            }
+        }
+        path.close()
+        return path
+    }
+
+    private fun applyRoundedSquareMask(source: Bitmap, size: Int): Bitmap {
+        val output = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(output)
+
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+
+        // Use squircle path for legacy icons too
+        val path = createSquirclePath(size.toFloat())
+        canvas.drawPath(path, paint)
+
+        // Apply source bitmap with SRC_IN to mask it
+        paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_IN)
+        val scaledSource = Bitmap.createScaledBitmap(source, size, size, true)
+        canvas.drawBitmap(scaledSource, 0f, 0f, paint)
+
+        return output
+    }
+
+    private fun drawableToBitmap(drawable: Drawable, size: Int): Bitmap {
+        if (drawable is BitmapDrawable && drawable.bitmap != null) {
+            return Bitmap.createScaledBitmap(drawable.bitmap, size, size, true)
+        }
+
+        val width = if (drawable.intrinsicWidth > 0) drawable.intrinsicWidth else size
+        val height = if (drawable.intrinsicHeight > 0) drawable.intrinsicHeight else size
 
         val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
         drawable.setBounds(0, 0, canvas.width, canvas.height)
         drawable.draw(canvas)
-        return bitmap
+        return Bitmap.createScaledBitmap(bitmap, size, size, true)
     }
 
     private data class AppInfo(

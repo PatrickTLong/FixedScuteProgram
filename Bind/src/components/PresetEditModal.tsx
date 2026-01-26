@@ -120,7 +120,11 @@ async function loadInstalledAppsOnce(): Promise<InstalledApp[]> {
         ];
       }
       // Filter out system apps (phone, camera, messaging, emergency, settings)
-      apps = apps.filter(app => !EXCLUDED_PACKAGES.includes(app.id));
+      // Also filter out apps named "All Apps" which is a system/launcher component
+      apps = apps.filter(app =>
+        !EXCLUDED_PACKAGES.includes(app.id) &&
+        app.name.toLowerCase() !== 'all apps'
+      );
       cachedInstalledApps = apps;
       return apps;
     } catch (error) {
@@ -197,23 +201,9 @@ const AppsIcon = ({ size = 18, color = "#FFFFFF" }: { size?: number; color?: str
 const GlobeIcon = ({ size = 18, color = "#FFFFFF" }: { size?: number; color?: string }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Path
-      d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"
+      d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0 1 12 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 0 1 3 12c0-1.605.42-3.113 1.157-4.418"
       stroke={color}
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <Path
-      d="M2 12h20"
-      stroke={color}
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <Path
-      d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"
-      stroke={color}
-      strokeWidth={2}
+      strokeWidth={1.5}
       strokeLinecap="round"
       strokeLinejoin="round"
     />
@@ -721,20 +711,19 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
         style={{ backgroundColor: colors.card }}
         className="flex-row items-center py-3 px-4 rounded-xl mb-2"
       >
-        {/* App Icon */}
-        <View style={{ backgroundColor: colors.cardLight }} className="w-10 h-10 rounded-full items-center justify-center mr-3 overflow-hidden">
-          {item.icon ? (
-            <Image
-              source={{ uri: item.icon }}
-              style={{ width: 32, height: 32, borderRadius: 16 }}
-              resizeMode="cover"
-            />
-          ) : (
-            <Text style={{ color: colors.textSecondary }} className="text-lg font-nunito-bold">
+        {/* App Icon - native already provides squircle shape */}
+        {item.icon ? (
+          <Image
+            source={{ uri: item.icon }}
+            style={{ width: 40, height: 40, marginRight: 12 }}
+          />
+        ) : (
+          <View style={{ width: 40, height: 40, marginRight: 12, backgroundColor: colors.cardLight, borderRadius: 10, alignItems: 'center', justifyContent: 'center' }}>
+            <Text style={{ color: colors.textSecondary, fontSize: 16, fontWeight: 'bold' }}>
               {item.name.charAt(0)}
             </Text>
-          )}
-        </View>
+          </View>
+        )}
 
         {/* App Name */}
         <Text style={{ color: colors.text }} className="flex-1 text-base font-nunito">{item.name}</Text>
@@ -1673,10 +1662,8 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                     style={{ backgroundColor: colors.card }}
                     className="flex-row items-center py-3 px-4 rounded-xl mb-2"
                   >
-                    <View style={{ backgroundColor: colors.cardLight }} className="w-10 h-10 rounded-lg items-center justify-center mr-3">
-                      <Text style={{ color: colors.textSecondary }} className="text-lg font-nunito-bold">
-                        {site.charAt(0).toUpperCase()}
-                      </Text>
+                    <View className="w-10 h-10 items-center justify-center mr-3">
+                      <GlobeIcon size={32} color={colors.textSecondary} />
                     </View>
                     <Text style={{ color: colors.text }} className="flex-1 text-base font-nunito">{site}</Text>
                     <TouchableOpacity

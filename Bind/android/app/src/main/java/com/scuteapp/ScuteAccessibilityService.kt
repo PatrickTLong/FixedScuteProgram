@@ -441,7 +441,7 @@ class ScuteAccessibilityService : AccessibilityService() {
 
     /**
      * Show the blocking overlay activity.
-     * Sequence: back x3 -> home -> overlay
+     * HOME first to background the app (stops videos), then overlay appears.
      */
     private fun showBlockedOverlay(blockedType: String, blockedItem: String? = null) {
         val now = System.currentTimeMillis()
@@ -459,29 +459,37 @@ class ScuteAccessibilityService : AccessibilityService() {
 
         Log.d(TAG, "Launching BlockedActivity with type: $blockedType, item: $blockedItem, strictMode: $strictMode")
 
-        // Back presses first (0, 100, 200ms)
-        performGlobalAction(GLOBAL_ACTION_BACK)
+        // Pause any playing media (stops YouTube, Spotify, etc.)
+        pauseMedia()
 
+        // HOME first to send blocked app to background (triggers YouTube "can't play in background")
+        performGlobalAction(GLOBAL_ACTION_HOME)
+
+        // Launch overlay after tiny delay so HOME completes first
         val handler = android.os.Handler(android.os.Looper.getMainLooper())
-
-        handler.postDelayed({
-            performGlobalAction(GLOBAL_ACTION_BACK)
-        }, 100L)
-
-        handler.postDelayed({
-            performGlobalAction(GLOBAL_ACTION_BACK)
-        }, 200L)
-
-        // Home after back presses complete (350ms)
-        handler.postDelayed({
-            performGlobalAction(GLOBAL_ACTION_HOME)
-        }, 350L)
-
-        // Overlay after home (450ms)
         handler.postDelayed({
             BlockedActivity.launchNoAnimation(this, blockedType, blockedItem, strictMode)
             lastOverlayLaunchTime = System.currentTimeMillis()
-        }, 450L)
+        }, 50L)
+    }
+
+    /**
+     * Send media pause key event to stop any playing audio/video
+     */
+    private fun pauseMedia() {
+        try {
+            val audioManager = getSystemService(Context.AUDIO_SERVICE) as? android.media.AudioManager
+            if (audioManager?.isMusicActive == true) {
+                // Send KEYCODE_MEDIA_PAUSE to pause playback
+                val keyEvent = android.view.KeyEvent(android.view.KeyEvent.ACTION_DOWN, android.view.KeyEvent.KEYCODE_MEDIA_PAUSE)
+                audioManager.dispatchMediaKeyEvent(keyEvent)
+                val keyEventUp = android.view.KeyEvent(android.view.KeyEvent.ACTION_UP, android.view.KeyEvent.KEYCODE_MEDIA_PAUSE)
+                audioManager.dispatchMediaKeyEvent(keyEventUp)
+                Log.d(TAG, "Media pause sent")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error pausing media", e)
+        }
     }
 
     /**

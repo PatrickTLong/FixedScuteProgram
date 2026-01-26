@@ -59,6 +59,19 @@ const BackIcon = ({ color }: { color: string }) => (
   </Svg>
 );
 
+// Globe Icon for websites
+const GlobeIcon = ({ color, size = 24 }: { color: string; size?: number }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0 1 12 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 0 1 3 12c0-1.605.42-3.113 1.157-4.418"
+      stroke={color}
+      strokeWidth={1.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
 interface AppItemProps {
   item: InstalledApp;
   isSelected: boolean;
@@ -84,12 +97,15 @@ const AppItem = memo(({ item, isSelected, onToggle, cardColor, cardLightColor, t
       style={{ backgroundColor: cardColor }}
       className="flex-row items-center py-3 px-4 rounded-xl mb-2"
     >
-      {/* App Icon */}
+      {/* App Icon - native already provides squircle shape */}
       {item.icon ? (
-        <Image source={{ uri: item.icon }} className="w-10 h-10 mr-3" />
+        <Image
+          source={{ uri: item.icon }}
+          style={{ width: 40, height: 40, marginRight: 12 }}
+        />
       ) : (
-        <View className="w-10 h-10 items-center justify-center mr-3">
-          <Text style={{ color: textSecondaryColor }} className="text-lg font-nunito-bold">
+        <View style={{ width: 40, height: 40, marginRight: 12, backgroundColor: cardLightColor, borderRadius: 10, alignItems: 'center', justifyContent: 'center' }}>
+          <Text style={{ color: textSecondaryColor, fontSize: 18, fontWeight: 'bold' }}>
             {item.name.charAt(0)}
           </Text>
         </View>
@@ -297,10 +313,8 @@ function SelectAppsScreen({
             keyExtractor={(item) => item}
             renderItem={({ item }) => (
               <View style={{ backgroundColor: colors.card }} className="flex-row items-center py-3 px-4 rounded-xl mb-2">
-                <View style={{ backgroundColor: colors.cardLight, borderRadius: 10 }} className="w-10 h-10 items-center justify-center mr-3">
-                  <Text style={{ color: colors.textSecondary }} className="text-lg font-nunito-bold">
-                    {item.charAt(0).toUpperCase()}
-                  </Text>
+                <View className="w-10 h-10 items-center justify-center mr-3">
+                  <GlobeIcon color={colors.textSecondary} size={32} />
                 </View>
                 <Text style={{ color: colors.text }} className="flex-1 text-base font-nunito">{item}</Text>
                 <View style={{ backgroundColor: colors.cyan, borderColor: colors.cyan }} className="w-6 h-6 rounded-full border-2 items-center justify-center">
