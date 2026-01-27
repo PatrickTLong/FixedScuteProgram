@@ -18,7 +18,7 @@ const BASE_BUTTON_HORIZONTAL_PADDING = 48; // px-6 = 24px * 2 from parent
 
 // Animated chevron indicator component
 const AnimatedChevron = ({ color, opacity }: { color: string; opacity: number }) => (
-  <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" style={{ opacity }}>
+  <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" style={{ opacity }}>
     <Path
       d="M9 18l6-6-6-6"
       stroke={color}
