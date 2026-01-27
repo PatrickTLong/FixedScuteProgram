@@ -786,9 +786,9 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               </TouchableOpacity>
             </View>
 
-            <ScrollView className="flex-1 px-6 pt-6" contentContainerStyle={{ paddingBottom: 100 }}>
+            <ScrollView className="flex-1 pt-6" contentContainerStyle={{ paddingBottom: 100 }}>
               {/* Guide Button */}
-              <View className="items-center mb-6">
+              <View className="items-center mb-6 px-6">
                 <TouchableOpacity
                   onPress={() => {
                     lightTap();
@@ -803,7 +803,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               </View>
 
             {/* No Time Limit Toggle */}
-            <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between py-4">
+            <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between py-4 px-6">
               <View style={{ maxWidth: '75%' }}>
                 <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">No Time Limit</Text>
                 <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">Block until manually unlocked</Text>
@@ -825,7 +825,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
             </View>
 
             {/* Block Settings Toggle */}
-            <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between py-4">
+            <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between py-4 px-6">
               <View style={{ maxWidth: '75%' }}>
                 <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">Block Settings App</Text>
                 <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">WiFi settings remain accessible</Text>
@@ -852,7 +852,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
 
             {/* Strict Mode Toggle - only for timed presets (hidden when No Time Limit is on) */}
             {!noTimeLimit && (
-              <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between py-4">
+              <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between py-4 px-6">
                 <View style={{ maxWidth: '75%' }}>
                   <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">Strict Mode</Text>
                   <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">Lock until timer ends or emergency tapout</Text>
@@ -893,7 +893,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
 
             {/* Emergency Tapout Toggle - only available when Strict Mode is ON (hidden when No Time Limit or Strict Mode is off) */}
             {!noTimeLimit && strictMode && (
-              <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between py-4">
+              <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between py-4 px-6">
                 <View style={{ maxWidth: '75%' }}>
                   <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">Allow Emergency Tapout</Text>
                   <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">Use your emergency tapouts for this preset</Text>
@@ -906,7 +906,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
             )}
 
             {/* Schedule for Later Toggle */}
-            <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between py-4">
+            <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between py-4 px-6">
               <View style={{ maxWidth: '75%' }}>
                 <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">Schedule for Later</Text>
                 <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">Set a future start and end time</Text>
@@ -943,7 +943,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
 
             {/* Schedule Date Pickers */}
             {isScheduled && (
-              <View className="mt-4">
+              <View className="mt-4 px-6">
                 <Text style={{ color: colors.textMuted }} className="text-xs font-nunito uppercase tracking-wider mb-4">
                   Schedule
                 </Text>
@@ -1037,8 +1037,8 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
 
                 {/* Recurring Schedule Toggle */}
                 {scheduleStartDate && scheduleEndDate && scheduleEndDate > scheduleStartDate && (
-                  <View className="mt-4">
-                    <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between py-4">
+                  <View className="mt-4 -mx-6">
+                    <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between py-4 px-6">
                       <View style={{ maxWidth: '75%' }}>
                         <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">Recurring Schedule</Text>
                         <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">Repeat this block automatically</Text>
@@ -1065,7 +1065,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
 
                     {/* Recurring Options */}
                     {isRecurring && (
-                      <View className="mt-4">
+                      <View className="mt-4 px-6">
                         <Text style={{ color: colors.textMuted }} className="text-xs font-nunito uppercase tracking-wider mb-3">
                           Repeat Every
                         </Text>
@@ -1173,7 +1173,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
 
             {/* Timer Picker (if time limit enabled and not scheduled) */}
             {!noTimeLimit && !isScheduled && (
-              <View className="mt-6">
+              <View className="mt-6 px-6">
                 <Text style={{ color: colors.textMuted }} className="text-xs font-nunito uppercase tracking-wider mb-4">
                   Duration
                 </Text>
@@ -1201,7 +1201,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                 />
 
                 {/* Or Pick a Date Divider */}
-                <View className="flex-row items-center my-6">
+                <View className="flex-row items-center my-6 -mx-6">
                   <View style={{ backgroundColor: colors.border }} className="flex-1 h-px" />
                   <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito px-4">or</Text>
                   <View style={{ backgroundColor: colors.border }} className="flex-1 h-px" />

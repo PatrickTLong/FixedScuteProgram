@@ -380,8 +380,7 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
   return (
     <Modal
       visible={visible}
-      animationType="fade"
-      presentationStyle="pageSheet"
+      animationType="slide"
       onRequestClose={onClose}
     >
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
@@ -482,7 +481,7 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
 
           {/* Time Picker */}
           {tempSelectedDate && (
-            <View style={{ borderTopColor: colors.border }} className="mt-6 pt-4 border-t">
+            <View style={{ borderTopColor: colors.border }} className="mt-6 pt-4 pb-4 border-t -mx-6 px-6">
               <Text style={{ color: colors.textMuted }} className="text-xs font-nunito uppercase tracking-wider mb-3">
                 Time
               </Text>
@@ -522,7 +521,7 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
           )}
 
           {/* Selected Date/Time Display */}
-          <View style={{ borderTopColor: colors.border }} className="mt-6 py-4 border-t">
+          <View style={{ borderTopColor: colors.border }} className="mt-6 py-4 border-t -mx-6 px-6">
             <View className="flex-row items-center justify-between">
               <View className="flex-1">
                 <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito mb-1">Selected</Text>
@@ -547,7 +546,7 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
           </View>
 
           {/* Bottom padding for Android navigation */}
-          <View className="h-8" />
+          <View className="h-20" />
         </ScrollView>
       </SafeAreaView>
     </Modal>
