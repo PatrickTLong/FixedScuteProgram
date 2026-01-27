@@ -143,7 +143,7 @@ function EmergencyTapoutModal({
                 ) : (
                   <Text
                     style={{ color: canUseTapout ? '#000000' : colors.textSecondary }}
-                    className="text-base font-nunito-bold"
+                    className="text-sm font-nunito-bold"
                   >
                     {canUseTapout ? 'Use Emergency Tapout' : 'Not Available'}
                   </Text>

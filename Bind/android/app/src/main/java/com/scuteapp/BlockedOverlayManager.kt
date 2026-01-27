@@ -94,12 +94,17 @@ class BlockedOverlayManager(private val context: Context) {
                 }
 
                 // Flags for instant appearance and full coverage
-                // NOTE: FLAG_NOT_FOCUSABLE is NOT set - this ensures the overlay captures ALL touch events
-                // and prevents interaction with the underlying screen until dismissed
-                flags = WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+                // FLAG_NOT_FOCUSABLE is NOT set - this makes the overlay focusable and able to receive input
+                // FLAG_NOT_TOUCH_MODAL prevents touches from passing through to underlying windows
+                // FLAG_FULLSCREEN hides the Android navigation bar (back/home/recents buttons)
+                // This combination ensures the overlay captures ALL touch events and blocks interaction
+                // with the underlying screen until dismissed
+                flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
+                        WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
                         WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
                         WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
-                        WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
+                        WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON or
+                        WindowManager.LayoutParams.FLAG_FULLSCREEN
 
                 format = PixelFormat.TRANSLUCENT
                 gravity = Gravity.TOP or Gravity.START
@@ -114,6 +119,11 @@ class BlockedOverlayManager(private val context: Context) {
 
             // Update content based on block type
             updateViewContent(blockedType, blockedItem, strictMode)
+
+            // Hide system UI (navigation bar and status bar) for immersive blocking
+            overlayView?.systemUiVisibility = (View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                    or View.SYSTEM_UI_FLAG_FULLSCREEN
+                    or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
 
             // Set up tap to dismiss
             overlayView?.findViewById<View>(R.id.overlay_root)?.setOnClickListener {
