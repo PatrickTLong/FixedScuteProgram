@@ -58,30 +58,17 @@ class DeviceAdminModule(reactContext: ReactApplicationContext) :
     }
 
     /**
-     * Request to enable device admin
+     * Request to enable device admin - now disabled to allow uninstalling blocked apps
      */
     @ReactMethod
     fun requestEnableDeviceAdmin(promise: Promise) {
         try {
-            if (devicePolicyManager.isAdminActive(adminComponent)) {
-                promise.resolve(true)
-                return
-            }
-
-            enableAdminPromise = promise
-
-            val intent = Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN).apply {
-                putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, adminComponent)
-                putExtra(
-                    DevicePolicyManager.EXTRA_ADD_EXPLANATION,
-                    "Scute needs device admin access to prevent uninstalling blocked apps during your focus sessions."
-                )
-            }
-
-            reactApplicationContext.currentActivity?.startActivityForResult(intent, REQUEST_CODE_ENABLE_ADMIN)
-                ?: promise.reject("ERROR", "No activity available")
+            // Device admin is no longer required - users can delete blocked apps
+            // This allows users to uninstall apps like Instagram even when blocked
+            Log.d(TAG, "Device admin request skipped - uninstall protection disabled")
+            promise.resolve(false) // Return false to indicate admin is not enabled
         } catch (e: Exception) {
-            Log.e(TAG, "Error requesting admin", e)
+            Log.e(TAG, "Error in requestEnableDeviceAdmin", e)
             promise.reject("ERROR", "Failed to request admin: ${e.message}")
         }
     }

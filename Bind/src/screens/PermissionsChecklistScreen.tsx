@@ -4,7 +4,6 @@ import {
   View,
   ScrollView,
   TouchableOpacity,
-  Alert,
   Linking,
   Platform,
   NativeModules,
@@ -18,7 +17,16 @@ import ProgressBar from '../components/ProgressBar';
 import { useTheme } from '../context/ThemeContext';
 import { lightTap } from '../utils/haptics';
 
-const { DeviceAdminModule, PermissionsModule } = NativeModules;
+const { PermissionsModule } = NativeModules;
+
+// Layers icon (Feather Icons style)
+const LayersIcon = ({ size = 24, color = "#FFFFFF" }: { size?: number; color?: string }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path d="M12 2L2 7l10 5 10-5-10-5z" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"/>
+    <Path d="M2 17l10 5 10-5" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"/>
+    <Path d="M2 12l10 5 10-5" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"/>
+  </Svg>
+);
 
 // Chevron right icon
 const ChevronRightIcon = ({ size = 24, color = "#FFFFFF" }: { size?: number; color?: string }) => (
@@ -47,12 +55,12 @@ interface Permission {
   descriptionStyle?: string;
 }
 
-// Android permissions (8 total)
+// Android permissions (7 total - Device Admin removed)
 const ANDROID_PERMISSIONS: Permission[] = [
   {
     id: 'notification',
     title: 'Notification Access',
-    description: 'Monitor notifications and send you updates about blocking sessions.',
+    description: 'Block notifications from restricted apps and send you updates about blocking sessions.',
     isGranted: false,
     androidIntent: 'android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS',
   },
@@ -76,13 +84,6 @@ const ANDROID_PERMISSIONS: Permission[] = [
     description: 'Display blocking screens over restricted apps.',
     isGranted: false,
     androidIntent: 'android.settings.action.MANAGE_OVERLAY_PERMISSION',
-  },
-  {
-    id: 'deviceAdmin',
-    title: 'Device Admin',
-    description: 'Prevent uninstalling blocked apps during focus sessions.',
-    isGranted: false,
-    androidIntent: 'device_admin_request',
   },
   {
     id: 'postNotifications',
@@ -234,29 +235,6 @@ function PermissionsChecklistScreen({ onComplete }: Props) {
 
     // Android permission handling
     if (Platform.OS === 'android' && permission.androidIntent) {
-      // Handle device admin request specially
-      if (permission.androidIntent === 'device_admin_request') {
-        try {
-          if (DeviceAdminModule) {
-            const isActive = await DeviceAdminModule.isDeviceAdminActive();
-            if (isActive) {
-              // Already active, refresh permissions
-              checkPermissions();
-              return;
-            }
-
-            await DeviceAdminModule.requestEnableDeviceAdmin();
-            // Refresh after request completes
-            checkPermissions();
-          } else {
-            Alert.alert('Error', 'Device admin module not available');
-          }
-        } catch (error) {
-          Alert.alert('Error', 'Failed to request device admin permission');
-        }
-        return;
-      }
-
       // Handle post notifications specially - needs package extra
       if (permission.id === 'postNotifications') {
         Linking.sendIntent(permission.androidIntent, [
@@ -325,10 +303,13 @@ function PermissionsChecklistScreen({ onComplete }: Props) {
         className="flex-1"
         contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 32, paddingBottom: 16 }}
       >
-        {/* Title */}
-        <Text style={{ color: colors.text }} className="text-2xl font-nunito-bold text-center mb-3">
-          {missingCount} permission{missingCount !== 1 ? 's' : ''} missing
-        </Text>
+        {/* Title with Layers Icon */}
+        <View className="flex-row items-center justify-center mb-3">
+          <LayersIcon size={28} color={colors.text} />
+          <Text style={{ color: colors.text }} className="text-2xl font-nunito-bold ml-3">
+            {missingCount} permission{missingCount !== 1 ? 's' : ''} missing
+          </Text>
+        </View>
 
         {/* Subtitle */}
         <Text style={{ color: colors.textSecondary }} className="text-center text-sm font-nunito mb-8 px-4">

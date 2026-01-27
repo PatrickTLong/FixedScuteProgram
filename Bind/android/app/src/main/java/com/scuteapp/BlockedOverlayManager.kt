@@ -94,8 +94,9 @@ class BlockedOverlayManager(private val context: Context) {
                 }
 
                 // Flags for instant appearance and full coverage
-                flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                        WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+                // NOTE: FLAG_NOT_FOCUSABLE is NOT set - this ensures the overlay captures ALL touch events
+                // and prevents interaction with the underlying screen until dismissed
+                flags = WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
                         WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
                         WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
                         WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON

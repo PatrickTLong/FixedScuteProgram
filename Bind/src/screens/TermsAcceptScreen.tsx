@@ -45,7 +45,7 @@ function TermsAcceptScreen({ onAccept }: Props) {
 
         <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">2. Description of Service</Text>
         <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
-          Scute is a digital wellness application designed to help users manage screen time by blocking access to selected applications and the Settings app on their device. The App uses accessibility services, usage access permissions, and device administrator features to enforce blocking functionality.
+          Scute is a digital wellness application designed to help users manage screen time by blocking access to selected applications and the Settings app on their device. The App uses accessibility services, usage access permissions, and notification access to enforce blocking functionality, including blocking notifications from restricted apps.
         </Text>
 
         <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">3. User Responsibilities</Text>
