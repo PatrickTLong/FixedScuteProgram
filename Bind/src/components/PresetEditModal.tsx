@@ -74,13 +74,6 @@ const EXCLUDED_PACKAGES = [
   'com.google.android.dialer',      // Google Phone
   'com.samsung.android.dialer',     // Samsung Phone
   'com.android.phone',              // Phone
-  'com.android.camera',             // Camera
-  'com.android.camera2',            // Camera
-  'com.google.android.GoogleCamera',// Google Camera
-  'com.samsung.android.camera',     // Samsung Camera
-  'com.android.mms',                // Messaging
-  'com.google.android.apps.messaging', // Google Messages
-  'com.samsung.android.messaging',  // Samsung Messages
   'com.android.emergency',          // Emergency
   'com.android.sos',                // Emergency SOS
   'com.google.android.apps.safetyhub', // Google Safety/Emergency
@@ -119,7 +112,7 @@ async function loadInstalledAppsOnce(): Promise<InstalledApp[]> {
           { id: 'com.spotify.music', name: 'Spotify' },
         ];
       }
-      // Filter out system apps (phone, camera, messaging, emergency, settings)
+      // Filter out system apps (phone, emergency, settings)
       // Also filter out apps named "All Apps" which is a system/launcher component
       apps = apps.filter(app =>
         !EXCLUDED_PACKAGES.includes(app.id) &&
