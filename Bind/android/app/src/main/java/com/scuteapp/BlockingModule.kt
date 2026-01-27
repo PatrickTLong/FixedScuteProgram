@@ -64,6 +64,7 @@ class BlockingModule(reactContext: ReactApplicationContext) :
                 // Add all known system settings packages for different device manufacturers
                 appSet.add("com.android.settings")
                 appSet.add("com.samsung.android.settings")
+                appSet.add("com.samsung.android.setting.multisoundmain")
                 appSet.add("com.miui.securitycenter")
                 appSet.add("com.coloros.settings")
                 appSet.add("com.oppo.settings")
@@ -71,6 +72,10 @@ class BlockingModule(reactContext: ReactApplicationContext) :
                 appSet.add("com.huawei.systemmanager")
                 appSet.add("com.oneplus.settings")
                 appSet.add("com.google.android.settings.intelligence")
+                appSet.add("com.android.provision")
+                appSet.add("com.lge.settings")
+                appSet.add("com.asus.settings")
+                appSet.add("com.sony.settings")
             }
 
             // Calculate end time

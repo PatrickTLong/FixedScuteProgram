@@ -140,7 +140,58 @@ class ScuteAccessibilityService : AccessibilityService() {
             return
         }
 
+        // INSTANT Settings blocking via Accessibility (faster than UsageStats polling)
+        // Only handle Settings here; regular apps are handled by AppMonitorService
+        if (isSettingsPackage(packageName) && shouldBlockSettings()) {
+            Log.d(TAG, "BLOCKING Settings via Accessibility: $packageName")
+            // Tell AppMonitorService to show the blocked overlay
+            AppMonitorService.instance?.blockSettingsNow(packageName)
+        }
+
         // Website blocking is now handled by WebsiteMonitorService with fast polling
+    }
+
+    /**
+     * Check if this is a Settings-related package
+     */
+    private fun isSettingsPackage(packageName: String): Boolean {
+        return packageName == "com.android.settings" ||
+               packageName == "com.samsung.android.settings" ||
+               packageName == "com.samsung.android.setting.multisoundmain" ||
+               packageName == "com.miui.securitycenter" ||
+               packageName == "com.coloros.settings" ||
+               packageName == "com.oppo.settings" ||
+               packageName == "com.vivo.settings" ||
+               packageName == "com.huawei.systemmanager" ||
+               packageName == "com.oneplus.settings" ||
+               packageName == "com.google.android.settings.intelligence" ||
+               packageName == "com.android.provision" ||
+               packageName == "com.lge.settings" ||
+               packageName == "com.asus.settings" ||
+               packageName == "com.sony.settings" ||
+               packageName.contains("settings", ignoreCase = true)
+    }
+
+    /**
+     * Check if Settings should be blocked right now
+     */
+    private fun shouldBlockSettings(): Boolean {
+        val prefs = getSharedPreferences(UninstallBlockerService.PREFS_NAME, Context.MODE_PRIVATE)
+
+        // Check if session is active
+        if (!prefs.getBoolean(UninstallBlockerService.KEY_SESSION_ACTIVE, false)) {
+            return false
+        }
+
+        // Check if session has expired
+        val endTime = prefs.getLong(UninstallBlockerService.KEY_SESSION_END_TIME, 0)
+        if (System.currentTimeMillis() > endTime) {
+            return false
+        }
+
+        // Check if any Settings package is in the blocked list
+        val blockedApps = prefs.getStringSet(UninstallBlockerService.KEY_BLOCKED_APPS, emptySet()) ?: emptySet()
+        return blockedApps.any { isSettingsPackage(it) }
     }
 
     private fun isScuteUninstallDialog(): Boolean {
@@ -298,9 +349,20 @@ class ScuteAccessibilityService : AccessibilityService() {
 
             if (preset.optBoolean("blockSettings", false)) {
                 selectedApps.addAll(listOf(
-                    "com.android.settings", "com.samsung.android.settings", "com.miui.securitycenter",
-                    "com.coloros.settings", "com.oppo.settings", "com.vivo.settings",
-                    "com.huawei.systemmanager", "com.oneplus.settings", "com.google.android.settings.intelligence"
+                    "com.android.settings",
+                    "com.samsung.android.settings",
+                    "com.samsung.android.setting.multisoundmain",
+                    "com.miui.securitycenter",
+                    "com.coloros.settings",
+                    "com.oppo.settings",
+                    "com.vivo.settings",
+                    "com.huawei.systemmanager",
+                    "com.oneplus.settings",
+                    "com.google.android.settings.intelligence",
+                    "com.android.provision",
+                    "com.lge.settings",
+                    "com.asus.settings",
+                    "com.sony.settings"
                 ))
             }
 

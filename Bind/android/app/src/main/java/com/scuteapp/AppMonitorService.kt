@@ -19,7 +19,7 @@ class AppMonitorService(private val context: Context) {
 
     companion object {
         private const val TAG = "AppMonitorService"
-        private const val POLL_INTERVAL_MS = 15L // Poll every 15ms for instant detection
+        private const val POLL_INTERVAL_MS = 5L // Poll every 5ms for faster detection (especially for Settings)
 
         @Volatile
         var instance: AppMonitorService? = null
@@ -76,6 +76,17 @@ class AppMonitorService(private val context: Context) {
     }
 
     /**
+     * Block Settings immediately (called by AccessibilityService for instant blocking)
+     */
+    fun blockSettingsNow(packageName: String) {
+        // Skip if already showing overlay
+        if (overlayManager?.isShowing() == true) return
+
+        Log.d(TAG, "BLOCKING Settings (instant via Accessibility): $packageName")
+        showBlockedOverlay(packageName)
+    }
+
+    /**
      * Check if we have usage stats permission
      */
     fun hasUsageStatsPermission(): Boolean {
@@ -99,7 +110,8 @@ class AppMonitorService(private val context: Context) {
             ?: return null
 
         val now = System.currentTimeMillis()
-        val events = usageStatsManager.queryEvents(now - 5000, now)
+        // Query last 1 second only (more efficient than 5 seconds)
+        val events = usageStatsManager.queryEvents(now - 1000, now)
         val event = UsageEvents.Event()
 
         var foregroundPackage: String? = null
@@ -127,6 +139,9 @@ class AppMonitorService(private val context: Context) {
 
         // Skip our own app
         if (currentPackage == "com.scuteapp") return
+
+        // Skip Settings apps - they're handled instantly by AccessibilityService
+        if (isSettingsApp(currentPackage)) return
 
         // Skip if overlay is already showing
         if (overlayManager?.isShowing() == true) return
@@ -193,15 +208,26 @@ class AppMonitorService(private val context: Context) {
     }
 
     private fun isSettingsApp(packageName: String): Boolean {
-        return packageName == "com.android.settings" ||
-               packageName == "com.samsung.android.settings" ||
-               packageName == "com.miui.securitycenter" ||
-               packageName == "com.coloros.settings" ||
-               packageName == "com.oppo.settings" ||
-               packageName == "com.vivo.settings" ||
-               packageName == "com.huawei.systemmanager" ||
-               packageName == "com.oneplus.settings" ||
-               packageName == "com.google.android.settings.intelligence"
+        // Check exact package names first
+        if (packageName == "com.android.settings" ||
+            packageName == "com.samsung.android.settings" ||
+            packageName == "com.samsung.android.setting.multisoundmain" ||
+            packageName == "com.miui.securitycenter" ||
+            packageName == "com.coloros.settings" ||
+            packageName == "com.oppo.settings" ||
+            packageName == "com.vivo.settings" ||
+            packageName == "com.huawei.systemmanager" ||
+            packageName == "com.oneplus.settings" ||
+            packageName == "com.google.android.settings.intelligence" ||
+            packageName == "com.android.provision" ||
+            packageName == "com.lge.settings" ||
+            packageName == "com.asus.settings" ||
+            packageName == "com.sony.settings") {
+            return true
+        }
+
+        // Fallback: check if package name contains "settings" (catches variants)
+        return packageName.contains("settings", ignoreCase = true)
     }
 
     private fun pauseMedia() {
