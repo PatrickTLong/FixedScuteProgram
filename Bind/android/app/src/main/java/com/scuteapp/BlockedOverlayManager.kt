@@ -233,26 +233,13 @@ class BlockedOverlayManager(private val context: Context) {
         }
 
         // Always show the blocked app/website icon in the center
-        if (blockedType == TYPE_APP && blockedItem != null) {
+        if (blockedType == TYPE_APP || blockedType == TYPE_SETTINGS) {
+            // For apps and settings, show Android icon
             try {
-                // Get app icon from PackageManager
-                val pm = context.packageManager
-                val icon = pm.getApplicationIcon(blockedItem)
-                appIconView?.setImageDrawable(icon)
+                appIconView?.setImageResource(R.drawable.ic_android)
                 appIconView?.visibility = View.VISIBLE
             } catch (e: Exception) {
-                Log.w(TAG, "Failed to load app icon", e)
-                appIconView?.visibility = View.GONE
-            }
-        } else if (blockedType == TYPE_SETTINGS && blockedItem != null) {
-            // For settings, try to show the settings app icon
-            try {
-                val pm = context.packageManager
-                val icon = pm.getApplicationIcon(blockedItem)
-                appIconView?.setImageDrawable(icon)
-                appIconView?.visibility = View.VISIBLE
-            } catch (e: Exception) {
-                Log.w(TAG, "Failed to load settings icon", e)
+                Log.w(TAG, "Failed to load Android icon", e)
                 appIconView?.visibility = View.GONE
             }
         } else if (blockedType == TYPE_WEBSITE) {
@@ -269,9 +256,9 @@ class BlockedOverlayManager(private val context: Context) {
             appIconView?.visibility = View.GONE
         }
 
-        // Show "Continue anyway" button only in non-strict mode (and not for settings)
+        // Show "Continue anyway" button only in non-strict mode
         val continueButton = overlayView?.findViewById<TextView>(R.id.overlay_continue_button)
-        if (!strictMode && blockedType != TYPE_SETTINGS && blockedItem != null) {
+        if (!strictMode && blockedItem != null) {
             continueButton?.visibility = View.VISIBLE
             continueButton?.setOnClickListener {
                 vibrate()

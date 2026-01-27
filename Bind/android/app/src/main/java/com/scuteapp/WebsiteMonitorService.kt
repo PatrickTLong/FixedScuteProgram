@@ -55,7 +55,8 @@ class WebsiteMonitorService(private val context: Context) {
         // Create overlay manager
         overlayManager = BlockedOverlayManager(context).apply {
             onDismissed = {
-                // Just dismiss - redirect already happened when overlay was shown
+                // Reset last checked URL so monitoring will check again immediately
+                lastCheckedUrl = null
                 this@WebsiteMonitorService.onDismissed?.invoke()
             }
         }
