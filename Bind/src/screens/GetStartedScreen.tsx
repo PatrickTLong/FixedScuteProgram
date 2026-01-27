@@ -73,7 +73,6 @@ function GetStartedScreen({ onBack, onSuccess, onSignIn }: Props) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [code, setCode] = useState('');
   const [step, setStep] = useState<'form' | 'code'>('form');
   const [loading, setLoading] = useState(false);
@@ -95,11 +94,6 @@ function GetStartedScreen({ onBack, onSuccess, onSignIn }: Props) {
 
     if (password.length < 6) {
       showModal('Weak Password', 'Password must be at least 6 characters');
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      showModal('Passwords Don\'t Match', 'Please make sure both passwords match');
       return;
     }
 
@@ -212,7 +206,7 @@ function GetStartedScreen({ onBack, onSuccess, onSignIn }: Props) {
       >
         <ScrollView
           keyboardShouldPersistTaps="handled"
-          contentContainerStyle={{ flexGrow: 1, paddingTop: '5%' }}
+          contentContainerStyle={{ flexGrow: 1, paddingTop: '20%' }}
           className="flex-1"
         >
           <View className="px-6 pt-12">
@@ -241,7 +235,7 @@ function GetStartedScreen({ onBack, onSuccess, onSignIn }: Props) {
                 </View>
 
                 {/* Password Input */}
-                <View className="mb-4 mt-6">
+                <View className="mb-8 mt-6">
                   <Text style={{ color: colors.text, position: 'absolute', top: -22, left: 8 }} className="text-sm font-nunito">
                     Password
                   </Text>
@@ -249,31 +243,6 @@ function GetStartedScreen({ onBack, onSuccess, onSignIn }: Props) {
                     <TextInput
                       value={password}
                       onChangeText={setPassword}
-                      secureTextEntry={!showPassword}
-                      autoCapitalize="none"
-                      autoCorrect={false}
-                      editable={!loading}
-                      style={{ backgroundColor: colors.bg, borderColor: colors.border, color: colors.text, paddingRight: 50 }}
-                      className="border rounded-full px-5 py-4 text-base font-nunito"
-                    />
-                    <TouchableOpacity
-                      onPress={() => setShowPassword(!showPassword)}
-                      style={{ position: 'absolute', right: 16, top: 0, bottom: 0, justifyContent: 'center' }}
-                    >
-                      {showPassword ? <EyeIcon color={colors.text} /> : <EyeOffIcon color={colors.text} />}
-                    </TouchableOpacity>
-                  </View>
-                </View>
-
-                {/* Confirm Password Input */}
-                <View className="mb-8 mt-6">
-                  <Text style={{ color: colors.text, position: 'absolute', top: -22, left: 8 }} className="text-sm font-nunito">
-                    Confirm Password
-                  </Text>
-                  <View style={{ position: 'relative' }}>
-                    <TextInput
-                      value={confirmPassword}
-                      onChangeText={setConfirmPassword}
                       secureTextEntry={!showPassword}
                       autoCapitalize="none"
                       autoCorrect={false}
@@ -328,7 +297,7 @@ function GetStartedScreen({ onBack, onSuccess, onSignIn }: Props) {
           </View>
 
           {/* Bottom Section */}
-          <View className="px-6 pb-8 mt-6">
+          <View className="px-6 pb-8 mt-12">
             {/* Sign Up / Verify Button */}
             <TouchableOpacity
               onPress={() => { lightTap(); step === 'form' ? handleSignUp() : handleVerifyCode(); }}

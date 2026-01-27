@@ -239,7 +239,7 @@ function SignInScreen({ onBack, onSuccess, onForgotPassword }: Props) {
                 </View>
 
                 {/* Password Input */}
-                <View className="mb-4 mt-6">
+                <View className="mb-8 mt-6">
                   <Text style={{ color: colors.text, position: 'absolute', top: -22, left: 8 }} className="text-sm font-nunito">
                     Password
                   </Text>
@@ -260,19 +260,19 @@ function SignInScreen({ onBack, onSuccess, onForgotPassword }: Props) {
                     >
                       {showPassword ? <EyeIcon color={colors.text} /> : <EyeOffIcon color={colors.text} />}
                     </TouchableOpacity>
+
+                    {/* Forgot Password - absolutely positioned */}
+                    <TouchableOpacity
+                      onPress={() => { lightTap(); onForgotPassword(); }}
+                      activeOpacity={0.7}
+                      style={{ position: 'absolute', right: 0, top: 60 }}
+                    >
+                      <Text style={{ color: '#FFFFFF' }} className="text-sm font-nunito">
+                        Forgot Password?
+                      </Text>
+                    </TouchableOpacity>
                   </View>
                 </View>
-
-                {/* Forgot Password */}
-                <TouchableOpacity
-                  onPress={() => { lightTap(); onForgotPassword(); }}
-                  activeOpacity={0.7}
-                  className="items-end mb-8"
-                >
-                  <Text style={{ color: '#FFFFFF' }} className="text-sm font-nunito">
-                    Forgot Password?
-                  </Text>
-                </TouchableOpacity>
               </>
             ) : (
               <>
@@ -312,7 +312,7 @@ function SignInScreen({ onBack, onSuccess, onForgotPassword }: Props) {
           </View>
 
           {/* Bottom Section */}
-          <View className="px-6 pb-8 mt-6">
+          <View className="px-6 pb-8 mt-12">
             {/* Sign In / Verify Button */}
             <TouchableOpacity
               onPress={() => { lightTap(); step === 'credentials' ? handleSignIn() : handleVerifyCode(); }}

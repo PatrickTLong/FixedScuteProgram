@@ -72,7 +72,7 @@ function LandingScreen({ onGetStarted }: Props) {
     );
     animation.start();
 
-    // Show "Tap to continue" after 2 seconds with fade in
+    // Show "Tap to continue" after 1 second with fade in
     const timeout = setTimeout(() => {
       setShowTapText(true);
       Animated.timing(tapTextOpacity, {
@@ -80,7 +80,7 @@ function LandingScreen({ onGetStarted }: Props) {
         duration: 500,
         useNativeDriver: true,
       }).start();
-    }, 2000);
+    }, 1000);
 
     return () => {
       animation.stop();
