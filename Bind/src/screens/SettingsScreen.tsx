@@ -277,7 +277,7 @@ const SettingsRow = ({
     className="flex-row items-center py-4"
   >
     <View className="mr-4">{icon}</View>
-    <Text style={{ color: labelColor }} className="flex-1 text-base font-nunito">{label}</Text>
+    <Text style={{ color: labelColor }} className="flex-1 text-sm font-nunito">{label}</Text>
     {value && (
       <Text style={{ color: valueColor }} className="text-sm font-nunito mr-2">{value}</Text>
     )}
@@ -502,7 +502,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
               resizeMode="contain"
             />
             <Text style={{ color: colors.text }} className="text-xl font-nunito-bold mb-2">Phone is Locked</Text>
-            <Text style={{ color: colors.textSecondary }} className="text-center font-nunito px-8">
+            <Text style={{ color: colors.textSecondary }} className="text-center text-sm font-nunito px-8">
               Settings cannot be changed while blocking is active.
             </Text>
           </View>
@@ -535,7 +535,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
             <View className="flex-row items-center">
               <View className="mr-4"><MembershipIcon /></View>
               <View className="flex-1">
-                <Text style={{ color: colors.text }} className="text-base font-nunito">Membership</Text>
+                <Text style={{ color: colors.text }} className="text-sm font-nunito">Membership</Text>
                 {membershipStatus?.isMember ? (
                   <Text style={{ color: '#4CAF50' }} className="text-xs font-nunito mt-0.5">
                     Active Member
@@ -578,7 +578,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
               <TapoutIcon />
             </View>
             <View className="flex-1">
-              <Text style={{ color: colors.text }} className="text-base font-nunito">Tapouts Remaining</Text>
+              <Text style={{ color: colors.text }} className="text-sm font-nunito">Tapouts Remaining</Text>
               <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito mt-0.5">
                 Unlock your phone in emergencies
               </Text>
@@ -722,12 +722,12 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
             <View className="w-16" />
             <Text style={{ color: colors.text }} className="text-lg font-nunito-semibold">Privacy Policy</Text>
             <TouchableOpacity onPress={() => { lightTap(); setPrivacyModalVisible(false); }} className="w-16 items-end">
-              <Text style={{ color: '#FFFFFF' }} className="text-base font-nunito">Done</Text>
+              <Text style={{ color: '#FFFFFF' }} className="text-sm font-nunito">Done</Text>
             </TouchableOpacity>
           </View>
 
           <ScrollView className="flex-1 px-6 py-4">
-            <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-4">Privacy Policy</Text>
+            <Text style={{ color: colors.text }} className="text-sm font-nunito-bold mb-4">Privacy Policy</Text>
             <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
               Effective Date: January 6, 2026
             </Text>
@@ -735,7 +735,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
               Thank you for using Scute. Your privacy is important to us, and this Privacy Policy explains how we collect, use, and protect your information when you use our mobile application.
             </Text>
 
-            <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">1. Information We Collect</Text>
+            <Text style={{ color: colors.text }} className="text-sm font-nunito-bold mb-2">1. Information We Collect</Text>
             <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-2">
               We collect the following types of information:
             </Text>
@@ -744,21 +744,21 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
               • App Usage Data: We access app usage statistics on your device to track screen time and enforce app-blocking features. This data is processed locally on your device and is not transmitted to our servers.
             </Text>
 
-            <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">2. How We Use Your Information</Text>
+            <Text style={{ color: colors.text }} className="text-sm font-nunito-bold mb-2">2. How We Use Your Information</Text>
             <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
               We use your information for the following purposes:{'\n'}
               • To create and manage your account.{'\n'}
               • To enable core app functionality, such as app blocking and screen time tracking.
             </Text>
 
-            <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">3. Data Storage and Security</Text>
+            <Text style={{ color: colors.text }} className="text-sm font-nunito-bold mb-2">3. Data Storage and Security</Text>
             <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
               • Your email address is stored securely in our cloud database (powered by Supabase).{'\n'}
               • App usage data is stored locally on your device and is not uploaded to our servers.{'\n'}
               • We use industry-standard encryption to protect data in transit and at rest.
             </Text>
 
-            <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">4. Third-Party Services</Text>
+            <Text style={{ color: colors.text }} className="text-sm font-nunito-bold mb-2">4. Third-Party Services</Text>
             <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
               We use the following third-party services:{'\n'}
               • Supabase: For secure cloud storage and authentication.{'\n'}
@@ -766,7 +766,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
               These services have their own privacy policies, and we encourage you to review them.
             </Text>
 
-            <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">5. Permissions</Text>
+            <Text style={{ color: colors.text }} className="text-sm font-nunito-bold mb-2">5. Permissions</Text>
             <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
               To provide our services, the app requires the following permissions:{'\n'}
               • Usage Access: To monitor and block apps on your device.{'\n'}
@@ -775,14 +775,14 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
               These permissions are used solely for the app's intended functionality.
             </Text>
 
-            <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">6. Data Sharing</Text>
+            <Text style={{ color: colors.text }} className="text-sm font-nunito-bold mb-2">6. Data Sharing</Text>
             <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
               We do not sell, rent, or share your personal information with third parties, except:{'\n'}
               • When required by law.{'\n'}
               • To protect the rights, safety, or property of Scute or its users.
             </Text>
 
-            <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">7. Your Rights</Text>
+            <Text style={{ color: colors.text }} className="text-sm font-nunito-bold mb-2">7. Your Rights</Text>
             <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
               You have the right to:{'\n'}
               • Access, update, or delete your account information.{'\n'}
@@ -790,17 +790,17 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
               To exercise these rights, contact us at info@scuteapp.com.
             </Text>
 
-            <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">8. Children's Privacy</Text>
+            <Text style={{ color: colors.text }} className="text-sm font-nunito-bold mb-2">8. Children's Privacy</Text>
             <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
               Scute is not intended for children under the age of 13. We do not knowingly collect personal information from children.
             </Text>
 
-            <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">9. Changes to This Policy</Text>
+            <Text style={{ color: colors.text }} className="text-sm font-nunito-bold mb-2">9. Changes to This Policy</Text>
             <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
               We may update this Privacy Policy from time to time. Any changes will be posted in the app, and the "Effective Date" will be updated accordingly.
             </Text>
 
-            <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">10. Contact Us</Text>
+            <Text style={{ color: colors.text }} className="text-sm font-nunito-bold mb-2">10. Contact Us</Text>
             <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-8">
               If you have any questions or concerns about this Privacy Policy, please contact us at:{'\n'}
               Email: info@scuteapp.com
@@ -822,12 +822,12 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
             <View className="w-16" />
             <Text style={{ color: colors.text }} className="text-lg font-nunito-semibold">Terms of Service</Text>
             <TouchableOpacity onPress={() => { lightTap(); setTermsModalVisible(false); }} className="w-16 items-end">
-              <Text style={{ color: '#FFFFFF' }} className="text-base font-nunito">Done</Text>
+              <Text style={{ color: '#FFFFFF' }} className="text-sm font-nunito">Done</Text>
             </TouchableOpacity>
           </View>
 
           <ScrollView className="flex-1 px-6 py-4">
-            <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-4">Terms of Service</Text>
+            <Text style={{ color: colors.text }} className="text-sm font-nunito-bold mb-4">Terms of Service</Text>
             <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
               Effective Date: January 6, 2026
             </Text>
@@ -835,17 +835,17 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
               Welcome to Scute. By downloading, installing, or using the Scute mobile application ("App"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, do not use the App.
             </Text>
 
-            <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">1. Acceptance of Terms</Text>
+            <Text style={{ color: colors.text }} className="text-sm font-nunito-bold mb-2">1. Acceptance of Terms</Text>
             <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
               By accessing or using Scute, you confirm that you are at least 13 years of age and have the legal capacity to enter into these Terms. If you are using the App on behalf of an organization, you represent that you have the authority to bind that organization to these Terms.
             </Text>
 
-            <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">2. Description of Service</Text>
+            <Text style={{ color: colors.text }} className="text-sm font-nunito-bold mb-2">2. Description of Service</Text>
             <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
               Scute is a digital wellness application designed to help users manage screen time by blocking access to selected applications and the Settings app on their device. The App uses accessibility services, usage access permissions, and notification access to enforce blocking functionality, including blocking notifications from restricted apps.
             </Text>
 
-            <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">3. User Responsibilities</Text>
+            <Text style={{ color: colors.text }} className="text-sm font-nunito-bold mb-2">3. User Responsibilities</Text>
             <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
               You are solely responsible for:{'\n'}
               • Configuring the App according to your preferences and needs.{'\n'}
@@ -854,7 +854,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
               • Any consequences resulting from your use of the App's blocking features.
             </Text>
 
-            <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">4. Assumption of Risk</Text>
+            <Text style={{ color: colors.text }} className="text-sm font-nunito-bold mb-2">4. Assumption of Risk</Text>
             <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
               You acknowledge and agree that:{'\n'}
               • The App is designed to intentionally restrict access to your device's applications and settings.{'\n'}
@@ -863,12 +863,12 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
               • You are responsible for ensuring blocking sessions do not interfere with essential device functions you may need.
             </Text>
 
-            <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">5. Disclaimer of Warranties</Text>
+            <Text style={{ color: colors.text }} className="text-sm font-nunito-bold mb-2">5. Disclaimer of Warranties</Text>
             <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
               THE APP IS PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. WE DO NOT WARRANT THAT THE APP WILL BE UNINTERRUPTED, ERROR-FREE, OR COMPLETELY SECURE.
             </Text>
 
-            <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">6. Limitation of Liability</Text>
+            <Text style={{ color: colors.text }} className="text-sm font-nunito-bold mb-2">6. Limitation of Liability</Text>
             <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
               If you experience any issues such as prolonged blocking due to bugs, unexpected behavior, or accidental activation, please contact our support team at support@scuteapp.com for assistance. We are committed to helping resolve any problems you may encounter.{'\n\n'}
               TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, SCUTE AND ITS DEVELOPERS, OFFICERS, EMPLOYEES, AND AGENTS SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING BUT NOT LIMITED TO:{'\n'}
@@ -878,22 +878,22 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
               • Any other damages arising from your use of the App.
             </Text>
 
-            <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">7. Indemnification</Text>
+            <Text style={{ color: colors.text }} className="text-sm font-nunito-bold mb-2">7. Indemnification</Text>
             <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
               You agree to indemnify, defend, and hold harmless Scute and its developers, officers, employees, and agents from and against any claims, liabilities, damages, losses, and expenses (including reasonable attorney's fees) arising out of or in any way connected with your use of the App or violation of these Terms.
             </Text>
 
-            <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">8. Emergency Tapout Feature</Text>
+            <Text style={{ color: colors.text }} className="text-sm font-nunito-bold mb-2">8. Emergency Tapout Feature</Text>
             <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
               The App provides an optional "Emergency Tapout" feature that allows users to end blocking sessions early. This feature is limited and subject to usage restrictions. We do not guarantee that the Emergency Tapout feature will always be available or functional. Users who disable this feature accept full responsibility for completing their blocking sessions.
             </Text>
 
-            <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">9. Account Termination</Text>
+            <Text style={{ color: colors.text }} className="text-sm font-nunito-bold mb-2">9. Account Termination</Text>
             <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
               We reserve the right to suspend or terminate your account at any time for any reason, including but not limited to violation of these Terms. You may delete your account at any time through the App's settings if unblocked.
             </Text>
 
-            <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">10. Subscriptions and Payments</Text>
+            <Text style={{ color: colors.text }} className="text-sm font-nunito-bold mb-2">10. Subscriptions and Payments</Text>
             <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
               Scute offers subscription plans and a lifetime purchase option:{'\n'}
               • Free Trial: New users receive a 7-day free trial with full access to all features.{'\n'}
@@ -903,22 +903,22 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
               Subscriptions are processed through Google Play. By subscribing, you agree to Google Play's terms of service. Subscriptions automatically renew unless cancelled at least 24 hours before the end of the current billing period. You can manage or cancel your subscription through Google Play Store settings. Refunds are handled according to Google Play's refund policy.
             </Text>
 
-            <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">11. Modifications to Terms</Text>
+            <Text style={{ color: colors.text }} className="text-sm font-nunito-bold mb-2">11. Modifications to Terms</Text>
             <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
               We reserve the right to modify these Terms at any time. Changes will be effective upon posting within the App. Your continued use of the App after any modifications constitutes acceptance of the updated Terms.
             </Text>
 
-            <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">12. Governing Law</Text>
+            <Text style={{ color: colors.text }} className="text-sm font-nunito-bold mb-2">12. Governing Law</Text>
             <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
               These Terms shall be governed by and construed in accordance with the laws of the jurisdiction in which Scute operates, without regard to conflict of law principles.
             </Text>
 
-            <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">13. Severability</Text>
+            <Text style={{ color: colors.text }} className="text-sm font-nunito-bold mb-2">13. Severability</Text>
             <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
               If any provision of these Terms is found to be unenforceable or invalid, that provision shall be limited or eliminated to the minimum extent necessary, and the remaining provisions shall remain in full force and effect.
             </Text>
 
-            <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">14. Contact Us</Text>
+            <Text style={{ color: colors.text }} className="text-sm font-nunito-bold mb-2">14. Contact Us</Text>
             <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-8">
               If you have any questions about these Terms of Service, please contact us at:{'\n'}
               Email: info@scuteapp.com
@@ -966,7 +966,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
             {/* Title Section */}
             <View className="items-center mb-8">
               <Text style={{ color: colors.text }} className="text-2xl font-nunito-bold mb-2">Choose Your Plan</Text>
-              <Text style={{ color: colors.textSecondary }} className="text-center font-nunito">
+              <Text style={{ color: colors.textSecondary }} className="text-center text-sm font-nunito">
                 Features will remain enabled after trial during membership activation
               </Text>
             </View>
@@ -1063,7 +1063,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
               }}
               className="rounded-full py-4 items-center mb-4"
             >
-              <Text style={{ color: selectedPlan ? '#000000' : colors.textSecondary }} className="text-base font-nunito-bold">
+              <Text style={{ color: selectedPlan ? '#000000' : colors.textSecondary }} className="text-sm font-nunito-bold">
                 {selectedPlan ? 'Continue' : 'Select a Plan'}
               </Text>
             </TouchableOpacity>

@@ -236,7 +236,7 @@ function ForgotPasswordScreen({ onBack, onSuccess }: Props) {
                   Reset Password
                 </Text>
 
-                <Text style={{ color: colors.textSecondary }} className="text-center text-base font-nunito mb-10">
+                <Text style={{ color: colors.textSecondary }} className="text-center text-sm font-nunito mb-10">
                   Enter your email address and we'll send you a code to reset your password.
                 </Text>
 
@@ -264,7 +264,7 @@ function ForgotPasswordScreen({ onBack, onSuccess }: Props) {
                   Enter Code
                 </Text>
 
-                <Text style={{ color: colors.textSecondary }} className="text-center text-base font-nunito mb-8">
+                <Text style={{ color: colors.textSecondary }} className="text-center text-sm font-nunito mb-8">
                   Enter the 6-digit code sent to{'\n'}
                   <Text style={{ color: colors.text }}>{email}</Text>
                 </Text>
@@ -369,7 +369,7 @@ function ForgotPasswordScreen({ onBack, onSuccess }: Props) {
               style={{ backgroundColor: loading ? colors.textMuted : colors.text }}
               className="rounded-full py-4 items-center mb-4"
             >
-              <Text style={{ color: loading ? colors.textSecondary : colors.bg }} className="text-lg font-nunito-semibold">
+              <Text style={{ color: loading ? colors.textSecondary : colors.bg }} className="text-base font-nunito-semibold">
                 {loading
                   ? 'Please wait...'
                   : step === 'email'

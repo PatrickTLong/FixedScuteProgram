@@ -321,7 +321,7 @@ function SignInScreen({ onBack, onSuccess, onForgotPassword }: Props) {
               style={{ backgroundColor: loading ? colors.textMuted : colors.text }}
               className="rounded-full py-4 items-center mb-4"
             >
-              <Text style={{ color: loading ? colors.textSecondary : colors.bg }} className="text-lg font-nunito-semibold">
+              <Text style={{ color: loading ? colors.textSecondary : colors.bg }} className="text-base font-nunito-semibold">
                 {loading ? 'Please wait...' : step === 'credentials' ? 'Sign In' : 'Verify'}
               </Text>
             </TouchableOpacity>

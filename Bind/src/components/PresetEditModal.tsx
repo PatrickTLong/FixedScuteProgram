@@ -1039,7 +1039,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                 {/* Recurring Schedule Toggle */}
                 {scheduleStartDate && scheduleEndDate && scheduleEndDate > scheduleStartDate && (
                   <View className="mt-4 -mx-6">
-                    <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between py-4 px-6">
+                    <View style={isRecurring ? { borderBottomWidth: 1, borderBottomColor: colors.border } : undefined} className="flex-row items-center justify-between py-4 px-6">
                       <View style={{ maxWidth: '75%' }}>
                         <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">Recurring Schedule</Text>
                         <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">Repeat this block automatically</Text>

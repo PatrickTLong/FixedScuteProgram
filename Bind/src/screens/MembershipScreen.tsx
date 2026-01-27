@@ -23,7 +23,7 @@ function MembershipScreen({ onPurchaseComplete }: Props) {
         {/* Title Section */}
         <View className="items-center mb-8 mt-4">
           <Text style={{ color: colors.text }} className="text-2xl font-nunito-bold mb-2">Choose Your Plan</Text>
-          <Text style={{ color: colors.textSecondary }} className="text-center font-nunito">
+          <Text style={{ color: colors.textSecondary }} className="text-center text-sm font-nunito">
             Your free trial has ended. Subscribe to continue using Scute.
           </Text>
         </View>

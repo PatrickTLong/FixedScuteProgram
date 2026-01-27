@@ -297,7 +297,7 @@ function BlockNowButton({
       >
         {/* Text - always visible, positioned below the fill */}
         <View className="flex-1 flex-row items-center justify-center" style={{ zIndex: 1 }}>
-          <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">
+          <Text style={{ color: colors.text }} className="text-sm font-nunito-semibold">
             {isUnlocking ? 'Unlocking...' : isSliding ? 'Sliding...' : 'Slide to Unlock'}
           </Text>
         </View>

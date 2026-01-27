@@ -672,7 +672,7 @@ function PresetsScreen({ userEmail }: Props) {
               resizeMode="contain"
             />
             <Text style={{ color: colors.text }} className="text-xl font-nunito-bold mb-2">Phone is Locked</Text>
-            <Text style={{ color: colors.textSecondary }} className="text-center font-nunito px-8">
+            <Text style={{ color: colors.textSecondary }} className="text-center text-sm font-nunito px-8">
               Presets cannot be changed while blocking is active.
             </Text>
           </View>

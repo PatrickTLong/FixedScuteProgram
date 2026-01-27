@@ -126,7 +126,7 @@ export default function GoogleSignInBtn({ onSuccess, onError, disabled }: Props)
           <View className="mr-3">
             <GoogleLogo size={20} />
           </View>
-          <Text style={{ color: '#FFFFFF' }} className="text-lg font-nunito-semibold">
+          <Text style={{ color: '#FFFFFF' }} className="text-base font-nunito-semibold">
             Continue with Google
           </Text>
         </View>
