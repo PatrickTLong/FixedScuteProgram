@@ -1227,7 +1227,20 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
         </View>
 
         {/* Action Button - clean matte style */}
-        <View className="mb-10">
+        <View className="mb-10" style={{ position: 'relative' }}>
+          {/* Slide to Unlock subtext - only show when in slide-to-unlock mode */}
+          {isLocked && (!timeRemaining || !(activePreset?.strictMode ?? false)) && (
+            <Text style={{
+              color: '#ffffff',
+              position: 'absolute',
+              top: -24,
+              left: 0,
+              right: 0,
+              textAlign: 'center'
+            }} className="text-xs font-nunito">
+              Slide to Unlock
+            </Text>
+          )}
           <BlockNowButton
             onActivate={handleBlockNow}
             onUnlockPress={handleUnlockPress}

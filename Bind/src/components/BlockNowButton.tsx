@@ -7,13 +7,27 @@ import {
   TouchableOpacity,
   Dimensions,
 } from 'react-native';
+import Svg, { Path } from 'react-native-svg';
 import { lightTap, mediumTap, successTap } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 
-const HOLD_DURATION = 3000; // 3 seconds
+const HOLD_DURATION = 2000; // 2 seconds
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const BASE_BUTTON_HORIZONTAL_PADDING = 48; // px-6 = 24px * 2 from parent
+
+// Animated chevron indicator component
+const AnimatedChevron = ({ color, opacity }: { color: string; opacity: number }) => (
+  <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" style={{ opacity }}>
+    <Path
+      d="M9 18l6-6-6-6"
+      stroke={color}
+      strokeWidth={2.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
 
 interface BlockNowButtonProps {
   onActivate: () => void;
@@ -40,7 +54,6 @@ function BlockNowButton({
   const [isPressed, setIsPressed] = useState(false);
   const fillAnimation = useRef(new Animated.Value(0)).current;
   const animationRef = useRef<Animated.CompositeAnimation | null>(null);
-  const hapticIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Slide to unlock state
   const [isSliding, setIsSliding] = useState(false);
@@ -48,6 +61,27 @@ function BlockNowButton({
   const slidePosition = useRef(new Animated.Value(0)).current;
   const [buttonWidth, setButtonWidth] = useState(SCREEN_WIDTH - buttonHorizontalPadding);
   const hapticTriggeredRef = useRef({ first: false, second: false, third: false });
+
+  // Chevron animation for slide-to-unlock indicator
+  const chevronAnimation = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (showSlideToUnlock && !isUnlocking) {
+      // Continuous smooth loop - no abrupt stop
+      const animation = Animated.loop(
+        Animated.timing(chevronAnimation, {
+          toValue: 1,
+          duration: 1500,
+          useNativeDriver: true,
+          easing: (t) => t, // Linear for smooth continuous flow
+        })
+      );
+      animation.start();
+      return () => animation.stop();
+    } else {
+      chevronAnimation.setValue(0);
+    }
+  }, [showSlideToUnlock, isUnlocking, chevronAnimation]);
 
   // Can activate only when not disabled and not locked
   const canActivate = !disabled && !isLocked;
@@ -94,7 +128,8 @@ function BlockNowButton({
     setIsPressed(true);
     fillAnimation.setValue(0);
 
-    hapticIntervalRef.current = setInterval(() => {
+    // Single haptic at 1 second (halfway through 2-second hold)
+    const hapticTimeout = setTimeout(() => {
       lightTap();
     }, 1000);
 
@@ -105,10 +140,7 @@ function BlockNowButton({
     });
 
     animationRef.current.start(({ finished }) => {
-      if (hapticIntervalRef.current) {
-        clearInterval(hapticIntervalRef.current);
-        hapticIntervalRef.current = null;
-      }
+      clearTimeout(hapticTimeout);
 
       if (finished) {
         successTap();
@@ -124,11 +156,6 @@ function BlockNowButton({
       animationRef.current.stop();
     }
 
-    if (hapticIntervalRef.current) {
-      clearInterval(hapticIntervalRef.current);
-      hapticIntervalRef.current = null;
-    }
-
     setIsPressed(false);
 
     Animated.timing(fillAnimation, {
@@ -141,15 +168,14 @@ function BlockNowButton({
   // Slide-to-unlock functions
   const resetSlider = useCallback(() => {
     hapticTriggeredRef.current = { first: false, second: false, third: false };
-    // Keep isSliding true during the spring animation so the fill remains visible
+    // Set isSliding to false immediately so text changes right away
+    setIsSliding(false);
+    // Animate the slider back to starting position
     Animated.spring(slidePosition, {
       toValue: 0,
       useNativeDriver: false,
       friction: 5,
-    }).start(() => {
-      // Only set isSliding to false after the animation completes
-      setIsSliding(false);
-    });
+    }).start();
   }, [slidePosition]);
 
   const handleSlideComplete = useCallback(async () => {
@@ -273,7 +299,7 @@ function BlockNowButton({
           onUnlockPress?.();
         }}
         activeOpacity={0.7}
-        className="h-14 rounded-2xl overflow-hidden"
+        className="h-14 rounded-full overflow-hidden"
         style={{
           backgroundColor: colors.card,
           opacity: 0.6,
@@ -299,17 +325,43 @@ function BlockNowButton({
       <View
         onLayout={(e) => setButtonWidth(e.nativeEvent.layout.width)}
         {...slidePanResponder.panHandlers}
-        className="h-14 rounded-2xl overflow-hidden"
+        className="h-14 rounded-full overflow-hidden"
         style={{
           backgroundColor: colors.card,
         }}
       >
-        {/* Button Content - rendered first so it's behind the fill */}
-        <View className="flex-1 flex-row items-center justify-center" style={{ zIndex: 1 }}>
-          <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">
-            {isUnlocking ? 'Unlocking...' : isSliding ? 'Slide...' : 'Slide to Unlock'}
-          </Text>
-        </View>
+        {/* Animated chevrons - centered with smooth continuous flow */}
+        {!isUnlocking && (
+          <View className="flex-1 flex-row items-center justify-center" style={{ gap: 10, zIndex: 1 }}>
+            <Animated.View style={{ opacity: chevronAnimation.interpolate({
+              inputRange: [0, 0.25, 0.5, 0.75, 1],
+              outputRange: [0.4, 0.7, 0.5, 0.4, 0.4],
+            }) }}>
+              <AnimatedChevron color={colors.text} opacity={1} />
+            </Animated.View>
+            <Animated.View style={{ opacity: chevronAnimation.interpolate({
+              inputRange: [0, 0.25, 0.5, 0.75, 1],
+              outputRange: [0.4, 0.4, 0.7, 0.5, 0.4],
+            }) }}>
+              <AnimatedChevron color={colors.text} opacity={1} />
+            </Animated.View>
+            <Animated.View style={{ opacity: chevronAnimation.interpolate({
+              inputRange: [0, 0.25, 0.5, 0.75, 1],
+              outputRange: [0.5, 0.4, 0.4, 0.7, 0.5],
+            }) }}>
+              <AnimatedChevron color={colors.text} opacity={1} />
+            </Animated.View>
+          </View>
+        )}
+
+        {/* Unlocking state - show text */}
+        {isUnlocking && (
+          <View className="flex-1 flex-row items-center justify-center" style={{ zIndex: 1 }}>
+            <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">
+              Unlocking...
+            </Text>
+          </View>
+        )}
 
         {/* Slide fill animation - always rendered so it's ready to animate */}
         <Animated.View
@@ -320,7 +372,7 @@ function BlockNowButton({
             bottom: 0,
             width: slideFillWidth,
             backgroundColor: fillColor,
-            borderRadius: 16,
+            borderRadius: 28,
             zIndex: 2,
           }}
         />
@@ -333,12 +385,22 @@ function BlockNowButton({
   return (
     <View
       {...(canActivate ? holdPanResponder.panHandlers : {})}
-      className="h-14 rounded-2xl overflow-hidden"
+      className="h-14 rounded-full overflow-hidden"
       style={{
         backgroundColor: colors.card,
         borderWidth: 0,
       }}
     >
+      {/* Button Content */}
+      <View className="flex-1 flex-row items-center justify-center" style={{ zIndex: 1 }}>
+        <Text
+          style={{ color: getTextColor() }}
+          className="text-base font-nunito-semibold"
+        >
+          {isPressed ? 'Hold...' : 'Hold to Begin Locking'}
+        </Text>
+      </View>
+
       {/* Fill Animation */}
       {canActivate && (
         <Animated.View
@@ -349,20 +411,11 @@ function BlockNowButton({
             bottom: 0,
             width: fillWidth,
             backgroundColor: fillColor,
-            borderRadius: 16,
+            borderRadius: 28,
+            zIndex: 2,
           }}
         />
       )}
-
-      {/* Button Content */}
-      <View className="flex-1 flex-row items-center justify-center">
-        <Text
-          style={{ color: getTextColor() }}
-          className="text-base font-nunito-semibold"
-        >
-          {isPressed ? 'Hold...' : 'Hold to Begin Locking'}
-        </Text>
-      </View>
     </View>
   );
 }

@@ -817,6 +817,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                       setIsScheduled(false);
                       setScheduleStartDate(null);
                       setScheduleEndDate(null);
+                      setStrictMode(false); // Turn off strict mode when no time limit is enabled
                     }
                     mediumTap();
                   });

@@ -9,7 +9,7 @@ import LottieView from 'lottie-react-native';
 const Lottie = LottieView as any;
 import Svg, { Path } from 'react-native-svg';
 import { useTheme } from '../context/ThemeContext';
-import { mediumTap } from '../utils/haptics';
+import { lightTap, mediumTap } from '../utils/haptics';
 
 interface EmergencyTapoutModalProps {
   visible: boolean;
@@ -155,7 +155,10 @@ function EmergencyTapoutModal({
           {/* Close Button */}
           <View style={{ borderTopColor: colors.border }} className="border-t">
             <TouchableOpacity
-              onPress={onClose}
+              onPress={() => {
+                lightTap();
+                onClose();
+              }}
               activeOpacity={0.7}
               className="py-4 items-center"
             >
