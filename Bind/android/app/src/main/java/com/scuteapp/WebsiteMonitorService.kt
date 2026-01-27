@@ -164,6 +164,9 @@ class WebsiteMonitorService(private val context: Context) {
         val prefs = context.getSharedPreferences(UninstallBlockerService.PREFS_NAME, Context.MODE_PRIVATE)
         val strictMode = prefs.getBoolean("strict_mode", true)
 
+        // Redirect to Google BEFORE showing overlay (so it appears underneath)
+        redirectToGoogle()
+
         // Show overlay instantly with website name (use the blocked site as the display name)
         val shown = overlayManager?.show(BlockedOverlayManager.TYPE_WEBSITE, blockedSite, blockedSite, strictMode) ?: false
 
@@ -175,5 +178,27 @@ class WebsiteMonitorService(private val context: Context) {
 
         // Redirect to safe URL while overlay is showing (happens underneath the overlay)
         onRedirectToSafeUrl?.invoke()
+    }
+
+    /**
+     * Redirect the browser to Google search
+     */
+    private fun redirectToGoogle() {
+        try {
+            val accessibilityService = ScuteAccessibilityService.instance
+            if (accessibilityService != null) {
+                // Navigate to Google in the current browser
+                val success = accessibilityService.navigateToUrl("https://www.google.com")
+                if (success) {
+                    Log.d(TAG, "Redirected to Google")
+                } else {
+                    Log.w(TAG, "Failed to redirect to Google")
+                }
+            } else {
+                Log.w(TAG, "Accessibility service not available for redirect")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error redirecting to Google", e)
+        }
     }
 }
