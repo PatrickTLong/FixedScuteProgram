@@ -46,7 +46,7 @@ function StrictModeWarningModal({ visible, onConfirm, onCancel }: StrictModeWarn
             </Text>
 
             <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito text-center">
-              The preset stays locked until the timer ends or you use an emergency tapout. Without Strict Mode, you can slide to unlock or dismiss blocked apps anytime.
+              Strict Mode prevents easy unlocking. For timed presets, the lock stays active until the timer ends. For all presets, blocked apps won't show the "Continue anyway" button.
             </Text>
 
             {/* Don't show again checkbox */}

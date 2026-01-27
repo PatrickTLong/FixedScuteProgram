@@ -1,5 +1,7 @@
 package com.scuteapp
 
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -15,6 +17,7 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
+import android.view.animation.DecelerateInterpolator
 import android.widget.ImageView
 import android.widget.TextView
 import java.io.ByteArrayOutputStream
@@ -40,6 +43,7 @@ class BlockedOverlayManager(private val context: Context) {
     private var windowManager: WindowManager? = null
     private var overlayView: View? = null
     private var isShowing = false
+    private var isTransitioning = false
 
     // Callback when overlay is dismissed
     var onDismissed: (() -> Unit)? = null
@@ -133,15 +137,40 @@ class BlockedOverlayManager(private val context: Context) {
                     or View.SYSTEM_UI_FLAG_FULLSCREEN
                     or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
 
-            // Set up tap to dismiss
-            overlayView?.findViewById<View>(R.id.overlay_root)?.setOnClickListener {
-                vibrate()
-                dismiss()
-            }
-
             // Add to window manager
             windowManager?.addView(overlayView, layoutParams)
             isShowing = true
+            isTransitioning = true
+
+            // Disable clicks during transition
+            overlayView?.isClickable = false
+            overlayView?.findViewById<View>(R.id.overlay_root)?.isClickable = false
+
+            // Fade in + scale animation (300ms)
+            overlayView?.alpha = 0f
+            overlayView?.scaleX = 0.95f
+            overlayView?.scaleY = 0.95f
+
+            val fadeIn = ObjectAnimator.ofFloat(overlayView, "alpha", 0f, 1f)
+            val scaleX = ObjectAnimator.ofFloat(overlayView, "scaleX", 0.95f, 1f)
+            val scaleY = ObjectAnimator.ofFloat(overlayView, "scaleY", 0.95f, 1f)
+
+            AnimatorSet().apply {
+                playTogether(fadeIn, scaleX, scaleY)
+                duration = 300
+                interpolator = DecelerateInterpolator()
+                addListener(object : android.animation.Animator.AnimatorListener {
+                    override fun onAnimationStart(animation: android.animation.Animator) {}
+                    override fun onAnimationRepeat(animation: android.animation.Animator) {}
+                    override fun onAnimationCancel(animation: android.animation.Animator) {
+                        enableInteraction()
+                    }
+                    override fun onAnimationEnd(animation: android.animation.Animator) {
+                        enableInteraction()
+                    }
+                })
+                start()
+            }
 
             Log.d(TAG, "Overlay shown for type: $blockedType, item: $blockedItem")
             return true
@@ -149,6 +178,25 @@ class BlockedOverlayManager(private val context: Context) {
         } catch (e: Exception) {
             Log.e(TAG, "Failed to show overlay", e)
             return false
+        }
+    }
+
+    /**
+     * Enable interaction after fade-in animation completes
+     */
+    private fun enableInteraction() {
+        isTransitioning = false
+        overlayView?.isClickable = true
+
+        // Set up tap to dismiss
+        overlayView?.findViewById<View>(R.id.overlay_root)?.apply {
+            isClickable = true
+            setOnClickListener {
+                if (!isTransitioning) {
+                    vibrate()
+                    dismiss()
+                }
+            }
         }
     }
 
@@ -169,7 +217,6 @@ class BlockedOverlayManager(private val context: Context) {
     private fun updateViewContent(blockedType: String, blockedItem: String?, blockedName: String?, strictMode: Boolean) {
         // Get views
         val appIconView = overlayView?.findViewById<ImageView>(R.id.overlay_app_icon)
-        val logoView = overlayView?.findViewById<ImageView>(R.id.overlay_logo)
         val messageView = overlayView?.findViewById<TextView>(R.id.overlay_message)
 
         // Update message text with app/website name
@@ -185,7 +232,7 @@ class BlockedOverlayManager(private val context: Context) {
             }
         }
 
-        // Show app icon if it's an app or website, otherwise show logo
+        // Always show the blocked app/website icon in the center
         if (blockedType == TYPE_APP && blockedItem != null) {
             try {
                 // Get app icon from PackageManager
@@ -193,20 +240,33 @@ class BlockedOverlayManager(private val context: Context) {
                 val icon = pm.getApplicationIcon(blockedItem)
                 appIconView?.setImageDrawable(icon)
                 appIconView?.visibility = View.VISIBLE
-                logoView?.visibility = View.GONE
             } catch (e: Exception) {
-                Log.w(TAG, "Failed to load app icon, using logo fallback", e)
+                Log.w(TAG, "Failed to load app icon", e)
                 appIconView?.visibility = View.GONE
-                logoView?.visibility = View.VISIBLE
+            }
+        } else if (blockedType == TYPE_SETTINGS && blockedItem != null) {
+            // For settings, try to show the settings app icon
+            try {
+                val pm = context.packageManager
+                val icon = pm.getApplicationIcon(blockedItem)
+                appIconView?.setImageDrawable(icon)
+                appIconView?.visibility = View.VISIBLE
+            } catch (e: Exception) {
+                Log.w(TAG, "Failed to load settings icon", e)
+                appIconView?.visibility = View.GONE
             }
         } else if (blockedType == TYPE_WEBSITE) {
-            // For websites, hide both (or could add a globe icon in the future)
-            appIconView?.visibility = View.GONE
-            logoView?.visibility = View.VISIBLE
+            // For websites, show globe icon
+            try {
+                appIconView?.setImageResource(R.drawable.ic_globe)
+                appIconView?.visibility = View.VISIBLE
+            } catch (e: Exception) {
+                Log.w(TAG, "Failed to load globe icon", e)
+                appIconView?.visibility = View.GONE
+            }
         } else {
-            // Fallback to logo
+            // For unknown types, hide the center icon (Scute logo is in top-left)
             appIconView?.visibility = View.GONE
-            logoView?.visibility = View.VISIBLE
         }
 
         // Show "Continue anyway" button only in non-strict mode (and not for settings)
@@ -245,8 +305,8 @@ class BlockedOverlayManager(private val context: Context) {
             Log.e(TAG, "Error unblocking item", e)
         }
 
-        // Just dismiss - don't go home, let user continue to the app
-        dismissWithoutCallback()
+        // Fade out and dismiss - don't go home, let user continue to the app
+        fadeOutAndDismiss(withCallback = false)
     }
 
     /**
@@ -254,27 +314,54 @@ class BlockedOverlayManager(private val context: Context) {
      */
     fun dismiss() {
         if (!isShowing) return
-
-        try {
-            windowManager?.removeView(overlayView)
-        } catch (e: Exception) {
-            Log.e(TAG, "Error removing overlay view", e)
-        }
-
-        overlayView = null
-        windowManager = null
-        isShowing = false
-
-        Log.d(TAG, "Overlay dismissed")
-        onDismissed?.invoke()
+        fadeOutAndDismiss(withCallback = true)
     }
 
     /**
-     * Dismiss without triggering the callback (for "Continue anyway")
+     * Fade out the overlay and dismiss
      */
-    private fun dismissWithoutCallback() {
-        if (!isShowing) return
+    private fun fadeOutAndDismiss(withCallback: Boolean) {
+        if (!isShowing || isTransitioning) return
 
+        isTransitioning = true
+
+        // Disable interaction during fade out
+        overlayView?.isClickable = false
+        overlayView?.findViewById<View>(R.id.overlay_root)?.isClickable = false
+
+        // Fade out + scale down animation (150ms)
+        val fadeOut = ObjectAnimator.ofFloat(overlayView, "alpha", 1f, 0f)
+        val scaleX = ObjectAnimator.ofFloat(overlayView, "scaleX", 1f, 0.95f)
+        val scaleY = ObjectAnimator.ofFloat(overlayView, "scaleY", 1f, 0.95f)
+
+        AnimatorSet().apply {
+            playTogether(fadeOut, scaleX, scaleY)
+            duration = 200
+            interpolator = DecelerateInterpolator()
+            addListener(object : android.animation.Animator.AnimatorListener {
+                override fun onAnimationStart(animation: android.animation.Animator) {}
+                override fun onAnimationRepeat(animation: android.animation.Animator) {}
+                override fun onAnimationCancel(animation: android.animation.Animator) {
+                    // Ensure animation visually completes before removal
+                    overlayView?.postDelayed({
+                        finalizeDismiss(withCallback)
+                    }, 50)
+                }
+                override fun onAnimationEnd(animation: android.animation.Animator) {
+                    // Ensure animation visually completes before removal
+                    overlayView?.postDelayed({
+                        finalizeDismiss(withCallback)
+                    }, 50)
+                }
+            })
+            start()
+        }
+    }
+
+    /**
+     * Complete the dismissal after animation
+     */
+    private fun finalizeDismiss(withCallback: Boolean) {
         try {
             windowManager?.removeView(overlayView)
         } catch (e: Exception) {
@@ -284,8 +371,14 @@ class BlockedOverlayManager(private val context: Context) {
         overlayView = null
         windowManager = null
         isShowing = false
+        isTransitioning = false
 
-        Log.d(TAG, "Overlay dismissed (continue anyway)")
+        if (withCallback) {
+            Log.d(TAG, "Overlay dismissed")
+            onDismissed?.invoke()
+        } else {
+            Log.d(TAG, "Overlay dismissed (continue anyway)")
+        }
     }
 
     /**

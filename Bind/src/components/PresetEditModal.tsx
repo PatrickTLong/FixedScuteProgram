@@ -817,7 +817,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                       setIsScheduled(false);
                       setScheduleStartDate(null);
                       setScheduleEndDate(null);
-                      setStrictMode(false); // Turn off strict mode when no time limit is enabled
+                      // Strict mode is now allowed for no time limit presets
                     }
                     mediumTap();
                   });
@@ -851,13 +851,14 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               />
             </View>
 
-            {/* Strict Mode Toggle - only for timed presets (hidden when No Time Limit is on) */}
-            {!noTimeLimit && (
-              <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between py-4 px-6">
-                <View style={{ maxWidth: '75%' }}>
-                  <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">Strict Mode</Text>
-                  <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">Lock until timer ends or emergency tapout</Text>
-                </View>
+            {/* Strict Mode Toggle - now available for all presets */}
+            <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between py-4 px-6">
+              <View style={{ maxWidth: '75%' }}>
+                <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">Strict Mode</Text>
+                <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">
+                  {noTimeLimit ? 'Disable "Continue anyway" button for blocked apps' : 'Lock until timer ends or emergency tapout'}
+                </Text>
+              </View>
                 <AnimatedSwitch
                   value={strictMode}
                   onValueChange={async (value: boolean) => {
@@ -889,8 +890,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                     }
                   }}
                 />
-              </View>
-            )}
+            </View>
 
             {/* Emergency Tapout Toggle - only available when Strict Mode is ON (hidden when No Time Limit or Strict Mode is off) */}
             {!noTimeLimit && strictMode && (
