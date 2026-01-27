@@ -109,6 +109,7 @@ class BlockedOverlayManager(private val context: Context) {
                 // FLAG_NOT_FOCUSABLE is NOT set - this makes the overlay focusable and able to receive input
                 // FLAG_NOT_TOUCH_MODAL prevents touches from passing through to underlying windows
                 // FLAG_FULLSCREEN hides the Android navigation bar (back/home/recents buttons)
+                // FLAG_ALT_FOCUSABLE_IM prevents keyboard from pushing/adjusting the overlay
                 // This combination ensures the overlay captures ALL touch events and blocks interaction
                 // with the underlying screen until dismissed
                 flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
@@ -116,12 +117,17 @@ class BlockedOverlayManager(private val context: Context) {
                         WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
                         WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
                         WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON or
-                        WindowManager.LayoutParams.FLAG_FULLSCREEN
+                        WindowManager.LayoutParams.FLAG_FULLSCREEN or
+                        WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM
 
                 format = PixelFormat.TRANSLUCENT
                 gravity = Gravity.TOP or Gravity.START
                 x = 0
                 y = 0
+
+                // Prevent keyboard from adjusting/resizing the overlay
+                softInputMode = WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN or
+                                WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING
 
                 // Handle display cutouts (notches)
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
@@ -280,6 +286,29 @@ class BlockedOverlayManager(private val context: Context) {
                 TYPE_APP -> {
                     val blockedApps = prefs.getStringSet(UninstallBlockerService.KEY_BLOCKED_APPS, emptySet())?.toMutableSet() ?: mutableSetOf()
                     currentBlockedItem?.let { blockedApps.remove(it) }
+                    prefs.edit().putStringSet(UninstallBlockerService.KEY_BLOCKED_APPS, blockedApps).apply()
+                }
+                TYPE_SETTINGS -> {
+                    // Remove ALL Settings packages, not just the current one
+                    val blockedApps = prefs.getStringSet(UninstallBlockerService.KEY_BLOCKED_APPS, emptySet())?.toMutableSet() ?: mutableSetOf()
+                    blockedApps.removeAll(listOf(
+                        "com.android.settings",
+                        "com.samsung.android.settings",
+                        "com.samsung.android.setting.multisoundmain",
+                        "com.miui.securitycenter",
+                        "com.coloros.settings",
+                        "com.oppo.settings",
+                        "com.vivo.settings",
+                        "com.huawei.systemmanager",
+                        "com.oneplus.settings",
+                        "com.google.android.settings.intelligence",
+                        "com.android.provision",
+                        "com.lge.settings",
+                        "com.asus.settings",
+                        "com.sony.settings"
+                    ))
+                    // Also remove any package containing "settings"
+                    blockedApps.removeAll { it.contains("settings", ignoreCase = true) }
                     prefs.edit().putStringSet(UninstallBlockerService.KEY_BLOCKED_APPS, blockedApps).apply()
                 }
                 TYPE_WEBSITE -> {

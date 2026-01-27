@@ -82,8 +82,23 @@ class AppMonitorService(private val context: Context) {
         // Skip if already showing overlay
         if (overlayManager?.isShowing() == true) return
 
+        // Dismiss keyboard immediately to prevent janky push/shift
+        dismissKeyboard()
+
         Log.d(TAG, "BLOCKING Settings (instant via Accessibility): $packageName")
         showBlockedOverlay(packageName)
+    }
+
+    /**
+     * Dismiss the soft keyboard
+     */
+    private fun dismissKeyboard() {
+        try {
+            val inputMethodManager = context.getSystemService(Context.INPUT_METHOD_SERVICE) as? android.view.inputmethod.InputMethodManager
+            inputMethodManager?.hideSoftInputFromWindow(null, 0)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error dismissing keyboard", e)
+        }
     }
 
     /**

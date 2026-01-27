@@ -144,8 +144,12 @@ class ScuteAccessibilityService : AccessibilityService() {
         // Only handle Settings here; regular apps are handled by AppMonitorService
         if (isSettingsPackage(packageName) && shouldBlockSettings()) {
             Log.d(TAG, "BLOCKING Settings via Accessibility: $packageName")
-            // Tell AppMonitorService to show the blocked overlay
+
+            // Show blocked overlay INSTANTLY (before Settings renders)
             AppMonitorService.instance?.blockSettingsNow(packageName)
+
+            // Also go back to close Settings underneath the overlay
+            performGlobalAction(GLOBAL_ACTION_BACK)
         }
 
         // Website blocking is now handled by WebsiteMonitorService with fast polling

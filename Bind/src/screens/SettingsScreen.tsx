@@ -13,6 +13,7 @@ const Lottie = LottieView as any;
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import ConfirmationModal from '../components/ConfirmationModal';
+import EmailConfirmationModal from '../components/EmailConfirmationModal';
 import { getLockStatus, getEmergencyTapoutStatus, EmergencyTapoutStatus, saveUserTheme, getCachedLockStatus, getCachedTapoutStatus, getMembershipStatus, MembershipStatus, getCachedMembershipStatus } from '../services/cardApi';
 import { useTheme } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
@@ -299,6 +300,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
   const [resetModalVisible, setResetModalVisible] = useState(false);
   const [deleteAccountModalVisible, setDeleteAccountModalVisible] = useState(false);
+  const [deleteEmailConfirmModalVisible, setDeleteEmailConfirmModalVisible] = useState(false);
   const [membershipModalVisible, setMembershipModalVisible] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'yearly' | 'lifetime' | null>(null);
   const [isLocked, setIsLocked] = useState<boolean | null>(hasCache ? cachedLockStatus.isLocked : null);
@@ -439,8 +441,15 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
     }
   };
 
-  const handleDeleteAccount = async () => {
+  const handleDeleteAccountConfirm = () => {
+    // First modal confirmed, show email confirmation modal
     setDeleteAccountModalVisible(false);
+    setDeleteEmailConfirmModalVisible(true);
+  };
+
+  const handleDeleteAccount = async () => {
+    // Email confirmed, proceed with deletion
+    setDeleteEmailConfirmModalVisible(false);
     setIsDeleting(true);
     setDeleteError(null);
 
@@ -697,16 +706,24 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
         onCancel={() => setResetModalVisible(false)}
       />
 
-      {/* Delete Account Modal */}
+      {/* Delete Account Modal - First Warning */}
       <ConfirmationModal
         visible={deleteAccountModalVisible}
         title="Delete Account"
         message="This will permanently delete your account and all associated data. Your subscription will be cancelled automatically. Previous purchases will not be refunded. This action cannot be undone."
-        confirmText="Delete Account"
+        confirmText="Continue"
         cancelText="Cancel"
         isDestructive
-        onConfirm={handleDeleteAccount}
+        onConfirm={handleDeleteAccountConfirm}
         onCancel={() => setDeleteAccountModalVisible(false)}
+      />
+
+      {/* Email Confirmation Modal - Second Layer */}
+      <EmailConfirmationModal
+        visible={deleteEmailConfirmModalVisible}
+        userEmail={email}
+        onConfirm={handleDeleteAccount}
+        onCancel={() => setDeleteEmailConfirmModalVisible(false)}
       />
 
       {/* Privacy Policy Modal */}

@@ -4,16 +4,50 @@ import {
   Text,
   Pressable,
 } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
+import Svg, { Path, Circle } from 'react-native-svg';
 import { lightTap, mediumTap } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
 import AnimatedSwitch from './AnimatedSwitch';
 
-// Shield icon with customizable color
-const ShieldIcon = ({ color, size = 16 }: { color: string; size?: number }) => (
+// Check Circle icon (Feather Icons) for scheduled presets
+const CheckCircleIcon = ({ color, size = 16 }: { color: string; size?: number }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Path
-      d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"
+      d="M22 11.08V12a10 10 0 1 1-5.93-9.14"
+      stroke={color}
+      strokeWidth={2.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M22 4L12 14.01l-3-3"
+      stroke={color}
+      strokeWidth={2.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+// Refresh CW icon (Feather Icons) for recurring presets
+const RefreshCwIcon = ({ color, size = 16 }: { color: string; size?: number }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M23 4v6h-6"
+      stroke={color}
+      strokeWidth={2.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M1 20v-6h6"
+      stroke={color}
+      strokeWidth={2.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"
       stroke={color}
       strokeWidth={2.5}
       strokeLinecap="round"
@@ -273,12 +307,12 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, disabled
               <>
                 {preset.isScheduled && (
                   <View className="ml-2">
-                    <ShieldIcon color={colors.cyan} size={18} />
+                    <CheckCircleIcon color="#FFFFFF" size={18} />
                   </View>
                 )}
                 {preset.repeat_enabled && (
                   <View className="ml-1.5">
-                    <ShieldIcon color="#a855f7" size={18} />
+                    <RefreshCwIcon color="#FFFFFF" size={18} />
                   </View>
                 )}
               </>
