@@ -1349,12 +1349,14 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                       }}
                       activeOpacity={0.7}
                       style={{
-                        backgroundColor: recurringUnit === unit ? "#22c55e" : colors.cardLight,
+                        backgroundColor: colors.cardLight,
+                        borderWidth: 2,
+                        borderColor: recurringUnit === unit ? '#FFFFFF' : 'transparent',
                       }}
                       className="items-center justify-center py-4 px-4 rounded-xl mb-2"
                     >
                       <Text
-                        style={{ color: recurringUnit === unit ? colors.text : colors.text }}
+                        style={{ color: colors.text }}
                         className="text-base font-nunito-semibold capitalize"
                       >
                         {unit}
