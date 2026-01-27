@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   Dimensions,
 } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
 import { lightTap, mediumTap, successTap } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
@@ -15,19 +14,6 @@ import { useResponsive } from '../utils/responsive';
 const HOLD_DURATION = 2000; // 2 seconds
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const BASE_BUTTON_HORIZONTAL_PADDING = 48; // px-6 = 24px * 2 from parent
-
-// Animated chevron indicator component
-const AnimatedChevron = ({ color, opacity }: { color: string; opacity: number }) => (
-  <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" style={{ opacity }}>
-    <Path
-      d="M9 18l6-6-6-6"
-      stroke={color}
-      strokeWidth={2.5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </Svg>
-);
 
 interface BlockNowButtonProps {
   onActivate: () => void;
@@ -61,27 +47,6 @@ function BlockNowButton({
   const slidePosition = useRef(new Animated.Value(0)).current;
   const [buttonWidth, setButtonWidth] = useState(SCREEN_WIDTH - buttonHorizontalPadding);
   const hapticTriggeredRef = useRef({ first: false, second: false, third: false });
-
-  // Chevron animation for slide-to-unlock indicator
-  const chevronAnimation = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    if (showSlideToUnlock && !isUnlocking) {
-      // Continuous smooth loop - no abrupt stop
-      const animation = Animated.loop(
-        Animated.timing(chevronAnimation, {
-          toValue: 1,
-          duration: 1500,
-          useNativeDriver: true,
-          easing: (t) => t, // Linear for smooth continuous flow
-        })
-      );
-      animation.start();
-      return () => animation.stop();
-    } else {
-      chevronAnimation.setValue(0);
-    }
-  }, [showSlideToUnlock, isUnlocking, chevronAnimation]);
 
   // Can activate only when not disabled and not locked
   const canActivate = !disabled && !isLocked;
@@ -330,40 +295,14 @@ function BlockNowButton({
           backgroundColor: colors.card,
         }}
       >
-        {/* Animated chevrons - centered with smooth continuous flow */}
-        {!isUnlocking && (
-          <View className="flex-1 flex-row items-center justify-center" style={{ gap: 10, zIndex: 1 }}>
-            <Animated.View style={{ opacity: chevronAnimation.interpolate({
-              inputRange: [0, 0.25, 0.5, 0.75, 1],
-              outputRange: [0.4, 0.7, 0.5, 0.4, 0.4],
-            }) }}>
-              <AnimatedChevron color={colors.text} opacity={1} />
-            </Animated.View>
-            <Animated.View style={{ opacity: chevronAnimation.interpolate({
-              inputRange: [0, 0.25, 0.5, 0.75, 1],
-              outputRange: [0.4, 0.4, 0.7, 0.5, 0.4],
-            }) }}>
-              <AnimatedChevron color={colors.text} opacity={1} />
-            </Animated.View>
-            <Animated.View style={{ opacity: chevronAnimation.interpolate({
-              inputRange: [0, 0.25, 0.5, 0.75, 1],
-              outputRange: [0.5, 0.4, 0.4, 0.7, 0.5],
-            }) }}>
-              <AnimatedChevron color={colors.text} opacity={1} />
-            </Animated.View>
-          </View>
-        )}
+        {/* Text - always visible, positioned below the fill */}
+        <View className="flex-1 flex-row items-center justify-center" style={{ zIndex: 1 }}>
+          <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">
+            {isUnlocking ? 'Unlocking...' : isSliding ? 'Sliding...' : 'Slide to Unlock'}
+          </Text>
+        </View>
 
-        {/* Unlocking state - show text */}
-        {isUnlocking && (
-          <View className="flex-1 flex-row items-center justify-center" style={{ zIndex: 1 }}>
-            <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">
-              Unlocking...
-            </Text>
-          </View>
-        )}
-
-        {/* Slide fill animation - always rendered so it's ready to animate */}
+        {/* Slide fill animation - overlaps the text */}
         <Animated.View
           style={{
             position: 'absolute',
@@ -376,7 +315,6 @@ function BlockNowButton({
             zIndex: 2,
           }}
         />
-
       </View>
     );
   }
