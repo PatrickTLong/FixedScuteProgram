@@ -45,7 +45,7 @@ function ConfirmationModal({
             <Text style={{ color: colors.text }} className="text-xl font-nunito-bold text-center mb-3">
               {title}
             </Text>
-            <Text style={{ color: colors.textSecondary }} className="text-base font-nunito text-center leading-6">
+            <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito text-center leading-6">
               {message}
             </Text>
           </View>
