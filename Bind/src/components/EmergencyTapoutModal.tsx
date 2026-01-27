@@ -98,25 +98,28 @@ function EmergencyTapoutModal({
             </Text>
           </View>
 
+          {/* Divider */}
+          <View style={{ backgroundColor: colors.border, height: 1 }} />
+
           {/* Emergency Tapout Section */}
-          <View className="px-6 pb-4">
-            <View style={{ backgroundColor: colors.bg }} className="rounded-xl p-4">
+          <View className="justify-center p-6">
+            <View className="items-center">
               <View className="flex-row items-center mb-3">
                 <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
                   <Path
                     d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0zM12 9v4M12 17h.01"
-                    stroke={canUseTapout ? '#22c55e' : colors.textMuted}
+                    stroke={canUseTapout ? '#f59e0b' : colors.textMuted}
                     strokeWidth={2}
                     strokeLinecap="round"
                     strokeLinejoin="round"
                   />
                 </Svg>
-                <Text style={{ color: colors.text }} className="text-base font-nunito-semibold ml-2">
+                <Text style={{ color: colors.text }} className="text-sm font-nunito-semibold ml-2">
                   Emergency Tapout
                 </Text>
               </View>
 
-              <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito mb-3">
+              <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito mb-3 text-center">
                 {canUseTapout
                   ? `You have ${tapoutsRemaining} tapout${tapoutsRemaining !== 1 ? 's' : ''} remaining.`
                   : getUnavailableReason()}
@@ -129,8 +132,12 @@ function EmergencyTapoutModal({
                 }}
                 disabled={!canUseTapout || isLoading}
                 activeOpacity={0.7}
-                style={{ backgroundColor: canUseTapout ? '#22c55e' : `${colors.textMuted}80` }}
-                className="py-3 rounded-xl items-center"
+                style={{
+                  backgroundColor: canUseTapout ? '#f59e0b' : `${colors.textMuted}50`,
+                  paddingVertical: 14,
+                  width: '100%'
+                }}
+                className="rounded-2xl items-center"
               >
                 {isLoading ? (
                   <Lottie
@@ -142,7 +149,7 @@ function EmergencyTapoutModal({
                   />
                 ) : (
                   <Text
-                    style={{ color: canUseTapout ? '#000000' : colors.textSecondary }}
+                    style={{ color: canUseTapout ? '#FFFFFF' : colors.textSecondary }}
                     className="text-sm font-nunito-bold"
                   >
                     {canUseTapout ? 'Use Emergency Tapout' : 'Not Available'}

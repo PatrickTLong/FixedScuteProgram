@@ -163,8 +163,8 @@ class WebsiteMonitorService(private val context: Context) {
         val prefs = context.getSharedPreferences(UninstallBlockerService.PREFS_NAME, Context.MODE_PRIVATE)
         val strictMode = prefs.getBoolean("strict_mode", true)
 
-        // Show overlay instantly
-        val shown = overlayManager?.show(BlockedOverlayManager.TYPE_WEBSITE, blockedSite, strictMode) ?: false
+        // Show overlay instantly with website name (use the blocked site as the display name)
+        val shown = overlayManager?.show(BlockedOverlayManager.TYPE_WEBSITE, blockedSite, blockedSite, strictMode) ?: false
 
         if (!shown) {
             Log.w(TAG, "Failed to show overlay, falling back to activity")

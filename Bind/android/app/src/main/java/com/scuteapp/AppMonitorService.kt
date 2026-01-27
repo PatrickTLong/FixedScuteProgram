@@ -170,11 +170,20 @@ class AppMonitorService(private val context: Context) {
             BlockedOverlayManager.TYPE_APP
         }
 
+        // Get app name
+        val appName = try {
+            val pm = context.packageManager
+            val appInfo = pm.getApplicationInfo(packageName, 0)
+            pm.getApplicationLabel(appInfo).toString()
+        } catch (e: Exception) {
+            null
+        }
+
         // Pause media
         pauseMedia()
 
-        // Show overlay instantly
-        val shown = overlayManager?.show(blockedType, packageName, strictMode) ?: false
+        // Show overlay instantly with app name
+        val shown = overlayManager?.show(blockedType, packageName, appName, strictMode) ?: false
 
         if (!shown) {
             Log.w(TAG, "Failed to show overlay, falling back to activity")

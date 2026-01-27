@@ -62,7 +62,17 @@ function SettingsBlockWarningModal({ visible, onClose }: SettingsBlockWarningMod
                 className="w-5 h-5 rounded border-2 items-center justify-center mr-3"
               >
                 {dontShowAgain && (
-                  <View style={{ borderColor: '#FFFFFF' }} className="w-2 h-3 border-r-2 border-b-2 rotate-45 -mt-0.5" />
+                  <View
+                    style={{
+                      width: 8,
+                      height: 13,
+                      borderRightWidth: 2.5,
+                      borderBottomWidth: 2.5,
+                      borderColor: '#FFFFFF',
+                      transform: [{ rotate: '45deg' }],
+                      marginTop: -2,
+                    }}
+                  />
                 )}
               </View>
               <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">

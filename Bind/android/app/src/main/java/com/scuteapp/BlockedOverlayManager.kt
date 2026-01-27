@@ -1,17 +1,23 @@
 package com.scuteapp
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.PixelFormat
+import android.graphics.drawable.Drawable
 import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.provider.Settings
+import android.util.Base64
 import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
+import android.widget.ImageView
 import android.widget.TextView
+import java.io.ByteArrayOutputStream
 
 /**
  * Manages a WindowManager-based overlay that appears INSTANTLY when a blocked app is detected.
@@ -41,6 +47,7 @@ class BlockedOverlayManager(private val context: Context) {
     // Store current block info for "Continue anyway"
     private var currentBlockedType: String = TYPE_APP
     private var currentBlockedItem: String? = null
+    private var currentBlockedName: String? = null
     private var currentStrictMode: Boolean = true
 
     /**
@@ -60,10 +67,10 @@ class BlockedOverlayManager(private val context: Context) {
      * Note: TYPE_ACCESSIBILITY_OVERLAY doesn't require SYSTEM_ALERT_WINDOW permission
      * when called from an AccessibilityService.
      */
-    fun show(blockedType: String, blockedItem: String?, strictMode: Boolean): Boolean {
+    fun show(blockedType: String, blockedItem: String?, blockedName: String?, strictMode: Boolean): Boolean {
         if (isShowing) {
             Log.d(TAG, "Overlay already showing, updating content")
-            updateContent(blockedType, blockedItem, strictMode)
+            updateContent(blockedType, blockedItem, blockedName, strictMode)
             return true
         }
 
@@ -73,6 +80,7 @@ class BlockedOverlayManager(private val context: Context) {
         try {
             currentBlockedType = blockedType
             currentBlockedItem = blockedItem
+            currentBlockedName = blockedName
             currentStrictMode = strictMode
 
             windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
@@ -118,7 +126,7 @@ class BlockedOverlayManager(private val context: Context) {
             }
 
             // Update content based on block type
-            updateViewContent(blockedType, blockedItem, strictMode)
+            updateViewContent(blockedType, blockedItem, blockedName, strictMode)
 
             // Hide system UI (navigation bar and status bar) for immersive blocking
             overlayView?.systemUiVisibility = (View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
@@ -147,22 +155,58 @@ class BlockedOverlayManager(private val context: Context) {
     /**
      * Update the content of an already showing overlay
      */
-    private fun updateContent(blockedType: String, blockedItem: String?, strictMode: Boolean) {
+    private fun updateContent(blockedType: String, blockedItem: String?, blockedName: String?, strictMode: Boolean) {
         currentBlockedType = blockedType
         currentBlockedItem = blockedItem
+        currentBlockedName = blockedName
         currentStrictMode = strictMode
-        updateViewContent(blockedType, blockedItem, strictMode)
+        updateViewContent(blockedType, blockedItem, blockedName, strictMode)
     }
 
     /**
      * Update the view content based on block type
      */
-    private fun updateViewContent(blockedType: String, blockedItem: String?, strictMode: Boolean) {
+    private fun updateViewContent(blockedType: String, blockedItem: String?, blockedName: String?, strictMode: Boolean) {
+        // Get views
+        val appIconView = overlayView?.findViewById<ImageView>(R.id.overlay_app_icon)
+        val logoView = overlayView?.findViewById<ImageView>(R.id.overlay_logo)
         val messageView = overlayView?.findViewById<TextView>(R.id.overlay_message)
+
+        // Update message text with app/website name
         messageView?.text = when (blockedType) {
-            TYPE_WEBSITE -> "This website is blocked."
+            TYPE_WEBSITE -> {
+                val displayName = blockedName ?: blockedItem ?: "This website"
+                "$displayName is blocked."
+            }
             TYPE_SETTINGS -> "Settings are blocked."
-            else -> "This app is blocked."
+            else -> {
+                val displayName = blockedName ?: "This app"
+                "$displayName is blocked."
+            }
+        }
+
+        // Show app icon if it's an app or website, otherwise show logo
+        if (blockedType == TYPE_APP && blockedItem != null) {
+            try {
+                // Get app icon from PackageManager
+                val pm = context.packageManager
+                val icon = pm.getApplicationIcon(blockedItem)
+                appIconView?.setImageDrawable(icon)
+                appIconView?.visibility = View.VISIBLE
+                logoView?.visibility = View.GONE
+            } catch (e: Exception) {
+                Log.w(TAG, "Failed to load app icon, using logo fallback", e)
+                appIconView?.visibility = View.GONE
+                logoView?.visibility = View.VISIBLE
+            }
+        } else if (blockedType == TYPE_WEBSITE) {
+            // For websites, hide both (or could add a globe icon in the future)
+            appIconView?.visibility = View.GONE
+            logoView?.visibility = View.VISIBLE
+        } else {
+            // Fallback to logo
+            appIconView?.visibility = View.GONE
+            logoView?.visibility = View.VISIBLE
         }
 
         // Show "Continue anyway" button only in non-strict mode (and not for settings)
