@@ -44,7 +44,7 @@ function SettingsBlockWarningModal({ visible, onClose }: SettingsBlockWarningMod
               Block Settings App?
             </Text>
 
-            <Text style={{ color: colors.textSecondary }} className="text-base font-nunito">
+            <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">
               The Settings app will be blocked during your session. WiFi, Bluetooth, and other basic toggles remain accessible via the quick settings dropdown.
             </Text>
 

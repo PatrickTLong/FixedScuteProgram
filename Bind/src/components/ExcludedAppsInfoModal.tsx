@@ -38,7 +38,7 @@ function ExcludedAppsInfoModal({ visible, onClose }: ExcludedAppsInfoModalProps)
               Some Apps Are Hidden
             </Text>
 
-            <Text style={{ color: colors.textSecondary }} className="text-base font-nunito text-center">
+            <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito text-center">
               For your safety, essential apps like Phone, Camera, Messages, and Emergency services cannot be blocked. Settings has a separate toggle in preset options.
             </Text>
 

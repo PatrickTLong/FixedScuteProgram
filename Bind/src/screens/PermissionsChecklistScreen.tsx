@@ -55,7 +55,7 @@ interface Permission {
   descriptionStyle?: string;
 }
 
-// Android permissions (7 total - Device Admin removed)
+// Android permissions (6 total - Device Admin and Alarms removed)
 const ANDROID_PERMISSIONS: Permission[] = [
   {
     id: 'notification',
@@ -91,13 +91,6 @@ const ANDROID_PERMISSIONS: Permission[] = [
     description: 'Display blocking status and alerts.',
     isGranted: false,
     androidIntent: 'android.settings.APP_NOTIFICATION_SETTINGS',
-  },
-  {
-    id: 'alarms',
-    title: 'Alarms & Reminders',
-    description: 'Schedule presets to automatically activate at specific times.',
-    isGranted: false,
-    androidIntent: 'android.settings.REQUEST_SCHEDULE_EXACT_ALARM',
   },
   {
     id: 'batteryOptimization',
@@ -347,13 +340,13 @@ function PermissionsChecklistScreen({ onComplete }: Props) {
             {permissions.filter(p => p.isGranted).map((permission) => (
               <View
                 key={permission.id}
-                style={{ backgroundColor: `${colors.card}80` }}
+                style={{ backgroundColor: colors.card }}
                 className="flex-row items-center py-3 px-4 rounded-xl mb-2"
               >
                 <View style={{ backgroundColor: '#22c55e' }} className="w-6 h-6 rounded items-center justify-center mr-3">
                   <View style={{ borderColor: '#FFFFFF' }} className="w-2.5 h-4 border-r-2 border-b-2 rotate-45 -mt-1" />
                 </View>
-                <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">
+                <Text style={{ color: '#FFFFFF' }} className="text-sm font-nunito">
                   {permission.title}
                 </Text>
               </View>

@@ -45,7 +45,7 @@ function DisableTapoutWarningModal({ visible, onConfirm, onCancel }: DisableTapo
               Disable Emergency Tapout?
             </Text>
 
-            <Text style={{ color: colors.textSecondary }} className="text-base font-nunito text-center">
+            <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito text-center">
               You won't be able to unlock this preset early. Only disable if you're certain you won't need emergency access.
             </Text>
 

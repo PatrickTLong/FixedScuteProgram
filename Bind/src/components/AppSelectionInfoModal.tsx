@@ -38,7 +38,7 @@ function AppSelectionInfoModal({ visible, onClose }: AppSelectionInfoModalProps)
               App Selection
             </Text>
 
-            <Text style={{ color: colors.textSecondary }} className="text-base font-nunito">
+            <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">
               For your safety, essential apps like Phone, Messages, and Camera cannot be blocked.
             </Text>
 

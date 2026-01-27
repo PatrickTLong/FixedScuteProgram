@@ -45,7 +45,7 @@ function BlockSettingsWarningModal({ visible, onConfirm, onCancel }: BlockSettin
               Block Settings App
             </Text>
 
-            <Text style={{ color: colors.textSecondary }} className="text-base font-nunito text-center">
+            <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito text-center">
               The Settings app will be blocked when this preset is active. Basic toggles like WiFi and Bluetooth remain accessible via quick settings.
             </Text>
 

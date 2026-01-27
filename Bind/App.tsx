@@ -291,7 +291,7 @@ function App() {
       if (PermissionsModule) {
         const states = await PermissionsModule.checkAllPermissions();
         // Check if any required permission is missing
-        const requiredPermissions = ['notification', 'accessibility', 'usageAccess', 'displayOverlay', 'deviceAdmin', 'postNotifications'];
+        const requiredPermissions = ['notification', 'accessibility', 'usageAccess', 'displayOverlay', 'postNotifications'];
         const missingPermission = requiredPermissions.some(perm => !states[perm]);
 
         if (missingPermission) {
@@ -372,7 +372,7 @@ function App() {
       try {
         if (PermissionsModule) {
           const states = await PermissionsModule.checkAllPermissions();
-          const requiredPermissions = ['notification', 'accessibility', 'usageAccess', 'displayOverlay', 'deviceAdmin', 'postNotifications', 'alarms'];
+          const requiredPermissions = ['notification', 'accessibility', 'usageAccess', 'displayOverlay', 'postNotifications', 'batteryOptimization'];
           const allGranted = requiredPermissions.every(perm => states[perm]);
 
           if (allGranted) {
@@ -426,7 +426,7 @@ function App() {
     try {
       if (PermissionsModule) {
         const states = await PermissionsModule.checkAllPermissions();
-        const requiredPermissions = ['notification', 'accessibility', 'usageAccess', 'displayOverlay', 'deviceAdmin', 'postNotifications', 'alarms'];
+        const requiredPermissions = ['notification', 'accessibility', 'usageAccess', 'displayOverlay', 'postNotifications', 'alarms'];
         const allGranted = requiredPermissions.every(perm => states[perm]);
 
         if (allGranted) {
@@ -463,7 +463,7 @@ function App() {
     try {
       if (PermissionsModule) {
         const states = await PermissionsModule.checkAllPermissions();
-        const requiredPermissions = ['notification', 'accessibility', 'usageAccess', 'displayOverlay', 'deviceAdmin', 'postNotifications', 'alarms'];
+        const requiredPermissions = ['notification', 'accessibility', 'usageAccess', 'displayOverlay', 'postNotifications', 'alarms'];
         const allGranted = requiredPermissions.every(perm => states[perm]);
 
         if (allGranted) {

@@ -271,7 +271,7 @@ function BlockNowButton({
         }}
       >
         <View className="flex-1 flex-row items-center justify-center">
-          <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">Locked</Text>
+          <Text style={{ color: colors.text }} className="text-sm font-nunito-semibold">Locked</Text>
         </View>
       </TouchableOpacity>
     );
@@ -333,7 +333,7 @@ function BlockNowButton({
       <View className="flex-1 flex-row items-center justify-center" style={{ zIndex: 1 }}>
         <Text
           style={{ color: getTextColor() }}
-          className="text-base font-nunito-semibold"
+          className="text-sm font-nunito-semibold"
         >
           {isPressed ? 'Hold...' : 'Hold to Begin Locking'}
         </Text>
