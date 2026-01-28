@@ -227,7 +227,7 @@ const ExpandableInfo = ({ expanded, children, lazy = false }: { expanded: boolea
     <Animated.View
       style={{
         opacity: animValue,
-        ...(!lazy && !expanded ? { position: 'absolute' as const, width: 0, height: 0, overflow: 'hidden' as const } : {}),
+        ...(!lazy && !expanded ? { display: 'none' as const } : {}),
       }}
       pointerEvents={expanded ? 'auto' : 'none'}
     >
@@ -847,11 +847,11 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
 
             {/* No Time Limit Toggle */}
             <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }}>
-              <TouchableOpacity onPress={() => toggleInfo('noTimeLimit')} activeOpacity={0.7} className="flex-row items-center justify-between py-4 px-6">
-                <View style={{ maxWidth: '75%' }}>
+              <View className="flex-row items-center justify-between py-4 px-6">
+                <TouchableOpacity onPress={() => toggleInfo('noTimeLimit')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
                   <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">No Time Limit</Text>
                   <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">Block until manually unlocked</Text>
-                </View>
+                </TouchableOpacity>
                 <AnimatedSwitch
                   value={noTimeLimit}
                   onValueChange={(value: boolean) => {
@@ -866,13 +866,10 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                     });
                   }}
                 />
-              </TouchableOpacity>
+              </View>
               <ExpandableInfo expanded={!!expandedInfo.noTimeLimit}>
-                <TouchableOpacity onPress={() => toggleInfo('noTimeLimit')} activeOpacity={0.7} className="flex-row items-start px-6 pb-4">
-                  <View className="mr-2.5" style={{ marginTop: 4 }}>
-                    <ChevronRightIcon size={12} color="#FFFFFF" />
-                  </View>
-                  <Text style={{ color: colors.text, flex: 1 }} className="text-sm font-nunito leading-5">
+                <TouchableOpacity onPress={() => toggleInfo('noTimeLimit')} activeOpacity={0.7} className="px-6 pb-4">
+                  <Text style={{ color: colors.text }} className="text-sm font-nunito leading-5">
                     Block stays active until manually ended. With Strict Mode on and no Emergency Tapout, you may be locked out indefinitely.
                   </Text>
                 </TouchableOpacity>
@@ -882,11 +879,11 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
             {/* Schedule for Later Toggle */}
             <ExpandableInfo expanded={!noTimeLimit} lazy>
             <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }}>
-              <TouchableOpacity onPress={() => toggleInfo('schedule')} activeOpacity={0.7} className="flex-row items-center justify-between py-4 px-6">
-                <View style={{ maxWidth: '75%' }}>
+              <View className="flex-row items-center justify-between py-4 px-6">
+                <TouchableOpacity onPress={() => toggleInfo('schedule')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
                   <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">Schedule for Later</Text>
                   <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">Set a future start and end time</Text>
-                </View>
+                </TouchableOpacity>
                 <AnimatedSwitch
                   value={isScheduled}
                   onValueChange={(value: boolean) => {
@@ -913,13 +910,10 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                     });
                   }}
                 />
-              </TouchableOpacity>
+              </View>
               <ExpandableInfo expanded={!!expandedInfo.schedule}>
-                <TouchableOpacity onPress={() => toggleInfo('schedule')} activeOpacity={0.7} className="flex-row items-start px-6 pb-4">
-                  <View className="mr-2.5" style={{ marginTop: 4 }}>
-                    <ChevronRightIcon size={12} color="#FFFFFF" />
-                  </View>
-                  <Text style={{ color: colors.text, flex: 1 }} className="text-sm font-nunito leading-5">
+                <TouchableOpacity onPress={() => toggleInfo('schedule')} activeOpacity={0.7} className="px-6 pb-4">
+                  <Text style={{ color: colors.text }} className="text-sm font-nunito leading-5">
                     Set a future start and end time. Hides timer options since duration is determined by your schedule.
                   </Text>
                 </TouchableOpacity>
@@ -1247,11 +1241,11 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
 
             {/* Block Settings Toggle */}
             <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }}>
-              <TouchableOpacity onPress={() => toggleInfo('blockSettings')} activeOpacity={0.7} className="flex-row items-center justify-between py-4 px-6">
-                <View style={{ maxWidth: '75%' }}>
+              <View className="flex-row items-center justify-between py-4 px-6">
+                <TouchableOpacity onPress={() => toggleInfo('blockSettings')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
                   <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">Block Settings App</Text>
                   <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">WiFi settings remain accessible</Text>
-                </View>
+                </TouchableOpacity>
                 <AnimatedSwitch
                   value={blockSettings}
                   onValueChange={async (value: boolean) => {
@@ -1268,13 +1262,10 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                     }
                   }}
                 />
-              </TouchableOpacity>
+              </View>
               <ExpandableInfo expanded={!!expandedInfo.blockSettings}>
-                <TouchableOpacity onPress={() => toggleInfo('blockSettings')} activeOpacity={0.7} className="flex-row items-start px-6 pb-4">
-                  <View className="mr-2.5" style={{ marginTop: 4 }}>
-                    <ChevronRightIcon size={12} color="#FFFFFF" />
-                  </View>
-                  <Text style={{ color: colors.text, flex: 1 }} className="text-sm font-nunito leading-5">
+                <TouchableOpacity onPress={() => toggleInfo('blockSettings')} activeOpacity={0.7} className="px-6 pb-4">
+                  <Text style={{ color: colors.text }} className="text-sm font-nunito leading-5">
                     Prevents access to Android Settings during the block. WiFi remains accessible via quick settings.
                   </Text>
                 </TouchableOpacity>
@@ -1283,13 +1274,13 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
 
             {/* Strict Mode Toggle */}
             <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }}>
-              <TouchableOpacity onPress={() => toggleInfo('strictMode')} activeOpacity={0.7} className="flex-row items-center justify-between py-4 px-6">
-                <View style={{ maxWidth: '75%' }}>
+              <View className="flex-row items-center justify-between py-4 px-6">
+                <TouchableOpacity onPress={() => toggleInfo('strictMode')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
                   <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">Strict Mode</Text>
                   <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">
                     {noTimeLimit ? 'Disable "Continue anyway" button for blocked apps' : 'Lock until timer ends or emergency tapout'}
                   </Text>
-                </View>
+                </TouchableOpacity>
                 <AnimatedSwitch
                   value={strictMode}
                   onValueChange={async (value: boolean) => {
@@ -1318,13 +1309,10 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                     }
                   }}
                 />
-              </TouchableOpacity>
+              </View>
               <ExpandableInfo expanded={!!expandedInfo.strictMode}>
-                <TouchableOpacity onPress={() => toggleInfo('strictMode')} activeOpacity={0.7} className="flex-row items-start px-6 pb-4">
-                  <View className="mr-2.5" style={{ marginTop: 4 }}>
-                    <ChevronRightIcon size={12} color="#FFFFFF" />
-                  </View>
-                  <Text style={{ color: colors.text, flex: 1 }} className="text-sm font-nunito leading-5">
+                <TouchableOpacity onPress={() => toggleInfo('strictMode')} activeOpacity={0.7} className="px-6 pb-4">
+                  <Text style={{ color: colors.text }} className="text-sm font-nunito leading-5">
                     Removes the slide-to-unlock option & the ability to dismiss a blocked app. Only exits: timer expiring or Emergency Tapout (if enabled).
                   </Text>
                 </TouchableOpacity>
@@ -1334,22 +1322,19 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
             {/* Emergency Tapout Toggle */}
             <ExpandableInfo expanded={strictMode} lazy>
               <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }}>
-                <TouchableOpacity onPress={() => toggleInfo('emergencyTapout')} activeOpacity={0.7} className="flex-row items-center justify-between py-4 px-6">
-                  <View style={{ maxWidth: '75%' }}>
+                <View className="flex-row items-center justify-between py-4 px-6">
+                  <TouchableOpacity onPress={() => toggleInfo('emergencyTapout')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
                     <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">Allow Emergency Tapout</Text>
                     <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">Use your emergency tapouts for this preset</Text>
-                  </View>
+                  </TouchableOpacity>
                   <AnimatedSwitch
                     value={allowEmergencyTapout}
                     onValueChange={handleEmergencyTapoutToggle}
                   />
-                </TouchableOpacity>
+                </View>
                 <ExpandableInfo expanded={!!expandedInfo.emergencyTapout}>
-                  <TouchableOpacity onPress={() => toggleInfo('emergencyTapout')} activeOpacity={0.7} className="flex-row items-start px-6 pb-4">
-                    <View className="mr-2.5" style={{ marginTop: 4 }}>
-                      <ChevronRightIcon size={12} color="#FFFFFF" />
-                    </View>
-                    <Text style={{ color: colors.text, flex: 1 }} className="text-sm font-nunito leading-5">
+                  <TouchableOpacity onPress={() => toggleInfo('emergencyTapout')} activeOpacity={0.7} className="px-6 pb-4">
+                    <Text style={{ color: colors.text }} className="text-sm font-nunito leading-5">
                       Your safety net for Strict Mode blocks. Limited uses that refill +1 every two weeks. Disabling means NO way out except waiting.
                     </Text>
                   </TouchableOpacity>
@@ -1360,45 +1345,51 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
           </ScrollView>
 
           {/* Date Picker Modal */}
-          <DatePickerModal
-            visible={datePickerVisible}
-            selectedDate={targetDate}
-            onClose={() => setDatePickerVisible(false)}
-            onSelect={(date) => {
-              setTargetDate(date);
-              if (date) {
-                setTimerDays(0);
-                setTimerHours(0);
-                setTimerMinutes(0);
-                setTimerSeconds(0);
-              }
-            }}
-          />
+          {datePickerVisible && (
+            <DatePickerModal
+              visible={datePickerVisible}
+              selectedDate={targetDate}
+              onClose={() => setDatePickerVisible(false)}
+              onSelect={(date) => {
+                setTargetDate(date);
+                if (date) {
+                  setTimerDays(0);
+                  setTimerHours(0);
+                  setTimerMinutes(0);
+                  setTimerSeconds(0);
+                }
+              }}
+            />
+          )}
 
           {/* Schedule Start Date Picker */}
-          <DatePickerModal
-            visible={startDatePickerVisible}
-            selectedDate={scheduleStartDate}
-            onClose={() => setStartDatePickerVisible(false)}
-            onSelect={(date) => {
-              setScheduleStartDate(date);
-              // If end date is before new start date, clear it
-              if (date && scheduleEndDate && scheduleEndDate <= date) {
-                setScheduleEndDate(null);
-              }
-            }}
-          />
+          {startDatePickerVisible && (
+            <DatePickerModal
+              visible={startDatePickerVisible}
+              selectedDate={scheduleStartDate}
+              onClose={() => setStartDatePickerVisible(false)}
+              onSelect={(date) => {
+                setScheduleStartDate(date);
+                // If end date is before new start date, clear it
+                if (date && scheduleEndDate && scheduleEndDate <= date) {
+                  setScheduleEndDate(null);
+                }
+              }}
+            />
+          )}
 
           {/* Schedule End Date Picker */}
-          <DatePickerModal
-            visible={endDatePickerVisible}
-            selectedDate={scheduleEndDate}
-            onClose={() => setEndDatePickerVisible(false)}
-            minimumDate={scheduleStartDate} // End date must be after start date
-            onSelect={(date) => {
-              setScheduleEndDate(date);
-            }}
-          />
+          {endDatePickerVisible && (
+            <DatePickerModal
+              visible={endDatePickerVisible}
+              selectedDate={scheduleEndDate}
+              onClose={() => setEndDatePickerVisible(false)}
+              minimumDate={scheduleStartDate} // End date must be after start date
+              onSelect={(date) => {
+                setScheduleEndDate(date);
+              }}
+            />
+          )}
 
           {/* Schedule Info Modal */}
           <ScheduleInfoModal

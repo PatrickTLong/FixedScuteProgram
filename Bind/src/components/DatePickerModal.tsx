@@ -32,6 +32,7 @@ const DAYS_OF_WEEK = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 // Time picker constants
 const BASE_TIME_ITEM_HEIGHT = 40;
 const TIME_VISIBLE_ITEMS = 3;
+const TIME_WINDOW_BUFFER = 1; // Render this many items above and below the selected
 const HOURS_12 = Array.from({ length: 12 }, (_, i) => i + 1); // 1-12
 const MINUTES = Array.from({ length: 60 }, (_, i) => i);
 
@@ -49,11 +50,39 @@ interface TimeWheelProps {
 
 const TimeWheel = memo(({ values, selectedValue, onValueChange, padZero = true, textColor, textMutedColor, itemHeight, wheelWidth }: TimeWheelProps) => {
   const scrollRef = useRef<ScrollView>(null);
-  const lastHapticIndex = useRef(-1); // Track last index for haptic feedback
+  const lastHapticIndex = useRef(-1);
+  const windowCenterRef = useRef(values.indexOf(selectedValue));
+  const [windowRange, setWindowRange] = useState(() => {
+    const idx = values.indexOf(selectedValue);
+    return { start: Math.max(0, idx - TIME_WINDOW_BUFFER), end: Math.min(values.length - 1, idx + TIME_WINDOW_BUFFER) };
+  });
+
+  const windowedValues = useMemo(
+    () => values.slice(windowRange.start, windowRange.end + 1),
+    [values, windowRange.start, windowRange.end],
+  );
+
+  const topSpacerHeight = windowRange.start * itemHeight;
+  const bottomSpacerHeight = (values.length - 1 - windowRange.end) * itemHeight;
+
+  const updateWindowIfNeeded = useCallback((index: number) => {
+    windowCenterRef.current = index;
+    setWindowRange(prev => {
+      if (index <= prev.start || index >= prev.end) {
+        const newStart = Math.max(0, index - TIME_WINDOW_BUFFER);
+        const newEnd = Math.min(values.length - 1, index + TIME_WINDOW_BUFFER);
+        if (newStart !== prev.start || newEnd !== prev.end) {
+          return { start: newStart, end: newEnd };
+        }
+      }
+      return prev;
+    });
+  }, [values.length]);
 
   useEffect(() => {
     const index = values.indexOf(selectedValue);
     if (index >= 0 && scrollRef.current) {
+      updateWindowIfNeeded(index);
       setTimeout(() => {
         scrollRef.current?.scrollTo({
           y: index * itemHeight,
@@ -61,25 +90,27 @@ const TimeWheel = memo(({ values, selectedValue, onValueChange, padZero = true, 
         });
       }, 10);
     }
-  }, [selectedValue, values, itemHeight]);
+  }, [selectedValue, values, itemHeight, updateWindowIfNeeded]);
 
-  // Handle scroll to trigger haptic on each number passed
   const handleScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const offsetY = event.nativeEvent.contentOffset.y;
     const currentIndex = Math.round(offsetY / itemHeight);
     const clampedIndex = Math.max(0, Math.min(currentIndex, values.length - 1));
 
-    // Trigger haptic when passing a new number
     if (lastHapticIndex.current !== clampedIndex && lastHapticIndex.current !== -1) {
       lightTap();
     }
     lastHapticIndex.current = clampedIndex;
-  }, [values.length, itemHeight]);
+
+    updateWindowIfNeeded(clampedIndex);
+  }, [values.length, itemHeight, updateWindowIfNeeded]);
 
   const handleScrollEnd = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const offsetY = event.nativeEvent.contentOffset.y;
     const index = Math.round(offsetY / itemHeight);
     const clampedIndex = Math.max(0, Math.min(index, values.length - 1));
+
+    updateWindowIfNeeded(clampedIndex);
 
     if (values[clampedIndex] !== selectedValue) {
       onValueChange(values[clampedIndex]);
@@ -89,7 +120,7 @@ const TimeWheel = memo(({ values, selectedValue, onValueChange, padZero = true, 
       y: clampedIndex * itemHeight,
       animated: true,
     });
-  }, [values, selectedValue, onValueChange, itemHeight]);
+  }, [values, selectedValue, onValueChange, itemHeight, updateWindowIfNeeded]);
 
   const paddingVertical = (itemHeight * (TIME_VISIBLE_ITEMS - 1)) / 2;
 
@@ -111,7 +142,8 @@ const TimeWheel = memo(({ values, selectedValue, onValueChange, padZero = true, 
         contentContainerStyle={{ paddingVertical }}
         nestedScrollEnabled
       >
-        {values.map((value) => {
+        {topSpacerHeight > 0 && <View style={{ height: topSpacerHeight }} />}
+        {windowedValues.map((value) => {
           const isSelected = value === selectedValue;
           return (
             <View
@@ -134,6 +166,7 @@ const TimeWheel = memo(({ values, selectedValue, onValueChange, padZero = true, 
             </View>
           );
         })}
+        {bottomSpacerHeight > 0 && <View style={{ height: bottomSpacerHeight }} />}
       </ScrollView>
     </View>
   );

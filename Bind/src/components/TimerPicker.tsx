@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, memo, useCallback } from 'react';
+import React, { useRef, useEffect, memo, useCallback, useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import { useResponsive } from '../utils/responsive';
 
 const BASE_ITEM_HEIGHT = 44;
 const VISIBLE_ITEMS = 2;
+const WINDOW_BUFFER = 1; // Render this many items above and below the selected
 
 interface WheelProps {
   values: number[];
@@ -30,72 +31,99 @@ const Wheel = memo(({ values, selectedValue, onValueChange, label, textColor, te
   const isUserScrolling = useRef(false);
   const lastUserSelectedValue = useRef(selectedValue);
   const isMounted = useRef(false);
-  const lastHapticIndex = useRef(-1); // Track last index for haptic feedback
+  const lastHapticIndex = useRef(-1);
+  // Window tracking: use ref to avoid re-renders, only setState when window edge is hit
+  const windowCenterRef = useRef(values.indexOf(selectedValue));
+  const [windowRange, setWindowRange] = useState(() => {
+    const idx = values.indexOf(selectedValue);
+    return { start: Math.max(0, idx - WINDOW_BUFFER), end: Math.min(values.length - 1, idx + WINDOW_BUFFER) };
+  });
 
-  // Scroll to selected value on mount only, or when value changes externally (not from user scroll)
+  const windowedValues = useMemo(
+    () => values.slice(windowRange.start, windowRange.end + 1),
+    [values, windowRange.start, windowRange.end],
+  );
+
+  const topSpacerHeight = windowRange.start * itemHeight;
+  const bottomSpacerHeight = (values.length - 1 - windowRange.end) * itemHeight;
+
+  // Only update window state when index is at or beyond the current window edge
+  const updateWindowIfNeeded = useCallback((index: number) => {
+    windowCenterRef.current = index;
+    setWindowRange(prev => {
+      // Check if index is at or past the edge of the current window
+      if (index <= prev.start || index >= prev.end || index < prev.start || index > prev.end) {
+        const newStart = Math.max(0, index - WINDOW_BUFFER);
+        const newEnd = Math.min(values.length - 1, index + WINDOW_BUFFER);
+        if (newStart !== prev.start || newEnd !== prev.end) {
+          return { start: newStart, end: newEnd };
+        }
+      }
+      return prev;
+    });
+  }, [values.length]);
+
   useEffect(() => {
     const index = values.indexOf(selectedValue);
     if (index >= 0 && scrollRef.current) {
-      // Only auto-scroll if this is initial mount OR if value changed externally (not from user scroll)
       if (!isMounted.current || lastUserSelectedValue.current !== selectedValue) {
-        // Skip if user just scrolled to this value
         if (isUserScrolling.current) {
           lastUserSelectedValue.current = selectedValue;
           return;
         }
 
+        updateWindowIfNeeded(index);
+
         setTimeout(() => {
           scrollRef.current?.scrollTo({
             y: index * itemHeight,
-            animated: isMounted.current, // Animate only after mount
+            animated: isMounted.current,
           });
         }, 10);
       }
       lastUserSelectedValue.current = selectedValue;
     }
     isMounted.current = true;
-  }, [selectedValue, values, itemHeight]);
+  }, [selectedValue, values, itemHeight, updateWindowIfNeeded]);
 
-  // Handle scroll to trigger haptic on each number passed
   const handleScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const offsetY = event.nativeEvent.contentOffset.y;
     const currentIndex = Math.round(offsetY / itemHeight);
     const clampedIndex = Math.max(0, Math.min(currentIndex, values.length - 1));
 
-    // Trigger haptic when passing a new number
     if (lastHapticIndex.current !== clampedIndex && lastHapticIndex.current !== -1) {
       lightTap();
     }
     lastHapticIndex.current = clampedIndex;
-  }, [values.length, itemHeight]);
+
+    // Only re-render when we reach the edge of the current window
+    updateWindowIfNeeded(clampedIndex);
+  }, [values.length, itemHeight, updateWindowIfNeeded]);
 
   const handleScrollEnd = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const offsetY = event.nativeEvent.contentOffset.y;
     const index = Math.round(offsetY / itemHeight);
     const clampedIndex = Math.max(0, Math.min(index, values.length - 1));
 
-    // Update the last user selected value before calling onValueChange
     lastUserSelectedValue.current = values[clampedIndex];
+    updateWindowIfNeeded(clampedIndex);
 
     if (values[clampedIndex] !== selectedValue) {
       onValueChange(values[clampedIndex]);
     }
 
-    // Snap to nearest item
     scrollRef.current?.scrollTo({
       y: clampedIndex * itemHeight,
       animated: true,
     });
 
-    // Clear user scrolling flag after a short delay
     setTimeout(() => {
       isUserScrolling.current = false;
     }, 100);
-  }, [values, selectedValue, onValueChange, itemHeight]);
+  }, [values, selectedValue, onValueChange, itemHeight, updateWindowIfNeeded]);
 
   const handleScrollBegin = useCallback(() => {
     isUserScrolling.current = true;
-    // Initialize haptic tracking with current position
     const index = values.indexOf(selectedValue);
     lastHapticIndex.current = index >= 0 ? index : 0;
   }, [values, selectedValue]);
@@ -121,7 +149,6 @@ const Wheel = memo(({ values, selectedValue, onValueChange, label, textColor, te
           scrollEventThrottle={16}
           onMomentumScrollEnd={handleScrollEnd}
           onScrollEndDrag={(e) => {
-            // Handle case where momentum doesn't trigger
             if (e.nativeEvent.velocity?.y === 0) {
               handleScrollEnd(e);
             }
@@ -129,7 +156,9 @@ const Wheel = memo(({ values, selectedValue, onValueChange, label, textColor, te
           contentContainerStyle={{ paddingVertical }}
           nestedScrollEnabled
         >
-          {values.map((value) => {
+          {/* Top spacer replaces items above the window */}
+          {topSpacerHeight > 0 && <View style={{ height: topSpacerHeight }} />}
+          {windowedValues.map((value) => {
             const isSelected = value === selectedValue;
             return (
               <View
@@ -152,6 +181,8 @@ const Wheel = memo(({ values, selectedValue, onValueChange, label, textColor, te
               </View>
             );
           })}
+          {/* Bottom spacer replaces items below the window */}
+          {bottomSpacerHeight > 0 && <View style={{ height: bottomSpacerHeight }} />}
         </ScrollView>
       </View>
       <Text
