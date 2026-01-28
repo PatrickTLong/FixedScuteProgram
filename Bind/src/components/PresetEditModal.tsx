@@ -13,6 +13,7 @@ import {
   FlatList,
   Image,
   Animated,
+  UIManager,
 } from 'react-native';
 import LottieView from 'lottie-react-native';
 const Lottie = LottieView as any;
@@ -30,7 +31,6 @@ import DisableTapoutWarningModal from './DisableTapoutWarningModal';
 import BlockSettingsWarningModal from './BlockSettingsWarningModal';
 import RecurrenceInfoModal from './RecurrenceInfoModal';
 import StrictModeWarningModal from './StrictModeWarningModal';
-import PresetGuideModal from './PresetGuideModal';
 import { Preset } from './PresetCard';
 import { getEmergencyTapoutStatus, setEmergencyTapoutEnabled } from '../services/cardApi';
 import { lightTap, mediumTap } from '../utils/haptics';
@@ -64,6 +64,11 @@ if (Platform.OS === 'android' && InstalledAppsModule) {
   installedAppsEmitter.addListener('onAppsChanged', () => {
     invalidateInstalledAppsCache();
   });
+}
+
+// Enable LayoutAnimation on Android
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
 // System apps excluded from app selection
@@ -179,6 +184,58 @@ const ChevronRightIcon = ({ size = 24, color = "#9CA3AF" }: { size?: number; col
     />
   </Svg>
 );
+
+// Expandable info wrapper
+// lazy=false (default): always rendered, toggles visibility — fast for lightweight content
+// lazy=true: mounts/unmounts children — use for heavy components (TimerPicker, date pickers)
+const ExpandableInfo = ({ expanded, children, lazy = false }: { expanded: boolean; children: React.ReactNode; lazy?: boolean }) => {
+  const animValue = useRef(new Animated.Value(expanded ? 1 : 0)).current;
+  const [shouldRender, setShouldRender] = React.useState(expanded);
+
+  useEffect(() => {
+    if (lazy) {
+      if (expanded) {
+        setShouldRender(true);
+        requestAnimationFrame(() => {
+          Animated.timing(animValue, {
+            toValue: 1,
+            duration: 120,
+            useNativeDriver: true,
+          }).start();
+        });
+      } else {
+        Animated.timing(animValue, {
+          toValue: 0,
+          duration: 120,
+          useNativeDriver: true,
+        }).start(({ finished }) => {
+          if (finished) setShouldRender(false);
+        });
+      }
+    } else {
+      Animated.timing(animValue, {
+        toValue: expanded ? 1 : 0,
+        duration: 120,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [expanded, animValue, lazy]);
+
+  if (lazy && !shouldRender) return null;
+
+  return (
+    <Animated.View
+      style={{
+        opacity: animValue,
+        ...(!lazy && !expanded ? { position: 'absolute' as const, width: 0, height: 0, overflow: 'hidden' as const } : {}),
+      }}
+      pointerEvents={expanded ? 'auto' : 'none'}
+    >
+      {children}
+    </Animated.View>
+  );
+};
+
 
 // Apps/Grid icon for Apps tab
 const AppsIcon = ({ size = 18, color = "#FFFFFF" }: { size?: number; color?: string }) => (
@@ -348,8 +405,12 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
   const [strictMode, setStrictMode] = useState(false); // Default to false (slide-to-unlock available)
   const [strictModeWarningVisible, setStrictModeWarningVisible] = useState(false);
 
-  // Preset guide modal
-  const [guideModalVisible, setGuideModalVisible] = useState(false);
+  // Expandable info dropdowns for each toggle
+  const [expandedInfo, setExpandedInfo] = useState<Record<string, boolean>>({});
+  const toggleInfo = useCallback((key: string) => {
+    lightTap();
+    setExpandedInfo(prev => ({ ...prev, [key]: !prev[key] }));
+  }, []);
 
   // Handler to toggle emergency tapout - optimistic UI update, then validate
   const handleEmergencyTapoutToggle = useCallback(async (value: boolean) => {
@@ -781,163 +842,93 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
             </View>
 
             <ScrollView className="flex-1 pt-6" contentContainerStyle={{ paddingBottom: 100 }}>
-              {/* Guide Button */}
-              <View className="items-center mb-6 px-6">
-                <TouchableOpacity
-                  onPress={() => {
-                    lightTap();
-                    setGuideModalVisible(true);
-                  }}
-                  activeOpacity={0.8}
-                  style={{ backgroundColor: colors.card }}
-                  className="px-6 py-3 rounded-full"
-                >
-                  <Text style={{ color: '#FFFFFF' }} className="text-base font-nunito-semibold">View Preset Guide</Text>
-                </TouchableOpacity>
-              </View>
+
+            {/* ── Time & Duration ── */}
 
             {/* No Time Limit Toggle */}
-            <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between py-4 px-6">
-              <View style={{ maxWidth: '75%' }}>
-                <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">No Time Limit</Text>
-                <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">Block until manually unlocked</Text>
-              </View>
-              <AnimatedSwitch
-                value={noTimeLimit}
-                onValueChange={(value: boolean) => {
-                  setNoTimeLimit(value);
-                  requestAnimationFrame(() => {
-                    if (value) {
-                      setIsScheduled(false);
-                      setScheduleStartDate(null);
-                      setScheduleEndDate(null);
-                      // Strict mode is now allowed for no time limit presets
-                    }
-                    mediumTap();
-                  });
-                }}
-              />
-            </View>
-
-            {/* Block Settings Toggle */}
-            <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between py-4 px-6">
-              <View style={{ maxWidth: '75%' }}>
-                <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">Block Settings App</Text>
-                <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">WiFi settings remain accessible</Text>
-              </View>
-              <AnimatedSwitch
-                value={blockSettings}
-                onValueChange={async (value: boolean) => {
-                  mediumTap();
-                  if (value) {
-                    // Enabling - check if we should show warning
-                    const dismissed = await AsyncStorage.getItem(BLOCK_SETTINGS_WARNING_DISMISSED_KEY);
-                    if (dismissed !== 'true') {
-                      setBlockSettingsWarningVisible(true);
-                    } else {
-                      setBlockSettings(true);
-                    }
-                  } else {
-                    // Disabling - just disable
-                    setBlockSettings(false);
-                  }
-                }}
-              />
-            </View>
-
-            {/* Strict Mode Toggle - now available for all presets */}
-            <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between py-4 px-6">
-              <View style={{ maxWidth: '75%' }}>
-                <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">Strict Mode</Text>
-                <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">
-                  {noTimeLimit ? 'Disable "Continue anyway" button for blocked apps' : 'Lock until timer ends or emergency tapout'}
-                </Text>
-              </View>
-                <AnimatedSwitch
-                  value={strictMode}
-                  onValueChange={async (value: boolean) => {
-                    mediumTap();
-                    if (value) {
-                      // Enabling strict mode - check if we should show warning
-                      const dismissed = await AsyncStorage.getItem(STRICT_MODE_WARNING_DISMISSED_KEY);
-                      if (dismissed !== 'true') {
-                        setStrictModeWarningVisible(true);
-                      } else {
-                        setStrictMode(true);
-                        // Auto-enable emergency tapout only if user has tapouts remaining
-                        setAllowEmergencyTapout(false); // Default to off first
-                        if (email) {
-                          try {
-                            const status = await getEmergencyTapoutStatus(email);
-                            if (status.remaining > 0) {
-                              setAllowEmergencyTapout(true);
-                            }
-                          } catch (error) {
-                            // Failed to check - keep off
-                          }
-                        }
-                      }
-                    } else {
-                      // Disabling strict mode - also disable emergency tapout since it's not relevant
-                      setStrictMode(false);
-                      setAllowEmergencyTapout(false);
-                    }
-                  }}
-                />
-            </View>
-
-            {/* Emergency Tapout Toggle - only available when Strict Mode is ON (hidden when No Time Limit or Strict Mode is off) */}
-            {!noTimeLimit && strictMode && (
-              <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between py-4 px-6">
+            <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }}>
+              <TouchableOpacity onPress={() => toggleInfo('noTimeLimit')} activeOpacity={0.7} className="flex-row items-center justify-between py-4 px-6">
                 <View style={{ maxWidth: '75%' }}>
-                  <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">Allow Emergency Tapout</Text>
-                  <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">Use your emergency tapouts for this preset</Text>
+                  <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">No Time Limit</Text>
+                  <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">Block until manually unlocked</Text>
                 </View>
                 <AnimatedSwitch
-                  value={allowEmergencyTapout}
-                  onValueChange={handleEmergencyTapoutToggle}
+                  value={noTimeLimit}
+                  onValueChange={(value: boolean) => {
+                    setNoTimeLimit(value);
+                    requestAnimationFrame(() => {
+                      if (value) {
+                        setIsScheduled(false);
+                        setScheduleStartDate(null);
+                        setScheduleEndDate(null);
+                      }
+                      mediumTap();
+                    });
+                  }}
                 />
-              </View>
-            )}
-
-            {/* Schedule for Later Toggle */}
-            <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between py-4 px-6">
-              <View style={{ maxWidth: '75%' }}>
-                <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">Schedule for Later</Text>
-                <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">Set a future start and end time</Text>
-              </View>
-              <AnimatedSwitch
-                value={isScheduled}
-                onValueChange={(value: boolean) => {
-                  // Update visibility state immediately
-                  setIsScheduled(value);
-                  // Defer other state updates to allow render
-                  requestAnimationFrame(() => {
-                    if (value) {
-                      setNoTimeLimit(false);
-                      setTimerDays(0);
-                      setTimerHours(0);
-                      setTimerMinutes(0);
-                      setTimerSeconds(0);
-                      setTargetDate(null);
-                      mediumTap();
-                      AsyncStorage.getItem(SCHEDULE_INFO_DISMISSED_KEY).then(dismissed => {
-                        if (dismissed !== 'true') {
-                          setScheduleInfoVisible(true);
-                        }
-                      });
-                    } else {
-                      setScheduleStartDate(null);
-                      setScheduleEndDate(null);
-                      mediumTap();
-                    }
-                  });
-                }}
-              />
+              </TouchableOpacity>
+              <ExpandableInfo expanded={!!expandedInfo.noTimeLimit}>
+                <TouchableOpacity onPress={() => toggleInfo('noTimeLimit')} activeOpacity={0.7} className="flex-row items-start px-6 pb-4">
+                  <View className="mr-2.5" style={{ marginTop: 4 }}>
+                    <ChevronRightIcon size={12} color="#FFFFFF" />
+                  </View>
+                  <Text style={{ color: colors.text, flex: 1 }} className="text-sm font-nunito leading-5">
+                    Block stays active until manually ended. With Strict Mode on and no Emergency Tapout, you may be locked out indefinitely.
+                  </Text>
+                </TouchableOpacity>
+              </ExpandableInfo>
             </View>
 
+            {/* Schedule for Later Toggle */}
+            <ExpandableInfo expanded={!noTimeLimit} lazy>
+            <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }}>
+              <TouchableOpacity onPress={() => toggleInfo('schedule')} activeOpacity={0.7} className="flex-row items-center justify-between py-4 px-6">
+                <View style={{ maxWidth: '75%' }}>
+                  <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">Schedule for Later</Text>
+                  <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">Set a future start and end time</Text>
+                </View>
+                <AnimatedSwitch
+                  value={isScheduled}
+                  onValueChange={(value: boolean) => {
+                    setIsScheduled(value);
+                    requestAnimationFrame(() => {
+                      if (value) {
+                        setNoTimeLimit(false);
+                        setTimerDays(0);
+                        setTimerHours(0);
+                        setTimerMinutes(0);
+                        setTimerSeconds(0);
+                        setTargetDate(null);
+                        mediumTap();
+                        AsyncStorage.getItem(SCHEDULE_INFO_DISMISSED_KEY).then(dismissed => {
+                          if (dismissed !== 'true') {
+                            setScheduleInfoVisible(true);
+                          }
+                        });
+                      } else {
+                        setScheduleStartDate(null);
+                        setScheduleEndDate(null);
+                        mediumTap();
+                      }
+                    });
+                  }}
+                />
+              </TouchableOpacity>
+              <ExpandableInfo expanded={!!expandedInfo.schedule}>
+                <TouchableOpacity onPress={() => toggleInfo('schedule')} activeOpacity={0.7} className="flex-row items-start px-6 pb-4">
+                  <View className="mr-2.5" style={{ marginTop: 4 }}>
+                    <ChevronRightIcon size={12} color="#FFFFFF" />
+                  </View>
+                  <Text style={{ color: colors.text, flex: 1 }} className="text-sm font-nunito leading-5">
+                    Set a future start and end time. Hides timer options since duration is determined by your schedule.
+                  </Text>
+                </TouchableOpacity>
+              </ExpandableInfo>
+            </View>
+            </ExpandableInfo>
+
             {/* Schedule Date Pickers */}
-            {isScheduled && (
+            <ExpandableInfo expanded={isScheduled} lazy>
               <View className="mt-4 px-6">
                 <Text style={{ color: colors.textMuted }} className="text-xs font-nunito uppercase tracking-wider mb-4">
                   Schedule
@@ -1031,7 +1022,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                 )}
 
                 {/* Recurring Schedule Toggle */}
-                {scheduleStartDate && scheduleEndDate && scheduleEndDate > scheduleStartDate && (
+                <ExpandableInfo expanded={!!(scheduleStartDate && scheduleEndDate && scheduleEndDate > scheduleStartDate)} lazy>
                   <View className="mt-4 -mx-6">
                     <View style={isRecurring ? { borderBottomWidth: 1, borderBottomColor: colors.border } : undefined} className="flex-row items-center justify-between py-4 px-6">
                       <View style={{ maxWidth: '75%' }}>
@@ -1059,7 +1050,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                     </View>
 
                     {/* Recurring Options */}
-                    {isRecurring && (
+                    <ExpandableInfo expanded={isRecurring} lazy>
                       <View className="mt-4 px-6">
                         <Text style={{ color: colors.textMuted }} className="text-xs font-nunito uppercase tracking-wider mb-3">
                           Repeat Every
@@ -1160,14 +1151,14 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                           );
                         })()}
                       </View>
-                    )}
+                    </ExpandableInfo>
                   </View>
-                )}
+                </ExpandableInfo>
               </View>
-            )}
+            </ExpandableInfo>
 
             {/* Timer Picker (if time limit enabled and not scheduled) */}
-            {!noTimeLimit && !isScheduled && (
+            <ExpandableInfo expanded={!noTimeLimit && !isScheduled} lazy>
               <View className="mt-6 px-6">
                 <Text style={{ color: colors.textMuted }} className="text-xs font-nunito uppercase tracking-wider mb-4">
                   Duration
@@ -1250,7 +1241,122 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                   )}
                 </TouchableOpacity>
               </View>
-            )}
+            </ExpandableInfo>
+
+            {/* ── Block Behavior ── */}
+
+            {/* Block Settings Toggle */}
+            <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }}>
+              <TouchableOpacity onPress={() => toggleInfo('blockSettings')} activeOpacity={0.7} className="flex-row items-center justify-between py-4 px-6">
+                <View style={{ maxWidth: '75%' }}>
+                  <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">Block Settings App</Text>
+                  <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">WiFi settings remain accessible</Text>
+                </View>
+                <AnimatedSwitch
+                  value={blockSettings}
+                  onValueChange={async (value: boolean) => {
+                    mediumTap();
+                    if (value) {
+                      const dismissed = await AsyncStorage.getItem(BLOCK_SETTINGS_WARNING_DISMISSED_KEY);
+                      if (dismissed !== 'true') {
+                        setBlockSettingsWarningVisible(true);
+                      } else {
+                        setBlockSettings(true);
+                      }
+                    } else {
+                      setBlockSettings(false);
+                    }
+                  }}
+                />
+              </TouchableOpacity>
+              <ExpandableInfo expanded={!!expandedInfo.blockSettings}>
+                <TouchableOpacity onPress={() => toggleInfo('blockSettings')} activeOpacity={0.7} className="flex-row items-start px-6 pb-4">
+                  <View className="mr-2.5" style={{ marginTop: 4 }}>
+                    <ChevronRightIcon size={12} color="#FFFFFF" />
+                  </View>
+                  <Text style={{ color: colors.text, flex: 1 }} className="text-sm font-nunito leading-5">
+                    Prevents access to Android Settings during the block. WiFi remains accessible via quick settings.
+                  </Text>
+                </TouchableOpacity>
+              </ExpandableInfo>
+            </View>
+
+            {/* Strict Mode Toggle */}
+            <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }}>
+              <TouchableOpacity onPress={() => toggleInfo('strictMode')} activeOpacity={0.7} className="flex-row items-center justify-between py-4 px-6">
+                <View style={{ maxWidth: '75%' }}>
+                  <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">Strict Mode</Text>
+                  <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">
+                    {noTimeLimit ? 'Disable "Continue anyway" button for blocked apps' : 'Lock until timer ends or emergency tapout'}
+                  </Text>
+                </View>
+                <AnimatedSwitch
+                  value={strictMode}
+                  onValueChange={async (value: boolean) => {
+                    mediumTap();
+                    if (value) {
+                      const dismissed = await AsyncStorage.getItem(STRICT_MODE_WARNING_DISMISSED_KEY);
+                      if (dismissed !== 'true') {
+                        setStrictModeWarningVisible(true);
+                      } else {
+                        setStrictMode(true);
+                        setAllowEmergencyTapout(false);
+                        if (email) {
+                          try {
+                            const status = await getEmergencyTapoutStatus(email);
+                            if (status.remaining > 0) {
+                              setAllowEmergencyTapout(true);
+                            }
+                          } catch (error) {
+                            // Failed to check - keep off
+                          }
+                        }
+                      }
+                    } else {
+                      setStrictMode(false);
+                      setAllowEmergencyTapout(false);
+                    }
+                  }}
+                />
+              </TouchableOpacity>
+              <ExpandableInfo expanded={!!expandedInfo.strictMode}>
+                <TouchableOpacity onPress={() => toggleInfo('strictMode')} activeOpacity={0.7} className="flex-row items-start px-6 pb-4">
+                  <View className="mr-2.5" style={{ marginTop: 4 }}>
+                    <ChevronRightIcon size={12} color="#FFFFFF" />
+                  </View>
+                  <Text style={{ color: colors.text, flex: 1 }} className="text-sm font-nunito leading-5">
+                    Removes the slide-to-unlock option & the ability to dismiss a blocked app. Only exits: timer expiring or Emergency Tapout (if enabled).
+                  </Text>
+                </TouchableOpacity>
+              </ExpandableInfo>
+            </View>
+
+            {/* Emergency Tapout Toggle */}
+            <ExpandableInfo expanded={strictMode} lazy>
+              <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }}>
+                <TouchableOpacity onPress={() => toggleInfo('emergencyTapout')} activeOpacity={0.7} className="flex-row items-center justify-between py-4 px-6">
+                  <View style={{ maxWidth: '75%' }}>
+                    <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">Allow Emergency Tapout</Text>
+                    <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">Use your emergency tapouts for this preset</Text>
+                  </View>
+                  <AnimatedSwitch
+                    value={allowEmergencyTapout}
+                    onValueChange={handleEmergencyTapoutToggle}
+                  />
+                </TouchableOpacity>
+                <ExpandableInfo expanded={!!expandedInfo.emergencyTapout}>
+                  <TouchableOpacity onPress={() => toggleInfo('emergencyTapout')} activeOpacity={0.7} className="flex-row items-start px-6 pb-4">
+                    <View className="mr-2.5" style={{ marginTop: 4 }}>
+                      <ChevronRightIcon size={12} color="#FFFFFF" />
+                    </View>
+                    <Text style={{ color: colors.text, flex: 1 }} className="text-sm font-nunito leading-5">
+                      Your safety net for Strict Mode blocks. Limited uses that refill +1 every two weeks. Disabling means NO way out except waiting.
+                    </Text>
+                  </TouchableOpacity>
+                </ExpandableInfo>
+              </View>
+            </ExpandableInfo>
+
           </ScrollView>
 
           {/* Date Picker Modal */}
@@ -1429,12 +1535,6 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               }
             }}
             onCancel={() => setStrictModeWarningVisible(false)}
-          />
-
-          {/* Preset Guide Modal */}
-          <PresetGuideModal
-            visible={guideModalVisible}
-            onClose={() => setGuideModalVisible(false)}
           />
 
         </SafeAreaView>

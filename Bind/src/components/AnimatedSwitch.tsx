@@ -36,7 +36,7 @@ const BASE_TRACK_HEIGHT_LARGE = 34;
 const BASE_THUMB_SIZE_LARGE = 26;
 const BASE_THUMB_OFFSET_LARGE = 4;
 
-const ANIMATION_DURATION = 250;
+const ANIMATION_DURATION = 120;
 
 export default function AnimatedSwitch({
   value,
