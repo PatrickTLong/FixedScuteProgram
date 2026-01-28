@@ -155,5 +155,15 @@
           <action android:name="android.intent.action.BOOT_COMPLETED" />
         </intent-filter>
       </receiver>
+
+      <!-- Boot Completed Receiver - restores blocking immediately after phone restart -->
+      <receiver
+        android:name=".BootCompletedReceiver"
+        android:enabled="true"
+        android:exported="true">
+        <intent-filter>
+          <action android:name="android.intent.action.BOOT_COMPLETED" />
+        </intent-filter>
+      </receiver>
     </application>
 </manifest>
