@@ -748,7 +748,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
             <View className="w-16" />
             <Text style={{ color: colors.text }} className="text-lg font-nunito-semibold">Privacy Policy</Text>
             <TouchableOpacity onPress={() => { lightTap(); setPrivacyModalVisible(false); }} className="w-16 items-end">
-              <Text style={{ color: '#FFFFFF' }} className="text-sm font-nunito">Done</Text>
+              <Text style={{ color: '#FFFFFF' }} className="text-base font-nunito">Done</Text>
             </TouchableOpacity>
           </View>
 
@@ -848,7 +848,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
             <View className="w-16" />
             <Text style={{ color: colors.text }} className="text-lg font-nunito-semibold">Terms of Service</Text>
             <TouchableOpacity onPress={() => { lightTap(); setTermsModalVisible(false); }} className="w-16 items-end">
-              <Text style={{ color: '#FFFFFF' }} className="text-sm font-nunito">Done</Text>
+              <Text style={{ color: '#FFFFFF' }} className="text-base font-nunito">Done</Text>
             </TouchableOpacity>
           </View>
 

@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/bubble_root"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:clipChildren="false"
+    android:clipToPadding="false">
+
+    <!-- Main bubble container -->
+    <FrameLayout
+        android:id="@+id/bubble_main"
+        android:layout_width="wrap_content"
+        android:layout_height="52dp"
+        android:layout_marginTop="16dp">
+
+        <!-- Collapsed state: Circle with Scute logo -->
+        <FrameLayout
+            android:id="@+id/bubble_collapsed"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            android:background="@drawable/bubble_circle_background"
+            android:visibility="visible">
+
+            <ImageView
+                android:id="@+id/bubble_logo"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_gravity="center"
+                android:src="@mipmap/ic_launcher_round"
+                android:scaleType="fitCenter" />
+
+        </FrameLayout>
+
+        <!-- Expanded state: Pill with Android icon + timer -->
+        <LinearLayout
+            android:id="@+id/bubble_expanded"
+            android:layout_width="wrap_content"
+            android:layout_height="52dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@drawable/bubble_background"
+            android:paddingStart="14dp"
+            android:paddingEnd="18dp"
+            android:visibility="gone">
+
+            <!-- Android icon -->
+            <ImageView
+                android:id="@+id/bubble_android_icon"
+                android:layout_width="26dp"
+                android:layout_height="26dp"
+                android:src="@drawable/ic_android"
+                android:layout_marginEnd="10dp" />
+
+            <!-- Countdown Timer -->
+            <TextView
+                android:id="@+id/bubble_timer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0:00"
+                android:textSize="17sp"
+                android:textColor="#FFFFFF"
+                android:fontFamily="@font/nunito"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+    </FrameLayout>
+
+    <!-- Hide button (shown on long press, top center of bubble) -->
+    <FrameLayout
+        android:id="@+id/bubble_hide_button"
+        android:layout_width="26dp"
+        android:layout_height="26dp"
+        android:layout_gravity="top|center_horizontal"
+        android:layout_marginTop="3dp"
+        android:background="@drawable/bubble_hide_button"
+        android:visibility="gone"
+        android:elevation="4dp">
+
+        <ImageView
+            android:layout_width="14dp"
+            android:layout_height="14dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_close"
+            android:scaleType="fitCenter" />
+
+    </FrameLayout>
+
+</FrameLayout>

@@ -14,18 +14,11 @@ interface ShieldIconsInfoModalProps {
   onClose: (dontShowAgain: boolean) => void;
 }
 
-// Check Circle icon (Feather Icons) for scheduled presets
-const CheckCircleIcon = ({ color, size = 24 }: { color: string; size?: number }) => (
+// Bookmark icon (Feather Icons) for scheduled presets
+const BookmarkIcon = ({ color, size = 24 }: { color: string; size?: number }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Path
-      d="M22 11.08V12a10 10 0 1 1-5.93-9.14"
-      stroke={color}
-      strokeWidth={2.5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <Path
-      d="M22 4L12 14.01l-3-3"
+      d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"
       stroke={color}
       strokeWidth={2.5}
       strokeLinecap="round"
@@ -86,10 +79,10 @@ function ShieldIconsInfoModal({ visible, onClose }: ShieldIconsInfoModalProps) {
               Preset Icons
             </Text>
 
-            {/* White Check Circle - Scheduled */}
+            {/* Bookmark - Scheduled */}
             <View className="flex-row items-center mb-4">
               <View className="mr-3">
-                <CheckCircleIcon color="#FFFFFF" size={28} />
+                <BookmarkIcon color="#FFFFFF" size={28} />
               </View>
               <View className="flex-1">
                 <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">

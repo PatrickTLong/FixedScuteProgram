@@ -9,18 +9,11 @@ import { lightTap, mediumTap } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
 import AnimatedSwitch from './AnimatedSwitch';
 
-// Check Circle icon (Feather Icons) for scheduled presets
-const CheckCircleIcon = ({ color, size = 16 }: { color: string; size?: number }) => (
+// Bookmark icon (Feather Icons) for scheduled presets
+const BookmarkIcon = ({ color, size = 16 }: { color: string; size?: number }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Path
-      d="M22 11.08V12a10 10 0 1 1-5.93-9.14"
-      stroke={color}
-      strokeWidth={2.5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <Path
-      d="M22 4L12 14.01l-3-3"
+      d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"
       stroke={color}
       strokeWidth={2.5}
       strokeLinecap="round"
@@ -307,11 +300,11 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, disabled
               <>
                 {preset.isScheduled && (
                   <View className="ml-2">
-                    <CheckCircleIcon color="#FFFFFF" size={18} />
+                    <BookmarkIcon color="#FFFFFF" size={18} />
                   </View>
                 )}
                 {preset.repeat_enabled && (
-                  <View className="ml-1.5">
+                  <View className="ml-2">
                     <RefreshCwIcon color="#FFFFFF" size={18} />
                   </View>
                 )}

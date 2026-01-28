@@ -149,24 +149,7 @@ class TimerPresetReceiver : BroadcastReceiver() {
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
 
-            // Create a full-screen intent for launching the app from background
-            // This is the key to making the app launch even when killed
-            val fullScreenIntent = context.packageManager.getLaunchIntentForPackage(context.packageName)?.apply {
-                addFlags(
-                    Intent.FLAG_ACTIVITY_NEW_TASK or
-                    Intent.FLAG_ACTIVITY_CLEAR_TOP or
-                    Intent.FLAG_ACTIVITY_SINGLE_TOP
-                )
-                putExtra("timer_ended", true)
-            }
-            val fullScreenPendingIntent = PendingIntent.getActivity(
-                context,
-                TIMER_END_NOTIFICATION_ID + 1000, // Different request code
-                fullScreenIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-            )
-
-            // Build the notification with high priority and fullScreenIntent for background launch
+            // Build the notification with high priority (no fullScreenIntent - using floating bubble instead)
             val notification = NotificationCompat.Builder(context, ALERT_CHANNEL_ID)
                 .setContentTitle("Session Ended")
                 .setContentText("\"$presetName\" has ended. Tap to unlock.")
@@ -175,28 +158,17 @@ class TimerPresetReceiver : BroadcastReceiver() {
                 .setCategory(NotificationCompat.CATEGORY_ALARM)
                 .setAutoCancel(true)
                 .setContentIntent(pendingIntent)
-                .setFullScreenIntent(fullScreenPendingIntent, true) // This launches app from background
                 .setDefaults(NotificationCompat.DEFAULT_ALL) // Sound, vibrate, lights
                 .build()
 
             notificationManager.notify(TIMER_END_NOTIFICATION_ID, notification)
 
-            // Also try direct launch as backup (works when app has foreground permission)
+            // Dismiss the floating bubble since session has ended
             try {
-                val appLaunchIntent = context.packageManager.getLaunchIntentForPackage(context.packageName)
-                if (appLaunchIntent != null) {
-                    appLaunchIntent.addFlags(
-                        Intent.FLAG_ACTIVITY_NEW_TASK or
-                        Intent.FLAG_ACTIVITY_CLEAR_TOP or
-                        Intent.FLAG_ACTIVITY_SINGLE_TOP or
-                        Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
-                    )
-                    appLaunchIntent.putExtra("timer_ended", true)
-                    context.startActivity(appLaunchIntent)
-                    Log.d(TAG, "Launched app for timer end via direct startActivity")
-                }
+                FloatingBubbleManager.getInstance(context).dismiss()
+                Log.d(TAG, "Dismissed floating bubble for timer end")
             } catch (e: Exception) {
-                Log.d(TAG, "Direct startActivity failed (expected on Android 10+), fullScreenIntent will handle it", e)
+                Log.d(TAG, "Failed to dismiss floating bubble", e)
             }
 
             Log.d(TAG, "Showed timer end notification for: $presetName")

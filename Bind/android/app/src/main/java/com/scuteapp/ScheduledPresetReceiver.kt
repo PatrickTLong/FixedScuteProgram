@@ -393,22 +393,13 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
             notificationManager.notify(DEACTIVATION_NOTIFICATION_ID, notification)
             Log.d(TAG, "[NOTIFICATION] Notification posted successfully")
 
-            // Also launch app
+            // Dismiss the floating bubble since session has ended
+            // (Don't show bubble for next occurrence - only show when preset is ACTIVE)
             try {
-                Log.d(TAG, "[NOTIFICATION] Attempting to launch app...")
-                val appLaunchIntent = context.packageManager.getLaunchIntentForPackage(context.packageName)
-                if (appLaunchIntent != null) {
-                    appLaunchIntent.addFlags(
-                        Intent.FLAG_ACTIVITY_NEW_TASK or
-                        Intent.FLAG_ACTIVITY_CLEAR_TOP or
-                        Intent.FLAG_ACTIVITY_SINGLE_TOP
-                    )
-                    appLaunchIntent.putExtra("scheduled_preset_ended", true)
-                    context.startActivity(appLaunchIntent)
-                    Log.d(TAG, "[NOTIFICATION] App launched successfully")
-                }
+                FloatingBubbleManager.getInstance(context).dismiss()
+                Log.d(TAG, "[NOTIFICATION] Dismissed floating bubble for recurring session end")
             } catch (e: Exception) {
-                Log.d(TAG, "[NOTIFICATION] Direct startActivity failed (expected on some Android versions)", e)
+                Log.d(TAG, "[NOTIFICATION] Failed to dismiss floating bubble", e)
             }
 
             Log.d(TAG, "[NOTIFICATION] ========== RECURRING NOTIFICATION COMPLETE ==========")
@@ -599,25 +590,12 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
                 presetId
             )
 
-            // Launch the app and bring it to foreground (locked home screen)
+            // Show floating bubble with countdown instead of launching app
             try {
-                val launchIntent = context.packageManager.getLaunchIntentForPackage(context.packageName)
-                if (launchIntent != null) {
-                    launchIntent.addFlags(
-                        Intent.FLAG_ACTIVITY_NEW_TASK or
-                        Intent.FLAG_ACTIVITY_CLEAR_TOP or
-                        Intent.FLAG_ACTIVITY_SINGLE_TOP or
-                        Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
-                    )
-                    // Pass extra to indicate this was launched from a scheduled preset alarm
-                    launchIntent.putExtra("scheduled_preset_activated", true)
-                    launchIntent.putExtra("preset_id", presetId)
-                    launchIntent.putExtra("preset_name", targetPreset.optString("name", "Scheduled Preset"))
-                    context.startActivity(launchIntent)
-                    Log.d(TAG, "Launched app to locked home screen for preset: ${targetPreset.optString("name")}")
-                }
+                Log.d(TAG, "Showing floating bubble for preset activation: ${targetPreset.optString("name")}")
+                FloatingBubbleManager.getInstance(context).show(endTime)
             } catch (e: Exception) {
-                Log.e(TAG, "Failed to launch app", e)
+                Log.e(TAG, "Failed to show floating bubble", e)
             }
 
             // Schedule the end alarm to stop blocking
@@ -722,24 +700,7 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
 
-            // Create a full-screen intent for launching the app from background
-            // This is the key to making the app launch even when killed (same as TimerPresetReceiver)
-            val fullScreenIntent = context.packageManager.getLaunchIntentForPackage(context.packageName)?.apply {
-                addFlags(
-                    Intent.FLAG_ACTIVITY_NEW_TASK or
-                    Intent.FLAG_ACTIVITY_CLEAR_TOP or
-                    Intent.FLAG_ACTIVITY_SINGLE_TOP
-                )
-                putExtra("scheduled_preset_ended", true)
-            }
-            val fullScreenPendingIntent = PendingIntent.getActivity(
-                context,
-                DEACTIVATION_NOTIFICATION_ID + 1000, // Different request code
-                fullScreenIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-            )
-
-            // Build the notification with high priority and fullScreenIntent for background launch
+            // Build the notification with high priority (no fullScreenIntent - using floating bubble instead)
             val notification = NotificationCompat.Builder(context, ALERT_CHANNEL_ID)
                 .setContentTitle("Session Ended")
                 .setContentText("\"$presetName\" has ended. Tap to unlock.")
@@ -748,28 +709,17 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
                 .setCategory(NotificationCompat.CATEGORY_ALARM)
                 .setAutoCancel(true)
                 .setContentIntent(pendingIntent)
-                .setFullScreenIntent(fullScreenPendingIntent, true) // This launches app from background
                 .setDefaults(NotificationCompat.DEFAULT_ALL) // Sound, vibrate, lights
                 .build()
 
             notificationManager.notify(DEACTIVATION_NOTIFICATION_ID, notification)
 
-            // Also try direct launch as backup (works when app has foreground permission)
+            // Dismiss the floating bubble since session has ended
             try {
-                val appLaunchIntent = context.packageManager.getLaunchIntentForPackage(context.packageName)
-                if (appLaunchIntent != null) {
-                    appLaunchIntent.addFlags(
-                        Intent.FLAG_ACTIVITY_NEW_TASK or
-                        Intent.FLAG_ACTIVITY_CLEAR_TOP or
-                        Intent.FLAG_ACTIVITY_SINGLE_TOP or
-                        Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
-                    )
-                    appLaunchIntent.putExtra("scheduled_preset_ended", true)
-                    context.startActivity(appLaunchIntent)
-                    Log.d(TAG, "Launched app for scheduled preset end via direct startActivity")
-                }
+                FloatingBubbleManager.getInstance(context).dismiss()
+                Log.d(TAG, "Dismissed floating bubble for session end")
             } catch (e: Exception) {
-                Log.d(TAG, "Direct startActivity failed (expected on Android 10+), fullScreenIntent will handle it", e)
+                Log.d(TAG, "Failed to dismiss floating bubble", e)
             }
 
             Log.d(TAG, "Showed deactivation notification for preset: $presetName")

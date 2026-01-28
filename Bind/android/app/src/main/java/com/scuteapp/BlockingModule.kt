@@ -135,6 +135,14 @@ class BlockingModule(reactContext: ReactApplicationContext) :
             if (hasTimeLimit && !isScheduled) {
                 TimerAlarmManager.scheduleTimerEnd(reactApplicationContext, endTime, presetId, presetName ?: "Timer")
                 Log.d(TAG, "Scheduled timer end alarm for ${java.util.Date(endTime)}")
+
+                // Show floating bubble with countdown timer
+                try {
+                    FloatingBubbleManager.getInstance(reactApplicationContext).show(endTime)
+                    Log.d(TAG, "Showing floating bubble for timer preset")
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to show floating bubble", e)
+                }
             } else {
                 Log.d(TAG, "Skipping timer alarm: hasTimeLimit=$hasTimeLimit, isScheduled=$isScheduled")
             }
@@ -169,6 +177,13 @@ class BlockingModule(reactContext: ReactApplicationContext) :
 
             // Cancel any pending timer alarm
             TimerAlarmManager.cancelTimerAlarm(reactApplicationContext)
+
+            // Dismiss floating bubble if showing
+            try {
+                FloatingBubbleManager.getInstance(reactApplicationContext).dismiss()
+            } catch (e: Exception) {
+                Log.d(TAG, "Failed to dismiss floating bubble", e)
+            }
 
             // Stop the foreground service
             val serviceIntent = Intent(reactApplicationContext, UninstallBlockerService::class.java)
@@ -208,6 +223,13 @@ class BlockingModule(reactContext: ReactApplicationContext) :
 
             // Cancel any pending timer alarm
             TimerAlarmManager.cancelTimerAlarm(reactApplicationContext)
+
+            // Dismiss floating bubble if showing
+            try {
+                FloatingBubbleManager.getInstance(reactApplicationContext).dismiss()
+            } catch (e: Exception) {
+                Log.d(TAG, "Failed to dismiss floating bubble", e)
+            }
 
             // Stop the foreground service
             val serviceIntent = Intent(reactApplicationContext, UninstallBlockerService::class.java)

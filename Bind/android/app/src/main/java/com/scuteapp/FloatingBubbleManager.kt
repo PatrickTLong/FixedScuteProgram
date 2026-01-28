@@ -1,0 +1,569 @@
+package com.scuteapp
+
+import android.content.Context
+import android.graphics.PixelFormat
+import android.os.Build
+import android.os.Handler
+import android.os.Looper
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
+import android.provider.Settings
+import android.util.Log
+import android.view.Gravity
+import android.view.HapticFeedbackConstants
+import android.view.LayoutInflater
+import android.view.MotionEvent
+import android.view.View
+import android.view.WindowManager
+import android.view.animation.AccelerateDecelerateInterpolator
+import android.view.animation.OvershootInterpolator
+import android.view.animation.DecelerateInterpolator
+import android.widget.FrameLayout
+import android.widget.LinearLayout
+import android.widget.TextView
+
+/**
+ * Manages a floating bubble like Screen Zen:
+ * - Default: Circle with Scute logo
+ * - Tap: Expands to pill showing Android icon + timer
+ * - Auto-collapses back to circle after a few seconds
+ * - Long press: Shows hide button in top-right corner
+ * - Fixed position on left side (not movable)
+ */
+class FloatingBubbleManager(private val context: Context) {
+
+    companion object {
+        private const val TAG = "FloatingBubbleManager"
+        private const val ANIMATION_DURATION = 200L
+        private const val AUTO_COLLAPSE_DELAY = 3000L  // 3 seconds
+        private const val LONG_PRESS_DURATION = 500L   // 0.5 seconds for long press
+        private const val HIDE_BUTTON_TIMEOUT = 3000L  // Hide button disappears after 3 seconds
+
+        @Volatile
+        private var instance: FloatingBubbleManager? = null
+
+        fun getInstance(context: Context): FloatingBubbleManager {
+            return instance ?: synchronized(this) {
+                instance ?: FloatingBubbleManager(context.applicationContext).also { instance = it }
+            }
+        }
+    }
+
+    private var windowManager: WindowManager? = null
+    private var bubbleView: View? = null
+    private var layoutParams: WindowManager.LayoutParams? = null
+    private var isShowing = false
+    private var isExpanded = false  // false = circle with logo, true = pill with timer
+    private var isHidden = false    // User manually hid the bubble
+    private var endTime: Long = 0
+
+    private var bubbleCollapsed: FrameLayout? = null
+    private var bubbleExpanded: LinearLayout? = null
+    private var bubbleHideButton: FrameLayout? = null
+    private var bubbleMain: FrameLayout? = null
+    private var density: Float = 1f
+
+    private val handler = Handler(Looper.getMainLooper())
+
+    // Long press detection
+    private var longPressTriggered = false
+    private val longPressRunnable = Runnable {
+        longPressTriggered = true
+        performLongPressHaptic()
+        showHideButton()
+    }
+
+    // Auto-hide the hide button
+    private val hideButtonTimeoutRunnable = Runnable {
+        hideHideButton()
+    }
+
+    // Auto-collapse runnable
+    private val autoCollapseRunnable = Runnable {
+        if (isExpanded) {
+            collapse()
+        }
+    }
+
+    private val timerRunnable = object : Runnable {
+        override fun run() {
+            val remaining = (endTime - System.currentTimeMillis()) / 1000
+            if (remaining > 0) {
+                updateTimerText(remaining)
+                handler.postDelayed(this, 1000)
+            } else {
+                dismiss()
+            }
+        }
+    }
+
+    /**
+     * Check if we have permission to draw overlays
+     */
+    fun canDrawOverlay(): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            Settings.canDrawOverlays(context)
+        } else {
+            true
+        }
+    }
+
+    /**
+     * Show the floating bubble with countdown timer.
+     * @param sessionEndTime The timestamp (in milliseconds) when the session ends
+     * @return true if bubble was shown, false if failed
+     */
+    fun show(sessionEndTime: Long): Boolean {
+        // If this is a NEW session (different end time), reset isHidden
+        if (sessionEndTime != endTime) {
+            isHidden = false
+        }
+
+        // If user manually hid the bubble for THIS session, don't show again
+        if (isHidden) {
+            Log.d(TAG, "Bubble is hidden by user for this session, not showing")
+            return true
+        }
+
+        if (isShowing) {
+            Log.d(TAG, "Bubble already showing, updating end time")
+            endTime = sessionEndTime
+            return true
+        }
+
+        if (!canDrawOverlay()) {
+            Log.w(TAG, "Cannot draw overlay - permission not granted")
+            return false
+        }
+
+        try {
+            endTime = sessionEndTime
+            isExpanded = false
+
+            windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+            density = context.resources.displayMetrics.density
+
+            // Inflate the bubble layout
+            val inflater = LayoutInflater.from(context)
+            bubbleView = inflater.inflate(R.layout.floating_bubble, null)
+
+            bubbleCollapsed = bubbleView?.findViewById(R.id.bubble_collapsed)
+            bubbleExpanded = bubbleView?.findViewById(R.id.bubble_expanded)
+            bubbleHideButton = bubbleView?.findViewById(R.id.bubble_hide_button)
+            bubbleMain = bubbleView?.findViewById(R.id.bubble_main)
+
+            // Set up window parameters - LEFT side, fixed position
+            layoutParams = WindowManager.LayoutParams().apply {
+                width = WindowManager.LayoutParams.WRAP_CONTENT
+                height = WindowManager.LayoutParams.WRAP_CONTENT
+
+                type = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+                } else {
+                    WindowManager.LayoutParams.TYPE_SYSTEM_ALERT
+                }
+
+                flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                        WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
+
+                format = PixelFormat.TRANSLUCENT
+                gravity = Gravity.TOP or Gravity.START
+                x = 0
+                y = (200 * density).toInt()  // Position from top
+            }
+
+            // Set up touch listener for tap and long press
+            setupTouchListener()
+
+            // Set up hide button click
+            bubbleHideButton?.setOnClickListener {
+                performClickHaptic()
+                hideBubble()
+            }
+
+            // Initial timer update
+            val remaining = (endTime - System.currentTimeMillis()) / 1000
+            if (remaining <= 0) {
+                Log.d(TAG, "Session already ended, not showing bubble")
+                return false
+            }
+            updateTimerText(remaining)
+
+            // Start in collapsed state (circle with logo)
+            bubbleCollapsed?.visibility = View.VISIBLE
+            bubbleExpanded?.visibility = View.GONE
+            bubbleHideButton?.visibility = View.GONE
+
+            // Add to window manager
+            windowManager?.addView(bubbleView, layoutParams)
+            isShowing = true
+
+            // Animate in with scale effect
+            bubbleMain?.scaleX = 0f
+            bubbleMain?.scaleY = 0f
+            bubbleMain?.alpha = 0f
+            bubbleMain?.animate()
+                ?.scaleX(1f)
+                ?.scaleY(1f)
+                ?.alpha(1f)
+                ?.setDuration(ANIMATION_DURATION)
+                ?.setInterpolator(OvershootInterpolator(1.0f))
+                ?.start()
+
+            // Start timer updates
+            handler.post(timerRunnable)
+
+            Log.d(TAG, "Bubble shown, session ends at: $sessionEndTime")
+            return true
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to show bubble", e)
+            return false
+        }
+    }
+
+    /**
+     * Set up touch listener for tap and long press detection
+     */
+    private fun setupTouchListener() {
+        bubbleMain?.setOnTouchListener { _, event ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    longPressTriggered = false
+                    handler.postDelayed(longPressRunnable, LONG_PRESS_DURATION)
+                    true
+                }
+                MotionEvent.ACTION_UP -> {
+                    handler.removeCallbacks(longPressRunnable)
+                    if (!longPressTriggered) {
+                        // Regular tap - toggle expand/collapse
+                        performTapHaptic()
+                        toggleExpanded()
+                    }
+                    true
+                }
+                MotionEvent.ACTION_CANCEL -> {
+                    handler.removeCallbacks(longPressRunnable)
+                    true
+                }
+                else -> false
+            }
+        }
+    }
+
+    /**
+     * Show the hide button in the top-right corner
+     */
+    private fun showHideButton() {
+        bubbleHideButton?.let { button ->
+            button.post {
+                button.visibility = View.VISIBLE
+                button.scaleX = 0f
+                button.scaleY = 0f
+                button.alpha = 0f
+
+                button.animate()
+                    ?.scaleX(1f)
+                    ?.scaleY(1f)
+                    ?.alpha(1f)
+                    ?.setDuration(150)
+                    ?.setInterpolator(OvershootInterpolator(1.2f))
+                    ?.start()
+            }
+
+            // Auto-hide the button after timeout
+            handler.removeCallbacks(hideButtonTimeoutRunnable)
+            handler.postDelayed(hideButtonTimeoutRunnable, HIDE_BUTTON_TIMEOUT)
+        }
+
+        Log.d(TAG, "Hide button shown")
+    }
+
+    /**
+     * Hide the hide button with smooth fade out
+     */
+    private fun hideHideButton() {
+        bubbleHideButton?.let { button ->
+            button.post {
+                button.animate()
+                    ?.alpha(0f)
+                    ?.setDuration(250)
+                    ?.setInterpolator(DecelerateInterpolator())
+                    ?.withEndAction {
+                        button.visibility = View.GONE
+                        button.alpha = 1f
+                    }
+                    ?.start()
+            }
+        }
+
+        Log.d(TAG, "Hide button hidden")
+    }
+
+    /**
+     * Hide the bubble (user tapped X button)
+     */
+    private fun hideBubble() {
+        isHidden = true
+
+        handler.removeCallbacks(hideButtonTimeoutRunnable)
+        handler.removeCallbacks(autoCollapseRunnable)
+
+        // Fade out both the bubble and the hide button together
+        bubbleView?.post {
+            // Fade out the main bubble
+            bubbleMain?.animate()
+                ?.alpha(0f)
+                ?.setDuration(ANIMATION_DURATION)
+                ?.setInterpolator(DecelerateInterpolator())
+                ?.withEndAction {
+                    try {
+                        windowManager?.removeView(bubbleView)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error removing bubble view", e)
+                    }
+
+                    bubbleView = null
+                    bubbleCollapsed = null
+                    bubbleExpanded = null
+                    bubbleHideButton = null
+                    bubbleMain = null
+                    windowManager = null
+                    layoutParams = null
+                    isShowing = false
+                    isExpanded = false
+                    // Note: isHidden stays true until dismiss() is called (session end)
+
+                    Log.d(TAG, "Bubble hidden by user")
+                }
+                ?.start()
+
+            // Fade out the hide button at the same time
+            bubbleHideButton?.animate()
+                ?.alpha(0f)
+                ?.setDuration(ANIMATION_DURATION)
+                ?.setInterpolator(DecelerateInterpolator())
+                ?.start()
+        }
+    }
+
+    /**
+     * Toggle between collapsed (circle) and expanded (pill)
+     */
+    private fun toggleExpanded() {
+        // Hide the hide button if visible
+        if (bubbleHideButton?.visibility == View.VISIBLE) {
+            hideHideButton()
+        }
+
+        if (isExpanded) {
+            collapse()
+        } else {
+            expand()
+        }
+    }
+
+    /**
+     * Expand to pill showing timer with smooth animation
+     */
+    private fun expand() {
+        if (isExpanded) return
+        isExpanded = true
+
+        // Cancel any pending auto-collapse
+        handler.removeCallbacks(autoCollapseRunnable)
+
+        // Smooth crossfade animation
+        bubbleCollapsed?.post {
+            bubbleCollapsed?.animate()
+                ?.alpha(0f)
+                ?.scaleX(0.9f)
+                ?.scaleY(0.9f)
+                ?.setDuration(ANIMATION_DURATION)
+                ?.setInterpolator(AccelerateDecelerateInterpolator())
+                ?.withEndAction {
+                    bubbleCollapsed?.visibility = View.GONE
+                    bubbleCollapsed?.alpha = 1f
+                    bubbleCollapsed?.scaleX = 1f
+                    bubbleCollapsed?.scaleY = 1f
+
+                    // Show expanded
+                    bubbleExpanded?.visibility = View.VISIBLE
+                    bubbleExpanded?.alpha = 0f
+                    bubbleExpanded?.scaleX = 0.9f
+                    bubbleExpanded?.scaleY = 0.9f
+
+                    bubbleExpanded?.animate()
+                        ?.alpha(1f)
+                        ?.scaleX(1f)
+                        ?.scaleY(1f)
+                        ?.setDuration(ANIMATION_DURATION)
+                        ?.setInterpolator(AccelerateDecelerateInterpolator())
+                        ?.start()
+                }
+                ?.start()
+        }
+
+        // Schedule auto-collapse
+        handler.postDelayed(autoCollapseRunnable, AUTO_COLLAPSE_DELAY)
+
+        Log.d(TAG, "Bubble expanded")
+    }
+
+    /**
+     * Collapse back to circle with logo with smooth animation
+     */
+    private fun collapse() {
+        if (!isExpanded) return
+        isExpanded = false
+
+        // Cancel any pending auto-collapse
+        handler.removeCallbacks(autoCollapseRunnable)
+
+        // Hide the X button if it's visible
+        if (bubbleHideButton?.visibility == View.VISIBLE) {
+            hideHideButton()
+        }
+
+        // Smooth crossfade animation
+        bubbleExpanded?.post {
+            bubbleExpanded?.animate()
+                ?.alpha(0f)
+                ?.scaleX(0.9f)
+                ?.scaleY(0.9f)
+                ?.setDuration(ANIMATION_DURATION)
+                ?.setInterpolator(AccelerateDecelerateInterpolator())
+                ?.withEndAction {
+                    bubbleExpanded?.visibility = View.GONE
+                    bubbleExpanded?.alpha = 1f
+                    bubbleExpanded?.scaleX = 1f
+                    bubbleExpanded?.scaleY = 1f
+
+                    // Show collapsed
+                    bubbleCollapsed?.visibility = View.VISIBLE
+                    bubbleCollapsed?.alpha = 0f
+                    bubbleCollapsed?.scaleX = 0.9f
+                    bubbleCollapsed?.scaleY = 0.9f
+
+                    bubbleCollapsed?.animate()
+                        ?.alpha(1f)
+                        ?.scaleX(1f)
+                        ?.scaleY(1f)
+                        ?.setDuration(ANIMATION_DURATION)
+                        ?.setInterpolator(AccelerateDecelerateInterpolator())
+                        ?.start()
+                }
+                ?.start()
+        }
+
+        Log.d(TAG, "Bubble collapsed")
+    }
+
+    /**
+     * Update the timer text display
+     */
+    private fun updateTimerText(secondsRemaining: Long) {
+        val timerText = bubbleView?.findViewById<TextView>(R.id.bubble_timer)
+        timerText?.post {
+            timerText.text = formatTime(secondsRemaining)
+        }
+    }
+
+    /**
+     * Format seconds into readable time string
+     */
+    private fun formatTime(seconds: Long): String {
+        val hours = seconds / 3600
+        val minutes = (seconds % 3600) / 60
+        val secs = seconds % 60
+        return if (hours > 0) {
+            String.format("%d:%02d:%02d", hours, minutes, secs)
+        } else {
+            String.format("%d:%02d", minutes, secs)
+        }
+    }
+
+    /**
+     * Dismiss the bubble completely (session ended)
+     */
+    fun dismiss() {
+        if (!isShowing && !isHidden) return
+
+        try {
+            handler.removeCallbacks(timerRunnable)
+            handler.removeCallbacks(autoCollapseRunnable)
+            handler.removeCallbacks(longPressRunnable)
+            handler.removeCallbacks(hideButtonTimeoutRunnable)
+
+            if (isShowing) {
+                // Animate out with scale
+                bubbleMain?.post {
+                    bubbleMain?.animate()
+                        ?.scaleX(0f)
+                        ?.scaleY(0f)
+                        ?.alpha(0f)
+                        ?.setDuration(ANIMATION_DURATION)
+                        ?.setInterpolator(DecelerateInterpolator())
+                        ?.withEndAction {
+                            cleanupViews()
+                        }
+                        ?.start()
+                }
+            } else {
+                cleanupViews()
+            }
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error dismissing bubble", e)
+            cleanupViews()
+        }
+    }
+
+    private fun cleanupViews() {
+        try {
+            windowManager?.removeView(bubbleView)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error removing bubble view", e)
+        }
+
+        bubbleView = null
+        bubbleCollapsed = null
+        bubbleExpanded = null
+        bubbleHideButton = null
+        bubbleMain = null
+        windowManager = null
+        layoutParams = null
+        isShowing = false
+        isExpanded = false
+        isHidden = false  // Reset for next session
+
+        Log.d(TAG, "Bubble dismissed")
+    }
+
+    /**
+     * Check if bubble is currently showing
+     */
+    fun isShowing(): Boolean = isShowing
+
+    /**
+     * Perform light haptic feedback for tap
+     */
+    private fun performTapHaptic() {
+        bubbleMain?.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+    }
+
+    /**
+     * Perform heavier haptic feedback for long press
+     */
+    private fun performLongPressHaptic() {
+        bubbleMain?.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+    }
+
+    /**
+     * Perform haptic feedback for button click
+     */
+    private fun performClickHaptic() {
+        bubbleHideButton?.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+    }
+}

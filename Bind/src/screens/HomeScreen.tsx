@@ -1304,8 +1304,8 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
                           {formatScheduleDate(preset.scheduleStartDate!)} - {formatScheduleDate(preset.scheduleEndDate!)}
                         </Text>
                       </View>
-                      <View style={{ backgroundColor: isCurrentlyActive ? 'rgba(74, 222, 128, 0.2)' : 'rgba(245, 158, 11, 0.2)' }} className="px-2 py-0.5 rounded-full">
-                        <Text style={{ color: isCurrentlyActive ? '#22c55e' : '#f59e0b' }} className="text-xs font-nunito-semibold">
+                      <View style={{ backgroundColor: colors.border }} className="px-2 py-0.5 rounded-full">
+                        <Text style={{ color: '#FFFFFF' }} className="text-xs font-nunito-semibold">
                           {isCurrentlyActive ? 'Active' : isPending ? 'Pending' : 'Scheduled'}
                         </Text>
                       </View>
