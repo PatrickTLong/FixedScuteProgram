@@ -108,7 +108,7 @@ function LandingScreen({ onGetStarted }: Props) {
 
         {/* Tap to continue text below logo */}
         <Animated.View style={{ opacity: tapTextOpacity, marginTop: 24 }}>
-          <Text style={{ color: colors.textSecondary }} className="text-base font-nunito">
+          <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">
             Tap to continue...
           </Text>
         </Animated.View>

@@ -1,6 +1,5 @@
 import React, { memo, useEffect, useRef } from 'react';
 import { View, Animated } from 'react-native';
-import { useTheme } from '../context/ThemeContext';
 
 interface ProgressBarProps {
   currentStep: number;
@@ -8,28 +7,84 @@ interface ProgressBarProps {
 }
 
 function ProgressBar({ currentStep, totalSteps }: ProgressBarProps) {
-  const { colors } = useTheme();
-
   return (
-    <View className="flex-row items-end justify-center gap-2 mt-5">
+    <View style={{ position: 'absolute', top: 60, left: 0, right: 0, zIndex: 5 }} className="flex-row items-center justify-center gap-3">
       {Array.from({ length: totalSteps }).map((_, index) => {
-        const isActive = index + 1 === currentStep;
-        const isPassed = index + 1 < currentStep;
+        const stepNumber = index + 1;
+        const isActive = stepNumber === currentStep;
 
         return (
-          <View
-            key={index}
-            style={{
-              backgroundColor: isActive || isPassed ? '#22c55e' : colors.border,
-              width: 10,
-              height: isActive ? 14 : 10,
-              marginBottom: isActive ? 4 : 0,
-            }}
-            className="rounded-full"
-          />
+          <AnimatedDot key={index} isActive={isActive} />
         );
       })}
     </View>
+  );
+}
+
+function AnimatedDot({ isActive }: { isActive: boolean }) {
+  const translateYAnim = useRef(new Animated.Value(0)).current;
+  const floatAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    // Random delay for each dot to create staggered effect
+    const randomDelay = Math.random() * 1500;
+    const randomDuration = 1200 + Math.random() * 600; // 1.2-1.8 seconds
+
+    // More noticeable floating animation
+    const floatAnimation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(floatAnim, {
+          toValue: -4,
+          duration: randomDuration,
+          useNativeDriver: true,
+          delay: randomDelay,
+        }),
+        Animated.timing(floatAnim, {
+          toValue: 0,
+          duration: randomDuration,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+
+    floatAnimation.start();
+
+    return () => floatAnimation.stop();
+  }, [floatAnim]);
+
+  useEffect(() => {
+    if (isActive) {
+      // Raise the active dot
+      Animated.spring(translateYAnim, {
+        toValue: -3,
+        useNativeDriver: true,
+        friction: 5,
+        tension: 100,
+      }).start();
+    } else {
+      // Reset to normal position
+      Animated.spring(translateYAnim, {
+        toValue: 0,
+        useNativeDriver: true,
+        friction: 5,
+        tension: 100,
+      }).start();
+    }
+  }, [isActive, translateYAnim]);
+
+  return (
+    <Animated.View
+      style={{
+        backgroundColor: '#FFFFFF',
+        opacity: isActive ? 1.0 : 0.3,
+        width: 8,
+        height: 8,
+        borderRadius: 4,
+        transform: [
+          { translateY: Animated.add(translateYAnim, floatAnim) },
+        ],
+      }}
+    />
   );
 }
 

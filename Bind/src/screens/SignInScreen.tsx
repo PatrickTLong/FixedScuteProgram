@@ -202,16 +202,17 @@ function SignInScreen({ onBack, onSuccess, onForgotPassword }: Props) {
       </View>
 
       {/* Progress Bar */}
-      <ProgressBar currentStep={step === 'credentials' ? 1 : 2} totalSteps={2} />
+      <ProgressBar currentStep={step === 'credentials' ? 2 : 3} totalSteps={3} />
 
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        enabled={false}
         className="flex-1"
       >
         <ScrollView
           keyboardShouldPersistTaps="handled"
-          contentContainerStyle={{ flexGrow: 1, paddingTop: '20%' }}
+          contentContainerStyle={{ flexGrow: 1, paddingTop: '25%' }}
           className="flex-1"
+          showsVerticalScrollIndicator={false}
         >
           <View className="px-6 pt-12">
             {step === 'credentials' ? (
@@ -233,8 +234,8 @@ function SignInScreen({ onBack, onSuccess, onForgotPassword }: Props) {
                     autoCapitalize="none"
                     autoCorrect={false}
                     editable={!loading}
-                    style={{ backgroundColor: colors.bg, borderColor: colors.border, color: colors.text }}
-                    className="border rounded-full px-5 py-4 text-base font-nunito"
+                    style={{ backgroundColor: colors.card, color: colors.text }}
+                    className="rounded-full px-5 py-4 text-sm font-nunito"
                   />
                 </View>
 
@@ -251,8 +252,8 @@ function SignInScreen({ onBack, onSuccess, onForgotPassword }: Props) {
                       autoCapitalize="none"
                       autoCorrect={false}
                       editable={!loading}
-                      style={{ backgroundColor: colors.bg, borderColor: colors.border, color: colors.text, paddingRight: 50 }}
-                      className="border rounded-full px-5 py-4 text-base font-nunito"
+                      style={{ backgroundColor: colors.card, color: colors.text, paddingRight: 50 }}
+                      className="rounded-full px-5 py-4 text-sm font-nunito"
                     />
                     <TouchableOpacity
                       onPress={() => setShowPassword(!showPassword)}
@@ -321,7 +322,7 @@ function SignInScreen({ onBack, onSuccess, onForgotPassword }: Props) {
               style={{ backgroundColor: loading ? colors.textMuted : colors.text }}
               className="rounded-full py-4 items-center mb-4"
             >
-              <Text style={{ color: loading ? colors.textSecondary : colors.bg }} className="text-base font-nunito-semibold">
+              <Text style={{ color: loading ? colors.textSecondary : colors.bg }} className="text-sm font-nunito-semibold">
                 {loading ? 'Please wait...' : step === 'credentials' ? 'Sign In' : 'Verify'}
               </Text>
             </TouchableOpacity>

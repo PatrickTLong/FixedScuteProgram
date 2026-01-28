@@ -300,7 +300,7 @@ function PermissionsChecklistScreen({ onComplete }: Props) {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
       {/* Progress Bar */}
-      <ProgressBar currentStep={grantedCount} totalSteps={totalCount} />
+      <ProgressBar currentStep={3} totalSteps={3} />
 
       <ScrollView
         className="flex-1"

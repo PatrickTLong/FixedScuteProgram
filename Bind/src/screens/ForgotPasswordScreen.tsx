@@ -181,8 +181,8 @@ function ForgotPasswordScreen({ onBack, onSuccess }: Props) {
   }
 
   const getCurrentStep = () => {
-    if (step === 'email') return 1;
-    if (step === 'code') return 2;
+    if (step === 'email') return 2;
+    if (step === 'code') return 3;
     return 3;
   };
 
@@ -221,13 +221,14 @@ function ForgotPasswordScreen({ onBack, onSuccess }: Props) {
       <ProgressBar currentStep={getCurrentStep()} totalSteps={3} />
 
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        enabled={false}
         className="flex-1"
       >
         <ScrollView
           keyboardShouldPersistTaps="handled"
-          contentContainerStyle={{ flexGrow: 1, paddingTop: '20%' }}
+          contentContainerStyle={{ flexGrow: 1, paddingTop: '35%' }}
           className="flex-1"
+          showsVerticalScrollIndicator={false}
         >
           <View className="px-6 pt-12">
             {step === 'email' && (
@@ -251,8 +252,8 @@ function ForgotPasswordScreen({ onBack, onSuccess }: Props) {
                     autoCapitalize="none"
                     autoCorrect={false}
                     editable={!loading}
-                    style={{ backgroundColor: colors.bg, borderColor: colors.border, color: colors.text }}
-                    className="border rounded-full px-5 py-4 text-base font-nunito"
+                    style={{ backgroundColor: colors.card, color: colors.text }}
+                    className="rounded-full px-5 py-4 text-sm font-nunito"
                   />
                 </View>
               </>
@@ -313,8 +314,8 @@ function ForgotPasswordScreen({ onBack, onSuccess }: Props) {
                       autoCapitalize="none"
                       autoCorrect={false}
                       editable={!loading}
-                      style={{ backgroundColor: colors.bg, borderColor: colors.border, color: colors.text, paddingRight: 50 }}
-                      className="border rounded-full px-5 py-4 text-base font-nunito"
+                      style={{ backgroundColor: colors.card, color: colors.text, paddingRight: 50 }}
+                      className="rounded-full px-5 py-4 text-sm font-nunito"
                     />
                     <TouchableOpacity
                       onPress={() => setShowNewPassword(!showNewPassword)}
@@ -337,8 +338,8 @@ function ForgotPasswordScreen({ onBack, onSuccess }: Props) {
                       autoCapitalize="none"
                       autoCorrect={false}
                       editable={!loading}
-                      style={{ backgroundColor: colors.bg, borderColor: colors.border, color: colors.text, paddingRight: 50 }}
-                      className="border rounded-full px-5 py-4 text-base font-nunito"
+                      style={{ backgroundColor: colors.card, color: colors.text, paddingRight: 50 }}
+                      className="rounded-full px-5 py-4 text-sm font-nunito"
                     />
                     <TouchableOpacity
                       onPress={() => setShowConfirmPassword(!showConfirmPassword)}
@@ -369,7 +370,7 @@ function ForgotPasswordScreen({ onBack, onSuccess }: Props) {
               style={{ backgroundColor: loading ? colors.textMuted : colors.text }}
               className="rounded-full py-4 items-center mb-4"
             >
-              <Text style={{ color: loading ? colors.textSecondary : colors.bg }} className="text-base font-nunito-semibold">
+              <Text style={{ color: loading ? colors.textSecondary : colors.bg }} className="text-sm font-nunito-semibold">
                 {loading
                   ? 'Please wait...'
                   : step === 'email'

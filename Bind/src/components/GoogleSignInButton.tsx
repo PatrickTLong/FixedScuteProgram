@@ -110,25 +110,26 @@ export default function GoogleSignInBtn({ onSuccess, onError, disabled }: Props)
       onPress={handleGoogleSignIn}
       disabled={disabled || loading}
       activeOpacity={0.8}
-      style={{ backgroundColor: colors.card }}
+      style={{ backgroundColor: colors.card, position: 'relative' }}
       className="rounded-full py-4 items-center justify-center"
     >
-      {loading ? (
-        <Lottie
-          source={require('../frontassets/Loading Animation 3 Dots.json')}
-          autoPlay
-          loop
-          speed={2}
-          style={{ width: 80, height: 80, marginVertical: -26 }}
-        />
-      ) : (
-        <View className="flex-row items-center justify-center">
-          <View className="mr-3">
-            <GoogleLogo size={20} />
-          </View>
-          <Text style={{ color: '#FFFFFF' }} className="text-base font-nunito-semibold">
-            Continue with Google
-          </Text>
+      <View style={{ opacity: loading ? 0 : 1 }} className="flex-row items-center justify-center">
+        <View className="mr-3">
+          <GoogleLogo size={20} />
+        </View>
+        <Text style={{ color: '#FFFFFF' }} className="text-sm font-nunito-semibold">
+          Continue with Google
+        </Text>
+      </View>
+      {loading && (
+        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center' }}>
+          <Lottie
+            source={require('../frontassets/Loading Animation 3 Dots.json')}
+            autoPlay
+            loop
+            speed={2}
+            style={{ width: 60, height: 60 }}
+          />
         </View>
       )}
     </TouchableOpacity>
