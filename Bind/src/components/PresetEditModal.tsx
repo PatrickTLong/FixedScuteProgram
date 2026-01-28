@@ -189,50 +189,14 @@ const ChevronRightIcon = ({ size = 24, color = "#9CA3AF" }: { size?: number; col
 // lazy=false (default): always rendered, toggles visibility — fast for lightweight content
 // lazy=true: mounts/unmounts children — use for heavy components (TimerPicker, date pickers)
 const ExpandableInfo = ({ expanded, children, lazy = false }: { expanded: boolean; children: React.ReactNode; lazy?: boolean }) => {
-  const animValue = useRef(new Animated.Value(expanded ? 1 : 0)).current;
-  const [shouldRender, setShouldRender] = React.useState(expanded);
+  if (lazy && !expanded) return null;
 
-  useEffect(() => {
-    if (lazy) {
-      if (expanded) {
-        setShouldRender(true);
-        requestAnimationFrame(() => {
-          Animated.timing(animValue, {
-            toValue: 1,
-            duration: 120,
-            useNativeDriver: true,
-          }).start();
-        });
-      } else {
-        Animated.timing(animValue, {
-          toValue: 0,
-          duration: 120,
-          useNativeDriver: true,
-        }).start(({ finished }) => {
-          if (finished) setShouldRender(false);
-        });
-      }
-    } else {
-      Animated.timing(animValue, {
-        toValue: expanded ? 1 : 0,
-        duration: 120,
-        useNativeDriver: true,
-      }).start();
-    }
-  }, [expanded, animValue, lazy]);
-
-  if (lazy && !shouldRender) return null;
+  if (!expanded) return null;
 
   return (
-    <Animated.View
-      style={{
-        opacity: animValue,
-        ...(!lazy && !expanded ? { display: 'none' as const } : {}),
-      }}
-      pointerEvents={expanded ? 'auto' : 'none'}
-    >
+    <View>
       {children}
-    </Animated.View>
+    </View>
   );
 };
 
