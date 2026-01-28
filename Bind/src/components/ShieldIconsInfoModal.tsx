@@ -156,7 +156,7 @@ function ShieldIconsInfoModal({ visible, onClose }: ShieldIconsInfoModalProps) {
               activeOpacity={0.7}
               className="py-4 items-center"
             >
-              <Text style={{ color: '#FFFFFF' }} className="text-base font-nunito-semibold">
+              <Text style={{ color: '#FFFFFF' }} className="text-sm font-nunito-semibold">
                 Got it
               </Text>
             </TouchableOpacity>

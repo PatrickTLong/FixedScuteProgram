@@ -7,6 +7,7 @@ import {
 } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 import { lightTap } from '../utils/haptics';
+import AnimatedCheckbox from './AnimatedCheckbox';
 
 interface StrictModeWarningModalProps {
   visible: boolean;
@@ -55,26 +56,8 @@ function StrictModeWarningModal({ visible, onConfirm, onCancel }: StrictModeWarn
               activeOpacity={0.7}
               className="flex-row items-center justify-center mt-6"
             >
-              <View
-                style={{
-                  backgroundColor: dontShowAgain ? '#22c55e' : 'transparent',
-                  borderColor: dontShowAgain ? '#22c55e' : colors.textSecondary,
-                }}
-                className="w-5 h-5 rounded border-2 items-center justify-center mr-3"
-              >
-                {dontShowAgain && (
-                  <View
-                    style={{
-                      width: 8,
-                      height: 13,
-                      borderRightWidth: 2.5,
-                      borderBottomWidth: 2.5,
-                      borderColor: '#FFFFFF',
-                      transform: [{ rotate: '45deg' }],
-                      marginTop: -2,
-                    }}
-                  />
-                )}
+              <View className="mr-3">
+                <AnimatedCheckbox checked={dontShowAgain} size={20} />
               </View>
               <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">
                 Don't show this again
@@ -90,7 +73,7 @@ function StrictModeWarningModal({ visible, onConfirm, onCancel }: StrictModeWarn
               style={{ borderRightColor: colors.border }}
               className="flex-1 py-4 items-center border-r"
             >
-              <Text style={{ color: colors.textSecondary }} className="text-base font-nunito-semibold">
+              <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito-semibold">
                 Keep Off
               </Text>
             </TouchableOpacity>
@@ -99,7 +82,7 @@ function StrictModeWarningModal({ visible, onConfirm, onCancel }: StrictModeWarn
               activeOpacity={0.7}
               className="flex-1 py-4 items-center"
             >
-              <Text style={{ color: '#FFFFFF' }} className="text-base font-nunito-semibold">
+              <Text style={{ color: '#FFFFFF' }} className="text-sm font-nunito-semibold">
                 Enable
               </Text>
             </TouchableOpacity>

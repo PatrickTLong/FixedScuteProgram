@@ -59,7 +59,7 @@ function ConfirmationModal({
               style={{ borderRightColor: colors.border }}
               className="flex-1 py-4 items-center border-r"
             >
-              <Text style={{ color: colors.textSecondary }} className="text-base font-nunito">
+              <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">
                 {cancelText}
               </Text>
             </TouchableOpacity>
@@ -70,7 +70,7 @@ function ConfirmationModal({
               activeOpacity={0.7}
               className="flex-1 py-4 items-center"
             >
-              <Text style={{ color: '#FFFFFF' }} className="text-base font-nunito-semibold">
+              <Text style={{ color: '#FFFFFF' }} className="text-sm font-nunito-semibold">
                 {confirmText}
               </Text>
             </TouchableOpacity>

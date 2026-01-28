@@ -230,8 +230,8 @@ function GetStartedScreen({ onBack, onSuccess, onSignIn }: Props) {
                     autoCapitalize="none"
                     autoCorrect={false}
                     editable={!loading}
-                    style={{ backgroundColor: colors.card, color: colors.text }}
-                    className="rounded-full px-5 py-4 text-sm font-nunito"
+                    style={{ backgroundColor: colors.card, color: colors.text, height: 52, paddingVertical: 16 }}
+                    className="rounded-full px-5 text-sm font-nunito"
                   />
                 </View>
 
@@ -248,8 +248,8 @@ function GetStartedScreen({ onBack, onSuccess, onSignIn }: Props) {
                       autoCapitalize="none"
                       autoCorrect={false}
                       editable={!loading}
-                      style={{ backgroundColor: colors.card, color: colors.text, paddingRight: 50 }}
-                      className="rounded-full px-5 py-4 text-sm font-nunito"
+                      style={{ backgroundColor: colors.card, color: colors.text, paddingRight: 50, height: 52, paddingVertical: 16 }}
+                      className="rounded-full px-5 text-sm font-nunito"
                     />
                     <TouchableOpacity
                       onPress={() => setShowPassword(!showPassword)}

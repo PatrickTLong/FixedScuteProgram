@@ -169,7 +169,7 @@ function EmergencyTapoutModal({
               activeOpacity={0.7}
               className="py-4 items-center"
             >
-              <Text style={{ color: colors.textSecondary }} className="text-base font-nunito-semibold">
+              <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito-semibold">
                 Dismiss
               </Text>
             </TouchableOpacity>

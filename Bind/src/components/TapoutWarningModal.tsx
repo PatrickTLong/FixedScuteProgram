@@ -89,7 +89,7 @@ function TapoutWarningModal({ visible, onClose }: TapoutWarningModalProps) {
               style={{ borderRightColor: colors.border }}
               className="flex-1 py-4 items-center border-r"
             >
-              <Text style={{ color: colors.textSecondary }} className="text-base font-nunito-semibold">
+              <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito-semibold">
                 Keep Enabled
               </Text>
             </TouchableOpacity>
@@ -98,7 +98,7 @@ function TapoutWarningModal({ visible, onClose }: TapoutWarningModalProps) {
               activeOpacity={0.7}
               className="flex-1 py-4 items-center"
             >
-              <Text style={{ color: '#FFFFFF' }} className="text-base font-nunito-semibold">
+              <Text style={{ color: '#FFFFFF' }} className="text-sm font-nunito-semibold">
                 Disable
               </Text>
             </TouchableOpacity>

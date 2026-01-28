@@ -13,20 +13,10 @@ import LottieView from 'lottie-react-native';
 const Lottie = LottieView as any;
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
-import ProgressBar from '../components/ProgressBar';
 import { useTheme } from '../context/ThemeContext';
 import { lightTap } from '../utils/haptics';
 
 const { PermissionsModule } = NativeModules;
-
-// Layers icon (Feather Icons style)
-const LayersIcon = ({ size = 24, color = "#FFFFFF" }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path d="M12 2L2 7l10 5 10-5-10-5z" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"/>
-    <Path d="M2 17l10 5 10-5" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"/>
-    <Path d="M2 12l10 5 10-5" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"/>
-  </Svg>
-);
 
 // Android icon
 const AndroidIcon = ({ size = 24, color = "#FFFFFF" }: { size?: number; color?: string }) => (
@@ -299,20 +289,19 @@ function PermissionsChecklistScreen({ onComplete }: Props) {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
-      {/* Progress Bar */}
-      <ProgressBar currentStep={3} totalSteps={3} />
-
       <ScrollView
         className="flex-1"
         contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 32, paddingBottom: 16 }}
       >
-        {/* Title with Layers Icon */}
-        <View className="flex-row items-center justify-center mb-3">
-          <LayersIcon size={28} color={colors.text} />
-          <Text style={{ color: colors.text }} className="text-2xl font-nunito-bold ml-3">
-            {missingCount} permission{missingCount !== 1 ? 's' : ''} missing
-          </Text>
+        {/* Android Icon */}
+        <View className="items-center justify-center mb-6">
+          <AndroidIcon size={80} color={colors.text} />
         </View>
+
+        {/* Title */}
+        <Text style={{ color: colors.text }} className="text-2xl font-nunito-bold text-center mb-3">
+          {missingCount} permission{missingCount !== 1 ? 's' : ''} missing
+        </Text>
 
         {/* Subtitle */}
         <Text style={{ color: colors.textSecondary }} className="text-center text-sm font-nunito mb-8 px-4">

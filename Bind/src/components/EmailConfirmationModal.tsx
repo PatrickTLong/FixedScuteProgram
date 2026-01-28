@@ -92,7 +92,7 @@ function EmailConfirmationModal({ visible, userEmail, onConfirm, onCancel }: Ema
               className="flex-1 py-4 items-center"
               style={{ borderRightWidth: 1, borderRightColor: colors.border }}
             >
-              <Text style={{ color: colors.text }} className="text-base font-nunito">
+              <Text style={{ color: colors.text }} className="text-sm font-nunito">
                 Cancel
               </Text>
             </TouchableOpacity>
@@ -107,7 +107,7 @@ function EmailConfirmationModal({ visible, userEmail, onConfirm, onCancel }: Ema
             >
               <Text
                 style={{ color: isEmailMatch ? '#FFFFFF' : colors.text }}
-                className="text-base font-nunito-semibold"
+                className="text-sm font-nunito-semibold"
               >
                 Delete Account
               </Text>
