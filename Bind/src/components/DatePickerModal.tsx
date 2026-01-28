@@ -172,6 +172,48 @@ const TimeWheel = memo(({ values, selectedValue, onValueChange, padZero = true, 
   );
 });
 
+// Memoized Day Cell
+interface DayCellProps {
+  day: number;
+  selectable: boolean;
+  selected: boolean;
+  isToday: boolean;
+  textColor: string;
+  textMutedColor: string;
+  onSelect: (day: number) => void;
+}
+
+const DayCell = memo(({ day, selectable, selected, isToday: todayDay, textColor, textMutedColor, onSelect }: DayCellProps) => (
+  <TouchableOpacity
+    onPress={() => onSelect(day)}
+    disabled={!selectable}
+    style={{ width: '14.28%', height: 44 }}
+    className="items-center justify-center"
+  >
+    <View
+      style={{
+        backgroundColor: selected ? '#22c55e' : 'transparent',
+        borderColor: todayDay && !selected ? '#22c55e' : 'transparent',
+        borderWidth: todayDay && !selected ? 1 : 0,
+      }}
+      className="w-9 h-9 rounded-full items-center justify-center"
+    >
+      <Text
+        style={{
+          color: selected ? '#FFFFFF' : selectable ? textColor : textMutedColor,
+        }}
+        className={`text-base font-nunito ${selected ? 'font-nunito-bold' : ''}`}
+      >
+        {day}
+      </Text>
+    </View>
+  </TouchableOpacity>
+));
+
+const EmptyCell = memo(() => (
+  <View style={{ width: '14.28%', height: 44 }} />
+));
+
 // AM/PM Selector
 interface AmPmSelectorProps {
   value: 'AM' | 'PM';
@@ -233,6 +275,16 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
 
   // Content fade animation
   const contentFadeAnim = useRef(new Animated.Value(0)).current;
+
+  const handleAnimatedClose = useCallback(() => {
+    Animated.timing(contentFadeAnim, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => {
+      onClose();
+    });
+  }, [contentFadeAnim, onClose]);
 
   // Reset when modal opens
   useEffect(() => {
@@ -305,36 +357,11 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
     return nextDate <= maxDate;
   }, [viewYear, viewMonth, maxDate]);
 
-  const isDateSelectable = useCallback((day: number) => {
-    const date = new Date(viewYear, viewMonth, day);
-    date.setHours(23, 59, 59, 999);
-    return date >= effectiveMinDate && date <= maxDate;
-  }, [viewYear, viewMonth, effectiveMinDate, maxDate]);
-
-  const isDateSelected = useCallback((day: number) => {
-    if (!tempSelectedDate) return false;
-    return (
-      tempSelectedDate.getDate() === day &&
-      tempSelectedDate.getMonth() === viewMonth &&
-      tempSelectedDate.getFullYear() === viewYear
-    );
-  }, [tempSelectedDate, viewMonth, viewYear]);
-
-  const isToday = useCallback((day: number) => {
-    return (
-      today.getDate() === day &&
-      today.getMonth() === viewMonth &&
-      today.getFullYear() === viewYear
-    );
-  }, [today, viewMonth, viewYear]);
-
   const handleSelectDay = useCallback((day: number) => {
-    if (!isDateSelectable(day)) return;
-    lightTap(); // Haptic feedback when selecting a day
-    // Keep the time when selecting a new day
+    lightTap();
     const selected = new Date(viewYear, viewMonth, day);
     setTempSelectedDate(selected);
-  }, [viewYear, viewMonth, isDateSelectable]);
+  }, [viewYear, viewMonth]);
 
   // Check if selected datetime is valid (after minimum date and in the future)
   const isFutureDateTime = useMemo(() => {
@@ -381,32 +408,46 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
         0
       );
       onSelect(finalDate);
-      onClose();
+      handleAnimatedClose();
     }
     // Don't close if the date is not in the future - user needs to select a valid time
-  }, [tempSelectedDate, selectedHour, selectedMinute, selectedAmPm, onSelect, onClose, isFutureDateTime]);
+  }, [tempSelectedDate, selectedHour, selectedMinute, selectedAmPm, onSelect, handleAnimatedClose, isFutureDateTime]);
 
   const handleClear = useCallback(() => {
     lightTap();
     setTempSelectedDate(null);
     onSelect(null as any);
-    onClose();
-  }, [onSelect, onClose]);
+    handleAnimatedClose();
+  }, [onSelect, handleAnimatedClose]);
 
   const daysInMonth = getDaysInMonth(viewMonth, viewYear);
   const firstDay = getFirstDayOfMonth(viewMonth, viewYear);
 
-  // Build calendar grid
+  // Build calendar grid with pre-computed metadata for each day
   const calendarDays = useMemo(() => {
-    const days: (number | null)[] = [];
+    const days: ({ type: 'empty' } | { type: 'day'; day: number; selectable: boolean; selected: boolean; isToday: boolean })[] = [];
     for (let i = 0; i < firstDay; i++) {
-      days.push(null);
+      days.push({ type: 'empty' });
     }
+    const todayDate = today.getDate();
+    const todayMonth = today.getMonth();
+    const todayYear = today.getFullYear();
+    const selectedDay = tempSelectedDate?.getDate();
+    const selectedMonth = tempSelectedDate?.getMonth();
+    const selectedYear = tempSelectedDate?.getFullYear();
+
     for (let i = 1; i <= daysInMonth; i++) {
-      days.push(i);
+      const date = new Date(viewYear, viewMonth, i, 23, 59, 59, 999);
+      days.push({
+        type: 'day',
+        day: i,
+        selectable: date >= effectiveMinDate && date <= maxDate,
+        selected: selectedDay === i && selectedMonth === viewMonth && selectedYear === viewYear,
+        isToday: todayDate === i && todayMonth === viewMonth && todayYear === viewYear,
+      });
     }
     return days;
-  }, [daysInMonth, firstDay]);
+  }, [daysInMonth, firstDay, viewMonth, viewYear, tempSelectedDate, effectiveMinDate, maxDate, today]);
 
   // Format selected date and time for display
   const selectedDateTimeText = useMemo(() => {
@@ -426,14 +467,14 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
       visible={visible}
       animationType="none"
       presentationStyle="pageSheet"
-      onRequestClose={onClose}
+      onRequestClose={handleAnimatedClose}
     >
       <View style={{ flex: 1, backgroundColor: colors.bg }}>
-        <Animated.View style={{ flex: 1, opacity: contentFadeAnim }}>
+      <Animated.View style={{ flex: 1, opacity: contentFadeAnim }}>
           <SafeAreaView style={{ flex: 1 }}>
           {/* Header */}
           <View style={{ borderBottomColor: colors.border }} className="flex-row items-center justify-between px-4 py-3 border-b">
-            <TouchableOpacity onPress={() => { lightTap(); onClose(); }} className="px-2">
+            <TouchableOpacity onPress={() => { lightTap(); handleAnimatedClose(); }} className="px-2">
               <Text style={{ color: '#FFFFFF'}} className="text-base font-nunito">Cancel</Text>
             </TouchableOpacity>
             <Text style={{ color: colors.text }} className="text-lg font-nunito-semibold">Pick Date & Time</Text>
@@ -448,7 +489,7 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
             </TouchableOpacity>
           </View>
 
-          <ScrollView className="flex-1 px-6 pt-4">
+          <View className="flex-1 px-6 pt-4">
           {/* Month/Year Navigation */}
           <View className="flex-row items-center justify-between mb-4">
             <TouchableOpacity
@@ -487,41 +528,21 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
 
           {/* Calendar Grid */}
           <View className="flex-row flex-wrap">
-            {calendarDays.map((day, index) => {
-              if (day === null) {
-                return <View key={`empty-${index}`} style={{ width: '14.28%', height: 44 }} />;
+            {calendarDays.map((cell, index) => {
+              if (cell.type === 'empty') {
+                return <EmptyCell key={`empty-${index}`} />;
               }
-
-              const selectable = isDateSelectable(day);
-              const selected = isDateSelected(day);
-              const todayDay = isToday(day);
-
               return (
-                <TouchableOpacity
-                  key={day}
-                  onPress={() => handleSelectDay(day)}
-                  disabled={!selectable}
-                  style={{ width: '14.28%', height: 44 }}
-                  className="items-center justify-center"
-                >
-                  <View
-                    style={{
-                      backgroundColor: selected ? '#22c55e' : 'transparent',
-                      borderColor: todayDay && !selected ? '#22c55e' : 'transparent',
-                      borderWidth: todayDay && !selected ? 1 : 0,
-                    }}
-                    className="w-9 h-9 rounded-full items-center justify-center"
-                  >
-                    <Text
-                      style={{
-                        color: selected ? '#FFFFFF' : selectable ? colors.text : colors.textMuted,
-                      }}
-                      className={`text-base font-nunito ${selected ? 'font-nunito-bold' : ''}`}
-                    >
-                      {day}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
+                <DayCell
+                  key={cell.day}
+                  day={cell.day}
+                  selectable={cell.selectable}
+                  selected={cell.selected}
+                  isToday={cell.isToday}
+                  textColor={colors.text}
+                  textMutedColor={colors.textMuted}
+                  onSelect={handleSelectDay}
+                />
               );
             })}
           </View>
@@ -592,11 +613,9 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
             )}
           </View>
 
-          {/* Bottom padding for Android navigation */}
-          <View className="h-20" />
-        </ScrollView>
+        </View>
           </SafeAreaView>
-        </Animated.View>
+      </Animated.View>
       </View>
     </Modal>
   );

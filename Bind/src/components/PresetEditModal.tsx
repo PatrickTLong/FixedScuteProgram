@@ -270,32 +270,51 @@ const AndroidIcon = ({ size = 18, color = "#FFFFFF" }: { size?: number; color?: 
   </Svg>
 );
 
-// Repeat/Recurrence icon - white with thicker strokes
-const RepeatIcon = ({ size = 24 }: { size?: number }) => (
+// Send icon (Feather send) - for next occurrence
+const SendIcon = ({ size = 24 }: { size?: number }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Path
-      d="M17 1l4 4-4 4"
+      d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"
+      stroke="#FFFFFF"
+      strokeWidth={2.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+// Repeat/Recurrence icon - white with thicker strokes
+const RotateCwIcon = ({ size = 24 }: { size?: number }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M23 4v6h-6"
       stroke="#FFFFFF"
       strokeWidth={2.5}
       strokeLinecap="round"
       strokeLinejoin="round"
     />
     <Path
-      d="M3 11V9a4 4 0 014-4h14"
+      d="M20.49 15a9 9 0 11-2.12-9.36L23 10"
+      stroke="#FFFFFF"
+      strokeWidth={2.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+// Clock icon for recurring unit selector
+const ClockIcon = ({ size = 24 }: { size?: number }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M12 2a10 10 0 100 20 10 10 0 000-20z"
       stroke="#FFFFFF"
       strokeWidth={2.5}
       strokeLinecap="round"
       strokeLinejoin="round"
     />
     <Path
-      d="M7 23l-4-4 4-4"
-      stroke="#FFFFFF"
-      strokeWidth={2.5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <Path
-      d="M21 13v2a4 4 0 01-4 4H3"
+      d="M12 6v6l4 2"
       stroke="#FFFFFF"
       strokeWidth={2.5}
       strokeLinecap="round"
@@ -843,11 +862,15 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
 
             <ScrollView className="flex-1 pt-6" contentContainerStyle={{ paddingBottom: 100 }}>
 
+            <Text style={{ color: '#FFFFFF' }} className="text-xs font-nunito px-6 mb-4">
+              Tap on toggle text to see further details
+            </Text>
+
             {/* ── Time & Duration ── */}
 
             {/* No Time Limit Toggle */}
             <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }}>
-              <View className="flex-row items-center justify-between py-4 px-6">
+              <View style={{ paddingVertical: 20 }} className="flex-row items-center justify-between px-6">
                 <TouchableOpacity onPress={() => toggleInfo('noTimeLimit')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
                   <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">No Time Limit</Text>
                   <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">Block until manually unlocked</Text>
@@ -870,7 +893,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               <ExpandableInfo expanded={!!expandedInfo.noTimeLimit}>
                 <TouchableOpacity onPress={() => toggleInfo('noTimeLimit')} activeOpacity={0.7} className="px-6 pb-4">
                   <Text style={{ color: colors.text }} className="text-sm font-nunito leading-5">
-                    Block stays active until manually ended. With Strict Mode on and no Emergency Tapout, you may be locked out indefinitely.
+                    Block stays active until manually ended for No Time Limit Presets. Leave disabled for timed preset options.
                   </Text>
                 </TouchableOpacity>
               </ExpandableInfo>
@@ -879,7 +902,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
             {/* Schedule for Later Toggle */}
             <ExpandableInfo expanded={!noTimeLimit} lazy>
             <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }}>
-              <View className="flex-row items-center justify-between py-4 px-6">
+              <View style={{ paddingVertical: 20 }} className="flex-row items-center justify-between px-6">
                 <TouchableOpacity onPress={() => toggleInfo('schedule')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
                   <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">Schedule for Later</Text>
                   <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">Set a future start and end time</Text>
@@ -924,7 +947,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
             {/* Schedule Date Pickers */}
             <ExpandableInfo expanded={isScheduled} lazy>
               <View className="mt-4 px-6">
-                <Text style={{ color: colors.textMuted }} className="text-xs font-nunito uppercase tracking-wider mb-4">
+                <Text style={{ color: colors.textMuted }} className="text-xs font-nunito text-white tracking-wider mb-4">
                   Schedule
                 </Text>
 
@@ -932,14 +955,14 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                 <TouchableOpacity
                   onPress={() => { lightTap(); setStartDatePickerVisible(true); }}
                   activeOpacity={0.7}
-                  style={{ backgroundColor: colors.card }}
-                  className="flex-row items-center py-3 px-4 rounded-xl mb-3"
+                  style={{ backgroundColor: colors.card, paddingVertical: 14 }}
+                  className="flex-row items-center px-4 rounded-xl mb-3"
                 >
                   <View  className="w-10 h-10 rounded-lg items-center justify-center mr-3">
                     <CalendarIcon size={26} />
                   </View>
                   <View className="flex-1">
-                    <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">
+                    <Text style={{ color: colors.text }} className="text-sm font-nunito-semibold">
                       {scheduleStartDate ? 'Start Date' : 'Pick Start Date'}
                     </Text>
                     {scheduleStartDate && (
@@ -972,14 +995,14 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                 <TouchableOpacity
                   onPress={() => { lightTap(); setEndDatePickerVisible(true); }}
                   activeOpacity={0.7}
-                  style={{ backgroundColor: colors.card }}
-                  className="flex-row items-center py-3 px-4 rounded-xl"
+                  style={{ backgroundColor: colors.card, paddingVertical: 14 }}
+                  className="flex-row items-center px-4 rounded-xl"
                 >
                   <View  className="w-10 h-10 rounded-lg items-center justify-center mr-3">
                     <FlagIcon size={26} />
                   </View>
                   <View className="flex-1">
-                    <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">
+                    <Text style={{ color: colors.text }} className="text-sm font-nunito-semibold">
                       {scheduleEndDate ? 'End Date' : 'Pick End Date'}
                     </Text>
                     {scheduleEndDate && (
@@ -1015,10 +1038,15 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                   </Text>
                 )}
 
+                {/* Divider when recurring schedule is not available */}
+                <ExpandableInfo expanded={!(scheduleStartDate && scheduleEndDate && scheduleEndDate > scheduleStartDate)}>
+                  <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border, marginTop: 20, marginHorizontal: -24 }} />
+                </ExpandableInfo>
+
                 {/* Recurring Schedule Toggle */}
                 <ExpandableInfo expanded={!!(scheduleStartDate && scheduleEndDate && scheduleEndDate > scheduleStartDate)} lazy>
-                  <View className="mt-4 -mx-6">
-                    <View style={isRecurring ? { borderBottomWidth: 1, borderBottomColor: colors.border } : undefined} className="flex-row items-center justify-between py-4 px-6">
+                  <View className="-mx-6">
+                    <View style={{ paddingVertical: 20, borderBottomWidth: isRecurring ? 1 : 0, borderBottomColor: colors.border }} className="flex-row items-center justify-between px-6">
                       <View style={{ maxWidth: '75%' }}>
                         <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">Recurring Schedule</Text>
                         <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">Repeat this block automatically</Text>
@@ -1046,51 +1074,59 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                     {/* Recurring Options */}
                     <ExpandableInfo expanded={isRecurring} lazy>
                       <View className="mt-4 px-6">
-                        <Text style={{ color: colors.textMuted }} className="text-xs font-nunito uppercase tracking-wider mb-3">
-                          Repeat Every
+                        <Text style={{ color: colors.textMuted }} className="text-xs font-nunito tracking-wider mb-4">
+                          Recurrence
                         </Text>
 
-                        <View className="flex-row items-stretch">
-                          {/* Number Input */}
-                          <View
-                            style={{ backgroundColor: colors.card }}
-                            className="flex-row items-center py-3 px-4 rounded-xl mr-3"
-                          >
-                            <View  className="w-10 h-10 rounded-lg items-center justify-center mr-3">
-                              <RepeatIcon size={26} />
-                            </View>
-                            <TextInput
-                              style={{ color: colors.text, minWidth: 50, textAlign: 'center' }}
-                              className="text-base font-nunito-semibold"
-                              value={recurringValue}
-                              onChangeText={(text) => {
-                                // Only allow numbers
-                                const numericValue = text.replace(/[^0-9]/g, '');
-                                setRecurringValue(numericValue);
-                              }}
-                              keyboardType="number-pad"
-                              maxLength={3}
-                              placeholder="1"
-                              placeholderTextColor={colors.textMuted}
-                            />
+                        {/* Number Input */}
+                        <View
+                          style={{ backgroundColor: colors.card, paddingVertical: 14 }}
+                          className="flex-row items-center px-4 rounded-xl mb-3"
+                        >
+                          <View className="w-10 h-10 rounded-lg items-center justify-center mr-3">
+                            <RotateCwIcon size={26} />
                           </View>
-
-                          {/* Unit Selector */}
-                          <TouchableOpacity
-                            onPress={() => {
-                              lightTap();
-                              setRecurringUnitModalVisible(true);
+                          <View className="flex-1">
+                            <Text style={{ color: colors.text }} className="text-sm font-nunito-semibold">
+                              Repeat Every
+                            </Text>
+                          </View>
+                          <TextInput
+                            style={{ color: colors.text, minWidth: 40, textAlign: 'center' }}
+                            className="text-sm font-nunito-semibold"
+                            value={recurringValue}
+                            onChangeText={(text) => {
+                              // Only allow numbers
+                              const numericValue = text.replace(/[^0-9]/g, '');
+                              setRecurringValue(numericValue);
                             }}
-                            activeOpacity={0.7}
-                            style={{ backgroundColor: colors.card }}
-                            className="flex-1 flex-row items-center justify-between py-3 px-4 rounded-xl"
-                          >
-                            <Text style={{ color: colors.text }} className="text-base font-nunito-semibold capitalize">
+                            keyboardType="number-pad"
+                            maxLength={3}
+                            placeholder="1"
+                            placeholderTextColor={colors.textMuted}
+                          />
+                        </View>
+
+                        {/* Unit Selector */}
+                        <TouchableOpacity
+                          onPress={() => {
+                            lightTap();
+                            setRecurringUnitModalVisible(true);
+                          }}
+                          activeOpacity={0.7}
+                          style={{ backgroundColor: colors.card, paddingVertical: 14 }}
+                          className="flex-row items-center px-4 rounded-xl mb-3"
+                        >
+                          <View className="w-10 h-10 rounded-lg items-center justify-center mr-3">
+                            <ClockIcon size={26} />
+                          </View>
+                          <View className="flex-1">
+                            <Text style={{ color: colors.text }} className="text-sm font-nunito-semibold capitalize">
                               {recurringUnit}
                             </Text>
-                            <ChevronRightIcon size={20} color="#FFFFFF" />
-                          </TouchableOpacity>
-                        </View>
+                          </View>
+                          <ChevronRightIcon size={20} color="#FFFFFF" />
+                        </TouchableOpacity>
 
                         {/* Next Occurrence Preview */}
                         {(() => {
@@ -1100,25 +1136,16 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                           const isSameDay = nextOccurrence.start.toDateString() === scheduleStartDate?.toDateString();
 
                           return (
-                            <View style={{ backgroundColor: colors.cardLight }} className="mt-4 p-4 rounded-xl">
-                              <Text style={{ color: colors.textMuted }} className="text-xs font-nunito uppercase tracking-wider mb-2">
-                                Next Occurrence
-                              </Text>
-                              <Text style={{ color: colors.text }} className="text-sm font-nunito-semibold">
-                                {isSameDay ? (
-                                  // Same day - just show times
-                                  `${nextOccurrence.start.toLocaleTimeString('en-US', {
-                                    hour: 'numeric',
-                                    minute: '2-digit',
-                                    hour12: true,
-                                  })} - ${nextOccurrence.end.toLocaleTimeString('en-US', {
-                                    hour: 'numeric',
-                                    minute: '2-digit',
-                                    hour12: true,
-                                  })}`
-                                ) : (
-                                  // Different day - show full date and times
-                                  `${nextOccurrence.start.toLocaleDateString('en-US', {
+                            <View style={{ backgroundColor: colors.card, paddingVertical: 14 }} className="flex-row items-center px-4 rounded-xl">
+                              <View className="w-10 h-10 rounded-lg items-center justify-center mr-3">
+                                <SendIcon size={26} />
+                              </View>
+                              <View className="flex-1">
+                                <Text style={{ color: colors.text }} className="text-sm font-nunito-semibold">
+                                  Next Occurrence
+                                </Text>
+                                <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">
+                                  {`${nextOccurrence.start.toLocaleDateString('en-US', {
                                     month: 'short',
                                     day: 'numeric',
                                     year: 'numeric',
@@ -1126,27 +1153,28 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                                     hour: 'numeric',
                                     minute: '2-digit',
                                     hour12: true,
-                                  })}`
-                                )}
-                              </Text>
-                              {!isSameDay && (
-                                <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito mt-1">
-                                  to {nextOccurrence.end.toLocaleDateString('en-US', {
-                                    month: 'short',
-                                    day: 'numeric',
-                                  })} at {nextOccurrence.end.toLocaleTimeString('en-US', {
-                                    hour: 'numeric',
-                                    minute: '2-digit',
-                                    hour12: true,
-                                  })}
+                                  })}`}
                                 </Text>
-                              )}
+                                {!isSameDay && (
+                                  <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">
+                                    {`to ${nextOccurrence.end.toLocaleDateString('en-US', {
+                                      month: 'short',
+                                      day: 'numeric',
+                                    })} at ${nextOccurrence.end.toLocaleTimeString('en-US', {
+                                      hour: 'numeric',
+                                      minute: '2-digit',
+                                      hour12: true,
+                                    })}`}
+                                  </Text>
+                                )}
+                              </View>
                             </View>
                           );
                         })()}
                       </View>
                     </ExpandableInfo>
                   </View>
+                  <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border, marginTop: isRecurring ? 16 : 0, marginHorizontal: -24 }} />
                 </ExpandableInfo>
               </View>
             </ExpandableInfo>
@@ -1154,7 +1182,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
             {/* Timer Picker (if time limit enabled and not scheduled) */}
             <ExpandableInfo expanded={!noTimeLimit && !isScheduled} lazy>
               <View className="mt-6 px-6">
-                <Text style={{ color: colors.textMuted }} className="text-xs font-nunito uppercase tracking-wider mb-4">
+                <Text style={{ color: colors.textMuted }} className="text-xs font-nunito text-white tracking-wider">
                   Duration
                 </Text>
                 <TimerPicker
@@ -1183,7 +1211,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                 {/* Or Pick a Date Divider */}
                 <View className="flex-row items-center my-6 -mx-6">
                   <View style={{ backgroundColor: colors.border }} className="flex-1 h-px" />
-                  <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito px-4">or</Text>
+                  <Text style={{ color: colors.textMuted }} className="text-xs font-nunito px-4">or</Text>
                   <View style={{ backgroundColor: colors.border }} className="flex-1 h-px" />
                 </View>
 
@@ -1199,14 +1227,14 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                     setDatePickerVisible(true);
                   }}
                   activeOpacity={0.7}
-                  style={{ backgroundColor: colors.card }}
-                  className="flex-row items-center py-3 px-4 rounded-xl"
+                  style={{ backgroundColor: colors.card, paddingVertical: 14 }}
+                  className="flex-row items-center px-4 rounded-xl"
                 >
                   <View className="w-10 h-10 rounded-lg items-center justify-center mr-3">
                     <CalendarIcon size={26} />
                   </View>
                   <View className="flex-1">
-                    <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">
+                    <Text style={{ color: colors.text }} className="text-sm font-nunito-semibold">
                       {targetDate ? 'Change Date' : 'Pick a Date'}
                     </Text>
                     {targetDate && (
@@ -1235,13 +1263,14 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                   )}
                 </TouchableOpacity>
               </View>
+              <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border, marginTop: 16 }} />
             </ExpandableInfo>
 
             {/* ── Block Behavior ── */}
 
             {/* Block Settings Toggle */}
             <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }}>
-              <View className="flex-row items-center justify-between py-4 px-6">
+              <View style={{ paddingVertical: 20 }} className="flex-row items-center justify-between px-6">
                 <TouchableOpacity onPress={() => toggleInfo('blockSettings')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
                   <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">Block Settings App</Text>
                   <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">WiFi settings remain accessible</Text>
@@ -1274,7 +1303,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
 
             {/* Strict Mode Toggle */}
             <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }}>
-              <View className="flex-row items-center justify-between py-4 px-6">
+              <View style={{ paddingVertical: 20 }} className="flex-row items-center justify-between px-6">
                 <TouchableOpacity onPress={() => toggleInfo('strictMode')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
                   <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">Strict Mode</Text>
                   <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">
@@ -1322,7 +1351,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
             {/* Emergency Tapout Toggle */}
             <ExpandableInfo expanded={strictMode} lazy>
               <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }}>
-                <View className="flex-row items-center justify-between py-4 px-6">
+                <View style={{ paddingVertical: 20 }} className="flex-row items-center justify-between px-6">
                   <TouchableOpacity onPress={() => toggleInfo('emergencyTapout')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
                     <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">Allow Emergency Tapout</Text>
                     <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">Use your emergency tapouts for this preset</Text>
