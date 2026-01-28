@@ -35,7 +35,8 @@
       "Bash(for file in AppSelectionInfoModal.tsx TapoutWarningModal.tsx SettingsBlockWarningModal.tsx RecurrenceInfoModal.tsx DisableTapoutWarningModal.tsx StrictModeWarningModal.tsx BlockSettingsWarningModal.tsx ShieldIconsInfoModal.tsx)",
       "Bash(do sed -i 's/<View style={{ borderColor: ''''#FFFFFF'''' }} className=\"\"w-2 h-3 border-r-2 border-b-2 rotate-45 -mt-0\\\\.5\"\" \\\\/>/<View\\\\n                    style={{\\\\n                      width: 8,\\\\n                      height: 13,\\\\n                      borderRightWidth: 2.5,\\\\n                      borderBottomWidth: 2.5,\\\\n                      borderColor: ''''#FFFFFF'''',\\\\n                      transform: [{ rotate: ''''45deg'''' }],\\\\n                      marginTop: -2,\\\\n                    }}\\\\n                  \\\\/>/g' \"$file\")",
       "Bash(done)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(./gradlew assembleRelease:*)"
     ]
   }
 }

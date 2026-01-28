@@ -9,29 +9,26 @@ interface ProgressBarProps {
 
 function ProgressBar({ currentStep, totalSteps }: ProgressBarProps) {
   const { colors } = useTheme();
-  const progressAnim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    const targetProgress = (currentStep / totalSteps) * 100;
-    Animated.timing(progressAnim, {
-      toValue: targetProgress,
-      duration: 300,
-      useNativeDriver: false, // width animation requires non-native driver
-    }).start();
-  }, [currentStep, totalSteps]);
 
   return (
-    <View style={{ backgroundColor: colors.border }} className="w-48 h-2 rounded-full overflow-hidden self-center mt-5">
-      <Animated.View
-        style={{
-          backgroundColor: '#22c55e',
-          width: progressAnim.interpolate({
-            inputRange: [0, 100],
-            outputRange: ['0%', '100%'],
-          }),
-        }}
-        className="h-full rounded-full"
-      />
+    <View className="flex-row items-end justify-center gap-2 mt-5">
+      {Array.from({ length: totalSteps }).map((_, index) => {
+        const isActive = index + 1 === currentStep;
+        const isPassed = index + 1 < currentStep;
+
+        return (
+          <View
+            key={index}
+            style={{
+              backgroundColor: isActive || isPassed ? '#22c55e' : colors.border,
+              width: 10,
+              height: isActive ? 14 : 10,
+              marginBottom: isActive ? 4 : 0,
+            }}
+            className="rounded-full"
+          />
+        );
+      })}
     </View>
   );
 }

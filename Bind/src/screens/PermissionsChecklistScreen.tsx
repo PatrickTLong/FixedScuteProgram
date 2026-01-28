@@ -28,6 +28,16 @@ const LayersIcon = ({ size = 24, color = "#FFFFFF" }: { size?: number; color?: s
   </Svg>
 );
 
+// Android icon
+const AndroidIcon = ({ size = 24, color = "#FFFFFF" }: { size?: number; color?: string }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M17.6 9.48l1.84-3.18c.16-.31.04-.69-.26-.85a.637.637 0 0 0-.83.22l-1.88 3.24a11.46 11.46 0 0 0-8.94 0L5.65 5.67a.643.643 0 0 0-.87-.2c-.28.18-.37.54-.22.83L6.4 9.48C3.3 11.25 1.28 14.44 1 18h22c-.28-3.56-2.3-6.75-5.4-8.52M7 15.25a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5m10 0a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5"
+      fill={color}
+    />
+  </Svg>
+);
+
 // Chevron right icon
 const ChevronRightIcon = ({ size = 24, color = "#FFFFFF" }: { size?: number; color?: string }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
@@ -322,7 +332,7 @@ function PermissionsChecklistScreen({ onComplete }: Props) {
               <Text style={{ color: colors.text }} className="text-base font-nunito-semibold mb-1">
                 {permission.title}
               </Text>
-              <Text style={{ color: colors.textSecondary }} className={`${permission.descriptionStyle || 'text-sm'} font-nunito`}>
+              <Text style={{ color: colors.textSecondary }} className={`${permission.descriptionStyle || 'text-xs'} text-xs font-nunito`}>
                 {permission.description}
               </Text>
             </View>
@@ -343,10 +353,8 @@ function PermissionsChecklistScreen({ onComplete }: Props) {
                 style={{ backgroundColor: colors.card }}
                 className="flex-row items-center py-3 px-4 rounded-xl mb-2"
               >
-                <View style={{ backgroundColor: '#22c55e' }} className="w-6 h-6 rounded items-center justify-center mr-3">
-                  <View style={{ borderColor: '#FFFFFF' }} className="w-2.5 h-4 border-r-2 border-b-2 rotate-45 -mt-1" />
-                </View>
-                <Text style={{ color: '#FFFFFF' }} className="text-sm font-nunito">
+                <AndroidIcon size={28} color="#FFFFFF" />
+                <Text style={{ color: '#FFFFFF' }} className="text-sm font-nunito ml-3">
                   {permission.title}
                 </Text>
               </View>

@@ -209,6 +209,7 @@ class TimerPresetReceiver : BroadcastReceiver() {
     /**
      * Reschedule timer alarm after device reboot if there's an active timer session.
      * If timer already expired while phone was off, handle it immediately (clear session, show notification).
+     * Also restarts service for no-time-limit presets.
      */
     private fun rescheduleTimerAlarmIfNeeded(context: Context) {
         try {
@@ -222,8 +223,30 @@ class TimerPresetReceiver : BroadcastReceiver() {
             val endTime = sessionPrefs.getLong(UninstallBlockerService.KEY_SESSION_END_TIME, 0)
             val noTimeLimit = sessionPrefs.getBoolean("no_time_limit", false)
 
-            // Only reschedule for timer presets (not scheduled presets or no-time-limit)
-            if (!isSessionActive || isScheduledPreset || noTimeLimit || endTime == 0L) {
+            // Skip if no active session or if scheduled preset (handled by ScheduledPresetReceiver)
+            if (!isSessionActive || isScheduledPreset) {
+                return
+            }
+
+            // Handle no-time-limit presets - restart the service to resume blocking
+            if (noTimeLimit) {
+                val presetName = sessionPrefs.getString("active_preset_name", "Preset") ?: "Preset"
+                Log.d(TAG, "Restarting service for no-time-limit preset after boot: $presetName")
+
+                val serviceIntent = Intent(context, UninstallBlockerService::class.java)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    context.startForegroundService(serviceIntent)
+                } else {
+                    context.startService(serviceIntent)
+                }
+
+                Log.d(TAG, "Service restarted successfully for no-time-limit preset: $presetName")
+                return
+            }
+
+            // Handle timer presets with end times
+            if (endTime == 0L) {
+                Log.w(TAG, "Active session has no end time and no_time_limit is false - skipping")
                 return
             }
 
@@ -254,6 +277,7 @@ class TimerPresetReceiver : BroadcastReceiver() {
                 val presetId = sessionPrefs.getString("active_preset_id", null)
                 val presetName = sessionPrefs.getString("active_preset_name", "Timer") ?: "Timer"
                 TimerAlarmManager.scheduleTimerEnd(context, endTime, presetId, presetName)
+                Log.d(TAG, "Rescheduled timer alarm for: $presetName")
             }
 
         } catch (e: Exception) {
