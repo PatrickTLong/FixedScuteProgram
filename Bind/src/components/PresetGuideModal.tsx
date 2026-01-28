@@ -1,10 +1,11 @@
-import React, { memo } from 'react';
+import React, { memo, useRef, useEffect } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   Modal,
   ScrollView,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../context/ThemeContext';
@@ -17,15 +18,29 @@ interface PresetGuideModalProps {
 
 function PresetGuideModal({ visible, onClose }: PresetGuideModalProps) {
   const { colors } = useTheme();
+  const contentFadeAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (visible) {
+      contentFadeAnim.setValue(0);
+      Animated.timing(contentFadeAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [visible]);
 
   return (
     <Modal
       visible={visible}
-      animationType="fade"
+      animationType="none"
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
+      <View style={{ flex: 1, backgroundColor: colors.bg }}>
+        <Animated.View style={{ flex: 1, opacity: contentFadeAnim }}>
+          <SafeAreaView style={{ flex: 1 }}>
         {/* Header */}
         <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between px-4 py-3">
           <View className="w-16" />
@@ -101,7 +116,9 @@ function PresetGuideModal({ visible, onClose }: PresetGuideModalProps) {
             Start with lenient settings and gradually increase restrictions as you build better habits.
           </Text>
         </ScrollView>
-      </SafeAreaView>
+          </SafeAreaView>
+        </Animated.View>
+      </View>
     </Modal>
   );
 }

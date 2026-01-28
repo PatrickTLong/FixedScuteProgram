@@ -7,6 +7,7 @@ import {
   ScrollView,
   NativeSyntheticEvent,
   NativeScrollEvent,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { lightTap } from '../utils/haptics';
@@ -197,9 +198,19 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
   const [selectedMinute, setSelectedMinute] = useState(0);
   const [selectedAmPm, setSelectedAmPm] = useState<'AM' | 'PM'>('PM');
 
+  // Content fade animation
+  const contentFadeAnim = useRef(new Animated.Value(0)).current;
+
   // Reset when modal opens
   useEffect(() => {
     if (visible) {
+      // Fade in content
+      contentFadeAnim.setValue(0);
+      Animated.timing(contentFadeAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
       const dateToUse = selectedDate || today;
       setViewMonth(dateToUse.getMonth());
       setViewYear(dateToUse.getFullYear());
@@ -380,11 +391,14 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
   return (
     <Modal
       visible={visible}
-      animationType="slide"
+      animationType="none"
+      presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
-            {/* Header */}
+      <View style={{ flex: 1, backgroundColor: colors.bg }}>
+        <Animated.View style={{ flex: 1, opacity: contentFadeAnim }}>
+          <SafeAreaView style={{ flex: 1 }}>
+          {/* Header */}
           <View style={{ borderBottomColor: colors.border }} className="flex-row items-center justify-between px-4 py-3 border-b">
             <TouchableOpacity onPress={() => { lightTap(); onClose(); }} className="px-2">
               <Text style={{ color: '#FFFFFF'}} className="text-base font-nunito">Cancel</Text>
@@ -548,7 +562,9 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
           {/* Bottom padding for Android navigation */}
           <View className="h-20" />
         </ScrollView>
-      </SafeAreaView>
+          </SafeAreaView>
+        </Animated.View>
+      </View>
     </Modal>
   );
 }
