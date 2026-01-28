@@ -1213,7 +1213,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
                         const start = new Date(p.scheduleStartDate!);
                         return now < start;
                       });
-                      if (hasPending) return colors.cyan;
+                      if (hasPending) return '#f59e0b';
                       return colors.textSecondary;
                     })(),
                   }}
@@ -1295,17 +1295,17 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
                     className={`p-4 ${index < scheduledPresets.length - 1 ? 'border-b' : ''}`}
                   >
                     <View className="flex-row items-center">
-                      <View style={{ backgroundColor: isCurrentlyActive ? '#22c55e' : colors.cyan }} className="w-2 h-2 rounded-full mr-3" />
+                      <View style={{ backgroundColor: isCurrentlyActive ? '#22c55e' : '#f59e0b' }} className="w-2 h-2 rounded-full mr-3" />
                       <View className="flex-1">
                         <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">
                           {preset.name}
                         </Text>
                         <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito mt-1">
-                          {formatScheduleDate(preset.scheduleStartDate!)} — {formatScheduleDate(preset.scheduleEndDate!)}
+                          {formatScheduleDate(preset.scheduleStartDate!)} - {formatScheduleDate(preset.scheduleEndDate!)}
                         </Text>
                       </View>
-                      <View style={{ backgroundColor: isCurrentlyActive ? 'rgba(74, 222, 128, 0.2)' : 'rgba(34, 211, 238, 0.2)' }} className="px-2 py-0.5 rounded-full">
-                        <Text style={{ color: isCurrentlyActive ? '#22c55e' : colors.cyan }} className="text-xs font-nunito-semibold">
+                      <View style={{ backgroundColor: isCurrentlyActive ? 'rgba(74, 222, 128, 0.2)' : 'rgba(245, 158, 11, 0.2)' }} className="px-2 py-0.5 rounded-full">
+                        <Text style={{ color: isCurrentlyActive ? '#22c55e' : '#f59e0b' }} className="text-xs font-nunito-semibold">
                           {isCurrentlyActive ? 'Active' : isPending ? 'Pending' : 'Scheduled'}
                         </Text>
                       </View>
