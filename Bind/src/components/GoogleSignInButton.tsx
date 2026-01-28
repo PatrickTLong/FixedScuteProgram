@@ -124,11 +124,11 @@ export default function GoogleSignInBtn({ onSuccess, onError, disabled }: Props)
       {loading && (
         <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center' }}>
           <Lottie
-            source={require('../frontassets/Loading Animation 3 Dots.json')}
+            source={require('../frontassets/Loading Dots Blue.json')}
             autoPlay
             loop
             speed={2}
-            style={{ width: 60, height: 60 }}
+            style={{ width: 150, height: 150 }}
           />
         </View>
       )}

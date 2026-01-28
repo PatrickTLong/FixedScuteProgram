@@ -242,11 +242,11 @@ function SelectAppsScreen({
           {loading ? (
             <View className="flex-1 items-center justify-center">
               <Lottie
-                source={require('../frontassets/Loading Animation 3 Dots.json')}
+                source={require('../frontassets/Loading Dots Blue.json')}
                 autoPlay
                 loop
                 speed={2}
-                style={{ width: 150, height: 150 }}
+                style={{ width: 250, height: 250 }}
               />
               <Text style={{ color: colors.textSecondary }} className="text-base font-nunito mt-4">
                 Loading apps...

@@ -27,8 +27,8 @@ const BookmarkIcon = ({ color, size = 24 }: { color: string; size?: number }) =>
   </Svg>
 );
 
-// Refresh CW icon (Feather Icons) for recurring presets
-const RefreshCwIcon = ({ color, size = 24 }: { color: string; size?: number }) => (
+// Rotate CW icon (Feather Icons) for recurring presets
+const RotateCwIcon = ({ color, size = 24 }: { color: string; size?: number }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Path
       d="M23 4v6h-6"
@@ -38,14 +38,7 @@ const RefreshCwIcon = ({ color, size = 24 }: { color: string; size?: number }) =
       strokeLinejoin="round"
     />
     <Path
-      d="M1 20v-6h6"
-      stroke={color}
-      strokeWidth={2.5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <Path
-      d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"
+      d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"
       stroke={color}
       strokeWidth={2.5}
       strokeLinecap="round"
@@ -97,7 +90,7 @@ function ShieldIconsInfoModal({ visible, onClose }: ShieldIconsInfoModalProps) {
             {/* White Refresh - Recurring */}
             <View className="flex-row items-center">
               <View className="mr-3">
-                <RefreshCwIcon color="#FFFFFF" size={28} />
+                <RotateCwIcon color="#FFFFFF" size={28} />
               </View>
               <View className="flex-1">
                 <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">

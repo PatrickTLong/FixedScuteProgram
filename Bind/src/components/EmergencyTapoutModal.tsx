@@ -139,21 +139,22 @@ function EmergencyTapoutModal({
                 }}
                 className="rounded-2xl items-center"
               >
-                {isLoading ? (
-                  <Lottie
-                    source={require('../frontassets/Loading Animation 3 Dots.json')}
-                    autoPlay
-                    loop
-                    speed={2}
-                    style={{ width: 40, height: 40 }}
-                  />
-                ) : (
-                  <Text
-                    style={{ color: canUseTapout ? '#FFFFFF' : colors.textSecondary }}
-                    className="text-sm font-nunito-bold"
-                  >
-                    {canUseTapout ? 'Use Emergency Tapout' : 'Not Available'}
-                  </Text>
+                <Text
+                  style={{ color: canUseTapout ? '#FFFFFF' : colors.textSecondary, opacity: isLoading ? 0 : 1 }}
+                  className="text-sm font-nunito-bold"
+                >
+                  {canUseTapout ? 'Use Emergency Tapout' : 'Not Available'}
+                </Text>
+                {isLoading && (
+                  <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center', overflow: 'hidden' }}>
+                    <Lottie
+                      source={require('../frontassets/Loading Dots Blue.json')}
+                      autoPlay
+                      loop
+                      speed={2}
+                      style={{ width: 150, height: 150 }}
+                    />
+                  </View>
                 )}
               </TouchableOpacity>
             </View>

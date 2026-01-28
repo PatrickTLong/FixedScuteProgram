@@ -66,6 +66,14 @@ class FloatingBubbleManager(private val context: Context) {
 
     private val handler = Handler(Looper.getMainLooper())
 
+    // Drag detection
+    private var initialX = 0
+    private var initialY = 0
+    private var initialTouchX = 0f
+    private var initialTouchY = 0f
+    private var isDragging = false
+    private val DRAG_THRESHOLD = 10f  // Pixels moved before considered a drag
+
     // Long press detection
     private var longPressTriggered = false
     private val longPressRunnable = Runnable {
@@ -224,27 +232,58 @@ class FloatingBubbleManager(private val context: Context) {
     }
 
     /**
-     * Set up touch listener for tap and long press detection
+     * Set up touch listener for tap, long press, and drag detection
      */
     private fun setupTouchListener() {
         bubbleMain?.setOnTouchListener { _, event ->
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
+                    // Store initial positions for drag
+                    initialX = layoutParams?.x ?: 0
+                    initialY = layoutParams?.y ?: 0
+                    initialTouchX = event.rawX
+                    initialTouchY = event.rawY
+                    isDragging = false
                     longPressTriggered = false
                     handler.postDelayed(longPressRunnable, LONG_PRESS_DURATION)
                     true
                 }
+                MotionEvent.ACTION_MOVE -> {
+                    val deltaX = event.rawX - initialTouchX
+                    val deltaY = event.rawY - initialTouchY
+
+                    // Check if we've moved enough to start dragging
+                    if (!isDragging && (Math.abs(deltaX) > DRAG_THRESHOLD || Math.abs(deltaY) > DRAG_THRESHOLD)) {
+                        isDragging = true
+                        // Cancel long press if we start dragging
+                        handler.removeCallbacks(longPressRunnable)
+                    }
+
+                    if (isDragging && !longPressTriggered) {
+                        // Update bubble position
+                        layoutParams?.x = (initialX + deltaX).toInt()
+                        layoutParams?.y = (initialY + deltaY).toInt()
+                        try {
+                            windowManager?.updateViewLayout(bubbleView, layoutParams)
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Error updating bubble position", e)
+                        }
+                    }
+                    true
+                }
                 MotionEvent.ACTION_UP -> {
                     handler.removeCallbacks(longPressRunnable)
-                    if (!longPressTriggered) {
+                    if (!isDragging && !longPressTriggered) {
                         // Regular tap - toggle expand/collapse
                         performTapHaptic()
                         toggleExpanded()
                     }
+                    isDragging = false
                     true
                 }
                 MotionEvent.ACTION_CANCEL -> {
                     handler.removeCallbacks(longPressRunnable)
+                    isDragging = false
                     true
                 }
                 else -> false
@@ -545,6 +584,28 @@ class FloatingBubbleManager(private val context: Context) {
      * Check if bubble is currently showing
      */
     fun isShowing(): Boolean = isShowing
+
+    /**
+     * Temporarily hide the bubble (e.g. when user is in Scute app)
+     */
+    fun temporaryHide() {
+        if (!isShowing) return
+        bubbleView?.post {
+            bubbleView?.visibility = View.GONE
+        }
+        Log.d(TAG, "Bubble temporarily hidden")
+    }
+
+    /**
+     * Re-show the bubble after a temporary hide
+     */
+    fun temporaryShow() {
+        if (!isShowing) return
+        bubbleView?.post {
+            bubbleView?.visibility = View.VISIBLE
+        }
+        Log.d(TAG, "Bubble re-shown")
+    }
 
     /**
      * Perform light haptic feedback for tap

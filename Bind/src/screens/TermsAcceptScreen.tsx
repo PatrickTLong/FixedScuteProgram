@@ -45,7 +45,8 @@ function TermsAcceptScreen({ onAccept }: Props) {
 
         <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">2. Description of Service</Text>
         <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
-          Scute is a digital wellness application designed to help users manage screen time by blocking access to selected applications and the Settings app on their device. The App uses accessibility services, usage access permissions, and notification access to enforce blocking functionality, including blocking notifications from restricted apps.
+          Scute is a digital wellness application designed to help users manage screen time by blocking access to selected applications, websites, and the Settings app on their device. The App uses accessibility services, usage access permissions, and notification access to enforce blocking functionality, including blocking notifications from restricted apps.{'\n\n'}
+          The App supports scheduled sessions that can activate automatically at preset times without requiring user interaction at the time of activation. Blocking sessions persist across device restarts — if your device reboots during an active session, blocking will automatically resume when the device starts up.
         </Text>
 
         <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">3. User Responsibilities</Text>
@@ -93,7 +94,7 @@ function TermsAcceptScreen({ onAccept }: Props) {
 
         <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">9. Account Termination</Text>
         <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
-          We reserve the right to suspend or terminate your account at any time for any reason, including but not limited to violation of these Terms. You may delete your account at any time through the App's settings if unblocked.
+          We reserve the right to suspend or terminate your account at any time for any reason, including but not limited to violation of these Terms. You may delete your account at any time through the App's settings if unblocked. Upon account deletion, your email address and all associated account data will be permanently removed from our servers.
         </Text>
 
         <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">10. Subscriptions and Payments</Text>
@@ -139,7 +140,7 @@ function TermsAcceptScreen({ onAccept }: Props) {
           style={{ backgroundColor: colors.card  }}
           className="rounded-full py-4 items-center"
         >
-          <Text style={{ color: '#FFFFFF' }} className="text-lg font-nunito-semibold">
+          <Text style={{ color: '#FFFFFF' }} className="text-sm font-nunito-semibold">
             I Accept
           </Text>
         </TouchableOpacity>

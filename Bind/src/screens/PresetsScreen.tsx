@@ -648,11 +648,11 @@ function PresetsScreen({ userEmail }: Props) {
         {showSpinner && (
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
             <Lottie
-              source={require('../frontassets/Loading Animation 3 Dots.json')}
+              source={require('../frontassets/Loading Dots Blue.json')}
               autoPlay
               loop
               speed={2}
-              style={{ width: 150, height: 150 }}
+              style={{ width: 250, height: 250 }}
             />
           </View>
         )}

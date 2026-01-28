@@ -26,22 +26,16 @@ function AnimatedDot({ isActive }: { isActive: boolean }) {
   const floatAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // Random delay for each dot to create staggered effect
-    const randomDelay = Math.random() * 1500;
-    const randomDuration = 1200 + Math.random() * 600; // 1.2-1.8 seconds
-
-    // More noticeable floating animation
     const floatAnimation = Animated.loop(
       Animated.sequence([
         Animated.timing(floatAnim, {
-          toValue: -4,
-          duration: randomDuration,
+          toValue: -2,
+          duration: 1500,
           useNativeDriver: true,
-          delay: randomDelay,
         }),
         Animated.timing(floatAnim, {
           toValue: 0,
-          duration: randomDuration,
+          duration: 1500,
           useNativeDriver: true,
         }),
       ])

@@ -136,10 +136,11 @@ class BlockingModule(reactContext: ReactApplicationContext) :
                 TimerAlarmManager.scheduleTimerEnd(reactApplicationContext, endTime, presetId, presetName ?: "Timer")
                 Log.d(TAG, "Scheduled timer end alarm for ${java.util.Date(endTime)}")
 
-                // Show floating bubble with countdown timer
+                // Show floating bubble with countdown timer (start hidden since user is in Scute app)
                 try {
                     FloatingBubbleManager.getInstance(reactApplicationContext).show(endTime)
-                    Log.d(TAG, "Showing floating bubble for timer preset")
+                    FloatingBubbleManager.getInstance(reactApplicationContext).temporaryHide()
+                    Log.d(TAG, "Showing floating bubble for timer preset (hidden until user leaves app)")
                 } catch (e: Exception) {
                     Log.e(TAG, "Failed to show floating bubble", e)
                 }
@@ -364,6 +365,9 @@ class BlockingModule(reactContext: ReactApplicationContext) :
             if (activePresetId != null) {
                 deactivatePresetInScheduleManager(activePresetId)
             }
+
+            // Dismiss the floating bubble
+            FloatingBubbleManager.getInstance(reactApplicationContext).dismiss()
 
             // Stop the foreground service
             val serviceIntent = Intent(reactApplicationContext, UninstallBlockerService::class.java)

@@ -1,5 +1,5 @@
 import React, { memo, useCallback } from 'react';
-import { TouchableOpacity, Text } from 'react-native';
+import { TouchableOpacity, Text, View } from 'react-native';
 import LottieView from 'lottie-react-native';
 const Lottie = LottieView as any;
 import { lightTap } from '../utils/haptics';
@@ -71,16 +71,17 @@ function Button({
       style={getButtonStyle()}
       className={`rounded-full py-4 px-6 items-center justify-center${fullWidth ? ' w-full' : ''}`}
     >
-      {loading ? (
-        <Lottie
-          source={require('../frontassets/Loading Animation 3 Dots.json')}
-          autoPlay
-          loop
-          speed={2}
-          style={{ width: 40, height: 40 }}
-        />
-      ) : (
-        <Text style={getTextStyle()} className="text-base font-nunito-semibold">{title}</Text>
+      <Text style={[getTextStyle(), loading && { opacity: 0 }]} className="text-base font-nunito-semibold">{title}</Text>
+      {loading && (
+        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center', overflow: 'hidden' }}>
+          <Lottie
+            source={require('../frontassets/Loading Dots Blue.json')}
+            autoPlay
+            loop
+            speed={2}
+            style={{ width: 150, height: 150 }}
+          />
+        </View>
       )}
     </TouchableOpacity>
   );

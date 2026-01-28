@@ -152,8 +152,13 @@ class AppMonitorService(private val context: Context) {
         if (currentPackage == lastForegroundPackage) return
         lastForegroundPackage = currentPackage
 
-        // Skip our own app
-        if (currentPackage == "com.scuteapp") return
+        // Hide bubble when in Scute app, show it when leaving
+        if (currentPackage == "com.scuteapp") {
+            FloatingBubbleManager.getInstance(context).temporaryHide()
+            return
+        } else {
+            FloatingBubbleManager.getInstance(context).temporaryShow()
+        }
 
         // Skip Settings apps - they're handled instantly by AccessibilityService
         if (isSettingsApp(currentPackage)) return

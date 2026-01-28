@@ -764,17 +764,18 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                 <Text style={{ color: isSaving ? '#FFFFFF' : '#FFFFFF' }} className="text-base font-nunito">Back</Text>
               </TouchableOpacity>
               <Text style={{ color: colors.text }} className="text-lg font-nunito-semibold">Final Settings</Text>
-              <TouchableOpacity onPress={handleSave} disabled={isSaving || !canSave} className="px-2 min-w-[50px] items-end justify-center" style={{ height: 24 }}>
-                {isSaving ? (
-                  <Lottie
-                    source={require('../frontassets/Loading Animation 3 Dots.json')}
-                    autoPlay
-                    loop
-                    speed={2}
-                    style={{ width: 50, height: 50, position: 'absolute', right: -5, top: -13 }}
-                  />
-                ) : (
-                  <Text style={{ color: canSave ? '#FFFFFF' : colors.textMuted }} className="text-base font-nunito-semibold">Save</Text>
+              <TouchableOpacity onPress={handleSave} disabled={isSaving || !canSave} className="px-2 min-w-[50px] items-end justify-center" style={{ height: 24, overflow: 'visible' }}>
+                <Text style={{ color: canSave ? '#FFFFFF' : colors.textMuted, opacity: isSaving ? 0 : 1 }} className="text-base font-nunito-semibold">Save</Text>
+                {isSaving && (
+                  <View style={{ position: 'absolute', top: -63, right: -50, width: 150, height: 150, justifyContent: 'center', alignItems: 'center' }}>
+                    <Lottie
+                      source={require('../frontassets/Loading Dots Blue.json')}
+                      autoPlay
+                      loop
+                      speed={2}
+                      style={{ width: 150, height: 150 }}
+                    />
+                  </View>
                 )}
               </TouchableOpacity>
             </View>
@@ -957,7 +958,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                       {scheduleStartDate ? 'Start Date' : 'Pick Start Date'}
                     </Text>
                     {scheduleStartDate && (
-                      <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">
+                      <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">
                         {scheduleStartDate.toLocaleDateString('en-US', {
                           month: 'short',
                           day: 'numeric',
@@ -997,7 +998,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                       {scheduleEndDate ? 'End Date' : 'Pick End Date'}
                     </Text>
                     {scheduleEndDate && (
-                      <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">
+                      <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">
                         {scheduleEndDate.toLocaleDateString('en-US', {
                           month: 'short',
                           day: 'numeric',
@@ -1350,7 +1351,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                     >
                       <Text
                         style={{ color: colors.text }}
-                        className="text-base font-nunito-semibold capitalize"
+                        className="text-sm font-nunito-semibold capitalize"
                       >
                         {unit}
                       </Text>
@@ -1604,11 +1605,11 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                 {loadingApps ? (
                   <View className="flex-1 items-center justify-center">
                     <Lottie
-                      source={require('../frontassets/Loading Animation 3 Dots.json')}
+                      source={require('../frontassets/Loading Dots Blue.json')}
                       autoPlay
                       loop
                       speed={2}
-                      style={{ width: 150, height: 150 }}
+                      style={{ width: 250, height: 250 }}
                     />
                   </View>
                 ) : (

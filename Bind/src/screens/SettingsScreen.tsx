@@ -482,11 +482,11 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }} edges={['top']}>
         <Lottie
-          source={require('../frontassets/Loading Animation 3 Dots.json')}
+          source={require('../frontassets/Loading Dots Blue.json')}
           autoPlay
           loop
           speed={2}
-          style={{ width: 150, height: 150 }}
+          style={{ width: 250, height: 250 }}
         />
         <Text style={{ color: colors.text }} className="text-lg font-nunito-semibold mt-4">{loadingMessage}</Text>
       </SafeAreaView>
@@ -498,11 +498,11 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }} edges={['top']}>
         <Lottie
-          source={require('../frontassets/Loading Animation 3 Dots.json')}
+          source={require('../frontassets/Loading Dots Blue.json')}
           autoPlay
           loop
           speed={2}
-          style={{ width: 150, height: 150 }}
+          style={{ width: 250, height: 250 }}
         />
       </SafeAreaView>
     );
@@ -798,6 +798,10 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
               • Usage Access: To monitor and block apps on your device.{'\n'}
               • Display Over Other Apps: To show blocking overlays.{'\n'}
               • Accessibility Services: To enforce app-blocking functionality.{'\n'}
+              • Notification Access: To block notifications from restricted apps.{'\n'}
+              • Exact Alarms: To schedule blocking sessions at precise times.{'\n'}
+              • Boot Receiver: To restore active sessions after device restarts.{'\n'}
+              • Foreground Service: To maintain blocking functionality while the app runs in the background.{'\n'}
               These permissions are used solely for the app's intended functionality.
             </Text>
 
@@ -821,12 +825,17 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
               Scute is not intended for children under the age of 13. We do not knowingly collect personal information from children.
             </Text>
 
-            <Text style={{ color: colors.text }} className="text-sm font-nunito-bold mb-2">9. Changes to This Policy</Text>
+            <Text style={{ color: colors.text }} className="text-sm font-nunito-bold mb-2">9. Data Retention</Text>
+            <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
+              We retain your email address for as long as your account is active. App usage data is stored locally on your device and is deleted when you uninstall the App. Upon account deletion, all associated data is permanently removed from our servers.
+            </Text>
+
+            <Text style={{ color: colors.text }} className="text-sm font-nunito-bold mb-2">10. Changes to This Policy</Text>
             <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
               We may update this Privacy Policy from time to time. Any changes will be posted in the app, and the "Effective Date" will be updated accordingly.
             </Text>
 
-            <Text style={{ color: colors.text }} className="text-sm font-nunito-bold mb-2">10. Contact Us</Text>
+            <Text style={{ color: colors.text }} className="text-sm font-nunito-bold mb-2">11. Contact Us</Text>
             <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-8">
               If you have any questions or concerns about this Privacy Policy, please contact us at:{'\n'}
               Email: info@scuteapp.com
@@ -868,7 +877,8 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
 
             <Text style={{ color: colors.text }} className="text-sm font-nunito-bold mb-2">2. Description of Service</Text>
             <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
-              Scute is a digital wellness application designed to help users manage screen time by blocking access to selected applications and the Settings app on their device. The App uses accessibility services, usage access permissions, and notification access to enforce blocking functionality, including blocking notifications from restricted apps.
+              Scute is a digital wellness application designed to help users manage screen time by blocking access to selected applications, websites, and the Settings app on their device. The App uses accessibility services, usage access permissions, and notification access to enforce blocking functionality, including blocking notifications from restricted apps.{'\n\n'}
+              The App supports scheduled sessions that can activate automatically at preset times without requiring user interaction at the time of activation. Blocking sessions persist across device restarts — if your device reboots during an active session, blocking will automatically resume when the device starts up.
             </Text>
 
             <Text style={{ color: colors.text }} className="text-sm font-nunito-bold mb-2">3. User Responsibilities</Text>
@@ -916,7 +926,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
 
             <Text style={{ color: colors.text }} className="text-sm font-nunito-bold mb-2">9. Account Termination</Text>
             <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
-              We reserve the right to suspend or terminate your account at any time for any reason, including but not limited to violation of these Terms. You may delete your account at any time through the App's settings if unblocked.
+              We reserve the right to suspend or terminate your account at any time for any reason, including but not limited to violation of these Terms. You may delete your account at any time through the App's settings if unblocked. Upon account deletion, your email address and all associated account data will be permanently removed from our servers.
             </Text>
 
             <Text style={{ color: colors.text }} className="text-sm font-nunito-bold mb-2">10. Subscriptions and Payments</Text>

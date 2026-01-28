@@ -274,11 +274,11 @@ function PermissionsChecklistScreen({ onComplete }: Props) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }} className="justify-center items-center">
         <Lottie
-          source={require('../frontassets/Loading Animation 3 Dots.json')}
+          source={require('../frontassets/Loading Dots Blue.json')}
           autoPlay
           loop
           speed={2}
-          style={{ width: 150, height: 150 }}
+          style={{ width: 250, height: 250 }}
         />
         <Text style={{ color: colors.textSecondary }} className="text-base font-nunito mt-4">
           Checking permissions...

@@ -703,7 +703,7 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
             // Build the notification with high priority (no fullScreenIntent - using floating bubble instead)
             val notification = NotificationCompat.Builder(context, ALERT_CHANNEL_ID)
                 .setContentTitle("Session Ended")
-                .setContentText("\"$presetName\" has ended. Tap to unlock.")
+                .setContentText("\"$presetName\" has ended.")
                 .setSmallIcon(android.R.drawable.ic_lock_idle_lock)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setCategory(NotificationCompat.CATEGORY_ALARM)
