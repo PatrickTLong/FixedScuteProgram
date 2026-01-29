@@ -1664,7 +1664,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                           </View>
                           <TextInput
                             style={{ color: colors.text, minWidth: 40, textAlign: 'center' }}
-                            className="text-sm font-nunito-semibold"
+                            className="text-base font-nunito-semibold"
                             value={recurringValue}
                             onChangeText={(text) => {
                               // Only allow numbers
