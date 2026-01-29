@@ -157,7 +157,34 @@ class AppMonitorService(private val context: Context) {
             FloatingBubbleManager.getInstance(context).temporaryHide()
             return
         } else {
-            FloatingBubbleManager.getInstance(context).temporaryShow()
+            // Try to show the bubble
+            val bubbleManager = FloatingBubbleManager.getInstance(context)
+            if (bubbleManager.isShowing()) {
+                // Bubble exists but is hidden - just show it
+                bubbleManager.temporaryShow()
+            } else {
+                // Bubble not showing - check if there's an active session and re-create it
+                // This handles the case where user pressed X to hide, then entered Scute app and left
+                val prefs = context.getSharedPreferences(UninstallBlockerService.PREFS_NAME, Context.MODE_PRIVATE)
+                val isSessionActive = prefs.getBoolean(UninstallBlockerService.KEY_SESSION_ACTIVE, false)
+                val sessionEndTime = prefs.getLong(UninstallBlockerService.KEY_SESSION_END_TIME, 0)
+                val noTimeLimit = prefs.getBoolean("no_time_limit", false)
+                val sessionStartTime = prefs.getLong("session_start_time", System.currentTimeMillis())
+                val now = System.currentTimeMillis()
+
+                if (isSessionActive && (noTimeLimit || now < sessionEndTime)) {
+                    try {
+                        if (noTimeLimit) {
+                            bubbleManager.showNoTimeLimit(sessionStartTime)
+                        } else {
+                            bubbleManager.show(sessionEndTime)
+                        }
+                        Log.d(TAG, "Bubble re-created after leaving Scute app")
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Failed to re-create bubble", e)
+                    }
+                }
+            }
         }
 
         // Skip Settings apps - they're handled instantly by AccessibilityService
