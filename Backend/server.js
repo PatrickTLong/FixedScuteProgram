@@ -321,8 +321,8 @@ app.post('/api/send-code', async (req, res) => {
         <body style="margin: 0; padding: 0; font-family: Verdana, Geneva, sans-serif; background-color: #28282B; border-radius: 16px;">
           <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 400px; margin: 0 auto;">
             <tr>
-              <td align="center" style="padding: 0 20px;">
-                <img src="https://fixedscuteprogram-production.up.railway.app/TrueScute-Photoroom.png" alt="Scute" width="250" height="250" style="display: block; margin-bottom: -50px;" />
+              <td align="center" style="padding: 0 20px; height: 200px; overflow: hidden;">
+                <img src="https://fixedscuteprogram-production.up.railway.app/TrueScute-Photoroom.png" alt="Scute" width="250" height="250" style="display: block; margin-top: -25px;" />
               </td>
             </tr>
             <tr>
@@ -608,8 +608,8 @@ app.post('/api/signin', async (req, res) => {
         <body style="margin: 0; padding: 0; font-family: Verdana, Geneva, sans-serif; background-color: #28282B; border-radius: 16px;">
           <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 400px; margin: 0 auto;">
             <tr>
-              <td align="center" style="padding: 0 20px;">
-                <img src="https://fixedscuteprogram-production.up.railway.app/TrueScute-Photoroom.png" alt="Scute" width="250" height="250" style="display: block; margin-bottom: -50px;" />
+              <td align="center" style="padding: 0 20px; height: 200px; overflow: hidden;">
+                <img src="https://fixedscuteprogram-production.up.railway.app/TrueScute-Photoroom.png" alt="Scute" width="250" height="250" style="display: block; margin-top: -25px;" />
               </td>
             </tr>
             <tr>
@@ -826,8 +826,8 @@ app.post('/api/reset-password-request', async (req, res) => {
         <body style="margin: 0; padding: 0; font-family: Verdana, Geneva, sans-serif; background-color: #28282B; border-radius: 16px;">
           <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 400px; margin: 0 auto;">
             <tr>
-              <td align="center" style="padding: 0 20px;">
-                <img src="https://fixedscuteprogram-production.up.railway.app/TrueScute-Photoroom.png" alt="Scute" width="250" height="250" style="display: block; margin-bottom: -50px;" />
+              <td align="center" style="padding: 0 20px; height: 200px; overflow: hidden;">
+                <img src="https://fixedscuteprogram-production.up.railway.app/TrueScute-Photoroom.png" alt="Scute" width="250" height="250" style="display: block; margin-top: -25px;" />
               </td>
             </tr>
             <tr>
