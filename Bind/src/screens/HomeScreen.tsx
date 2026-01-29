@@ -1015,11 +1015,11 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
       settings.push('Blocking Settings');
     }
 
-    if (activePreset.strictMode && !activePreset.noTimeLimit) {
+    if (activePreset.strictMode) {
       settings.push('Strict Mode');
     }
 
-    if (activePreset.allowEmergencyTapout && !activePreset.noTimeLimit && activePreset.strictMode) {
+    if (activePreset.allowEmergencyTapout && activePreset.strictMode && !activePreset.noTimeLimit) {
       settings.push('Emergency Tapout');
     }
 

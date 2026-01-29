@@ -110,11 +110,13 @@ class BlockingModule(reactContext: ReactApplicationContext) :
             val strictMode = if (config.hasKey("strictMode")) config.getBoolean("strictMode") else true
 
             // Save to SharedPreferences
+            val sessionStartTime = System.currentTimeMillis()
             sessionPrefs.edit()
                 .putStringSet(UninstallBlockerService.KEY_BLOCKED_APPS, appSet)
                 .putStringSet("blocked_websites", websiteSet)
                 .putBoolean(UninstallBlockerService.KEY_SESSION_ACTIVE, true)
                 .putLong(UninstallBlockerService.KEY_SESSION_END_TIME, endTime)
+                .putLong("session_start_time", sessionStartTime)
                 .putBoolean("no_time_limit", noTimeLimit)
                 .putBoolean("strict_mode", strictMode)
                 .putString("active_preset_name", presetName)
@@ -143,6 +145,15 @@ class BlockingModule(reactContext: ReactApplicationContext) :
                     Log.d(TAG, "Showing floating bubble for timer preset (hidden until user leaves app)")
                 } catch (e: Exception) {
                     Log.e(TAG, "Failed to show floating bubble", e)
+                }
+            } else if (noTimeLimit && !isScheduled) {
+                // Show floating bubble for no-time-limit presets (counts up elapsed time)
+                try {
+                    FloatingBubbleManager.getInstance(reactApplicationContext).showNoTimeLimit(sessionStartTime)
+                    FloatingBubbleManager.getInstance(reactApplicationContext).temporaryHide()
+                    Log.d(TAG, "Showing floating bubble for no-time-limit preset (hidden until user leaves app)")
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to show floating bubble for no-time-limit", e)
                 }
             } else {
                 Log.d(TAG, "Skipping timer alarm: hasTimeLimit=$hasTimeLimit, isScheduled=$isScheduled")

@@ -57,6 +57,8 @@ class FloatingBubbleManager(private val context: Context) {
     private var isExpanded = false  // false = circle with logo, true = pill with timer
     private var isHidden = false    // User manually hid the bubble
     private var endTime: Long = 0
+    private var startTime: Long = 0  // For no-time-limit mode (counting up)
+    private var isNoTimeLimit = false  // true = count up (elapsed), false = count down (remaining)
 
     private var bubbleCollapsed: FrameLayout? = null
     private var bubbleExpanded: LinearLayout? = null
@@ -96,12 +98,20 @@ class FloatingBubbleManager(private val context: Context) {
 
     private val timerRunnable = object : Runnable {
         override fun run() {
-            val remaining = (endTime - System.currentTimeMillis()) / 1000
-            if (remaining > 0) {
-                updateTimerText(remaining)
+            if (isNoTimeLimit) {
+                // Count up mode (elapsed time)
+                val elapsed = (System.currentTimeMillis() - startTime) / 1000
+                updateTimerText(elapsed)
                 handler.postDelayed(this, 1000)
             } else {
-                dismiss()
+                // Count down mode (remaining time)
+                val remaining = (endTime - System.currentTimeMillis()) / 1000
+                if (remaining > 0) {
+                    updateTimerText(remaining)
+                    handler.postDelayed(this, 1000)
+                } else {
+                    dismiss()
+                }
             }
         }
     }
@@ -147,6 +157,8 @@ class FloatingBubbleManager(private val context: Context) {
 
         try {
             endTime = sessionEndTime
+            startTime = 0
+            isNoTimeLimit = false
             isExpanded = false
 
             windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
@@ -227,6 +239,118 @@ class FloatingBubbleManager(private val context: Context) {
 
         } catch (e: Exception) {
             Log.e(TAG, "Failed to show bubble", e)
+            return false
+        }
+    }
+
+    /**
+     * Show the floating bubble for no-time-limit presets (counts up from start).
+     * @param sessionStartTime The timestamp (in milliseconds) when the session started
+     * @return true if bubble was shown, false if failed
+     */
+    fun showNoTimeLimit(sessionStartTime: Long): Boolean {
+        // If this is a NEW session (different start time), reset isHidden
+        if (sessionStartTime != startTime) {
+            isHidden = false
+        }
+
+        // If user manually hid the bubble for THIS session, don't show again
+        if (isHidden) {
+            Log.d(TAG, "Bubble is hidden by user for this session, not showing")
+            return true
+        }
+
+        if (isShowing) {
+            Log.d(TAG, "Bubble already showing, updating start time")
+            startTime = sessionStartTime
+            return true
+        }
+
+        if (!canDrawOverlay()) {
+            Log.w(TAG, "Cannot draw overlay - permission not granted")
+            return false
+        }
+
+        try {
+            startTime = sessionStartTime
+            endTime = 0
+            isNoTimeLimit = true
+            isExpanded = false
+
+            windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+            density = context.resources.displayMetrics.density
+
+            // Inflate the bubble layout
+            val inflater = LayoutInflater.from(context)
+            bubbleView = inflater.inflate(R.layout.floating_bubble, null)
+
+            bubbleCollapsed = bubbleView?.findViewById(R.id.bubble_collapsed)
+            bubbleExpanded = bubbleView?.findViewById(R.id.bubble_expanded)
+            bubbleHideButton = bubbleView?.findViewById(R.id.bubble_hide_button)
+            bubbleMain = bubbleView?.findViewById(R.id.bubble_main)
+
+            // Set up window parameters - LEFT side, fixed position
+            layoutParams = WindowManager.LayoutParams().apply {
+                width = WindowManager.LayoutParams.WRAP_CONTENT
+                height = WindowManager.LayoutParams.WRAP_CONTENT
+
+                type = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+                } else {
+                    WindowManager.LayoutParams.TYPE_SYSTEM_ALERT
+                }
+
+                flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                        WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
+
+                format = PixelFormat.TRANSLUCENT
+                gravity = Gravity.TOP or Gravity.START
+                x = 0
+                y = (200 * density).toInt()  // Position from top
+            }
+
+            // Set up touch listener for tap and long press
+            setupTouchListener()
+
+            // Set up hide button click
+            bubbleHideButton?.setOnClickListener {
+                performClickHaptic()
+                hideBubble()
+            }
+
+            // Initial elapsed time update
+            val elapsed = (System.currentTimeMillis() - startTime) / 1000
+            updateTimerText(elapsed)
+
+            // Start in collapsed state (circle with logo)
+            bubbleCollapsed?.visibility = View.VISIBLE
+            bubbleExpanded?.visibility = View.GONE
+            bubbleHideButton?.visibility = View.GONE
+
+            // Add to window manager
+            windowManager?.addView(bubbleView, layoutParams)
+            isShowing = true
+
+            // Animate in with scale effect
+            bubbleMain?.scaleX = 0f
+            bubbleMain?.scaleY = 0f
+            bubbleMain?.alpha = 0f
+            bubbleMain?.animate()
+                ?.scaleX(1f)
+                ?.scaleY(1f)
+                ?.alpha(1f)
+                ?.setDuration(ANIMATION_DURATION)
+                ?.setInterpolator(OvershootInterpolator(1.0f))
+                ?.start()
+
+            // Start timer updates (will count up since isNoTimeLimit is true)
+            handler.post(timerRunnable)
+
+            Log.d(TAG, "Bubble shown for no-time-limit, session started at: $sessionStartTime")
+            return true
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to show bubble for no-time-limit", e)
             return false
         }
     }
@@ -576,6 +700,9 @@ class FloatingBubbleManager(private val context: Context) {
         isShowing = false
         isExpanded = false
         isHidden = false  // Reset for next session
+        isNoTimeLimit = false  // Reset mode for next session
+        startTime = 0
+        endTime = 0
 
         Log.d(TAG, "Bubble dismissed")
     }
@@ -587,13 +714,17 @@ class FloatingBubbleManager(private val context: Context) {
 
     /**
      * Temporarily hide the bubble (e.g. when user is in Scute app)
+     * Also resets isHidden so bubble will reappear when leaving the app
      */
     fun temporaryHide() {
+        // Reset isHidden when entering Scute app - user can see bubble again after leaving
+        isHidden = false
+
         if (!isShowing) return
         bubbleView?.post {
             bubbleView?.visibility = View.GONE
         }
-        Log.d(TAG, "Bubble temporarily hidden")
+        Log.d(TAG, "Bubble temporarily hidden (isHidden reset)")
     }
 
     /**

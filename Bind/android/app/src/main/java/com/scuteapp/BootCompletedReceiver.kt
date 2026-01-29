@@ -37,6 +37,8 @@ class BootCompletedReceiver : BroadcastReceiver() {
             // Check if there's an active session that hasn't expired
             if (isSessionActive && now < sessionEndTime) {
                 val presetName = prefs.getString("active_preset_name", "Unknown")
+                val noTimeLimit = prefs.getBoolean("no_time_limit", false)
+                val sessionStartTime = prefs.getLong("session_start_time", now)
                 Log.d(TAG, "Active session found: $presetName - starting blocking service")
 
                 // Start the blocking service immediately
@@ -45,6 +47,21 @@ class BootCompletedReceiver : BroadcastReceiver() {
                     context.startForegroundService(serviceIntent)
                 } else {
                     context.startService(serviceIntent)
+                }
+
+                // Restore the floating bubble
+                try {
+                    if (noTimeLimit) {
+                        // No time limit - show bubble with elapsed time (counting up)
+                        FloatingBubbleManager.getInstance(context).showNoTimeLimit(sessionStartTime)
+                        Log.d(TAG, "Floating bubble restored for no-time-limit session")
+                    } else {
+                        // Timed session - show bubble with remaining time (counting down)
+                        FloatingBubbleManager.getInstance(context).show(sessionEndTime)
+                        Log.d(TAG, "Floating bubble restored for timed session")
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to restore floating bubble after boot", e)
                 }
 
                 Log.d(TAG, "Blocking service started successfully after boot")

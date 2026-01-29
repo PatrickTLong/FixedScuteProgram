@@ -218,12 +218,12 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, disabled
   const getDetailsDescription = () => {
     const parts = [];
 
-    // Add strict mode info (only for timed presets)
-    if (preset.strictMode && !preset.noTimeLimit) {
+    // Add strict mode info
+    if (preset.strictMode) {
       parts.push('Strict mode');
     }
 
-    // Add emergency tapout info (only when strict mode is on)
+    // Add emergency tapout info (only when strict mode is on and has a time limit)
     if (preset.allowEmergencyTapout && preset.strictMode && !preset.noTimeLimit) {
       parts.push('Emergency tapout');
     }
