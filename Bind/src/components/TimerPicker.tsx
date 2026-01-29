@@ -10,9 +10,9 @@ import { lightTap } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 
-const BASE_ITEM_HEIGHT = 44;
-const VISIBLE_ITEMS = 3; // Show full items above and below selected
-const WINDOW_BUFFER = 2; // Render this many items above and below the selected
+const BASE_ITEM_HEIGHT = 40;
+const VISIBLE_ITEMS = 3;
+const WINDOW_BUFFER = 2;
 
 interface WheelProps {
   values: number[];
@@ -28,11 +28,7 @@ interface WheelProps {
 
 const Wheel = memo(({ values, selectedValue, onValueChange, label, textColor, textMutedColor, labelColor, itemHeight, wheelWidth }: WheelProps) => {
   const scrollRef = useRef<ScrollView>(null);
-  const isUserScrolling = useRef(false);
-  const lastUserSelectedValue = useRef(selectedValue);
-  const isMounted = useRef(false);
   const lastHapticIndex = useRef(-1);
-  // Window tracking: use ref to avoid re-renders, only setState when window edge is hit
   const windowCenterRef = useRef(values.indexOf(selectedValue));
   const [windowRange, setWindowRange] = useState(() => {
     const idx = values.indexOf(selectedValue);
@@ -47,12 +43,10 @@ const Wheel = memo(({ values, selectedValue, onValueChange, label, textColor, te
   const topSpacerHeight = windowRange.start * itemHeight;
   const bottomSpacerHeight = (values.length - 1 - windowRange.end) * itemHeight;
 
-  // Only update window state when index is at or beyond the current window edge
   const updateWindowIfNeeded = useCallback((index: number) => {
     windowCenterRef.current = index;
     setWindowRange(prev => {
-      // Check if index is at or past the edge of the current window
-      if (index <= prev.start || index >= prev.end || index < prev.start || index > prev.end) {
+      if (index <= prev.start || index >= prev.end) {
         const newStart = Math.max(0, index - WINDOW_BUFFER);
         const newEnd = Math.min(values.length - 1, index + WINDOW_BUFFER);
         if (newStart !== prev.start || newEnd !== prev.end) {
@@ -66,24 +60,14 @@ const Wheel = memo(({ values, selectedValue, onValueChange, label, textColor, te
   useEffect(() => {
     const index = values.indexOf(selectedValue);
     if (index >= 0 && scrollRef.current) {
-      if (!isMounted.current || lastUserSelectedValue.current !== selectedValue) {
-        if (isUserScrolling.current) {
-          lastUserSelectedValue.current = selectedValue;
-          return;
-        }
-
-        updateWindowIfNeeded(index);
-
-        setTimeout(() => {
-          scrollRef.current?.scrollTo({
-            y: index * itemHeight,
-            animated: isMounted.current,
-          });
-        }, 10);
-      }
-      lastUserSelectedValue.current = selectedValue;
+      updateWindowIfNeeded(index);
+      setTimeout(() => {
+        scrollRef.current?.scrollTo({
+          y: index * itemHeight,
+          animated: false,
+        });
+      }, 10);
     }
-    isMounted.current = true;
   }, [selectedValue, values, itemHeight, updateWindowIfNeeded]);
 
   const handleScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -96,7 +80,6 @@ const Wheel = memo(({ values, selectedValue, onValueChange, label, textColor, te
     }
     lastHapticIndex.current = clampedIndex;
 
-    // Only re-render when we reach the edge of the current window
     updateWindowIfNeeded(clampedIndex);
   }, [values.length, itemHeight, updateWindowIfNeeded]);
 
@@ -105,7 +88,6 @@ const Wheel = memo(({ values, selectedValue, onValueChange, label, textColor, te
     const index = Math.round(offsetY / itemHeight);
     const clampedIndex = Math.max(0, Math.min(index, values.length - 1));
 
-    lastUserSelectedValue.current = values[clampedIndex];
     updateWindowIfNeeded(clampedIndex);
 
     if (values[clampedIndex] !== selectedValue) {
@@ -116,17 +98,7 @@ const Wheel = memo(({ values, selectedValue, onValueChange, label, textColor, te
       y: clampedIndex * itemHeight,
       animated: true,
     });
-
-    setTimeout(() => {
-      isUserScrolling.current = false;
-    }, 100);
   }, [values, selectedValue, onValueChange, itemHeight, updateWindowIfNeeded]);
-
-  const handleScrollBegin = useCallback(() => {
-    isUserScrolling.current = true;
-    const index = values.indexOf(selectedValue);
-    lastHapticIndex.current = index >= 0 ? index : 0;
-  }, [values, selectedValue]);
 
   const paddingVertical = (itemHeight * (VISIBLE_ITEMS - 1)) / 2;
 
@@ -144,7 +116,6 @@ const Wheel = memo(({ values, selectedValue, onValueChange, label, textColor, te
           showsVerticalScrollIndicator={false}
           snapToInterval={itemHeight}
           decelerationRate="fast"
-          onScrollBeginDrag={handleScrollBegin}
           onScroll={handleScroll}
           scrollEventThrottle={16}
           onMomentumScrollEnd={handleScrollEnd}
@@ -155,10 +126,8 @@ const Wheel = memo(({ values, selectedValue, onValueChange, label, textColor, te
           }}
           contentContainerStyle={{ paddingVertical }}
           nestedScrollEnabled={false}
-          bounces={false}
           overScrollMode="never"
         >
-          {/* Top spacer replaces items above the window */}
           {topSpacerHeight > 0 && <View style={{ height: topSpacerHeight }} />}
           {windowedValues.map((value) => {
             const isSelected = value === selectedValue;
@@ -173,7 +142,7 @@ const Wheel = memo(({ values, selectedValue, onValueChange, label, textColor, te
               >
                 <Text
                   style={{
-                    fontSize: isSelected ? 32 : 22,
+                    fontSize: isSelected ? 24 : 18,
                     fontFamily: isSelected ? 'Nunito-Bold' : 'Nunito-Regular',
                     color: isSelected ? textColor : textMutedColor,
                   }}
@@ -183,7 +152,6 @@ const Wheel = memo(({ values, selectedValue, onValueChange, label, textColor, te
               </View>
             );
           })}
-          {/* Bottom spacer replaces items below the window */}
           {bottomSpacerHeight > 0 && <View style={{ height: bottomSpacerHeight }} />}
         </ScrollView>
       </View>
@@ -231,7 +199,7 @@ function TimerPicker({
   const { colors } = useTheme();
   const { s } = useResponsive();
   const itemHeight = s(BASE_ITEM_HEIGHT);
-  const wheelWidth = s(56);
+  const wheelWidth = s(50);
 
   // Create muted color for unselected items (30% opacity of text color)
   const textMutedColor = colors.text === '#ffffff'
@@ -248,11 +216,11 @@ function TimerPicker({
       }}
     >
       <Wheel values={DAYS} selectedValue={days} onValueChange={onDaysChange} label="days" textColor={colors.text} textMutedColor={textMutedColor} labelColor={colors.textMuted} itemHeight={itemHeight} wheelWidth={wheelWidth} />
-      <Text style={{ color: colors.textMuted, fontSize: 28, height: itemHeight * VISIBLE_ITEMS, lineHeight: itemHeight * VISIBLE_ITEMS }}>:</Text>
+      <View style={{ height: itemHeight * VISIBLE_ITEMS, justifyContent: 'center', marginHorizontal: 2, marginTop: -itemHeight * 0.08 }}><Text style={{ color: colors.textMuted, fontSize: 24 }}>:</Text></View>
       <Wheel values={HOURS} selectedValue={hours} onValueChange={onHoursChange} label="hrs" textColor={colors.text} textMutedColor={textMutedColor} labelColor={colors.textMuted} itemHeight={itemHeight} wheelWidth={wheelWidth} />
-      <Text style={{ color: colors.textMuted, fontSize: 28, height: itemHeight * VISIBLE_ITEMS, lineHeight: itemHeight * VISIBLE_ITEMS }}>:</Text>
+      <View style={{ height: itemHeight * VISIBLE_ITEMS, justifyContent: 'center', marginHorizontal: 2, marginTop: -itemHeight * 0.08 }}><Text style={{ color: colors.textMuted, fontSize: 24 }}>:</Text></View>
       <Wheel values={MINUTES} selectedValue={minutes} onValueChange={onMinutesChange} label="min" textColor={colors.text} textMutedColor={textMutedColor} labelColor={colors.textMuted} itemHeight={itemHeight} wheelWidth={wheelWidth} />
-      <Text style={{ color: colors.textMuted, fontSize: 28, height: itemHeight * VISIBLE_ITEMS, lineHeight: itemHeight * VISIBLE_ITEMS }}>:</Text>
+      <View style={{ height: itemHeight * VISIBLE_ITEMS, justifyContent: 'center', marginHorizontal: 2, marginTop: -itemHeight * 0.08 }}><Text style={{ color: colors.textMuted, fontSize: 24 }}>:</Text></View>
       <Wheel values={SECONDS} selectedValue={seconds} onValueChange={onSecondsChange} label="sec" textColor={colors.text} textMutedColor={textMutedColor} labelColor={colors.textMuted} itemHeight={itemHeight} wheelWidth={wheelWidth} />
     </View>
   );
