@@ -317,11 +317,13 @@ app.post('/api/send-code', async (req, res) => {
         <head>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+          <style>
+            @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap');
+          </style>
         </head>
-        <body style="margin: 0; padding: 40px 20px; font-family: 'Nunito', sans-serif; background-color: #28282B;">
-          <div style="max-width: 400px; margin: 0 auto; text-align: center; position: relative; padding-top: 180px;">
-            <img src="https://fixedscuteprogram-production.up.railway.app/TrueScute-Photoroom.png" alt="Scute" width="200" style="position: absolute; top: 0; left: 50%; transform: translateX(-50%);" />
+        <body style="margin: 0; padding: 40px 20px; font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #28282B;">
+          <div style="max-width: 400px; margin: 0 auto; text-align: center;">
+            <img src="https://fixedscuteprogram-production.up.railway.app/TrueScute-Photoroom.png" alt="Scute" width="140" style="margin-bottom: 32px;" />
             <p style="margin: 0 0 24px 0; font-size: 15px; color: #cccccc;">
               Enter this code to verify your email:
             </p>
@@ -594,11 +596,13 @@ app.post('/api/signin', async (req, res) => {
         <head>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+          <style>
+            @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap');
+          </style>
         </head>
-        <body style="margin: 0; padding: 40px 20px; font-family: 'Nunito', sans-serif; background-color: #28282B;">
-          <div style="max-width: 400px; margin: 0 auto; text-align: center; position: relative; padding-top: 180px;">
-            <img src="https://fixedscuteprogram-production.up.railway.app/TrueScute-Photoroom.png" alt="Scute" width="200" style="position: absolute; top: 0; left: 50%; transform: translateX(-50%);" />
+        <body style="margin: 0; padding: 40px 20px; font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #28282B;">
+          <div style="max-width: 400px; margin: 0 auto; text-align: center;">
+            <img src="https://fixedscuteprogram-production.up.railway.app/TrueScute-Photoroom.png" alt="Scute" width="140" style="margin-bottom: 32px;" />
             <p style="margin: 0 0 24px 0; font-size: 15px; color: #cccccc;">
               Enter this code to sign in:
             </p>
@@ -802,11 +806,13 @@ app.post('/api/reset-password-request', async (req, res) => {
         <head>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+          <style>
+            @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap');
+          </style>
         </head>
-        <body style="margin: 0; padding: 40px 20px; font-family: 'Nunito', sans-serif; background-color: #28282B;">
-          <div style="max-width: 400px; margin: 0 auto; text-align: center; position: relative; padding-top: 180px;">
-            <img src="https://fixedscuteprogram-production.up.railway.app/TrueScute-Photoroom.png" alt="Scute" width="200" style="position: absolute; top: 0; left: 50%; transform: translateX(-50%);" />
+        <body style="margin: 0; padding: 40px 20px; font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #28282B;">
+          <div style="max-width: 400px; margin: 0 auto; text-align: center;">
+            <img src="https://fixedscuteprogram-production.up.railway.app/TrueScute-Photoroom.png" alt="Scute" width="140" style="margin-bottom: 32px;" />
             <p style="margin: 0 0 24px 0; font-size: 15px; color: #cccccc;">
               Enter this code to reset your password:
             </p>
