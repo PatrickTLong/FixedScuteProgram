@@ -318,9 +318,9 @@ app.post('/api/send-code', async (req, res) => {
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
         </head>
-        <body style="margin: 0; padding: 0; font-family: Verdana, Geneva, sans-serif; background-color: #28282B;">
-          <div style="max-width: 400px; margin: 0 auto; text-align: center; padding: 20px; position: relative; padding-top: 270px;">
-            <img src="https://fixedscuteprogram-production.up.railway.app/TrueScute-Photoroom.png" alt="Scute" width="250" height="250" style="position: absolute; top: 0; left: 50%; transform: translateX(-50%);" />
+        <body style="margin: 0; padding: 0; font-family: Verdana, Geneva, sans-serif; background-color: #28282B; border-radius: 16px;">
+          <div style="max-width: 400px; margin: 0 auto; text-align: center; padding: 0 20px 20px 20px;">
+            <img src="https://fixedscuteprogram-production.up.railway.app/TrueScute-Photoroom.png" alt="Scute" width="250" height="250" style="display: block; margin: 0 auto 15px auto;" />
             <p style="margin: 0 0 10px 0; font-size: 10px; color: #cccccc;">
               Enter this code to verify your email:
             </p>
@@ -594,9 +594,9 @@ app.post('/api/signin', async (req, res) => {
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
         </head>
-        <body style="margin: 0; padding: 0; font-family: Verdana, Geneva, sans-serif; background-color: #28282B;">
-          <div style="max-width: 400px; margin: 0 auto; text-align: center; padding: 20px; position: relative; padding-top: 270px;">
-            <img src="https://fixedscuteprogram-production.up.railway.app/TrueScute-Photoroom.png" alt="Scute" width="250" height="250" style="position: absolute; top: 0; left: 50%; transform: translateX(-50%);" />
+        <body style="margin: 0; padding: 0; font-family: Verdana, Geneva, sans-serif; background-color: #28282B; border-radius: 16px;">
+          <div style="max-width: 400px; margin: 0 auto; text-align: center; padding: 0 20px 20px 20px;">
+            <img src="https://fixedscuteprogram-production.up.railway.app/TrueScute-Photoroom.png" alt="Scute" width="250" height="250" style="display: block; margin: 0 auto 15px auto;" />
             <p style="margin: 0 0 10px 0; font-size: 10px; color: #cccccc;">
               Enter this code to sign in:
             </p>
@@ -801,9 +801,9 @@ app.post('/api/reset-password-request', async (req, res) => {
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
         </head>
-        <body style="margin: 0; padding: 0; font-family: Verdana, Geneva, sans-serif; background-color: #28282B;">
-          <div style="max-width: 400px; margin: 0 auto; text-align: center; padding: 20px; position: relative; padding-top: 270px;">
-            <img src="https://fixedscuteprogram-production.up.railway.app/TrueScute-Photoroom.png" alt="Scute" width="250" height="250" style="position: absolute; top: 0; left: 50%; transform: translateX(-50%);" />
+        <body style="margin: 0; padding: 0; font-family: Verdana, Geneva, sans-serif; background-color: #28282B; border-radius: 16px;">
+          <div style="max-width: 400px; margin: 0 auto; text-align: center; padding: 0 20px 20px 20px;">
+            <img src="https://fixedscuteprogram-production.up.railway.app/TrueScute-Photoroom.png" alt="Scute" width="250" height="250" style="display: block; margin: 0 auto 15px auto;" />
             <p style="margin: 0 0 10px 0; font-size: 10px; color: #cccccc;">
               Enter this code to reset your password:
             </p>
