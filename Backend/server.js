@@ -318,19 +318,19 @@ app.post('/api/send-code', async (req, res) => {
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
         </head>
-        <body style="margin: 0; padding: 40px 20px; font-family: 'Trebuchet MS', 'Lucida Grande', 'Lucida Sans Unicode', sans-serif; background-color: #28282B;">
-          <div style="max-width: 400px; margin: 0 auto; text-align: center;">
-            <img src="https://fixedscuteprogram-production.up.railway.app/TrueScute-Photoroom.png" alt="Scute" width="250" height="250" style="margin-bottom: 24px;" />
-            <p style="margin: 0 0 16px 0; font-size: 13px; color: #cccccc;">
+        <body style="margin: 0; padding: 20px; font-family: Verdana, Geneva, sans-serif; background-color: #1a1a1a;">
+          <div style="max-width: 400px; margin: 0 auto; text-align: center; background-color: #28282B; border-radius: 16px; padding: 30px 20px;">
+            <img src="https://fixedscuteprogram-production.up.railway.app/TrueScute-Photoroom.png" alt="Scute" width="250" height="250" style="display: block; margin: 0 auto 30px auto;" />
+            <p style="margin: 0 0 10px 0; font-size: 10px; color: #cccccc;">
               Enter this code to verify your email:
             </p>
-            <div style="font-size: 32px; font-weight: 700; letter-spacing: 8px; color: #ffffff; margin-bottom: 16px;">
+            <div style="font-size: 26px; font-weight: 700; letter-spacing: 8px; color: #ffffff; margin-bottom: 10px;">
               ${code}
             </div>
-            <p style="margin: 0 0 20px 0; font-size: 11px; color: #888888;">
+            <p style="margin: 0 0 14px 0; font-size: 8px; color: #888888;">
               This code expires in 10 minutes.
             </p>
-            <p style="margin: 0; font-size: 10px; color: #666666;">
+            <p style="margin: 0; font-size: 7px; color: #666666;">
               If you didn't request this code, you can safely ignore this email.
             </p>
           </div>
@@ -594,19 +594,19 @@ app.post('/api/signin', async (req, res) => {
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
         </head>
-        <body style="margin: 0; padding: 40px 20px; font-family: 'Trebuchet MS', 'Lucida Grande', 'Lucida Sans Unicode', sans-serif; background-color: #28282B;">
-          <div style="max-width: 400px; margin: 0 auto; text-align: center;">
-            <img src="https://fixedscuteprogram-production.up.railway.app/TrueScute-Photoroom.png" alt="Scute" width="250" height="250" style="margin-bottom: 24px;" />
-            <p style="margin: 0 0 16px 0; font-size: 13px; color: #cccccc;">
+        <body style="margin: 0; padding: 20px; font-family: Verdana, Geneva, sans-serif; background-color: #1a1a1a;">
+          <div style="max-width: 400px; margin: 0 auto; text-align: center; background-color: #28282B; border-radius: 16px; padding: 30px 20px;">
+            <img src="https://fixedscuteprogram-production.up.railway.app/TrueScute-Photoroom.png" alt="Scute" width="250" height="250" style="display: block; margin: 0 auto 30px auto;" />
+            <p style="margin: 0 0 10px 0; font-size: 10px; color: #cccccc;">
               Enter this code to sign in:
             </p>
-            <div style="font-size: 32px; font-weight: 700; letter-spacing: 8px; color: #ffffff; margin-bottom: 16px;">
+            <div style="font-size: 26px; font-weight: 700; letter-spacing: 8px; color: #ffffff; margin-bottom: 10px;">
               ${code}
             </div>
-            <p style="margin: 0 0 20px 0; font-size: 11px; color: #888888;">
+            <p style="margin: 0 0 14px 0; font-size: 8px; color: #888888;">
               This code expires in 10 minutes.
             </p>
-            <p style="margin: 0; font-size: 10px; color: #666666;">
+            <p style="margin: 0; font-size: 7px; color: #666666;">
               If you didn't request this code, you can safely ignore this email.
             </p>
           </div>
@@ -801,19 +801,19 @@ app.post('/api/reset-password-request', async (req, res) => {
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
         </head>
-        <body style="margin: 0; padding: 40px 20px; font-family: 'Trebuchet MS', 'Lucida Grande', 'Lucida Sans Unicode', sans-serif; background-color: #28282B;">
-          <div style="max-width: 400px; margin: 0 auto; text-align: center;">
-            <img src="https://fixedscuteprogram-production.up.railway.app/TrueScute-Photoroom.png" alt="Scute" width="250" height="250" style="margin-bottom: 24px;" />
-            <p style="margin: 0 0 16px 0; font-size: 13px; color: #cccccc;">
+        <body style="margin: 0; padding: 20px; font-family: Verdana, Geneva, sans-serif; background-color: #1a1a1a;">
+          <div style="max-width: 400px; margin: 0 auto; text-align: center; background-color: #28282B; border-radius: 16px; padding: 30px 20px;">
+            <img src="https://fixedscuteprogram-production.up.railway.app/TrueScute-Photoroom.png" alt="Scute" width="250" height="250" style="display: block; margin: 0 auto 30px auto;" />
+            <p style="margin: 0 0 10px 0; font-size: 10px; color: #cccccc;">
               Enter this code to reset your password:
             </p>
-            <div style="font-size: 32px; font-weight: 700; letter-spacing: 8px; color: #ffffff; margin-bottom: 16px;">
+            <div style="font-size: 26px; font-weight: 700; letter-spacing: 8px; color: #ffffff; margin-bottom: 10px;">
               ${code}
             </div>
-            <p style="margin: 0 0 20px 0; font-size: 11px; color: #888888;">
+            <p style="margin: 0 0 14px 0; font-size: 8px; color: #888888;">
               This code expires in 10 minutes.
             </p>
-            <p style="margin: 0; font-size: 10px; color: #666666;">
+            <p style="margin: 0; font-size: 7px; color: #666666;">
               If you didn't request this code, you can safely ignore this email.
             </p>
           </div>
