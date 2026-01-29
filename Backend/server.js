@@ -317,23 +317,20 @@ app.post('/api/send-code', async (req, res) => {
         <head>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <style>
-            @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap');
-          </style>
         </head>
-        <body style="margin: 0; padding: 40px 20px; font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #28282B;">
+        <body style="margin: 0; padding: 40px 20px; font-family: 'Trebuchet MS', 'Lucida Grande', 'Lucida Sans Unicode', sans-serif; background-color: #28282B;">
           <div style="max-width: 400px; margin: 0 auto; text-align: center;">
-            <img src="https://fixedscuteprogram-production.up.railway.app/TrueScute-Photoroom.png" alt="Scute" width="140" style="margin-bottom: 32px;" />
-            <p style="margin: 0 0 24px 0; font-size: 15px; color: #cccccc;">
+            <img src="https://fixedscuteprogram-production.up.railway.app/TrueScute-Photoroom.png" alt="Scute" width="250" height="250" style="margin-bottom: 24px;" />
+            <p style="margin: 0 0 16px 0; font-size: 13px; color: #cccccc;">
               Enter this code to verify your email:
             </p>
-            <div style="font-size: 36px; font-weight: 700; letter-spacing: 8px; color: #ffffff; margin-bottom: 24px;">
+            <div style="font-size: 32px; font-weight: 700; letter-spacing: 8px; color: #ffffff; margin-bottom: 16px;">
               ${code}
             </div>
-            <p style="margin: 0 0 32px 0; font-size: 13px; color: #888888;">
+            <p style="margin: 0 0 20px 0; font-size: 11px; color: #888888;">
               This code expires in 10 minutes.
             </p>
-            <p style="margin: 0; font-size: 12px; color: #666666;">
+            <p style="margin: 0; font-size: 10px; color: #666666;">
               If you didn't request this code, you can safely ignore this email.
             </p>
           </div>
@@ -596,23 +593,20 @@ app.post('/api/signin', async (req, res) => {
         <head>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <style>
-            @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap');
-          </style>
         </head>
-        <body style="margin: 0; padding: 40px 20px; font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #28282B;">
+        <body style="margin: 0; padding: 40px 20px; font-family: 'Trebuchet MS', 'Lucida Grande', 'Lucida Sans Unicode', sans-serif; background-color: #28282B;">
           <div style="max-width: 400px; margin: 0 auto; text-align: center;">
-            <img src="https://fixedscuteprogram-production.up.railway.app/TrueScute-Photoroom.png" alt="Scute" width="140" style="margin-bottom: 32px;" />
-            <p style="margin: 0 0 24px 0; font-size: 15px; color: #cccccc;">
+            <img src="https://fixedscuteprogram-production.up.railway.app/TrueScute-Photoroom.png" alt="Scute" width="250" height="250" style="margin-bottom: 24px;" />
+            <p style="margin: 0 0 16px 0; font-size: 13px; color: #cccccc;">
               Enter this code to sign in:
             </p>
-            <div style="font-size: 36px; font-weight: 700; letter-spacing: 8px; color: #ffffff; margin-bottom: 24px;">
+            <div style="font-size: 32px; font-weight: 700; letter-spacing: 8px; color: #ffffff; margin-bottom: 16px;">
               ${code}
             </div>
-            <p style="margin: 0 0 32px 0; font-size: 13px; color: #888888;">
+            <p style="margin: 0 0 20px 0; font-size: 11px; color: #888888;">
               This code expires in 10 minutes.
             </p>
-            <p style="margin: 0; font-size: 12px; color: #666666;">
+            <p style="margin: 0; font-size: 10px; color: #666666;">
               If you didn't request this code, you can safely ignore this email.
             </p>
           </div>
@@ -806,23 +800,20 @@ app.post('/api/reset-password-request', async (req, res) => {
         <head>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <style>
-            @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap');
-          </style>
         </head>
-        <body style="margin: 0; padding: 40px 20px; font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #28282B;">
+        <body style="margin: 0; padding: 40px 20px; font-family: 'Trebuchet MS', 'Lucida Grande', 'Lucida Sans Unicode', sans-serif; background-color: #28282B;">
           <div style="max-width: 400px; margin: 0 auto; text-align: center;">
-            <img src="https://fixedscuteprogram-production.up.railway.app/TrueScute-Photoroom.png" alt="Scute" width="140" style="margin-bottom: 32px;" />
-            <p style="margin: 0 0 24px 0; font-size: 15px; color: #cccccc;">
+            <img src="https://fixedscuteprogram-production.up.railway.app/TrueScute-Photoroom.png" alt="Scute" width="250" height="250" style="margin-bottom: 24px;" />
+            <p style="margin: 0 0 16px 0; font-size: 13px; color: #cccccc;">
               Enter this code to reset your password:
             </p>
-            <div style="font-size: 36px; font-weight: 700; letter-spacing: 8px; color: #ffffff; margin-bottom: 24px;">
+            <div style="font-size: 32px; font-weight: 700; letter-spacing: 8px; color: #ffffff; margin-bottom: 16px;">
               ${code}
             </div>
-            <p style="margin: 0 0 32px 0; font-size: 13px; color: #888888;">
+            <p style="margin: 0 0 20px 0; font-size: 11px; color: #888888;">
               This code expires in 10 minutes.
             </p>
-            <p style="margin: 0; font-size: 12px; color: #666666;">
+            <p style="margin: 0; font-size: 10px; color: #666666;">
               If you didn't request this code, you can safely ignore this email.
             </p>
           </div>
