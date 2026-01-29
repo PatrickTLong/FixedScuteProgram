@@ -123,9 +123,13 @@ function TermsAcceptScreen({ onAccept }: Props) {
         </Text>
 
         <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">14. Contact Us</Text>
-        <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-8">
+        <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
           If you have any questions about these Terms of Service, please contact us at:{'\n'}
           Email: info@scuteapp.com
+        </Text>
+
+        <Text style={{ color: colors.textMuted }} className="text-xs font-nunito text-center mb-8">
+          © 2026 Scute LLC
         </Text>
       </ScrollView>
 

@@ -836,9 +836,13 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
             </Text>
 
             <Text style={{ color: colors.text }} className="text-sm font-nunito-bold mb-2">11. Contact Us</Text>
-            <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-8">
+            <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
               If you have any questions or concerns about this Privacy Policy, please contact us at:{'\n'}
               Email: info@scuteapp.com
+            </Text>
+
+            <Text style={{ color: colors.textMuted }} className="text-xs font-nunito text-center mb-8">
+              © 2026 Scute LLC
             </Text>
           </ScrollView>
         </SafeAreaView>
@@ -955,9 +959,13 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
             </Text>
 
             <Text style={{ color: colors.text }} className="text-sm font-nunito-bold mb-2">14. Contact Us</Text>
-            <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-8">
+            <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
               If you have any questions about these Terms of Service, please contact us at:{'\n'}
               Email: info@scuteapp.com
+            </Text>
+
+            <Text style={{ color: colors.textMuted }} className="text-xs font-nunito text-center mb-8">
+              © 2026 Scute LLC
             </Text>
           </ScrollView>
         </SafeAreaView>
