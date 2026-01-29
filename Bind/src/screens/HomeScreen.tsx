@@ -1147,7 +1147,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
                 </Text>
               </>
             ) : (
-              <Text style={{ color: colors.text }} className="text-4xl font-nunito-bold">
+              <Text style={{ color: colors.text }} className="text-2xl font-nunito-bold">
                 Not Locked
               </Text>
             )}
@@ -1158,7 +1158,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
             <View className="items-center justify-center">
               <Text
                 style={{ color: colors.text }}
-                className="text-xl font-nunito-semibold text-center"
+                className="text-lg font-nunito-semibold text-center"
               >
                 Preset: {currentPreset || 'None Selected'}
               </Text>

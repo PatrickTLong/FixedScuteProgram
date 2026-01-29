@@ -9,10 +9,17 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.database.sqlite.SQLiteDatabase
 import android.os.Build
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import org.json.JSONObject
+import java.net.HttpURLConnection
+import java.net.URL
+import kotlin.concurrent.thread
 
 /**
  * Foreground service that monitors for app uninstall attempts and blocks them
@@ -26,6 +33,7 @@ class UninstallBlockerService : Service() {
         private const val ALERT_CHANNEL_ID = "scute_session_alerts"
         private const val NOTIFICATION_ID = 1001
         private const val SESSION_END_NOTIFICATION_ID = 2003
+        private const val SYNC_CHECK_INTERVAL_MS = 10_000L // 10 seconds
 
         const val PREFS_NAME = "ScuteBlockerPrefs"
         const val KEY_BLOCKED_APPS = "blocked_apps"
@@ -92,6 +100,13 @@ class UninstallBlockerService : Service() {
     private var packageRemovedReceiver: BroadcastReceiver? = null
     private var appMonitor: AppMonitorService? = null
     private var websiteMonitor: WebsiteMonitorService? = null
+    private val syncHandler = Handler(Looper.getMainLooper())
+    private val syncCheckRunnable = object : Runnable {
+        override fun run() {
+            checkBackendLockStatus()
+            syncHandler.postDelayed(this, SYNC_CHECK_INTERVAL_MS)
+        }
+    }
 
     override fun onCreate() {
         super.onCreate()
@@ -121,10 +136,32 @@ class UninstallBlockerService : Service() {
             startMonitoring()
         }
         Log.d(TAG, "WebsiteMonitorService started")
+
+        // Start periodic backend sync check for notification accuracy
+        syncHandler.postDelayed(syncCheckRunnable, SYNC_CHECK_INTERVAL_MS)
+        Log.d(TAG, "Backend sync check started (every ${SYNC_CHECK_INTERVAL_MS / 1000}s)")
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d(TAG, "UninstallBlockerService started")
+
+        // Verify session is actually active before showing the notification
+        val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val isSessionActive = prefs.getBoolean(KEY_SESSION_ACTIVE, false)
+        if (!isSessionActive) {
+            Log.d(TAG, "Session is not active - stopping service immediately")
+            // Must call startForeground before stopping to avoid Android crash,
+            // but use FOREGROUND_SERVICE_DEFERRED to minimize visible flash
+            val emptyNotification = NotificationCompat.Builder(this, CHANNEL_ID)
+                .setSmallIcon(android.R.drawable.ic_lock_lock)
+                .setPriority(NotificationCompat.PRIORITY_MIN)
+                .setSilent(true)
+                .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_DEFERRED)
+                .build()
+            startForeground(NOTIFICATION_ID, emptyNotification)
+            stopSelf()
+            return START_NOT_STICKY
+        }
 
         val notification = createNotification()
         startForeground(NOTIFICATION_ID, notification)
@@ -138,6 +175,9 @@ class UninstallBlockerService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
+
+        // Stop backend sync check
+        syncHandler.removeCallbacks(syncCheckRunnable)
 
         // Stop app monitoring
         appMonitor?.stopMonitoring()
@@ -239,6 +279,79 @@ class UninstallBlockerService : Service() {
             } catch (e: Exception) {
                 Log.e(TAG, "Error unregistering receiver", e)
             }
+        }
+    }
+
+    /**
+     * Check backend lock status and stop service if backend says not locked.
+     * Runs on a background thread to avoid blocking the main thread.
+     */
+    private fun checkBackendLockStatus() {
+        thread {
+            try {
+                val token = getAuthTokenFromAsyncStorage() ?: return@thread
+
+                val apiUrl = "${BuildConfig.API_URL}/api/lock-status"
+                val url = URL(apiUrl)
+                val connection = url.openConnection() as HttpURLConnection
+                connection.requestMethod = "GET"
+                connection.setRequestProperty("Authorization", "Bearer $token")
+                connection.connectTimeout = 5000
+                connection.readTimeout = 5000
+
+                val responseCode = connection.responseCode
+                if (responseCode == HttpURLConnection.HTTP_OK) {
+                    val responseBody = connection.inputStream.bufferedReader().readText()
+                    val json = JSONObject(responseBody)
+                    val isLocked = json.optBoolean("isLocked", true)
+
+                    if (!isLocked) {
+                        Log.d(TAG, "Backend says not locked - clearing session and stopping service")
+                        val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                        prefs.edit()
+                            .putBoolean(KEY_SESSION_ACTIVE, false)
+                            .putStringSet(KEY_BLOCKED_APPS, emptySet())
+                            .putStringSet("blocked_websites", emptySet())
+                            .remove("active_preset_id")
+                            .remove("active_preset_name")
+                            .remove("is_scheduled_preset")
+                            .apply()
+
+                        // Stop on main thread
+                        syncHandler.post { stopSelf() }
+                    }
+                }
+                connection.disconnect()
+            } catch (e: Exception) {
+                // Silently skip on any error - don't stop service due to transient network issues
+                Log.d(TAG, "Backend sync check failed (will retry): ${e.message}")
+            }
+        }
+    }
+
+    private fun getAuthTokenFromAsyncStorage(): String? {
+        var db: SQLiteDatabase? = null
+        try {
+            val dbPath = getDatabasePath("RKStorage").absolutePath
+            val dbFile = java.io.File(dbPath)
+            if (!dbFile.exists()) return null
+
+            db = SQLiteDatabase.openDatabase(dbPath, null, SQLiteDatabase.OPEN_READONLY)
+            val cursor = db.rawQuery(
+                "SELECT value FROM catalystLocalStorage WHERE key = ?",
+                arrayOf("@scute_auth_token")
+            )
+
+            var token: String? = null
+            if (cursor.moveToFirst()) {
+                token = cursor.getString(0)
+            }
+            cursor.close()
+            return token
+        } catch (e: Exception) {
+            return null
+        } finally {
+            db?.close()
         }
     }
 

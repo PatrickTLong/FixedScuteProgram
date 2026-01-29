@@ -590,10 +590,11 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
                 presetId
             )
 
-            // Show floating bubble with countdown instead of launching app
+            // Show floating bubble with countdown (start hidden, AppMonitorService will show when user leaves app)
             try {
                 Log.d(TAG, "Showing floating bubble for preset activation: ${targetPreset.optString("name")}")
                 FloatingBubbleManager.getInstance(context).show(endTime)
+                FloatingBubbleManager.getInstance(context).temporaryHide()
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to show floating bubble", e)
             }

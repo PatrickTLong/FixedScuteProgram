@@ -92,6 +92,11 @@ class FloatingBubbleManager(private val context: Context) {
     // Auto-collapse runnable
     private val autoCollapseRunnable = Runnable {
         if (isExpanded) {
+            // Don't collapse if 10 seconds or less remaining (keep timer visible)
+            if (!isNoTimeLimit && endTime > 0) {
+                val remaining = (endTime - System.currentTimeMillis()) / 1000
+                if (remaining <= 10) return@Runnable
+            }
             collapse()
         }
     }
@@ -108,6 +113,10 @@ class FloatingBubbleManager(private val context: Context) {
                 val remaining = (endTime - System.currentTimeMillis()) / 1000
                 if (remaining > 0) {
                     updateTimerText(remaining)
+                    // Auto-expand bubble when 10 seconds remaining
+                    if (remaining <= 10 && !isExpanded) {
+                        expand()
+                    }
                     handler.postDelayed(this, 1000)
                 } else {
                     dismiss()
@@ -369,6 +378,8 @@ class FloatingBubbleManager(private val context: Context) {
                     initialTouchY = event.rawY
                     isDragging = false
                     longPressTriggered = false
+                    // Pause auto-collapse while touching the bubble
+                    handler.removeCallbacks(autoCollapseRunnable)
                     handler.postDelayed(longPressRunnable, LONG_PRESS_DURATION)
                     true
                 }
@@ -401,6 +412,9 @@ class FloatingBubbleManager(private val context: Context) {
                         // Regular tap - toggle expand/collapse
                         performTapHaptic()
                         toggleExpanded()
+                    } else if (isExpanded) {
+                        // Reschedule auto-collapse after drag/long-press ends
+                        handler.postDelayed(autoCollapseRunnable, AUTO_COLLAPSE_DELAY)
                     }
                     isDragging = false
                     true
@@ -408,6 +422,10 @@ class FloatingBubbleManager(private val context: Context) {
                 MotionEvent.ACTION_CANCEL -> {
                     handler.removeCallbacks(longPressRunnable)
                     isDragging = false
+                    // Reschedule auto-collapse if still expanded
+                    if (isExpanded) {
+                        handler.postDelayed(autoCollapseRunnable, AUTO_COLLAPSE_DELAY)
+                    }
                     true
                 }
                 else -> false
