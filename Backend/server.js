@@ -840,9 +840,9 @@ app.post('/api/reset-password-request', async (req, res) => {
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
         </head>
-        <body style="margin: 0; padding: 40px 20px; font-family: 'Nunito', sans-serif; background-color: #000000;">
-          <div style="max-width: 400px; margin: 0 auto; text-align: center;">
-            <img src="https://fixedscuteprogram-production.up.railway.app/TrueScute-Photoroom.png" alt="Scute" width="100" style="margin-bottom: 32px;" />
+        <body style="margin: 0; padding: 40px 20px; font-family: 'Nunito', sans-serif; background-color: #28282B;">
+          <div style="max-width: 400px; margin: 0 auto; text-align: center; position: relative; padding-top: 180px;">
+            <img src="https://fixedscuteprogram-production.up.railway.app/TrueScute-Photoroom.png" alt="Scute" width="200" style="position: absolute; top: 0; left: 50%; transform: translateX(-50%);" />
             <p style="margin: 0 0 24px 0; font-size: 15px; color: #cccccc;">
               Enter this code to reset your password:
             </p>
