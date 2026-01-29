@@ -1000,12 +1000,12 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
 
           <ScrollView className="flex-1 px-5 py-6" showsVerticalScrollIndicator={false}>
             {/* Title Section */}
-            <View className="items-center mb-8">
-              <View className="flex-row items-center mb-4">
-                <PlayStoreIcon size={28} />
-                <Text style={{ color: colors.text }} className="text-2xl font-nunito-bold ml-2">Choose Your Plan</Text>
+            <View className="items-center mb-6">
+              <View className="flex-row items-center mb-3">
+                <PlayStoreIcon size={24} />
+                <Text style={{ color: colors.text }} className="text-xl font-nunito-bold ml-2">Choose Your Plan</Text>
               </View>
-              <Text style={{ color: colors.textSecondary }} className="text-center text-sm font-nunito">
+              <Text style={{ color: colors.textSecondary }} className="text-center text-xs font-nunito">
                 All features will remain enabled after membership activation
               </Text>
             </View>
@@ -1017,20 +1017,23 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
                 backgroundColor: colors.card,
                 borderWidth: 2,
                 borderColor: selectedPlan === 'monthly' ? '#FFFFFF' : 'transparent',
-                padding: 20,
+                padding: 16,
               }}
-              className="rounded-2xl mb-4"
+              className="rounded-2xl mb-3"
             >
               <View className="flex-row items-center justify-between">
                 <View className="flex-1">
-                  <Text style={{ color: colors.text }} className="text-lg font-nunito-bold">Monthly</Text>
-                  <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito mt-1">
+                  <Text style={{ color: colors.text }} className="text-base font-nunito-bold">Monthly</Text>
+                  <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito mt-1">
                     Billed monthly
                   </Text>
                 </View>
                 <View className="items-end">
-                  <Text style={{ color: colors.text }} className="text-2xl font-nunito-bold">$6.95</Text>
-                  <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">/month</Text>
+                  <View className="flex-row items-center">
+                    <Text style={{ color: colors.textMuted, textDecorationLine: 'line-through' }} className="text-sm font-nunito mr-2">$9.95</Text>
+                    <Text style={{ color: colors.text }} className="text-xl font-nunito-bold">$6.95</Text>
+                  </View>
+                  <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">/month</Text>
                 </View>
               </View>
             </TouchableOpacity>
@@ -1042,25 +1045,28 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
                 backgroundColor: colors.card,
                 borderWidth: 2,
                 borderColor: selectedPlan === 'yearly' ? '#FFFFFF' : 'transparent',
-                padding: 20,
+                padding: 16,
               }}
-              className="rounded-2xl mb-4"
+              className="rounded-2xl mb-3"
             >
               <View className="flex-row items-center justify-between">
                 <View className="flex-1">
                   <View className="flex-row items-center">
-                    <Text style={{ color: colors.text }} className="text-lg font-nunito-bold">Yearly</Text>
+                    <Text style={{ color: colors.text }} className="text-base font-nunito-bold">Yearly</Text>
                     <View style={{ backgroundColor: colors.border }} className="ml-2 px-2 py-0.5 rounded-full">
                       <Text className="text-xs font-nunito-bold text-white">Save 29%</Text>
                     </View>
                   </View>
-                  <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito mt-1">
+                  <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito mt-1">
                     $59.40 billed annually
                   </Text>
                 </View>
                 <View className="items-end">
-                  <Text style={{ color: colors.text }} className="text-2xl font-nunito-bold">$4.95</Text>
-                  <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">/month</Text>
+                  <View className="flex-row items-center">
+                    <Text style={{ color: colors.textMuted, textDecorationLine: 'line-through' }} className="text-sm font-nunito mr-2">$6.95</Text>
+                    <Text style={{ color: colors.text }} className="text-xl font-nunito-bold">$4.95</Text>
+                  </View>
+                  <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">/month</Text>
                 </View>
               </View>
             </TouchableOpacity>
@@ -1072,25 +1078,28 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
                 backgroundColor: colors.card,
                 borderWidth: 2,
                 borderColor: selectedPlan === 'lifetime' ? '#FFFFFF' : 'transparent',
-                padding: 20,
+                padding: 16,
               }}
-              className="rounded-2xl mb-8"
+              className="rounded-2xl mb-6"
             >
               <View className="flex-row items-center justify-between">
                 <View className="flex-1">
                   <View className="flex-row items-center">
-                    <Text style={{ color: colors.text }} className="text-lg font-nunito-bold">Lifetime</Text>
+                    <Text style={{ color: colors.text }} className="text-base font-nunito-bold">Lifetime</Text>
                     <View style={{ backgroundColor: colors.border }} className="ml-2 px-2 py-0.5 rounded-full">
                       <Text className="text-xs font-nunito-bold text-white">Best Value</Text>
                     </View>
                   </View>
-                  <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito mt-1">
+                  <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito mt-1">
                     One-time payment, forever access
                   </Text>
                 </View>
                 <View className="items-end">
-                  <Text style={{ color: colors.text }} className="text-2xl font-nunito-bold">$49.95</Text>
-                  <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">one-time</Text>
+                  <View className="flex-row items-center">
+                    <Text style={{ color: colors.textMuted, textDecorationLine: 'line-through' }} className="text-sm font-nunito mr-2">$79.95</Text>
+                    <Text style={{ color: colors.text }} className="text-xl font-nunito-bold">$49.95</Text>
+                  </View>
+                  <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">one-time</Text>
                 </View>
               </View>
             </TouchableOpacity>
@@ -1103,7 +1112,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
                 backgroundColor: selectedPlan ? '#FFFFFF' : colors.border,
                 opacity: selectedPlan ? 1 : 0.5,
               }}
-              className="rounded-full py-4 items-center mb-4"
+              className="rounded-full py-3.5 items-center mb-3"
             >
               <Text style={{ color: selectedPlan ? '#000000' : colors.textSecondary }} className="text-sm font-nunito-bold">
                 {selectedPlan ? 'Continue' : 'Select a Plan'}

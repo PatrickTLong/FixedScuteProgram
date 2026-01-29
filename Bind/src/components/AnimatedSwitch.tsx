@@ -128,11 +128,11 @@ export default function AnimatedSwitch({
             borderRadius: thumbSize / 2,
             backgroundColor: '#FFFFFF',
             transform: [{ translateX: thumbTranslateX }],
-            shadowColor: '#000',
+            shadowColor: disabled ? 'transparent' : '#000',
             shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.2,
-            shadowRadius: 2.5,
-            elevation: 4,
+            shadowOpacity: disabled ? 0 : 0.2,
+            shadowRadius: disabled ? 0 : 2.5,
+            elevation: disabled ? 0 : 4,
           }}
         />
       </Animated.View>
