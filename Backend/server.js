@@ -325,8 +325,7 @@ app.post('/api/send-code', async (req, res) => {
           <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 400px; margin: 0 auto;">
             <tr>
               <td align="center" style="padding: 30px 20px 20px 20px;">
-                <h1 style="margin: 0 0 20px 0; font-size: 24px; font-weight: 700; color: #ffffff;">Scute</h1>
-                <p style="margin: 0 0 10px 0; font-size: 10px; color: #cccccc;">
+                <p style="margin: 0 0 10px 0; font-size: 8px; color: #cccccc;">
                   Enter this code to verify your email:
                 </p>
                 <div style="font-size: 26px; font-weight: 700; letter-spacing: 8px; color: #ffffff; margin-bottom: 10px;">
@@ -338,7 +337,7 @@ app.post('/api/send-code', async (req, res) => {
                 <p style="margin: 0 0 14px 0; font-size: 7px; color: #666666;">
                   If you didn't request this code, you can safely ignore this email.
                 </p>
-                <p style="margin: 0 0 20px 0; font-size: 7px; color: #555555;">
+                <p style="margin: 0; font-size: 7px; color: #555555;">
                   © 2026 Scute LLC
                 </p>
               </td>
@@ -611,8 +610,7 @@ app.post('/api/signin', async (req, res) => {
           <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 400px; margin: 0 auto;">
             <tr>
               <td align="center" style="padding: 30px 20px 20px 20px;">
-                <h1 style="margin: 0 0 20px 0; font-size: 24px; font-weight: 700; color: #ffffff;">Scute</h1>
-                <p style="margin: 0 0 10px 0; font-size: 10px; color: #cccccc;">
+                <p style="margin: 0 0 10px 0; font-size: 8px; color: #cccccc;">
                   Enter this code to sign in:
                 </p>
                 <div style="font-size: 26px; font-weight: 700; letter-spacing: 8px; color: #ffffff; margin-bottom: 10px;">
@@ -624,7 +622,7 @@ app.post('/api/signin', async (req, res) => {
                 <p style="margin: 0 0 14px 0; font-size: 7px; color: #666666;">
                   If you didn't request this code, you can safely ignore this email.
                 </p>
-                <p style="margin: 0 0 20px 0; font-size: 7px; color: #555555;">
+                <p style="margin: 0; font-size: 7px; color: #555555;">
                   © 2026 Scute LLC
                 </p>
               </td>
@@ -828,8 +826,7 @@ app.post('/api/reset-password-request', async (req, res) => {
           <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 400px; margin: 0 auto;">
             <tr>
               <td align="center" style="padding: 30px 20px 20px 20px;">
-                <h1 style="margin: 0 0 20px 0; font-size: 24px; font-weight: 700; color: #ffffff;">Scute</h1>
-                <p style="margin: 0 0 10px 0; font-size: 10px; color: #cccccc;">
+                <p style="margin: 0 0 10px 0; font-size: 8px; color: #cccccc;">
                   Enter this code to reset your password:
                 </p>
                 <div style="font-size: 26px; font-weight: 700; letter-spacing: 8px; color: #ffffff; margin-bottom: 10px;">
@@ -841,7 +838,7 @@ app.post('/api/reset-password-request', async (req, res) => {
                 <p style="margin: 0 0 14px 0; font-size: 7px; color: #666666;">
                   If you didn't request this code, you can safely ignore this email.
                 </p>
-                <p style="margin: 0 0 20px 0; font-size: 7px; color: #555555;">
+                <p style="margin: 0; font-size: 7px; color: #555555;">
                   © 2026 Scute LLC
                 </p>
               </td>
