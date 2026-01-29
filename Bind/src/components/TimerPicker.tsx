@@ -11,8 +11,8 @@ import { useTheme } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 
 const BASE_ITEM_HEIGHT = 44;
-const VISIBLE_ITEMS = 2;
-const WINDOW_BUFFER = 1; // Render this many items above and below the selected
+const VISIBLE_ITEMS = 3; // Show full items above and below selected
+const WINDOW_BUFFER = 2; // Render this many items above and below the selected
 
 interface WheelProps {
   values: number[];

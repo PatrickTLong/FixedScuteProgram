@@ -1100,7 +1100,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                           const nextOccurrence = getNextRecurringOccurrence();
                           if (!nextOccurrence) return null;
 
-                          const isSameDay = nextOccurrence.start.toDateString() === scheduleStartDate?.toDateString();
+                          const isSameDay = nextOccurrence.start.toDateString() === nextOccurrence.end.toDateString();
 
                           return (
                             <View style={{ backgroundColor: colors.card, paddingVertical: 14 }} className="flex-row items-center px-4 rounded-xl">
@@ -1115,25 +1115,19 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                                   {`${nextOccurrence.start.toLocaleDateString('en-US', {
                                     month: 'short',
                                     day: 'numeric',
-                                    year: 'numeric',
-                                  })} at ${nextOccurrence.start.toLocaleTimeString('en-US', {
+                                  })} ${nextOccurrence.start.toLocaleTimeString('en-US', {
+                                    hour: 'numeric',
+                                    minute: '2-digit',
+                                    hour12: true,
+                                  })} - ${isSameDay ? '' : nextOccurrence.end.toLocaleDateString('en-US', {
+                                    month: 'short',
+                                    day: 'numeric',
+                                  }) + ' '}${nextOccurrence.end.toLocaleTimeString('en-US', {
                                     hour: 'numeric',
                                     minute: '2-digit',
                                     hour12: true,
                                   })}`}
                                 </Text>
-                                {!isSameDay && (
-                                  <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">
-                                    {`to ${nextOccurrence.end.toLocaleDateString('en-US', {
-                                      month: 'short',
-                                      day: 'numeric',
-                                    })} at ${nextOccurrence.end.toLocaleTimeString('en-US', {
-                                      hour: 'numeric',
-                                      minute: '2-digit',
-                                      hour12: true,
-                                    })}`}
-                                  </Text>
-                                )}
                               </View>
                             </View>
                           );
@@ -1211,7 +1205,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                       {targetDate ? 'Change Date' : 'Pick a Date'}
                     </Text>
                     {targetDate && (
-                      <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">
+                      <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">
                         Until {targetDate.toLocaleDateString('en-US', {
                           month: 'short',
                           day: 'numeric',
@@ -1442,14 +1436,12 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                       }}
                       activeOpacity={0.7}
                       style={{
-                        backgroundColor: colors.cardLight,
-                        borderWidth: 2,
-                        borderColor: recurringUnit === unit ? '#FFFFFF' : 'transparent',
+                        backgroundColor: recurringUnit === unit ? '#22c55e' : colors.cardLight,
                       }}
                       className="items-center justify-center py-4 px-4 rounded-xl mb-2"
                     >
                       <Text
-                        style={{ color: colors.text }}
+                        style={{ color: recurringUnit === unit ? '#FFFFFF' : colors.text }}
                         className="text-sm font-nunito-semibold capitalize"
                       >
                         {unit}
