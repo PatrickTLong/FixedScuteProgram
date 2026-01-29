@@ -319,24 +319,32 @@ app.post('/api/send-code', async (req, res) => {
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
         </head>
         <body style="margin: 0; padding: 0; font-family: Verdana, Geneva, sans-serif; background-color: #28282B; border-radius: 16px;">
-          <div style="max-width: 400px; margin: 0 auto; text-align: center; padding: 0 20px 20px 20px;">
-            <img src="https://fixedscuteprogram-production.up.railway.app/TrueScute-Photoroom.png" alt="Scute" width="250" height="250" style="display: block; margin: 0 auto -50px auto;" />
-            <p style="margin: 0 0 10px 0; font-size: 10px; color: #cccccc;">
-              Enter this code to verify your email:
-            </p>
-            <div style="font-size: 26px; font-weight: 700; letter-spacing: 8px; color: #ffffff; margin-bottom: 10px;">
-              ${code}
-            </div>
-            <p style="margin: 0 0 14px 0; font-size: 8px; color: #888888;">
-              This code expires in 10 minutes.
-            </p>
-            <p style="margin: 0 0 14px 0; font-size: 7px; color: #666666;">
-              If you didn't request this code, you can safely ignore this email.
-            </p>
-            <p style="margin: 0; font-size: 7px; color: #555555;">
-              © 2026 Scute LLC
-            </p>
-          </div>
+          <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 400px; margin: 0 auto;">
+            <tr>
+              <td align="center" style="padding: 0 20px;">
+                <img src="https://fixedscuteprogram-production.up.railway.app/TrueScute-Photoroom.png" alt="Scute" width="250" height="250" style="display: block; margin-bottom: -50px;" />
+              </td>
+            </tr>
+            <tr>
+              <td align="center" style="padding: 0 20px;">
+                <p style="margin: 0 0 10px 0; font-size: 10px; color: #cccccc;">
+                  Enter this code to verify your email:
+                </p>
+                <div style="font-size: 26px; font-weight: 700; letter-spacing: 8px; color: #ffffff; margin-bottom: 10px;">
+                  ${code}
+                </div>
+                <p style="margin: 0 0 14px 0; font-size: 8px; color: #888888;">
+                  This code expires in 10 minutes.
+                </p>
+                <p style="margin: 0 0 14px 0; font-size: 7px; color: #666666;">
+                  If you didn't request this code, you can safely ignore this email.
+                </p>
+                <p style="margin: 0 0 20px 0; font-size: 7px; color: #555555;">
+                  © 2026 Scute LLC
+                </p>
+              </td>
+            </tr>
+          </table>
         </body>
         </html>
       `,
@@ -598,24 +606,32 @@ app.post('/api/signin', async (req, res) => {
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
         </head>
         <body style="margin: 0; padding: 0; font-family: Verdana, Geneva, sans-serif; background-color: #28282B; border-radius: 16px;">
-          <div style="max-width: 400px; margin: 0 auto; text-align: center; padding: 0 20px 20px 20px;">
-            <img src="https://fixedscuteprogram-production.up.railway.app/TrueScute-Photoroom.png" alt="Scute" width="250" height="250" style="display: block; margin: 0 auto -50px auto;" />
-            <p style="margin: 0 0 10px 0; font-size: 10px; color: #cccccc;">
-              Enter this code to sign in:
-            </p>
-            <div style="font-size: 26px; font-weight: 700; letter-spacing: 8px; color: #ffffff; margin-bottom: 10px;">
-              ${code}
-            </div>
-            <p style="margin: 0 0 14px 0; font-size: 8px; color: #888888;">
-              This code expires in 10 minutes.
-            </p>
-            <p style="margin: 0 0 14px 0; font-size: 7px; color: #666666;">
-              If you didn't request this code, you can safely ignore this email.
-            </p>
-            <p style="margin: 0; font-size: 7px; color: #555555;">
-              © 2026 Scute LLC
-            </p>
-          </div>
+          <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 400px; margin: 0 auto;">
+            <tr>
+              <td align="center" style="padding: 0 20px;">
+                <img src="https://fixedscuteprogram-production.up.railway.app/TrueScute-Photoroom.png" alt="Scute" width="250" height="250" style="display: block; margin-bottom: -50px;" />
+              </td>
+            </tr>
+            <tr>
+              <td align="center" style="padding: 0 20px;">
+                <p style="margin: 0 0 10px 0; font-size: 10px; color: #cccccc;">
+                  Enter this code to sign in:
+                </p>
+                <div style="font-size: 26px; font-weight: 700; letter-spacing: 8px; color: #ffffff; margin-bottom: 10px;">
+                  ${code}
+                </div>
+                <p style="margin: 0 0 14px 0; font-size: 8px; color: #888888;">
+                  This code expires in 10 minutes.
+                </p>
+                <p style="margin: 0 0 14px 0; font-size: 7px; color: #666666;">
+                  If you didn't request this code, you can safely ignore this email.
+                </p>
+                <p style="margin: 0 0 20px 0; font-size: 7px; color: #555555;">
+                  © 2026 Scute LLC
+                </p>
+              </td>
+            </tr>
+          </table>
         </body>
         </html>
       `,
@@ -808,24 +824,32 @@ app.post('/api/reset-password-request', async (req, res) => {
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
         </head>
         <body style="margin: 0; padding: 0; font-family: Verdana, Geneva, sans-serif; background-color: #28282B; border-radius: 16px;">
-          <div style="max-width: 400px; margin: 0 auto; text-align: center; padding: 0 20px 20px 20px;">
-            <img src="https://fixedscuteprogram-production.up.railway.app/TrueScute-Photoroom.png" alt="Scute" width="250" height="250" style="display: block; margin: 0 auto -50px auto;" />
-            <p style="margin: 0 0 10px 0; font-size: 10px; color: #cccccc;">
-              Enter this code to reset your password:
-            </p>
-            <div style="font-size: 26px; font-weight: 700; letter-spacing: 8px; color: #ffffff; margin-bottom: 10px;">
-              ${code}
-            </div>
-            <p style="margin: 0 0 14px 0; font-size: 8px; color: #888888;">
-              This code expires in 10 minutes.
-            </p>
-            <p style="margin: 0 0 14px 0; font-size: 7px; color: #666666;">
-              If you didn't request this code, you can safely ignore this email.
-            </p>
-            <p style="margin: 0; font-size: 7px; color: #555555;">
-              © 2026 Scute LLC
-            </p>
-          </div>
+          <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 400px; margin: 0 auto;">
+            <tr>
+              <td align="center" style="padding: 0 20px;">
+                <img src="https://fixedscuteprogram-production.up.railway.app/TrueScute-Photoroom.png" alt="Scute" width="250" height="250" style="display: block; margin-bottom: -50px;" />
+              </td>
+            </tr>
+            <tr>
+              <td align="center" style="padding: 0 20px;">
+                <p style="margin: 0 0 10px 0; font-size: 10px; color: #cccccc;">
+                  Enter this code to reset your password:
+                </p>
+                <div style="font-size: 26px; font-weight: 700; letter-spacing: 8px; color: #ffffff; margin-bottom: 10px;">
+                  ${code}
+                </div>
+                <p style="margin: 0 0 14px 0; font-size: 8px; color: #888888;">
+                  This code expires in 10 minutes.
+                </p>
+                <p style="margin: 0 0 14px 0; font-size: 7px; color: #666666;">
+                  If you didn't request this code, you can safely ignore this email.
+                </p>
+                <p style="margin: 0 0 20px 0; font-size: 7px; color: #555555;">
+                  © 2026 Scute LLC
+                </p>
+              </td>
+            </tr>
+          </table>
         </body>
         </html>
       `,
