@@ -50,7 +50,7 @@ function AnimatedDot({ isActive }: { isActive: boolean }) {
     if (isActive) {
       // Raise the active dot
       Animated.spring(translateYAnim, {
-        toValue: -3,
+        toValue: -8,
         useNativeDriver: true,
         friction: 5,
         tension: 100,

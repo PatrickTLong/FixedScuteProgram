@@ -198,7 +198,7 @@ function GetStartedScreen({ onBack, onSuccess, onSignIn }: Props) {
       </View>
 
       {/* Progress Bar */}
-      <ProgressBar currentStep={step === 'form' ? 2 : 3} totalSteps={3} />
+      <ProgressBar currentStep={step === 'form' ? 1 : 2} totalSteps={3} />
 
       <KeyboardAvoidingView
         enabled={false}

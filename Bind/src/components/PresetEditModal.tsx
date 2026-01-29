@@ -1595,7 +1595,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
             <TouchableOpacity
               onPress={() => { lightTap(); switchTab('websites'); }}
               style={{ backgroundColor: activeTab === 'websites' ? colors.text : colors.card }}
-              className="flex-1 py-2 rounded-full items-center justify-center flex-row"
+              className="flex-1 py-3 rounded-full items-center justify-center flex-row"
             >
               <GlobeIcon size={16} color={activeTab === 'websites' ? colors.bg : colors.text} />
               <Text style={{ color: activeTab === 'websites' ? colors.bg : colors.text, marginLeft: 6 }} className="text-sm font-nunito-semibold">
