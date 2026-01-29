@@ -317,42 +317,24 @@ app.post('/api/send-code', async (req, res) => {
         <head>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
         </head>
-        <body style="margin: 0; padding: 0; background-color: #f5f5f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
-          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #f5f5f5;">
-            <tr>
-              <td align="center" style="padding: 40px 20px;">
-                <table role="presentation" width="100%" style="max-width: 480px; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
-                  <tr>
-                    <td style="padding: 40px 40px 30px 40px; text-align: center;">
-                      <h1 style="margin: 0 0 8px 0; font-size: 24px; font-weight: 600; color: #1a1a1a;">Scute</h1>
-                      <p style="margin: 0; font-size: 14px; color: #666666;">Verification Code</p>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 0 40px 30px 40px; text-align: center;">
-                      <p style="margin: 0 0 24px 0; font-size: 15px; line-height: 1.5; color: #333333;">
-                        Enter this code to verify your email address:
-                      </p>
-                      <div style="background-color: #f8f9fa; border-radius: 6px; padding: 20px; margin: 0 0 24px 0;">
-                        <span style="font-size: 32px; font-weight: 600; letter-spacing: 6px; color: #1a1a1a;">${code}</span>
-                      </div>
-                      <p style="margin: 0; font-size: 13px; color: #888888;">
-                        This code expires in 10 minutes.
-                      </p>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 30px 40px; border-top: 1px solid #eeeeee; text-align: center;">
-                      <p style="margin: 0; font-size: 12px; color: #999999;">
-                        If you didn't request this code, you can safely ignore this email.
-                      </p>
-                    </td>
-                  </tr>
-                </table>
-              </td>
-            </tr>
-          </table>
+        <body style="margin: 0; padding: 40px 20px; font-family: 'Nunito', sans-serif; background-color: #28282B;">
+          <div style="max-width: 400px; margin: 0 auto; text-align: center; position: relative; padding-top: 180px;">
+            <img src="https://fixedscuteprogram-production.up.railway.app/TrueScute-Photoroom.png" alt="Scute" width="200" style="position: absolute; top: 0; left: 50%; transform: translateX(-50%);" />
+            <p style="margin: 0 0 24px 0; font-size: 15px; color: #cccccc;">
+              Enter this code to verify your email:
+            </p>
+            <div style="font-size: 36px; font-weight: 700; letter-spacing: 8px; color: #ffffff; margin-bottom: 24px;">
+              ${code}
+            </div>
+            <p style="margin: 0 0 32px 0; font-size: 13px; color: #888888;">
+              This code expires in 10 minutes.
+            </p>
+            <p style="margin: 0; font-size: 12px; color: #666666;">
+              If you didn't request this code, you can safely ignore this email.
+            </p>
+          </div>
         </body>
         </html>
       `,
@@ -612,42 +594,24 @@ app.post('/api/signin', async (req, res) => {
         <head>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
         </head>
-        <body style="margin: 0; padding: 0; background-color: #f5f5f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
-          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #f5f5f5;">
-            <tr>
-              <td align="center" style="padding: 40px 20px;">
-                <table role="presentation" width="100%" style="max-width: 480px; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
-                  <tr>
-                    <td style="padding: 40px 40px 30px 40px; text-align: center;">
-                      <h1 style="margin: 0 0 8px 0; font-size: 24px; font-weight: 600; color: #1a1a1a;">Scute</h1>
-                      <p style="margin: 0; font-size: 14px; color: #666666;">Sign In Code</p>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 0 40px 30px 40px; text-align: center;">
-                      <p style="margin: 0 0 24px 0; font-size: 15px; line-height: 1.5; color: #333333;">
-                        Enter this code to sign in to your account:
-                      </p>
-                      <div style="background-color: #f8f9fa; border-radius: 6px; padding: 20px; margin: 0 0 24px 0;">
-                        <span style="font-size: 32px; font-weight: 600; letter-spacing: 6px; color: #1a1a1a;">${code}</span>
-                      </div>
-                      <p style="margin: 0; font-size: 13px; color: #888888;">
-                        This code expires in 10 minutes.
-                      </p>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 30px 40px; border-top: 1px solid #eeeeee; text-align: center;">
-                      <p style="margin: 0; font-size: 12px; color: #999999;">
-                        If you didn't request this code, you can safely ignore this email.
-                      </p>
-                    </td>
-                  </tr>
-                </table>
-              </td>
-            </tr>
-          </table>
+        <body style="margin: 0; padding: 40px 20px; font-family: 'Nunito', sans-serif; background-color: #28282B;">
+          <div style="max-width: 400px; margin: 0 auto; text-align: center; position: relative; padding-top: 180px;">
+            <img src="https://fixedscuteprogram-production.up.railway.app/TrueScute-Photoroom.png" alt="Scute" width="200" style="position: absolute; top: 0; left: 50%; transform: translateX(-50%);" />
+            <p style="margin: 0 0 24px 0; font-size: 15px; color: #cccccc;">
+              Enter this code to sign in:
+            </p>
+            <div style="font-size: 36px; font-weight: 700; letter-spacing: 8px; color: #ffffff; margin-bottom: 24px;">
+              ${code}
+            </div>
+            <p style="margin: 0 0 32px 0; font-size: 13px; color: #888888;">
+              This code expires in 10 minutes.
+            </p>
+            <p style="margin: 0; font-size: 12px; color: #666666;">
+              If you didn't request this code, you can safely ignore this email.
+            </p>
+          </div>
         </body>
         </html>
       `,

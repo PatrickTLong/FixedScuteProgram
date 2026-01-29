@@ -267,7 +267,7 @@ function GetStartedScreen({ onBack, onSuccess, onSignIn }: Props) {
                   Verify Your Email
                 </Text>
 
-                <Text style={{ color: colors.textSecondary }} className="text-center text-base font-nunito mb-8">
+                <Text style={{ color: colors.textSecondary }} className="text-center text-sm font-nunito mb-8">
                   Enter the 6-digit code sent to{'\n'}
                   <Text style={{ color: colors.text }}>{email}</Text>
                 </Text>
@@ -289,7 +289,7 @@ function GetStartedScreen({ onBack, onSuccess, onSignIn }: Props) {
                   disabled={loading}
                   className="items-center mb-4"
                 >
-                  <Text style={{ color: '#FFFFFF' }} className="text-base font-nunito">
+                  <Text style={{ color: '#FFFFFF' }} className="text-sm font-nunito">
                     Resend code
                   </Text>
                 </TouchableOpacity>
