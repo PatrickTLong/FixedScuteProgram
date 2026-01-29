@@ -14,6 +14,8 @@ import {
   Image,
   Animated,
   UIManager,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
 } from 'react-native';
 import LottieView from 'lottie-react-native';
 const Lottie = LottieView as any;
@@ -23,7 +25,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Svg, { Path, Rect } from 'react-native-svg';
 import TimerPicker from './TimerPicker';
-import DatePickerModal from './DatePickerModal';
 import ScheduleInfoModal from './ScheduleInfoModal';
 import InfoModal from './InfoModal';
 import ExcludedAppsInfoModal from './ExcludedAppsInfoModal';
@@ -35,6 +36,7 @@ import { Preset } from './PresetCard';
 import { getEmergencyTapoutStatus, setEmergencyTapoutEnabled } from '../services/cardApi';
 import { lightTap, mediumTap } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
+import { useResponsive } from '../utils/responsive';
 
 const SCHEDULE_INFO_DISMISSED_KEY = 'schedule_info_dismissed';
 const EXCLUDED_APPS_INFO_DISMISSED_KEY = 'excluded_apps_info_dismissed';
@@ -45,6 +47,231 @@ const STRICT_MODE_WARNING_DISMISSED_KEY = 'strict_mode_warning_dismissed';
 
 // Recurring schedule unit types
 type RecurringUnit = 'minutes' | 'hours' | 'days' | 'weeks' | 'months';
+
+// ============ Date Picker Constants & Components ============
+const MONTHS = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
+];
+
+const DAYS_OF_WEEK = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+// Time picker constants
+const BASE_TIME_ITEM_HEIGHT = 40;
+const TIME_VISIBLE_ITEMS = 3;
+const TIME_WINDOW_BUFFER = 2;
+const HOURS_12 = Array.from({ length: 12 }, (_, i) => i + 1);
+const MINUTES = Array.from({ length: 60 }, (_, i) => i);
+
+// Time Wheel Component
+interface TimeWheelProps {
+  values: number[];
+  selectedValue: number;
+  onValueChange: (value: number) => void;
+  padZero?: boolean;
+  textColor: string;
+  textMutedColor: string;
+  itemHeight: number;
+  wheelWidth: number;
+}
+
+const TimeWheel = memo(({ values, selectedValue, onValueChange, padZero = true, textColor, textMutedColor, itemHeight, wheelWidth }: TimeWheelProps) => {
+  const scrollRef = useRef<ScrollView>(null);
+  const lastHapticIndex = useRef(-1);
+  const windowCenterRef = useRef(values.indexOf(selectedValue));
+  const [windowRange, setWindowRange] = useState(() => {
+    const idx = values.indexOf(selectedValue);
+    return { start: Math.max(0, idx - TIME_WINDOW_BUFFER), end: Math.min(values.length - 1, idx + TIME_WINDOW_BUFFER) };
+  });
+
+  const windowedValues = useMemo(
+    () => values.slice(windowRange.start, windowRange.end + 1),
+    [values, windowRange.start, windowRange.end],
+  );
+
+  const topSpacerHeight = windowRange.start * itemHeight;
+  const bottomSpacerHeight = (values.length - 1 - windowRange.end) * itemHeight;
+
+  const updateWindowIfNeeded = useCallback((index: number) => {
+    windowCenterRef.current = index;
+    setWindowRange(prev => {
+      if (index <= prev.start || index >= prev.end) {
+        const newStart = Math.max(0, index - TIME_WINDOW_BUFFER);
+        const newEnd = Math.min(values.length - 1, index + TIME_WINDOW_BUFFER);
+        if (newStart !== prev.start || newEnd !== prev.end) {
+          return { start: newStart, end: newEnd };
+        }
+      }
+      return prev;
+    });
+  }, [values.length]);
+
+  useEffect(() => {
+    const index = values.indexOf(selectedValue);
+    if (index >= 0 && scrollRef.current) {
+      updateWindowIfNeeded(index);
+      setTimeout(() => {
+        scrollRef.current?.scrollTo({
+          y: index * itemHeight,
+          animated: false,
+        });
+      }, 10);
+    }
+  }, [selectedValue, values, itemHeight, updateWindowIfNeeded]);
+
+  const handleScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const offsetY = event.nativeEvent.contentOffset.y;
+    const currentIndex = Math.round(offsetY / itemHeight);
+    const clampedIndex = Math.max(0, Math.min(currentIndex, values.length - 1));
+
+    if (lastHapticIndex.current !== clampedIndex && lastHapticIndex.current !== -1) {
+      lightTap();
+    }
+    lastHapticIndex.current = clampedIndex;
+
+    updateWindowIfNeeded(clampedIndex);
+  }, [values.length, itemHeight, updateWindowIfNeeded]);
+
+  const handleScrollEnd = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const offsetY = event.nativeEvent.contentOffset.y;
+    const index = Math.round(offsetY / itemHeight);
+    const clampedIndex = Math.max(0, Math.min(index, values.length - 1));
+
+    updateWindowIfNeeded(clampedIndex);
+
+    if (values[clampedIndex] !== selectedValue) {
+      onValueChange(values[clampedIndex]);
+    }
+
+    scrollRef.current?.scrollTo({
+      y: clampedIndex * itemHeight,
+      animated: true,
+    });
+  }, [values, selectedValue, onValueChange, itemHeight, updateWindowIfNeeded]);
+
+  const paddingVertical = (itemHeight * (TIME_VISIBLE_ITEMS - 1)) / 2;
+
+  return (
+    <View style={{ height: itemHeight * TIME_VISIBLE_ITEMS, width: wheelWidth, overflow: 'hidden' }}>
+      <ScrollView
+        ref={scrollRef}
+        showsVerticalScrollIndicator={false}
+        snapToInterval={itemHeight}
+        decelerationRate="fast"
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+        onMomentumScrollEnd={handleScrollEnd}
+        onScrollEndDrag={(e) => {
+          if (e.nativeEvent.velocity?.y === 0) {
+            handleScrollEnd(e);
+          }
+        }}
+        contentContainerStyle={{ paddingVertical }}
+        nestedScrollEnabled={false}
+        overScrollMode="never"
+      >
+        {topSpacerHeight > 0 && <View style={{ height: topSpacerHeight }} />}
+        {windowedValues.map((value) => {
+          const isSelected = value === selectedValue;
+          return (
+            <View
+              key={value}
+              style={{
+                height: itemHeight,
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: isSelected ? 24 : 18,
+                  fontFamily: isSelected ? 'Nunito-Bold' : 'Nunito-Regular',
+                  color: isSelected ? textColor : textMutedColor,
+                }}
+              >
+                {padZero ? String(value).padStart(2, '0') : value}
+              </Text>
+            </View>
+          );
+        })}
+        {bottomSpacerHeight > 0 && <View style={{ height: bottomSpacerHeight }} />}
+      </ScrollView>
+    </View>
+  );
+});
+
+// Memoized Day Cell
+interface DayCellProps {
+  day: number;
+  selectable: boolean;
+  selected: boolean;
+  isToday: boolean;
+  textColor: string;
+  textMutedColor: string;
+  onSelect: (day: number) => void;
+}
+
+const DayCell = memo(({ day, selectable, selected, isToday: todayDay, textColor, textMutedColor, onSelect }: DayCellProps) => (
+  <TouchableOpacity
+    onPress={() => onSelect(day)}
+    disabled={!selectable}
+    style={{ width: '14.28%', height: 44 }}
+    className="items-center justify-center"
+  >
+    <View
+      style={{
+        backgroundColor: selected ? '#22c55e' : 'transparent',
+        borderColor: todayDay && !selected ? '#22c55e' : 'transparent',
+        borderWidth: todayDay && !selected ? 1 : 0,
+      }}
+      className="w-9 h-9 rounded-full items-center justify-center"
+    >
+      <Text
+        style={{
+          color: selected ? '#FFFFFF' : selectable ? textColor : textMutedColor,
+        }}
+        className={`text-base font-nunito ${selected ? 'font-nunito-bold' : ''}`}
+      >
+        {day}
+      </Text>
+    </View>
+  </TouchableOpacity>
+));
+
+const EmptyCell = memo(() => (
+  <View style={{ width: '14.28%', height: 44 }} />
+));
+
+// AM/PM Selector
+interface AmPmSelectorProps {
+  value: 'AM' | 'PM';
+  onChange: (value: 'AM' | 'PM') => void;
+  cardColor: string;
+  textMutedColor: string;
+}
+
+const AmPmSelector = memo(({ value, onChange, cardColor, textMutedColor }: AmPmSelectorProps) => (
+  <View className="ml-2">
+    <TouchableOpacity
+      onPress={() => { lightTap(); onChange('AM'); }}
+      style={{ backgroundColor: value === 'AM' ? '#22c55e' : cardColor }}
+      className="px-3 py-2 rounded-lg"
+    >
+      <Text style={{ color: value === 'AM' ? '#FFFFFF' : textMutedColor }} className="text-base font-nunito-semibold">
+        AM
+      </Text>
+    </TouchableOpacity>
+    <TouchableOpacity
+      onPress={() => { lightTap(); onChange('PM'); }}
+      style={{ backgroundColor: value === 'PM' ? '#22c55e' : cardColor }}
+      className="px-3 py-2 rounded-lg mt-1"
+    >
+      <Text style={{ color: value === 'PM' ? '#FFFFFF' : textMutedColor }} className="text-base font-nunito-semibold">
+        PM
+      </Text>
+    </TouchableOpacity>
+  </View>
+));
 
 // ============ Installed Apps Cache ============
 // Cache installed apps globally to avoid reloading on every modal open
@@ -306,6 +533,9 @@ type TabType = 'apps' | 'websites';
 
 function PresetEditModal({ visible, preset, onClose, onSave, email, existingPresets = [] }: PresetEditModalProps) {
   const { colors } = useTheme();
+  const { s } = useResponsive();
+  const timeItemHeight = s(BASE_TIME_ITEM_HEIGHT);
+  const wheelWidth = s(50);
   const [name, setName] = useState('');
   const [selectedApps, setSelectedApps] = useState<string[]>([]);
   const [skipCheckboxAnimation, setSkipCheckboxAnimation] = useState(false);
@@ -323,7 +553,16 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
   const [installedApps, setInstalledApps] = useState<InstalledApp[]>([]);
   const [loadingApps, setLoadingApps] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [displayedStep, setDisplayedStep] = useState<'first' | 'final'>('first');
+  const [displayedStep, setDisplayedStep] = useState<'first' | 'final' | 'datePicker'>('first');
+  // Track which date picker is being shown and where to return to
+  const [datePickerTarget, setDatePickerTarget] = useState<'targetDate' | 'scheduleStart' | 'scheduleEnd' | null>(null);
+  // Date picker inline state
+  const [dpViewMonth, setDpViewMonth] = useState(new Date().getMonth());
+  const [dpViewYear, setDpViewYear] = useState(new Date().getFullYear());
+  const [dpTempSelectedDate, setDpTempSelectedDate] = useState<Date | null>(null);
+  const [dpSelectedHour, setDpSelectedHour] = useState(12);
+  const [dpSelectedMinute, setDpSelectedMinute] = useState(0);
+  const [dpSelectedAmPm, setDpSelectedAmPm] = useState<'AM' | 'PM'>('PM');
   // iOS-specific: track selected app count from native picker
   const [iosSelectedAppsCount, setIosSelectedAppsCount] = useState(0);
 
@@ -334,8 +573,8 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
   const stepFadeAnim = useRef(new Animated.Value(1)).current;
   const isStepTransitioning = useRef(false);
 
-  // Step transition (first step <-> final step)
-  const goToStep = useCallback((toFinal: boolean) => {
+  // Step transition (first step <-> final step <-> datePicker)
+  const goToStep = useCallback((step: 'first' | 'final' | 'datePicker') => {
     if (isStepTransitioning.current) return;
     isStepTransitioning.current = true;
 
@@ -346,7 +585,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
       useNativeDriver: true,
     }).start(() => {
       // Swap step while invisible
-      setDisplayedStep(toFinal ? 'final' : 'first');
+      setDisplayedStep(step);
       // Small delay to ensure render completes before fading in
       requestAnimationFrame(() => {
         // Fade in
@@ -369,7 +608,6 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
   }, [activeTab]);
   const [isSaving, setIsSaving] = useState(false);
   const [targetDate, setTargetDate] = useState<Date | null>(null);
-  const [datePickerVisible, setDatePickerVisible] = useState(false);
 
   // Emergency tapout feature (per-preset toggle)
   const [allowEmergencyTapout, setAllowEmergencyTapout] = useState(false);
@@ -434,8 +672,6 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
   const [scheduleStartDate, setScheduleStartDate] = useState<Date | null>(null);
   const [scheduleEndDate, setScheduleEndDate] = useState<Date | null>(null);
   const [scheduleInfoVisible, setScheduleInfoVisible] = useState(false);
-  const [startDatePickerVisible, setStartDatePickerVisible] = useState(false);
-  const [endDatePickerVisible, setEndDatePickerVisible] = useState(false);
 
   // Recurring schedule feature
   const [isRecurring, setIsRecurring] = useState(false);
@@ -443,6 +679,216 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
   const [recurringUnit, setRecurringUnit] = useState<RecurringUnit>('hours');
   const [recurringUnitModalVisible, setRecurringUnitModalVisible] = useState(false);
   const [recurrenceInfoVisible, setRecurrenceInfoVisible] = useState(false);
+
+  // ============ Inline Date Picker Logic ============
+  const dpToday = useMemo(() => new Date(), []);
+  const dpMaxDate = useMemo(() => {
+    const max = new Date(dpToday);
+    max.setFullYear(max.getFullYear() + 1);
+    return max;
+  }, [dpToday]);
+
+  // Effective minimum date based on target type
+  const dpEffectiveMinDate = useMemo(() => {
+    if (datePickerTarget === 'scheduleEnd' && scheduleStartDate) {
+      return scheduleStartDate > dpToday ? scheduleStartDate : dpToday;
+    }
+    return dpToday;
+  }, [datePickerTarget, scheduleStartDate, dpToday]);
+
+  const getDaysInMonth = useCallback((month: number, year: number) => {
+    return new Date(year, month + 1, 0).getDate();
+  }, []);
+
+  const getFirstDayOfMonth = useCallback((month: number, year: number) => {
+    return new Date(year, month, 1).getDay();
+  }, []);
+
+  const dpHandlePrevMonth = useCallback(() => {
+    lightTap();
+    if (dpViewMonth === 0) {
+      setDpViewMonth(11);
+      setDpViewYear(y => y - 1);
+    } else {
+      setDpViewMonth(m => m - 1);
+    }
+  }, [dpViewMonth]);
+
+  const dpHandleNextMonth = useCallback(() => {
+    lightTap();
+    if (dpViewMonth === 11) {
+      setDpViewMonth(0);
+      setDpViewYear(y => y + 1);
+    } else {
+      setDpViewMonth(m => m + 1);
+    }
+  }, [dpViewMonth]);
+
+  const dpCanGoPrev = useMemo(() => {
+    const prevDate = new Date(dpViewYear, dpViewMonth - 1, 1);
+    return prevDate >= new Date(dpEffectiveMinDate.getFullYear(), dpEffectiveMinDate.getMonth(), 1);
+  }, [dpViewYear, dpViewMonth, dpEffectiveMinDate]);
+
+  const dpCanGoNext = useMemo(() => {
+    const nextDate = new Date(dpViewYear, dpViewMonth + 1, 1);
+    return nextDate <= dpMaxDate;
+  }, [dpViewYear, dpViewMonth, dpMaxDate]);
+
+  const dpHandleSelectDay = useCallback((day: number) => {
+    lightTap();
+    const selected = new Date(dpViewYear, dpViewMonth, day);
+    setDpTempSelectedDate(selected);
+  }, [dpViewYear, dpViewMonth]);
+
+  // Check if selected datetime is valid (after minimum date and in the future)
+  const dpIsFutureDateTime = useMemo(() => {
+    if (!dpTempSelectedDate) return false;
+
+    let hours24 = dpSelectedHour;
+    if (dpSelectedAmPm === 'PM' && dpSelectedHour !== 12) {
+      hours24 = dpSelectedHour + 12;
+    } else if (dpSelectedAmPm === 'AM' && dpSelectedHour === 12) {
+      hours24 = 0;
+    }
+
+    const selectedDateTime = new Date(
+      dpTempSelectedDate.getFullYear(),
+      dpTempSelectedDate.getMonth(),
+      dpTempSelectedDate.getDate(),
+      hours24,
+      dpSelectedMinute,
+      0
+    );
+
+    const now = new Date();
+    return selectedDateTime > now && selectedDateTime > dpEffectiveMinDate;
+  }, [dpTempSelectedDate, dpSelectedHour, dpSelectedMinute, dpSelectedAmPm, dpEffectiveMinDate]);
+
+  // Open date picker for a specific target
+  const openDatePicker = useCallback((target: 'targetDate' | 'scheduleStart' | 'scheduleEnd') => {
+    lightTap();
+    setDatePickerTarget(target);
+
+    // Get existing date for this target
+    let existingDate: Date | null = null;
+    if (target === 'targetDate') existingDate = targetDate;
+    else if (target === 'scheduleStart') existingDate = scheduleStartDate;
+    else if (target === 'scheduleEnd') existingDate = scheduleEndDate;
+
+    const dateToUse = existingDate || dpToday;
+    setDpViewMonth(dateToUse.getMonth());
+    setDpViewYear(dateToUse.getFullYear());
+    setDpTempSelectedDate(existingDate);
+
+    // Initialize time from existing date
+    if (existingDate) {
+      const hours = existingDate.getHours();
+      const minutes = existingDate.getMinutes();
+      setDpSelectedAmPm(hours >= 12 ? 'PM' : 'AM');
+      setDpSelectedHour(hours % 12 === 0 ? 12 : hours % 12);
+      setDpSelectedMinute(minutes);
+    } else {
+      const now = new Date();
+      const hours = now.getHours();
+      setDpSelectedAmPm(hours >= 12 ? 'PM' : 'AM');
+      setDpSelectedHour(hours % 12 === 0 ? 12 : hours % 12);
+      setDpSelectedMinute(now.getMinutes());
+    }
+
+    goToStep('datePicker');
+  }, [targetDate, scheduleStartDate, scheduleEndDate, dpToday, goToStep]);
+
+  const dpHandleConfirm = useCallback(() => {
+    if (dpTempSelectedDate && dpIsFutureDateTime) {
+      lightTap();
+      let hours24 = dpSelectedHour;
+      if (dpSelectedAmPm === 'PM' && dpSelectedHour !== 12) {
+        hours24 = dpSelectedHour + 12;
+      } else if (dpSelectedAmPm === 'AM' && dpSelectedHour === 12) {
+        hours24 = 0;
+      }
+
+      const finalDate = new Date(
+        dpTempSelectedDate.getFullYear(),
+        dpTempSelectedDate.getMonth(),
+        dpTempSelectedDate.getDate(),
+        hours24,
+        dpSelectedMinute,
+        0
+      );
+
+      // Set the appropriate date based on target
+      if (datePickerTarget === 'targetDate') {
+        setTargetDate(finalDate);
+        setTimerDays(0);
+        setTimerHours(0);
+        setTimerMinutes(0);
+        setTimerSeconds(0);
+      } else if (datePickerTarget === 'scheduleStart') {
+        setScheduleStartDate(finalDate);
+        // If end date is before new start date, clear it
+        if (scheduleEndDate && scheduleEndDate <= finalDate) {
+          setScheduleEndDate(null);
+        }
+      } else if (datePickerTarget === 'scheduleEnd') {
+        setScheduleEndDate(finalDate);
+      }
+
+      goToStep('final');
+    }
+  }, [dpTempSelectedDate, dpIsFutureDateTime, dpSelectedHour, dpSelectedAmPm, dpSelectedMinute, datePickerTarget, scheduleEndDate, goToStep]);
+
+  const dpHandleCancel = useCallback(() => {
+    lightTap();
+    goToStep('final');
+  }, [goToStep]);
+
+  const dpHandleClear = useCallback(() => {
+    lightTap();
+    setDpTempSelectedDate(null);
+  }, []);
+
+  const dpDaysInMonth = getDaysInMonth(dpViewMonth, dpViewYear);
+  const dpFirstDay = getFirstDayOfMonth(dpViewMonth, dpViewYear);
+
+  // Build calendar grid
+  const dpCalendarDays = useMemo(() => {
+    const days: ({ type: 'empty' } | { type: 'day'; day: number; selectable: boolean; selected: boolean; isToday: boolean })[] = [];
+    for (let i = 0; i < dpFirstDay; i++) {
+      days.push({ type: 'empty' });
+    }
+    const todayDate = dpToday.getDate();
+    const todayMonth = dpToday.getMonth();
+    const todayYear = dpToday.getFullYear();
+    const selectedDay = dpTempSelectedDate?.getDate();
+    const selectedMonth = dpTempSelectedDate?.getMonth();
+    const selectedYear = dpTempSelectedDate?.getFullYear();
+
+    for (let i = 1; i <= dpDaysInMonth; i++) {
+      const date = new Date(dpViewYear, dpViewMonth, i, 23, 59, 59, 999);
+      days.push({
+        type: 'day',
+        day: i,
+        selectable: date >= dpEffectiveMinDate && date <= dpMaxDate,
+        selected: selectedDay === i && selectedMonth === dpViewMonth && selectedYear === dpViewYear,
+        isToday: todayDate === i && todayMonth === dpViewMonth && todayYear === dpViewYear,
+      });
+    }
+    return days;
+  }, [dpDaysInMonth, dpFirstDay, dpViewMonth, dpViewYear, dpTempSelectedDate, dpEffectiveMinDate, dpMaxDate, dpToday]);
+
+  // Format selected date and time for display
+  const dpSelectedDateTimeText = useMemo(() => {
+    if (!dpTempSelectedDate) return 'No date selected';
+    const dateStr = dpTempSelectedDate.toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+    const timeStr = `${dpSelectedHour}:${String(dpSelectedMinute).padStart(2, '0')} ${dpSelectedAmPm}`;
+    return `${dateStr} at ${timeStr}`;
+  }, [dpTempSelectedDate, dpSelectedHour, dpSelectedMinute, dpSelectedAmPm]);
 
   // Define loadInstalledApps before the useEffect that uses it
   // Uses global cache to avoid reloading apps on every modal open
@@ -640,7 +1086,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
       return;
     }
     lightTap();
-    goToStep(true);
+    goToStep('final');
   }, [canContinue, goToStep]);
 
   const handleSave = useCallback(async () => {
@@ -796,6 +1242,164 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
     [installedSelectedApps.length, colors]
   );
 
+  // ============ Date Picker Step ============
+  if (displayedStep === 'datePicker') {
+    return (
+      <Modal
+        visible={visible}
+        animationType="fade"
+        presentationStyle="pageSheet"
+      >
+        <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
+          <Animated.View style={{ flex: 1, opacity: stepFadeAnim }}>
+            {/* Header */}
+            <View style={{ borderBottomColor: colors.border }} className="flex-row items-center justify-between px-4 py-3 border-b">
+              <TouchableOpacity onPress={dpHandleCancel} className="px-2">
+                <Text style={{ color: '#FFFFFF' }} className="text-base font-nunito">Cancel</Text>
+              </TouchableOpacity>
+              <Text style={{ color: colors.text }} className="text-lg font-nunito-semibold">Pick Date and Time</Text>
+              <TouchableOpacity
+                onPress={dpHandleConfirm}
+                disabled={!dpIsFutureDateTime}
+                className="px-2"
+              >
+                <Text style={{ color: dpIsFutureDateTime ? '#FFFFFF' : colors.textMuted }} className="text-base font-nunito-semibold">
+                  Done
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <View
+              className="flex-1"
+              style={{ paddingTop: 16, paddingBottom: 40, paddingHorizontal: 24 }}
+            >
+              {/* Month/Year Navigation */}
+              <View className="flex-row items-center justify-between mb-4">
+                <TouchableOpacity
+                  onPress={dpHandlePrevMonth}
+                  disabled={!dpCanGoPrev}
+                  className="w-10 h-10 items-center justify-center"
+                >
+                  <Text style={{ color: dpCanGoPrev ? colors.text : colors.textMuted }} className="text-2xl">
+                    ‹
+                  </Text>
+                </TouchableOpacity>
+
+                <Text style={{ color: colors.text }} className="text-xl font-nunito-semibold">
+                  {MONTHS[dpViewMonth]} {dpViewYear}
+                </Text>
+
+                <TouchableOpacity
+                  onPress={dpHandleNextMonth}
+                  disabled={!dpCanGoNext}
+                  className="w-10 h-10 items-center justify-center"
+                >
+                  <Text style={{ color: dpCanGoNext ? colors.text : colors.textMuted }} className="text-2xl">
+                    ›
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Days of Week Header */}
+              <View className="flex-row mb-1">
+                {DAYS_OF_WEEK.map((day) => (
+                  <View key={day} className="flex-1 items-center py-1">
+                    <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">{day}</Text>
+                  </View>
+                ))}
+              </View>
+
+              {/* Calendar Grid */}
+              <View className="flex-row flex-wrap">
+                {dpCalendarDays.map((cell, index) => {
+                  if (cell.type === 'empty') {
+                    return <EmptyCell key={`empty-${index}`} />;
+                  }
+                  return (
+                    <DayCell
+                      key={cell.day}
+                      day={cell.day}
+                      selectable={cell.selectable}
+                      selected={cell.selected}
+                      isToday={cell.isToday}
+                      textColor={colors.text}
+                      textMutedColor={colors.textMuted}
+                      onSelect={dpHandleSelectDay}
+                    />
+                  );
+                })}
+              </View>
+
+              {/* Time Picker */}
+              {dpTempSelectedDate && (
+                <View style={{ borderTopColor: colors.border, marginHorizontal: -24, paddingHorizontal: 24 }} className="mt-6 pt-4 pb-4 border-t">
+                  <Text style={{ color: colors.textMuted }} className="text-xs font-nunito tracking-wider mb-3">
+                    Time
+                  </Text>
+                  <View className="flex-row items-center justify-center">
+                    <TimeWheel
+                      values={HOURS_12}
+                      selectedValue={dpSelectedHour}
+                      onValueChange={setDpSelectedHour}
+                      padZero={false}
+                      textColor={colors.text}
+                      textMutedColor={colors.text === '#ffffff' ? 'rgba(255,255,255,0.3)' : 'rgba(26,26,26,0.3)'}
+                      itemHeight={timeItemHeight}
+                      wheelWidth={wheelWidth}
+                    />
+                    <View style={{ height: timeItemHeight, justifyContent: 'center', marginHorizontal: 4, marginTop: -timeItemHeight * 0.15 }}>
+                      <Text style={{ color: colors.textMuted, fontSize: 24 }}>:</Text>
+                    </View>
+                    <TimeWheel
+                      values={MINUTES}
+                      selectedValue={dpSelectedMinute}
+                      onValueChange={setDpSelectedMinute}
+                      padZero={true}
+                      textColor={colors.text}
+                      textMutedColor={colors.text === '#ffffff' ? 'rgba(255,255,255,0.3)' : 'rgba(26,26,26,0.3)'}
+                      itemHeight={timeItemHeight}
+                      wheelWidth={wheelWidth}
+                    />
+                    <AmPmSelector
+                      value={dpSelectedAmPm}
+                      onChange={setDpSelectedAmPm}
+                      cardColor={colors.card}
+                      textMutedColor={colors.textSecondary}
+                    />
+                  </View>
+                </View>
+              )}
+
+              {/* Selected Date/Time Display */}
+              <View style={{ borderTopColor: colors.border, marginHorizontal: -24, paddingHorizontal: 24 }} className="mt-6 py-4 border-t">
+                <View className="flex-row justify-between items-center">
+                  <View>
+                    <Text style={{ color: colors.text }} className="text-base font-nunito mb-1">Selected</Text>
+                    <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito-semibold">{dpSelectedDateTimeText}</Text>
+                  </View>
+                  {dpTempSelectedDate && (
+                    <TouchableOpacity
+                      onPress={dpHandleClear}
+                      style={{ backgroundColor: colors.card }}
+                      className="ml-4 px-4 py-2 rounded-full"
+                    >
+                      <Text style={{ color: '#FFFFFF' }} className="text-sm font-nunito-semibold">Clear</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+                {dpTempSelectedDate && !dpIsFutureDateTime && (
+                  <Text style={{ color: '#FF5C5C' }} className="text-xs font-nunito mt-2">
+                    Please select a future date and time
+                  </Text>
+                )}
+              </View>
+            </View>
+          </Animated.View>
+        </SafeAreaView>
+      </Modal>
+    );
+  }
+
   if (displayedStep === 'final') {
     return (
       <Modal
@@ -807,7 +1411,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
           <Animated.View style={{ flex: 1, opacity: stepFadeAnim }}>
             {/* Header */}
             <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between px-4 py-3">
-              <TouchableOpacity onPress={() => { lightTap(); goToStep(false); }} disabled={isSaving} className="px-2">
+              <TouchableOpacity onPress={() => { lightTap(); goToStep('first'); }} disabled={isSaving} className="px-2">
                 <Text style={{ color: isSaving ? '#FFFFFF' : '#FFFFFF' }} className="text-base font-nunito">Back</Text>
               </TouchableOpacity>
               <Text style={{ color: colors.text }} className="text-lg font-nunito-semibold">Final Settings</Text>
@@ -920,7 +1524,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
 
                 {/* Start Date */}
                 <TouchableOpacity
-                  onPress={() => { lightTap(); setStartDatePickerVisible(true); }}
+                  onPress={() => openDatePicker('scheduleStart')}
                   activeOpacity={0.7}
                   style={{ backgroundColor: colors.card, paddingVertical: 14 }}
                   className="flex-row items-center px-4 rounded-xl mb-3"
@@ -960,7 +1564,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
 
                 {/* End Date */}
                 <TouchableOpacity
-                  onPress={() => { lightTap(); setEndDatePickerVisible(true); }}
+                  onPress={() => openDatePicker('scheduleEnd')}
                   activeOpacity={0.7}
                   style={{ backgroundColor: colors.card, paddingVertical: 14 }}
                   className="flex-row items-center px-4 rounded-xl"
@@ -1185,13 +1789,12 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                 {/* Pick a Date Button */}
                 <TouchableOpacity
                   onPress={() => {
-                    lightTap();
                     // Reset timer when opening date picker
                     setTimerDays(0);
                     setTimerHours(0);
                     setTimerMinutes(0);
                     setTimerSeconds(0);
-                    setDatePickerVisible(true);
+                    openDatePicker('targetDate');
                   }}
                   activeOpacity={0.7}
                   style={{ backgroundColor: colors.card, paddingVertical: 14 }}
@@ -1339,53 +1942,6 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
             </ExpandableInfo>
 
           </ScrollView>
-
-          {/* Date Picker Modal */}
-          {datePickerVisible && (
-            <DatePickerModal
-              visible={datePickerVisible}
-              selectedDate={targetDate}
-              onClose={() => setDatePickerVisible(false)}
-              onSelect={(date) => {
-                setTargetDate(date);
-                if (date) {
-                  setTimerDays(0);
-                  setTimerHours(0);
-                  setTimerMinutes(0);
-                  setTimerSeconds(0);
-                }
-              }}
-            />
-          )}
-
-          {/* Schedule Start Date Picker */}
-          {startDatePickerVisible && (
-            <DatePickerModal
-              visible={startDatePickerVisible}
-              selectedDate={scheduleStartDate}
-              onClose={() => setStartDatePickerVisible(false)}
-              onSelect={(date) => {
-                setScheduleStartDate(date);
-                // If end date is before new start date, clear it
-                if (date && scheduleEndDate && scheduleEndDate <= date) {
-                  setScheduleEndDate(null);
-                }
-              }}
-            />
-          )}
-
-          {/* Schedule End Date Picker */}
-          {endDatePickerVisible && (
-            <DatePickerModal
-              visible={endDatePickerVisible}
-              selectedDate={scheduleEndDate}
-              onClose={() => setEndDatePickerVisible(false)}
-              minimumDate={scheduleStartDate} // End date must be after start date
-              onSelect={(date) => {
-                setScheduleEndDate(date);
-              }}
-            />
-          )}
 
           {/* Schedule Info Modal */}
           <ScheduleInfoModal
