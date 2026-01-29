@@ -1,6 +1,6 @@
 import './global.css';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { View, Vibration, NativeModules, AppState, Animated } from 'react-native';
+import { View, Vibration, NativeModules, AppState, Animated, DeviceEventEmitter } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ThemeProvider, useTheme } from './src/context/ThemeContext';
@@ -57,9 +57,6 @@ function App() {
   const tabFadeAnim = useRef(new Animated.Value(1)).current;
   const [displayedTab, setDisplayedTab] = useState<TabName>('home');
   const isTabTransitioning = useRef(false);
-
-  // Ref to track scheduled preset check interval
-  const scheduledCheckIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const showModal = useCallback((title: string, message: string) => {
     setModalTitle(title);
@@ -322,33 +319,25 @@ function App() {
     return () => subscription.remove();
   }, [checkPermissionsOnForeground, checkScheduledPresetLaunch, checkBlockedOverlayLaunch, checkActiveScheduledPreset]);
 
-  // Periodic check for scheduled preset activation (handles in-app scenario)
-  // This runs every 5 seconds to detect when a preset becomes active while user is in-app
+  // Listen for native session events (scheduled preset start/end, timer end)
+  // Replaces polling - fires instantly when a session starts or ends
   useEffect(() => {
-    // Only run when user is logged in and on main screen
-    if (!userEmail || currentScreen !== 'main') {
-      // Clear any existing interval
-      if (scheduledCheckIntervalRef.current) {
-        clearInterval(scheduledCheckIntervalRef.current);
-        scheduledCheckIntervalRef.current = null;
-      }
-      return;
-    }
+    if (!userEmail || currentScreen !== 'main') return;
 
-    // Check immediately on mount/screen change
+    // Check once on mount/screen change
     checkActiveScheduledPreset();
 
-    // Then check every 5 seconds
-    scheduledCheckIntervalRef.current = setInterval(() => {
-      checkActiveScheduledPreset();
-    }, 5000);
+    const subscription = DeviceEventEmitter.addListener('onSessionChanged', () => {
+      // Invalidate caches to ensure fresh data
+      invalidateUserCaches(userEmail);
 
-    return () => {
-      if (scheduledCheckIntervalRef.current) {
-        clearInterval(scheduledCheckIntervalRef.current);
-        scheduledCheckIntervalRef.current = null;
-      }
-    };
+      // Navigate to home tab and trigger refresh
+      setActiveTab('home');
+      setDisplayedTab('home');
+      setRefreshTrigger(prev => prev + 1);
+    });
+
+    return () => subscription.remove();
   }, [userEmail, currentScreen, checkActiveScheduledPreset]);
 
   async function checkLoginStatus() {

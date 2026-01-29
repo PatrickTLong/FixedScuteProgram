@@ -89,6 +89,9 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
             val serviceIntent = Intent(context, UninstallBlockerService::class.java)
             context.stopService(serviceIntent)
 
+            // Notify React Native that a session ended
+            SessionEventHelper.emitSessionEvent(context, "session_ended")
+
             // Check if this is a recurring preset and handle it
             Log.d(TAG, "[DEACTIVATE] Checking if preset is recurring...")
             val prefs = context.getSharedPreferences(ScheduleManager.PREFS_NAME, Context.MODE_PRIVATE)
@@ -598,6 +601,9 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to show floating bubble", e)
             }
+
+            // Notify React Native that a session started
+            SessionEventHelper.emitSessionEvent(context, "session_started")
 
             // Schedule the end alarm to stop blocking
             if (endDate != null && !noTimeLimit) {

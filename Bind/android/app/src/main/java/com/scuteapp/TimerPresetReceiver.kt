@@ -100,6 +100,9 @@ class TimerPresetReceiver : BroadcastReceiver() {
             val serviceIntent = Intent(context, UninstallBlockerService::class.java)
             context.stopService(serviceIntent)
 
+            // Notify React Native that a session ended
+            SessionEventHelper.emitSessionEvent(context, "session_ended")
+
             // Show notification that timer has ended (with fullScreenIntent for background launch)
             showTimerEndNotification(context, finalPresetName)
 

@@ -1121,29 +1121,26 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
           <View className="items-center justify-center mb-4">
             {isLocked && timeRemaining ? (
               <>
-                <Text style={{ color: colors.textMuted }} className="text-base font-nunito mb-1">
+                <Text style={{ color: colors.textMuted }} className="text-sm font-nunito mb-1">
                   Will unlock in
                 </Text>
-                <Text style={{ color: colors.text }} className="text-4xl font-nunito-bold tracking-tight">
+                <Text style={{ color: colors.text }} className="text-2xl font-nunito-bold tracking-tight">
                   {timeRemaining}
                 </Text>
               </>
             ) : isLocked && elapsedTime ? (
               <>
-                <Text style={{ color: colors.textMuted }} className="text-base font-nunito">
+                <Text style={{ color: colors.textMuted }} className="text-sm font-nunito">
                   Locked for
                 </Text>
-                <Text style={{ color: colors.text }} className="text-4xl font-nunito-bold tracking-tight mt-2">
+                <Text style={{ color: colors.text }} className="text-2xl font-nunito-bold tracking-tight mt-2">
                   {elapsedTime}
                 </Text>
               </>
             ) : isLocked ? (
               <>
-                <Text style={{ color: colors.text }} className="text-4xl font-nunito-bold mb-1">
+                <Text style={{ color: colors.text }} className="text-2xl font-nunito-bold mb-1">
                   Locked
-                </Text>
-                <Text style={{ color: colors.textMuted }} className="text-base font-nunito">
-                  Tap to Unlock
                 </Text>
               </>
             ) : (
@@ -1158,7 +1155,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
             <View className="items-center justify-center">
               <Text
                 style={{ color: colors.text }}
-                className="text-lg font-nunito-semibold text-center"
+                className="text-base font-nunito-semibold text-center"
               >
                 Preset: {currentPreset || 'None Selected'}
               </Text>
