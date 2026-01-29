@@ -6,8 +6,13 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { createClient } = require('@supabase/supabase-js');
 
+const path = require('path');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Serve static files (for logo in emails)
+app.use(express.static(path.join(__dirname, '.')));
 
 // Initialize SendGrid
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
@@ -833,42 +838,24 @@ app.post('/api/reset-password-request', async (req, res) => {
         <head>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
         </head>
-        <body style="margin: 0; padding: 0; background-color: #f5f5f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
-          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #f5f5f5;">
-            <tr>
-              <td align="center" style="padding: 40px 20px;">
-                <table role="presentation" width="100%" style="max-width: 480px; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
-                  <tr>
-                    <td style="padding: 40px 40px 30px 40px; text-align: center;">
-                      <h1 style="margin: 0 0 8px 0; font-size: 24px; font-weight: 600; color: #1a1a1a;">Scute</h1>
-                      <p style="margin: 0; font-size: 14px; color: #666666;">Password Reset</p>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 0 40px 30px 40px; text-align: center;">
-                      <p style="margin: 0 0 24px 0; font-size: 15px; line-height: 1.5; color: #333333;">
-                        Enter this code to reset your password:
-                      </p>
-                      <div style="background-color: #f8f9fa; border-radius: 6px; padding: 20px; margin: 0 0 24px 0;">
-                        <span style="font-size: 32px; font-weight: 600; letter-spacing: 6px; color: #1a1a1a;">${code}</span>
-                      </div>
-                      <p style="margin: 0; font-size: 13px; color: #888888;">
-                        This code expires in 10 minutes.
-                      </p>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 30px 40px; border-top: 1px solid #eeeeee; text-align: center;">
-                      <p style="margin: 0; font-size: 12px; color: #999999;">
-                        If you didn't request this code, you can safely ignore this email.
-                      </p>
-                    </td>
-                  </tr>
-                </table>
-              </td>
-            </tr>
-          </table>
+        <body style="margin: 0; padding: 40px 20px; font-family: 'Nunito', sans-serif; background-color: #000000;">
+          <div style="max-width: 400px; margin: 0 auto; text-align: center;">
+            <img src="https://fixedscuteprogram-production.up.railway.app/TrueScute-Photoroom.png" alt="Scute" width="100" style="margin-bottom: 32px;" />
+            <p style="margin: 0 0 24px 0; font-size: 15px; color: #cccccc;">
+              Enter this code to reset your password:
+            </p>
+            <div style="font-size: 36px; font-weight: 700; letter-spacing: 8px; color: #ffffff; margin-bottom: 24px;">
+              ${code}
+            </div>
+            <p style="margin: 0 0 32px 0; font-size: 13px; color: #888888;">
+              This code expires in 10 minutes.
+            </p>
+            <p style="margin: 0; font-size: 12px; color: #666666;">
+              If you didn't request this code, you can safely ignore this email.
+            </p>
+          </div>
         </body>
         </html>
       `,
