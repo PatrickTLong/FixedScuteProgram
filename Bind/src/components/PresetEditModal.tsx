@@ -327,6 +327,9 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
   // iOS-specific: track selected app count from native picker
   const [iosSelectedAppsCount, setIosSelectedAppsCount] = useState(0);
 
+  // Ref for final-step ScrollView to disable scrolling over timer picker
+  const finalScrollRef = useRef<ScrollView>(null);
+
   // Step transition animation (same pattern as App.tsx tab transitions)
   const stepFadeAnim = useRef(new Animated.Value(1)).current;
   const isStepTransitioning = useRef(false);
@@ -824,7 +827,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               </TouchableOpacity>
             </View>
 
-            <ScrollView className="flex-1 pt-6" contentContainerStyle={{ paddingBottom: 100 }}>
+            <ScrollView ref={finalScrollRef} className="flex-1 pt-6" contentContainerStyle={{ paddingBottom: 100 }}>
 
             <Text style={{ color: '#FFFFFF' }} className="text-xs font-nunito px-6 mb-4">
               Tap on toggle text to see further details
@@ -1146,31 +1149,37 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
             {/* Timer Picker (if time limit enabled and not scheduled) */}
             <ExpandableInfo expanded={!noTimeLimit && !isScheduled} lazy>
               <View className="mt-6 px-6">
-                <Text style={{ color: colors.textMuted }} className="text-xs font-nunito text-white tracking-wider">
-                  Duration
-                </Text>
-                <TimerPicker
-                  days={timerDays}
-                  hours={timerHours}
-                  minutes={timerMinutes}
-                  seconds={timerSeconds}
-                  onDaysChange={(val) => {
-                    setTimerDays(val);
-                    if (val > 0) setTargetDate(null);
-                  }}
-                  onHoursChange={(val) => {
-                    setTimerHours(val);
-                    if (val > 0) setTargetDate(null);
-                  }}
-                  onMinutesChange={(val) => {
-                    setTimerMinutes(val);
-                    if (val > 0) setTargetDate(null);
-                  }}
-                  onSecondsChange={(val) => {
-                    setTimerSeconds(val);
-                    if (val > 0) setTargetDate(null);
-                  }}
-                />
+                <View
+                  onTouchStart={() => finalScrollRef.current?.setNativeProps({ scrollEnabled: false })}
+                  onTouchEnd={() => finalScrollRef.current?.setNativeProps({ scrollEnabled: true })}
+                  onTouchCancel={() => finalScrollRef.current?.setNativeProps({ scrollEnabled: true })}
+                >
+                  <Text style={{ color: colors.textMuted }} className="text-xs font-nunito text-white tracking-wider">
+                    Duration
+                  </Text>
+                  <TimerPicker
+                    days={timerDays}
+                    hours={timerHours}
+                    minutes={timerMinutes}
+                    seconds={timerSeconds}
+                    onDaysChange={(val) => {
+                      setTimerDays(val);
+                      if (val > 0) setTargetDate(null);
+                    }}
+                    onHoursChange={(val) => {
+                      setTimerHours(val);
+                      if (val > 0) setTargetDate(null);
+                    }}
+                    onMinutesChange={(val) => {
+                      setTimerMinutes(val);
+                      if (val > 0) setTargetDate(null);
+                    }}
+                    onSecondsChange={(val) => {
+                      setTimerSeconds(val);
+                      if (val > 0) setTargetDate(null);
+                    }}
+                  />
+                </View>
 
                 {/* Or Pick a Date Divider */}
                 <View className="flex-row items-center my-6 -mx-6">
@@ -1578,7 +1587,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               className="flex-1 py-2 rounded-full items-center justify-center flex-row"
             >
               <AndroidIcon size={16} color={activeTab === 'apps' ? colors.bg : colors.text} />
-              <Text style={{ color: activeTab === 'apps' ? colors.bg : colors.text, marginLeft: 6 }} className="text-base font-nunito-semibold">
+              <Text style={{ color: activeTab === 'apps' ? colors.bg : colors.text, marginLeft: 6 }} className="text-sm font-nunito-semibold">
                 Apps
               </Text>
             </TouchableOpacity>
@@ -1589,7 +1598,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               className="flex-1 py-2 rounded-full items-center justify-center flex-row"
             >
               <GlobeIcon size={16} color={activeTab === 'websites' ? colors.bg : colors.text} />
-              <Text style={{ color: activeTab === 'websites' ? colors.bg : colors.text, marginLeft: 6 }} className="text-base font-nunito-semibold">
+              <Text style={{ color: activeTab === 'websites' ? colors.bg : colors.text, marginLeft: 6 }} className="text-sm font-nunito-semibold">
                 Websites
               </Text>
             </TouchableOpacity>

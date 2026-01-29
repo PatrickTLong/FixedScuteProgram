@@ -154,7 +154,9 @@ const Wheel = memo(({ values, selectedValue, onValueChange, label, textColor, te
             }
           }}
           contentContainerStyle={{ paddingVertical }}
-          nestedScrollEnabled
+          nestedScrollEnabled={false}
+          bounces={false}
+          overScrollMode="never"
         >
           {/* Top spacer replaces items above the window */}
           {topSpacerHeight > 0 && <View style={{ height: topSpacerHeight }} />}
