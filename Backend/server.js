@@ -308,7 +308,10 @@ app.post('/api/send-code', async (req, res) => {
     // Send email via SendGrid
     const msg = {
       to: email,
-      from: process.env.FROM_EMAIL,
+      from: {
+        email: process.env.FROM_EMAIL,
+        name: 'Scute'
+      },
       subject: 'Your Scute Verification Code',
       text: `Your verification code is: ${code}. This code expires in 10 minutes.`,
       html: `
@@ -321,12 +324,8 @@ app.post('/api/send-code', async (req, res) => {
         <body style="margin: 0; padding: 0; font-family: Verdana, Geneva, sans-serif; background-color: #28282B; border-radius: 16px;">
           <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 400px; margin: 0 auto;">
             <tr>
-              <td align="center" style="padding: 0 20px; height: 200px; overflow: hidden;">
-                <img src="https://fixedscuteprogram-production.up.railway.app/TrueScute-Photoroom.png" alt="Scute" width="250" height="250" style="display: block; margin-top: -25px;" />
-              </td>
-            </tr>
-            <tr>
-              <td align="center" style="padding: 0 20px;">
+              <td align="center" style="padding: 30px 20px 20px 20px;">
+                <h1 style="margin: 0 0 20px 0; font-size: 24px; font-weight: 700; color: #ffffff;">Scute</h1>
                 <p style="margin: 0 0 10px 0; font-size: 10px; color: #cccccc;">
                   Enter this code to verify your email:
                 </p>
@@ -595,7 +594,10 @@ app.post('/api/signin', async (req, res) => {
 
     const msg = {
       to: email,
-      from: process.env.FROM_EMAIL,
+      from: {
+        email: process.env.FROM_EMAIL,
+        name: 'Scute'
+      },
       subject: 'Your Scute Sign In Code',
       text: `Your sign in code is: ${code}. This code expires in 10 minutes.`,
       html: `
@@ -608,12 +610,8 @@ app.post('/api/signin', async (req, res) => {
         <body style="margin: 0; padding: 0; font-family: Verdana, Geneva, sans-serif; background-color: #28282B; border-radius: 16px;">
           <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 400px; margin: 0 auto;">
             <tr>
-              <td align="center" style="padding: 0 20px; height: 200px; overflow: hidden;">
-                <img src="https://fixedscuteprogram-production.up.railway.app/TrueScute-Photoroom.png" alt="Scute" width="250" height="250" style="display: block; margin-top: -25px;" />
-              </td>
-            </tr>
-            <tr>
-              <td align="center" style="padding: 0 20px;">
+              <td align="center" style="padding: 30px 20px 20px 20px;">
+                <h1 style="margin: 0 0 20px 0; font-size: 24px; font-weight: 700; color: #ffffff;">Scute</h1>
                 <p style="margin: 0 0 10px 0; font-size: 10px; color: #cccccc;">
                   Enter this code to sign in:
                 </p>
@@ -813,7 +811,10 @@ app.post('/api/reset-password-request', async (req, res) => {
     // Send email via SendGrid
     const msg = {
       to: email,
-      from: process.env.FROM_EMAIL,
+      from: {
+        email: process.env.FROM_EMAIL,
+        name: 'Scute'
+      },
       subject: 'Reset Your Scute Password',
       text: `Your password reset code is: ${code}. This code expires in 10 minutes.`,
       html: `
@@ -826,12 +827,8 @@ app.post('/api/reset-password-request', async (req, res) => {
         <body style="margin: 0; padding: 0; font-family: Verdana, Geneva, sans-serif; background-color: #28282B; border-radius: 16px;">
           <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 400px; margin: 0 auto;">
             <tr>
-              <td align="center" style="padding: 0 20px; height: 200px; overflow: hidden;">
-                <img src="https://fixedscuteprogram-production.up.railway.app/TrueScute-Photoroom.png" alt="Scute" width="250" height="250" style="display: block; margin-top: -25px;" />
-              </td>
-            </tr>
-            <tr>
-              <td align="center" style="padding: 0 20px;">
+              <td align="center" style="padding: 30px 20px 20px 20px;">
+                <h1 style="margin: 0 0 20px 0; font-size: 24px; font-weight: 700; color: #ffffff;">Scute</h1>
                 <p style="margin: 0 0 10px 0; font-size: 10px; color: #cccccc;">
                   Enter this code to reset your password:
                 </p>
