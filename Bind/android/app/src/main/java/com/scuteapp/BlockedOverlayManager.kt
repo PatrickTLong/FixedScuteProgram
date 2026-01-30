@@ -138,8 +138,11 @@ class BlockedOverlayManager(private val context: Context) {
             // Update content based on block type
             updateViewContent(blockedType, blockedItem, blockedName, strictMode)
 
-            // Hide system UI (navigation bar and status bar) for immersive blocking
-            overlayView?.systemUiVisibility = (View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+            // Hide navigation and status bar (matching BlockedActivity's fullscreen theme)
+            overlayView?.systemUiVisibility = (View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                    or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                    or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                    or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                     or View.SYSTEM_UI_FLAG_FULLSCREEN
                     or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
 
