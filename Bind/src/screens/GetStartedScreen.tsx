@@ -57,7 +57,7 @@ import BackButton from '../components/BackButton';
 import InfoModal from '../components/InfoModal';
 import OTPInput from '../components/OTPInput';
 import GoogleSignInBtn from '../components/GoogleSignInButton';
-import { useTheme } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { setAuthToken } from '../services/cardApi';
 import { API_URL } from '../config/api';
@@ -216,13 +216,13 @@ function GetStartedScreen({ onBack, onSuccess, onSignIn }: Props) {
             {step === 'form' ? (
               <>
                 {/* Title */}
-                <Text style={{ color: colors.text }} className="text-2xl font-nunito-bold text-center mb-10">
+                <Text style={{ color: colors.text }} className={`${textSize['2xLarge']} ${fontFamily.bold} text-center mb-10`}>
                   Create Your Account
                 </Text>
 
                 {/* Email Input */}
                 <View className="mb-4 mt-6">
-                  <Text style={{ color: colors.text, position: 'absolute', top: s(-22), left: s(8) }} className="text-sm font-nunito">
+                  <Text style={{ color: colors.text, position: 'absolute', top: s(-22), left: s(8) }} className={`${textSize.small} ${fontFamily.regular}`}>
                     Email
                   </Text>
                   <TextInput
@@ -233,13 +233,13 @@ function GetStartedScreen({ onBack, onSuccess, onSignIn }: Props) {
                     autoCorrect={false}
                     editable={!loading}
                     style={{ backgroundColor: colors.card, color: colors.text, height: s(52), paddingVertical: s(16), shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
-                    className="rounded-full px-5 text-sm font-nunito"
+                    className={`${radius.full} px-5 ${textSize.small} ${fontFamily.regular}`}
                   />
                 </View>
 
                 {/* Password Input */}
                 <View className="mb-8 mt-6">
-                  <Text style={{ color: colors.text, position: 'absolute', top: s(-22), left: s(8) }} className="text-sm font-nunito">
+                  <Text style={{ color: colors.text, position: 'absolute', top: s(-22), left: s(8) }} className={`${textSize.small} ${fontFamily.regular}`}>
                     Password
                   </Text>
                   <View style={{ position: 'relative' }}>
@@ -251,7 +251,7 @@ function GetStartedScreen({ onBack, onSuccess, onSignIn }: Props) {
                       autoCorrect={false}
                       editable={!loading}
                       style={{ backgroundColor: colors.card, color: colors.text, paddingRight: s(50), height: s(52), paddingVertical: s(16), shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
-                      className="rounded-full px-5 text-sm font-nunito"
+                      className={`${radius.full} px-5 ${textSize.small} ${fontFamily.regular}`}
                     />
                     <TouchableOpacity
                       onPress={() => setShowPassword(!showPassword)}
@@ -265,11 +265,11 @@ function GetStartedScreen({ onBack, onSuccess, onSignIn }: Props) {
             ) : (
               <>
                 {/* Verification Code Step */}
-                <Text style={{ color: colors.text }} className="text-2xl font-nunito-bold text-center mb-4">
+                <Text style={{ color: colors.text }} className={`${textSize['2xLarge']} ${fontFamily.bold} text-center mb-4`}>
                   Verify Your Email
                 </Text>
 
-                <Text style={{ color: colors.textSecondary }} className="text-center text-sm font-nunito mb-8">
+                <Text style={{ color: colors.textSecondary }} className={`text-center ${textSize.small} ${fontFamily.regular} mb-8`}>
                   Enter the 6-digit code sent to{'\n'}
                   <Text style={{ color: colors.text }}>{email}</Text>
                 </Text>
@@ -291,7 +291,7 @@ function GetStartedScreen({ onBack, onSuccess, onSignIn }: Props) {
                   disabled={loading}
                   className="items-center mb-4"
                 >
-                  <Text style={{ color: '#FFFFFF' }} className="text-sm font-nunito">
+                  <Text style={{ color: '#FFFFFF' }} className={`${textSize.small} ${fontFamily.regular}`}>
                     Resend code
                   </Text>
                 </TouchableOpacity>
@@ -307,9 +307,9 @@ function GetStartedScreen({ onBack, onSuccess, onSignIn }: Props) {
               disabled={loading}
               activeOpacity={0.8}
               style={{ backgroundColor: loading ? colors.textMuted : colors.text, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
-              className="rounded-full py-4 items-center mb-4"
+              className={`${radius.full} py-4 items-center mb-4`}
             >
-              <Text style={{ color: loading ? colors.textSecondary : colors.bg }} className="text-sm font-nunito-semibold">
+              <Text style={{ color: loading ? colors.textSecondary : colors.bg }} className={`${textSize.small} ${fontFamily.semibold}`}>
                 {loading ? 'Please wait...' : step === 'form' ? 'Sign Up' : 'Verify'}
               </Text>
             </TouchableOpacity>
@@ -332,9 +332,9 @@ function GetStartedScreen({ onBack, onSuccess, onSignIn }: Props) {
                 activeOpacity={0.7}
                 className="items-center py-2 mt-4"
               >
-                <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">
+                <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular}`}>
                   Already have an account?{' '}
-                  <Text style={{ color: colors.text }} className="font-nunito-semibold">Sign In</Text>
+                  <Text style={{ color: colors.text }} className={`${fontFamily.semibold}`}>Sign In</Text>
                 </Text>
               </TouchableOpacity>
             )}

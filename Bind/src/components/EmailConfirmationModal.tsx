@@ -6,7 +6,7 @@ import {
   Modal,
   TextInput,
 } from 'react-native';
-import { useTheme } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius } from '../context/ThemeContext';
 import { lightTap } from '../utils/haptics';
 
 interface EmailConfirmationModalProps {
@@ -54,27 +54,27 @@ function EmailConfirmationModal({ visible, userEmail, onConfirm, onCancel }: Ema
             shadowRadius: 10,
             elevation: 10,
           }}
-          className="w-full rounded-2xl overflow-hidden"
+          className={`w-full ${radius['2xl']} overflow-hidden`}
         >
           {/* Content */}
           <View className="p-6">
-            <Text style={{ color: colors.text }} className="text-xl font-nunito-bold text-center mb-2">
+            <Text style={{ color: colors.text }} className={`${textSize.xLarge} ${fontFamily.bold} text-center mb-2`}>
               Confirm Account Deletion
             </Text>
-            <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito text-center mb-6">
+            <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular} text-center mb-6`}>
               To permanently delete your account, please re-type your email address below:
             </Text>
 
             {/* Email Display */}
-            <Text style={{ color: colors.textMuted }} className="text-xs font-nunito mb-2">
+            <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} mb-2`}>
               Your email:
             </Text>
-            <Text style={{ color: colors.text }} className="text-sm font-nunito-semibold mb-4">
+            <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold} mb-4`}>
               {userEmail}
             </Text>
 
             {/* Email Input */}
-            <Text style={{ color: colors.textMuted }} className="text-xs font-nunito mb-2">
+            <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} mb-2`}>
               Re-type your email:
             </Text>
             <TextInput
@@ -90,7 +90,7 @@ function EmailConfirmationModal({ visible, userEmail, onConfirm, onCancel }: Ema
                 color: colors.text,
 
               }}
-              className="rounded-xl px-4 text-sm py-3 font-nunito mb-2"
+              className={`${radius.xl} px-4 ${textSize.small} py-3 ${fontFamily.regular} mb-2`}
             />
           </View>
 
@@ -103,7 +103,7 @@ function EmailConfirmationModal({ visible, userEmail, onConfirm, onCancel }: Ema
               className="flex-1 py-4 items-center"
               style={{ borderRightWidth: 1, borderRightColor: colors.border }}
             >
-              <Text style={{ color: colors.text }} className="text-sm font-nunito">
+              <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular}`}>
                 Cancel
               </Text>
             </TouchableOpacity>
@@ -118,7 +118,7 @@ function EmailConfirmationModal({ visible, userEmail, onConfirm, onCancel }: Ema
             >
               <Text
                 style={{ color: isEmailMatch ? '#FFFFFF' : colors.text }}
-                className="text-sm font-nunito-semibold"
+                className={`${textSize.small} ${fontFamily.semibold}`}
               >
                 Delete Account
               </Text>

@@ -112,6 +112,7 @@ export default function AnimatedSwitch({
   return (
     <TouchableWithoutFeedback onPress={handlePress} disabled={disabled}>
       <Animated.View
+        renderToHardwareTextureAndroid={true}
         style={{
           width: trackWidth,
           height: trackHeight,
@@ -119,6 +120,11 @@ export default function AnimatedSwitch({
           justifyContent: 'center',
           backgroundColor: trackBackgroundColor,
           opacity: disabled ? 0.5 : 1,
+          shadowColor: '#000000',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.3,
+          shadowRadius: 6,
+          elevation: 6,
         }}
       >
         <Animated.View

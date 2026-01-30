@@ -7,7 +7,7 @@ import {
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useTheme } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { lightTap } from '../utils/haptics';
 
@@ -37,9 +37,9 @@ function MembershipScreen({ onPurchaseComplete }: Props) {
         <View className="items-center mb-6 mt-4">
           <View className="flex-row items-center mb-3">
             <PlayStoreIcon size={24} />
-            <Text style={{ color: colors.text }} className="text-xl font-nunito-bold ml-2">Choose Your Plan</Text>
+            <Text style={{ color: colors.text }} className={`${textSize.xLarge} ${fontFamily.bold} ml-2`}>Choose Your Plan</Text>
           </View>
-          <Text style={{ color: colors.textSecondary }} className="text-center text-xs font-nunito">
+          <Text style={{ color: colors.textSecondary }} className={`text-center ${textSize.extraSmall} ${fontFamily.regular}`}>
             Your free trial has ended. Subscribe to continue using Scute.
           </Text>
         </View>
@@ -58,21 +58,21 @@ function MembershipScreen({ onPurchaseComplete }: Props) {
             shadowRadius: 6,
             elevation: 6,
           }}
-          className="rounded-2xl mb-3"
+          className={`${radius['2xl']} mb-3`}
         >
           <View className="flex-row items-center justify-between">
             <View className="flex-1">
-              <Text style={{ color: colors.text }} className="text-base font-nunito-bold">Monthly</Text>
-              <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito mt-1">
+              <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.bold}`}>Monthly</Text>
+              <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-1`}>
                 Billed monthly
               </Text>
             </View>
             <View className="items-end">
               <View className="flex-row items-center">
-                <Text style={{ color: colors.textMuted, textDecorationLine: 'line-through' }} className="text-sm font-nunito mr-2">$9.95</Text>
-                <Text style={{ color: colors.text }} className="text-xl font-nunito-bold">$6.95</Text>
+                <Text style={{ color: colors.textMuted, textDecorationLine: 'line-through' }} className={`${textSize.small} ${fontFamily.regular} mr-2`}>$9.95</Text>
+                <Text style={{ color: colors.text }} className={`${textSize.xLarge} ${fontFamily.bold}`}>$6.95</Text>
               </View>
-              <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">/month</Text>
+              <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>/month</Text>
             </View>
           </View>
         </TouchableOpacity>
@@ -91,26 +91,26 @@ function MembershipScreen({ onPurchaseComplete }: Props) {
             shadowRadius: 6,
             elevation: 6,
           }}
-          className="rounded-2xl mb-3"
+          className={`${radius['2xl']} mb-3`}
         >
           <View className="flex-row items-center justify-between">
             <View className="flex-1">
               <View className="flex-row items-center">
-                <Text style={{ color: colors.text }} className="text-base font-nunito-bold">Yearly</Text>
-                <View style={{ backgroundColor: colors.border }} className="ml-2 px-2 py-0.5 rounded-full">
-                  <Text className="text-xs font-nunito-bold text-white">Save 29%</Text>
+                <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.bold}`}>Yearly</Text>
+                <View style={{ backgroundColor: colors.border }} className={`ml-2 px-2 py-0.5 ${radius.full}`}>
+                  <Text className={`${textSize.extraSmall} ${fontFamily.bold} text-white`}>Save 29%</Text>
                 </View>
               </View>
-              <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito mt-1">
+              <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-1`}>
                 $59.40 billed annually
               </Text>
             </View>
             <View className="items-end">
               <View className="flex-row items-center">
-                <Text style={{ color: colors.textMuted, textDecorationLine: 'line-through' }} className="text-sm font-nunito mr-2">$6.95</Text>
-                <Text style={{ color: colors.text }} className="text-xl font-nunito-bold">$4.95</Text>
+                <Text style={{ color: colors.textMuted, textDecorationLine: 'line-through' }} className={`${textSize.small} ${fontFamily.regular} mr-2`}>$6.95</Text>
+                <Text style={{ color: colors.text }} className={`${textSize.xLarge} ${fontFamily.bold}`}>$4.95</Text>
               </View>
-              <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">/month</Text>
+              <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>/month</Text>
             </View>
           </View>
         </TouchableOpacity>
@@ -129,26 +129,26 @@ function MembershipScreen({ onPurchaseComplete }: Props) {
             shadowRadius: 6,
             elevation: 6,
           }}
-          className="rounded-2xl mb-6"
+          className={`${radius['2xl']} mb-6`}
         >
           <View className="flex-row items-center justify-between">
             <View className="flex-1">
               <View className="flex-row items-center">
-                <Text style={{ color: colors.text }} className="text-base font-nunito-bold">Lifetime</Text>
-                <View style={{ backgroundColor: colors.border }} className="ml-2 px-2 py-0.5 rounded-full">
-                  <Text className="text-xs font-nunito-bold text-white">Best Value</Text>
+                <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.bold}`}>Lifetime</Text>
+                <View style={{ backgroundColor: colors.border }} className={`ml-2 px-2 py-0.5 ${radius.full}`}>
+                  <Text className={`${textSize.extraSmall} ${fontFamily.bold} text-white`}>Best Value</Text>
                 </View>
               </View>
-              <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito mt-1">
+              <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-1`}>
                 One-time payment, forever access
               </Text>
             </View>
             <View className="items-end">
               <View className="flex-row items-center">
-                <Text style={{ color: colors.textMuted, textDecorationLine: 'line-through' }} className="text-sm font-nunito mr-2">$79.95</Text>
-                <Text style={{ color: colors.text }} className="text-xl font-nunito-bold">$49.95</Text>
+                <Text style={{ color: colors.textMuted, textDecorationLine: 'line-through' }} className={`${textSize.small} ${fontFamily.regular} mr-2`}>$79.95</Text>
+                <Text style={{ color: colors.text }} className={`${textSize.xLarge} ${fontFamily.bold}`}>$49.95</Text>
               </View>
-              <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">one-time</Text>
+              <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>one-time</Text>
             </View>
           </View>
         </TouchableOpacity>
@@ -166,15 +166,15 @@ function MembershipScreen({ onPurchaseComplete }: Props) {
             shadowRadius: 6,
             elevation: 6,
           }}
-          className="rounded-full py-3.5 items-center mb-3"
+          className={`${radius.full} py-3.5 items-center mb-3`}
         >
-          <Text style={{ color: selectedPlan ? '#000000' : colors.textSecondary }} className="text-sm font-nunito-bold">
+          <Text style={{ color: selectedPlan ? '#000000' : colors.textSecondary }} className={`${textSize.small} ${fontFamily.bold}`}>
             {selectedPlan ? 'Continue' : 'Select a Plan'}
           </Text>
         </TouchableOpacity>
 
         {/* Terms Text */}
-        <Text style={{ color: colors.textMuted }} className="text-xs font-nunito text-center leading-4">
+        <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} text-center leading-4`}>
           By subscribing, you agree to our Terms of Service and Privacy Policy. Subscriptions auto-renew unless cancelled.
         </Text>
       </ScrollView>

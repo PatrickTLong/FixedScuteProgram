@@ -8,7 +8,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { lightTap, mediumTap, successTap } from '../utils/haptics';
-import { useTheme } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 
 const HOLD_DURATION = 1000; // 1 second
@@ -219,9 +219,11 @@ function BlockNowButton({
           onUnlockPress?.();
         }}
         activeOpacity={0.7}
-        className="h-14 rounded-full overflow-hidden"
+        className={`h-14 ${radius.full} overflow-hidden`}
         style={{
           backgroundColor: colors.card,
+          borderWidth: 1,
+          borderColor: colors.border,
           opacity: 0.6,
           shadowColor: '#000000',
           shadowOffset: { width: 0, height: 4 },
@@ -231,7 +233,7 @@ function BlockNowButton({
         }}
       >
         <View className="flex-1 flex-row items-center justify-center">
-          <Text style={{ color: colors.text }} className="text-sm font-nunito-semibold">Locked</Text>
+          <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>Locked</Text>
         </View>
       </TouchableOpacity>
     );
@@ -251,9 +253,11 @@ function BlockNowButton({
         onLayout={(e) => { buttonWidthRef.current = e.nativeEvent.layout.width; }}
         {...slidePanResponder.panHandlers}
         renderToHardwareTextureAndroid={true}
-        className="h-14 rounded-full overflow-hidden"
+        className={`h-14 ${radius.full} overflow-hidden`}
         style={{
           backgroundColor: colors.card,
+          borderWidth: 1,
+          borderColor: colors.border,
           shadowColor: '#000000',
           shadowOffset: { width: 0, height: 4 },
           shadowOpacity: 0.3,
@@ -263,7 +267,7 @@ function BlockNowButton({
       >
         {/* Text - always visible, positioned below the fill */}
         <View className="flex-1 flex-row items-center justify-center" style={{ zIndex: 1 }}>
-          <Text style={{ color: colors.text }} className="text-sm font-nunito-semibold">
+          <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
             {isUnlocking ? 'Unlocking...' : 'Slide to Unlock'}
           </Text>
         </View>
@@ -290,10 +294,11 @@ function BlockNowButton({
     <View
       {...(canActivate ? holdPanResponder.panHandlers : {})}
       renderToHardwareTextureAndroid={true}
-      className="h-14 rounded-full overflow-hidden"
+      className={`h-14 ${radius.full} overflow-hidden`}
       style={{
         backgroundColor: colors.card,
-        borderWidth: 0,
+        borderWidth: 1,
+        borderColor: colors.border,
         shadowColor: '#000000',
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.3,
@@ -305,7 +310,7 @@ function BlockNowButton({
       <View className="flex-1 flex-row items-center justify-center" style={{ zIndex: 1 }}>
         <Text
           style={{ color: getTextColor() }}
-          className="text-sm font-nunito-semibold"
+          className={`${textSize.small} ${fontFamily.semibold}`}
         >
           {isPressed ? 'Hold...' : 'Hold to Begin Locking'}
         </Text>

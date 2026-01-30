@@ -6,7 +6,7 @@ import {
   Modal,
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import { useTheme } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius } from '../context/ThemeContext';
 import { lightTap } from '../utils/haptics';
 import { useResponsive } from '../utils/responsive';
 
@@ -77,11 +77,11 @@ function ShieldIconsInfoModal({ visible, onClose }: ShieldIconsInfoModalProps) {
             shadowRadius: 10,
             elevation: 10,
           }}
-          className="w-full rounded-2xl overflow-hidden"
+          className={`w-full ${radius['2xl']} overflow-hidden`}
         >
           {/* Content */}
           <View className="p-6">
-            <Text style={{ color: colors.text }} className="text-xl font-nunito-bold text-center mb-4">
+            <Text style={{ color: colors.text }} className={`${textSize.xLarge} ${fontFamily.bold} text-center mb-4`}>
               Preset Icons
             </Text>
 
@@ -91,10 +91,10 @@ function ShieldIconsInfoModal({ visible, onClose }: ShieldIconsInfoModalProps) {
                 <BookmarkIcon color="#FFFFFF" size={28} />
               </View>
               <View className="flex-1">
-                <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">
+                <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>
                   Scheduled
                 </Text>
-                <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">
+                <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular}`}>
                   This preset has a scheduled start and end time.
                 </Text>
               </View>
@@ -106,10 +106,10 @@ function ShieldIconsInfoModal({ visible, onClose }: ShieldIconsInfoModalProps) {
                 <RotateCwIcon color="#FFFFFF" size={28} />
               </View>
               <View className="flex-1">
-                <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">
+                <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>
                   Recurring
                 </Text>
-                <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">
+                <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular}`}>
                   This preset repeats automatically on a schedule.
                 </Text>
               </View>
@@ -142,7 +142,7 @@ function ShieldIconsInfoModal({ visible, onClose }: ShieldIconsInfoModalProps) {
                   />
                 )}
               </View>
-              <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">
+              <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular}`}>
                 Don't show this again
               </Text>
             </TouchableOpacity>
@@ -155,7 +155,7 @@ function ShieldIconsInfoModal({ visible, onClose }: ShieldIconsInfoModalProps) {
               activeOpacity={0.7}
               className="py-4 items-center"
             >
-              <Text style={{ color: '#FFFFFF' }} className="text-sm font-nunito-semibold">
+              <Text style={{ color: '#FFFFFF' }} className={`${textSize.small} ${fontFamily.semibold}`}>
                 Got it
               </Text>
             </TouchableOpacity>

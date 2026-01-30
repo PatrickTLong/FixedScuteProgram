@@ -8,7 +8,7 @@ import {
 import LottieView from 'lottie-react-native';
 const Lottie = LottieView as any;
 import Svg, { Path } from 'react-native-svg';
-import { useTheme } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius } from '../context/ThemeContext';
 import { lightTap, mediumTap } from '../utils/haptics';
 import { useResponsive } from '../utils/responsive';
 
@@ -99,14 +99,14 @@ function EmergencyTapoutModal({
             shadowRadius: 10,
             elevation: 10,
           }}
-          className="w-full rounded-2xl overflow-hidden"
+          className={`w-full ${radius['2xl']} overflow-hidden`}
         >
           {/* Header */}
           <View className="p-6 pb-4 items-center">
-            <Text style={{ color: colors.text }} className="text-2xl font-nunito-bold text-center">
+            <Text style={{ color: colors.text }} className={`${textSize['2xLarge']} ${fontFamily.bold} text-center`}>
               Phone is Locked
             </Text>
-            <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito text-center mt-2">
+            <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular} text-center mt-2`}>
               Wait for the timer to finish, or unlock now by using an emergency tapout.
             </Text>
           </View>
@@ -127,12 +127,12 @@ function EmergencyTapoutModal({
                     strokeLinejoin="round"
                   />
                 </Svg>
-                <Text style={{ color: colors.text }} className="text-sm font-nunito-semibold ml-2">
+                <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold} ml-2`}>
                   Emergency Tapout
                 </Text>
               </View>
 
-              <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito mb-3 text-center">
+              <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular} mb-3 text-center`}>
                 {canUseTapout
                   ? `You have ${tapoutsRemaining} tapout${tapoutsRemaining !== 1 ? 's' : ''} remaining.`
                   : getUnavailableReason()}
@@ -152,11 +152,11 @@ function EmergencyTapoutModal({
                   width: '100%',
                   elevation: 6,
                 }}
-                className="rounded-2xl items-center"
+                className={`${radius['2xl']} items-center`}
               >
                 <Text
                   style={{ color: canUseTapout ? '#FFFFFF' : colors.textSecondary, opacity: isLoading ? 0 : 1 }}
-                  className="text-sm font-nunito-bold"
+                  className={`${textSize.small} ${fontFamily.bold}`}
                 >
                   {canUseTapout ? 'Use Emergency Tapout' : 'Not Available'}
                 </Text>
@@ -186,7 +186,7 @@ function EmergencyTapoutModal({
               activeOpacity={0.7}
               className="py-4 items-center"
             >
-              <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito-semibold">
+              <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.semibold}`}>
                 Dismiss
               </Text>
             </TouchableOpacity>

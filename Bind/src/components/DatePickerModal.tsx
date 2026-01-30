@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { lightTap } from '../utils/haptics';
-import { useTheme } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 
 interface DatePickerModalProps {
@@ -199,13 +199,13 @@ const DayCell = memo(({ day, selectable, selected, isToday: todayDay, textColor,
         borderColor: todayDay && !selected ? '#22c55e' : 'transparent',
         borderWidth: todayDay && !selected ? 1 : 0,
       }}
-      className="w-9 h-9 rounded-full items-center justify-center"
+      className={`w-9 h-9 ${radius.full} items-center justify-center`}
     >
       <Text
         style={{
           color: selected ? '#FFFFFF' : selectable ? textColor : textMutedColor,
         }}
-        className={`text-base font-nunito ${selected ? 'font-nunito-bold' : ''}`}
+        className={`${textSize.base} ${fontFamily.regular} ${selected ? fontFamily.bold : ''}`}
       >
         {day}
       </Text>
@@ -231,18 +231,18 @@ const AmPmSelector = memo(({ value, onChange, greenColor, cardColor, textMutedCo
     <TouchableOpacity
       onPress={() => { lightTap(); onChange('AM'); }}
       style={{ backgroundColor: value === 'AM' ? '#22c55e' : cardColor, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
-      className="px-3 py-2 rounded-lg"
+      className={`px-3 py-2 ${radius.lg}`}
     >
-      <Text style={{ color: value === 'AM' ? '#FFFFFF' : textMutedColor }} className="text-base font-nunito-semibold">
+      <Text style={{ color: value === 'AM' ? '#FFFFFF' : textMutedColor }} className={`${textSize.base} ${fontFamily.semibold}`}>
         AM
       </Text>
     </TouchableOpacity>
     <TouchableOpacity
       onPress={() => { lightTap(); onChange('PM'); }}
       style={{ backgroundColor: value === 'PM' ? '#22c55e' : cardColor, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
-      className="px-3 py-2 rounded-lg mt-1"
+      className={`px-3 py-2 ${radius.lg} mt-1`}
     >
-      <Text style={{ color: value === 'PM' ? '#FFFFFF' : textMutedColor }} className="text-base font-nunito-semibold">
+      <Text style={{ color: value === 'PM' ? '#FFFFFF' : textMutedColor }} className={`${textSize.base} ${fontFamily.semibold}`}>
         PM
       </Text>
     </TouchableOpacity>
@@ -462,15 +462,15 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
           {/* Header */}
           <View style={{ borderBottomColor: colors.border }} className="flex-row items-center justify-between px-4 py-3 border-b">
             <TouchableOpacity onPress={() => { lightTap(); handleClose(); }} className="px-2">
-              <Text style={{ color: '#FFFFFF'}} className="text-base font-nunito">Cancel</Text>
+              <Text style={{ color: '#FFFFFF'}} className={`${textSize.base} ${fontFamily.regular}`}>Cancel</Text>
             </TouchableOpacity>
-            <Text style={{ color: colors.text }} className="text-lg font-nunito-semibold">Pick Date and Time</Text>
+            <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.semibold}`}>Pick Date and Time</Text>
             <TouchableOpacity
               onPress={() => { lightTap(); handleConfirm(); }}
               disabled={!isFutureDateTime}
               className="px-2"
             >
-              <Text style={{ color: isFutureDateTime ? '#FFFFFF' : colors.textMuted }} className="text-base font-nunito-semibold">
+              <Text style={{ color: isFutureDateTime ? '#FFFFFF' : colors.textMuted }} className={`${textSize.base} ${fontFamily.semibold}`}>
                 Done
               </Text>
             </TouchableOpacity>
@@ -487,12 +487,12 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
               disabled={!canGoPrev}
               className="w-10 h-10 items-center justify-center"
             >
-              <Text style={{ color: canGoPrev ? colors.text : colors.textMuted }} className="text-2xl">
+              <Text style={{ color: canGoPrev ? colors.text : colors.textMuted }} className={`${textSize['2xLarge']}`}>
                 ‹
               </Text>
             </TouchableOpacity>
 
-            <Text style={{ color: colors.text }} className="text-xl font-nunito-semibold">
+            <Text style={{ color: colors.text }} className={`${textSize.xLarge} ${fontFamily.semibold}`}>
               {MONTHS[viewMonth]} {viewYear}
             </Text>
 
@@ -501,7 +501,7 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
               disabled={!canGoNext}
               className="w-10 h-10 items-center justify-center"
             >
-              <Text style={{ color: canGoNext ? colors.text : colors.textMuted }} className="text-2xl">
+              <Text style={{ color: canGoNext ? colors.text : colors.textMuted }} className={`${textSize['2xLarge']}`}>
                 ›
               </Text>
             </TouchableOpacity>
@@ -511,7 +511,7 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
           <View className="flex-row mb-1">
             {DAYS_OF_WEEK.map((day) => (
               <View key={day} className="flex-1 items-center py-1">
-                <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">{day}</Text>
+                <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular}`}>{day}</Text>
               </View>
             ))}
           </View>
@@ -541,7 +541,7 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
           {/* Time Picker */}
           {tempSelectedDate && (
             <View style={{ borderTopColor: colors.border, marginHorizontal: s(-24), paddingHorizontal: s(24) }} className="mt-6 pt-4 pb-4 border-t">
-              <Text style={{ color: colors.textMuted }} className="text-xs font-nunito tracking-wider mb-3">
+              <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} tracking-wider mb-3`}>
                 Time
               </Text>
               <View className="flex-row items-center justify-center">
@@ -587,22 +587,22 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
           <View style={{ borderTopColor: colors.border, marginHorizontal: s(-24), paddingHorizontal: s(24) }} className="mt-6 py-4 border-t">
             <View className="flex-row justify-between items-center">
               <View>
-                <Text style={{ color: colors.text }} className="text-base font-nunito mb-1">Selected</Text>
-                <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito-semibold">{selectedDateTimeText}</Text>
+                <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.regular} mb-1`}>Selected</Text>
+                <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.semibold}`}>{selectedDateTimeText}</Text>
               </View>
               {/* Clear Button - centered with text block */}
               {tempSelectedDate && (
                 <TouchableOpacity
                   onPress={handleClear}
                   style={{ backgroundColor: colors.card, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
-                  className="ml-4 px-4 py-2 rounded-full"
+                  className={`ml-4 px-4 py-2 ${radius.full}`}
                 >
-                  <Text style={{ color: '#FFFFFF' }} className="text-sm font-nunito-semibold">Clear</Text>
+                  <Text style={{ color: '#FFFFFF' }} className={`${textSize.small} ${fontFamily.semibold}`}>Clear</Text>
                 </TouchableOpacity>
               )}
             </View>
             {tempSelectedDate && !isFutureDateTime && (
-              <Text style={{ color: '#FF5C5C' }} className="text-xs font-nunito mt-2">
+              <Text style={{ color: '#FF5C5C' }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-2`}>
                 Please select a future date and time
               </Text>
             )}

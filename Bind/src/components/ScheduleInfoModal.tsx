@@ -5,7 +5,7 @@ import {
   TouchableOpacity,
   Modal,
 } from 'react-native';
-import { useTheme } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius } from '../context/ThemeContext';
 import { lightTap } from '../utils/haptics';
 import AnimatedCheckbox from './AnimatedCheckbox';
 
@@ -32,14 +32,14 @@ function ScheduleInfoModal({ visible, onClose }: ScheduleInfoModalProps) {
       onRequestClose={handleClose}
     >
       <View className="flex-1 bg-black/70 justify-center items-center px-6">
-        <View renderToHardwareTextureAndroid={true} style={{ backgroundColor: colors.card, shadowColor: '#000000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 10, elevation: 10 }} className="w-full rounded-2xl overflow-hidden">
+        <View renderToHardwareTextureAndroid={true} style={{ backgroundColor: colors.card, shadowColor: '#000000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 10, elevation: 10 }} className={`w-full ${radius['2xl']} overflow-hidden`}>
           {/* Content */}
           <View className="p-6">
-            <Text style={{ color: colors.text }} className="text-xl font-nunito-bold text-center mb-4">
+            <Text style={{ color: colors.text }} className={`${textSize.xLarge} ${fontFamily.bold} text-center mb-4`}>
               Scheduled Blocking
             </Text>
 
-            <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito text-center">
+            <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular} text-center`}>
               Schedule presets to automatically activate and deactivate at set times. Multiple scheduled presets can run alongside your active preset.
             </Text>
 
@@ -52,7 +52,7 @@ function ScheduleInfoModal({ visible, onClose }: ScheduleInfoModalProps) {
               <View className="mr-3">
                 <AnimatedCheckbox checked={dontShowAgain} size={20} />
               </View>
-              <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">
+              <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular}`}>
                 Don't show this again
               </Text>
             </TouchableOpacity>
@@ -65,7 +65,7 @@ function ScheduleInfoModal({ visible, onClose }: ScheduleInfoModalProps) {
               activeOpacity={0.7}
               className="py-4 items-center"
             >
-              <Text style={{ color: '#FFFFFF' }} className="text-sm font-nunito-semibold">
+              <Text style={{ color: '#FFFFFF' }} className={`${textSize.small} ${fontFamily.semibold}`}>
                 Got it
               </Text>
             </TouchableOpacity>

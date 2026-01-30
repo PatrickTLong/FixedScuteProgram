@@ -3,7 +3,7 @@ import { TouchableOpacity, Text, View } from 'react-native';
 import LottieView from 'lottie-react-native';
 const Lottie = LottieView as any;
 import { lightTap } from '../utils/haptics';
-import { useTheme } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 
 interface ButtonProps {
@@ -78,9 +78,9 @@ function Button({
         shadowRadius: 6,
         elevation: 6,
       }]}
-      className={`rounded-full py-4 px-6 items-center justify-center${fullWidth ? ' w-full' : ''}`}
+      className={`${radius.full} py-4 px-6 items-center justify-center${fullWidth ? ' w-full' : ''}`}
     >
-      <Text style={[getTextStyle(), loading && { opacity: 0 }]} className="text-base font-nunito-semibold">{title}</Text>
+      <Text style={[getTextStyle(), loading && { opacity: 0 }]} className={`${textSize.base} ${fontFamily.semibold}`}>{title}</Text>
       {loading && (
         <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center', overflow: 'hidden' }}>
           <Lottie

@@ -11,7 +11,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { setAuthToken } from '../services/cardApi';
 import { API_URL } from '../config/api';
 import { lightTap } from '../utils/haptics';
-import { useTheme } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 
 interface Props {
@@ -122,13 +122,13 @@ export default function GoogleSignInBtn({ onSuccess, onError, disabled }: Props)
         shadowRadius: 6,
         elevation: 6,
       }}
-      className="rounded-full py-4 items-center justify-center"
+      className={`${radius.full} py-4 items-center justify-center`}
     >
       <View style={{ opacity: loading ? 0 : 1 }} className="flex-row items-center justify-center">
         <View className="mr-3">
           <GoogleLogo size={20} />
         </View>
-        <Text style={{ color: '#FFFFFF' }} className="text-sm font-nunito-semibold">
+        <Text style={{ color: '#FFFFFF' }} className={`${textSize.small} ${fontFamily.semibold}`}>
           Continue with Google
         </Text>
       </View>

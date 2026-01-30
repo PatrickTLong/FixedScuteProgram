@@ -24,7 +24,7 @@ import {
   getLockStatus,
   invalidateUserCaches,
 } from '../services/cardApi';
-import { useTheme } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { lightTap } from '../utils/haptics';
 
@@ -629,11 +629,11 @@ function PresetsScreen({ userEmail }: Props) {
               }}
               resizeMode="contain"
             />
-            <Text style={{ color: colors.textSecondary }} className="text-base font-nunito">
+            <Text style={{ color: colors.textSecondary }} className={`${textSize.base} ${fontFamily.regular}`}>
               No presets yet
             </Text>
           </View>
-          <Text style={{ color: colors.textMuted }} className="text-sm font-nunito mt-1">
+          <Text style={{ color: colors.textMuted }} className={`${textSize.small} ${fontFamily.regular} mt-1`}>
             Tap + to create one
           </Text>
         </>
@@ -671,8 +671,8 @@ function PresetsScreen({ userEmail }: Props) {
               style={{ width: s(250), height: s(250), tintColor: colors.logoTint, marginBottom: s(-60) }}
               resizeMode="contain"
             />
-            <Text style={{ color: colors.text }} className="text-xl font-nunito-bold mb-2">Phone is Locked</Text>
-            <Text style={{ color: colors.textSecondary }} className="text-center text-sm font-nunito px-8">
+            <Text style={{ color: colors.text }} className={`${textSize.xLarge} ${fontFamily.bold} mb-2`}>Phone is Locked</Text>
+            <Text style={{ color: colors.textSecondary }} className={`text-center ${textSize.small} ${fontFamily.regular} px-8`}>
               Presets cannot be changed while blocking is active.
             </Text>
           </View>
@@ -682,7 +682,7 @@ function PresetsScreen({ userEmail }: Props) {
       {/* Header */}
       <View className="flex-row items-center justify-between px-6 py-4">
         <View className="flex-row items-center">
-          <Text style={{ color: colors.text }} className="text-2xl font-nunito-bold">Presets</Text>
+          <Text style={{ color: colors.text }} className={`${textSize['2xLarge']} ${fontFamily.bold}`}>Presets</Text>
         </View>
 
         {/* Add Button - stays green but disabled when locked */}
@@ -698,9 +698,9 @@ function PresetsScreen({ userEmail }: Props) {
             shadowRadius: 6,
             elevation: 6,
           }}
-          className="w-11 h-11 rounded-full items-center justify-center"
+          className={`w-11 h-11 ${radius.full} items-center justify-center`}
         >
-          <Text className="text-2xl font-nunito-light text-white">+</Text>
+          <Text className={`${textSize['2xLarge']} ${fontFamily.light} text-white`}>+</Text>
         </TouchableOpacity>
       </View>
 

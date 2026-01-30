@@ -11,7 +11,7 @@ import LottieView from 'lottie-react-native';
 const Lottie = LottieView as any;
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
-import { useTheme } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { lightTap } from '../utils/haptics';
 
@@ -100,7 +100,7 @@ const AppItem = memo(({ item, isSelected, onToggle, cardColor, cardLightColor, t
       onPress={handlePress}
       activeOpacity={0.7}
       style={{ backgroundColor: cardColor, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
-      className="flex-row items-center py-3 px-4 rounded-xl mb-2"
+      className={`flex-row items-center py-3 px-4 ${radius.xl} mb-2`}
     >
       {/* App Icon - native already provides squircle shape */}
       {item.icon ? (
@@ -117,11 +117,11 @@ const AppItem = memo(({ item, isSelected, onToggle, cardColor, cardLightColor, t
       )}
 
       {/* App Name */}
-      <Text style={{ color: textColor }} className="flex-1 text-base font-nunito">{item.name}</Text>
+      <Text style={{ color: textColor }} className={`flex-1 ${textSize.base} ${fontFamily.regular}`}>{item.name}</Text>
 
       {/* Checkbox */}
-      <View style={isSelected ? { backgroundColor: cyanColor, borderColor: cyanColor } : { borderColor: borderColor }} className="w-6 h-6 rounded-full border-2 items-center justify-center">
-        {isSelected && <Text className="text-white text-sm font-bold"></Text>}
+      <View style={isSelected ? { backgroundColor: cyanColor, borderColor: cyanColor } : { borderColor: borderColor }} className={`w-6 h-6 ${radius.full} border-2 items-center justify-center`}>
+        {isSelected && <Text className={`text-white ${textSize.small} ${fontFamily.bold}`}></Text>}
       </View>
     </TouchableOpacity>
   );
@@ -193,7 +193,7 @@ function SelectAppsScreen({
         >
           <BackIcon color={colors.text} />
         </TouchableOpacity>
-        <Text style={{ color: colors.text }} className="text-lg font-nunito-semibold flex-1 text-center">
+        <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.semibold} flex-1 text-center`}>
           Block List
         </Text>
         <TouchableOpacity
@@ -209,9 +209,9 @@ function SelectAppsScreen({
         <TouchableOpacity
           onPress={() => { lightTap(); setActiveTab('apps'); }}
           style={{ backgroundColor: activeTab === 'apps' ? colors.text : colors.card, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
-          className="flex-1 py-2 rounded-full items-center"
+          className={`flex-1 py-2 ${radius.full} items-center`}
         >
-          <Text style={{ color: activeTab === 'apps' ? colors.bg : colors.text }} className="text-base font-nunito-semibold">
+          <Text style={{ color: activeTab === 'apps' ? colors.bg : colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>
             Apps
           </Text>
         </TouchableOpacity>
@@ -219,9 +219,9 @@ function SelectAppsScreen({
         <TouchableOpacity
           onPress={() => { lightTap(); setActiveTab('websites'); }}
           style={{ backgroundColor: activeTab === 'websites' ? colors.text : colors.card, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
-          className="flex-1 py-2 rounded-full items-center"
+          className={`flex-1 py-2 ${radius.full} items-center`}
         >
-          <Text style={{ color: activeTab === 'websites' ? colors.bg : colors.text }} className="text-base font-nunito-semibold">
+          <Text style={{ color: activeTab === 'websites' ? colors.bg : colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>
             Websites
           </Text>
         </TouchableOpacity>
@@ -231,7 +231,7 @@ function SelectAppsScreen({
         <>
           {/* Search Input */}
           <View className="px-4 mb-4">
-            <View renderToHardwareTextureAndroid={true} style={{ backgroundColor: colors.card, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }} className="flex-row items-center border rounded-xl px-4 py-3">
+            <View renderToHardwareTextureAndroid={true} style={{ backgroundColor: colors.card, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }} className={`flex-row items-center border ${radius.xl} px-4 py-3`}>
               <SearchIcon color={colors.textSecondary} />
               <TextInput
                 placeholder="Search apps..."
@@ -239,11 +239,11 @@ function SelectAppsScreen({
                 value={searchQuery}
                 onChangeText={setSearchQuery}
                 style={{ color: colors.text }}
-                className="flex-1 text-base font-nunito ml-3"
+                className={`flex-1 ${textSize.base} ${fontFamily.regular} ml-3`}
               />
               {searchQuery.length > 0 && (
                 <TouchableOpacity onPress={() => { lightTap(); setSearchQuery(''); }}>
-                  <Text style={{ color: colors.textSecondary }} className="text-lg">✕</Text>
+                  <Text style={{ color: colors.textSecondary }} className={`${textSize.large}`}>✕</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -258,7 +258,7 @@ function SelectAppsScreen({
                 speed={2}
                 style={{ width: s(250), height: s(250) }}
               />
-              <Text style={{ color: colors.textSecondary }} className="text-base font-nunito mt-4">
+              <Text style={{ color: colors.textSecondary }} className={`${textSize.base} ${fontFamily.regular} mt-4`}>
                 Loading apps...
               </Text>
             </View>
@@ -275,14 +275,14 @@ function SelectAppsScreen({
               contentContainerStyle={{ paddingHorizontal: s(16), paddingBottom: s(100) }}
               ListHeaderComponent={
                 selectedApps.length > 0 ? (
-                  <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito mb-3">
+                  <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular} mb-3`}>
                     {selectedApps.length} app{selectedApps.length !== 1 ? 's' : ''} selected
                   </Text>
                 ) : null
               }
               ListEmptyComponent={
                 <View className="items-center py-12">
-                  <Text style={{ color: colors.textSecondary }} className="text-base font-nunito">
+                  <Text style={{ color: colors.textSecondary }} className={`${textSize.base} ${fontFamily.regular}`}>
                     No apps found
                   </Text>
                 </View>
@@ -294,7 +294,7 @@ function SelectAppsScreen({
         <View className="flex-1 px-4">
           {/* Website Input */}
           <View className="mb-4">
-            <View renderToHardwareTextureAndroid={true} style={{ backgroundColor: colors.card, borderColor: colors.yellow, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }} className="flex-row items-center border rounded-full px-4 py-3">
+            <View renderToHardwareTextureAndroid={true} style={{ backgroundColor: colors.card, borderColor: colors.yellow, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }} className={`flex-row items-center border ${radius.full} px-4 py-3`}>
               <TextInput
                 placeholder="e.g. instagram.com"
                 placeholderTextColor={colors.textMuted}
@@ -303,16 +303,16 @@ function SelectAppsScreen({
                 autoCapitalize="none"
                 keyboardType="url"
                 style={{ color: colors.text }}
-                className="flex-1 text-base font-nunito"
+                className={`flex-1 ${textSize.base} ${fontFamily.regular}`}
                 onSubmitEditing={handleAddWebsite}
               />
               {websiteInput.length > 0 && (
                 <TouchableOpacity onPress={() => { lightTap(); setWebsiteInput(''); }}>
-                  <Text style={{ color: colors.textSecondary }} className="text-lg">✕</Text>
+                  <Text style={{ color: colors.textSecondary }} className={`${textSize.large}`}>✕</Text>
                 </TouchableOpacity>
               )}
             </View>
-            <Text style={{ color: colors.textMuted }} className="text-xs font-nunito mt-2 px-2">
+            <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-2 px-2`}>
               Enter URLs like: instagram.com, reddit.com, etc
             </Text>
           </View>
@@ -322,20 +322,20 @@ function SelectAppsScreen({
             data={blockedWebsites}
             keyExtractor={(item) => item}
             renderItem={({ item }) => (
-              <View renderToHardwareTextureAndroid={true} style={{ backgroundColor: colors.card, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }} className="flex-row items-center py-3 px-4 rounded-xl mb-2">
+              <View renderToHardwareTextureAndroid={true} style={{ backgroundColor: colors.card, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }} className={`flex-row items-center py-3 px-4 ${radius.xl} mb-2`}>
                 <View className="w-10 h-10 items-center justify-center mr-3">
                   <GlobeIcon color={colors.textSecondary} size={32} />
                 </View>
-                <Text style={{ color: colors.text }} className="flex-1 text-base font-nunito">{item}</Text>
-                <View style={{ backgroundColor: colors.cyan, borderColor: colors.cyan }} className="w-6 h-6 rounded-full border-2 items-center justify-center">
-                  <Text className="text-white text-sm font-bold">✓</Text>
+                <Text style={{ color: colors.text }} className={`flex-1 ${textSize.base} ${fontFamily.regular}`}>{item}</Text>
+                <View style={{ backgroundColor: colors.cyan, borderColor: colors.cyan }} className={`w-6 h-6 ${radius.full} border-2 items-center justify-center`}>
+                  <Text className={`text-white ${textSize.small} ${fontFamily.bold}`}>✓</Text>
                 </View>
               </View>
             )}
             contentContainerStyle={{ paddingBottom: s(100) }}
             ListEmptyComponent={
               <View className="items-center py-12">
-                <Text style={{ color: colors.textSecondary }} className="text-base font-nunito">
+                <Text style={{ color: colors.textSecondary }} className={`${textSize.base} ${fontFamily.regular}`}>
                   No websites blocked yet
                 </Text>
               </View>
@@ -350,9 +350,9 @@ function SelectAppsScreen({
           onPress={() => { lightTap(); onSave(); }}
           activeOpacity={0.8}
           style={{ backgroundColor: colors.text, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
-          className="rounded-full py-4 items-center"
+          className={`${radius.full} py-4 items-center`}
         >
-          <Text style={{ color: colors.bg }} className="text-lg font-nunito-semibold">
+          <Text style={{ color: colors.bg }} className={`${textSize.large} ${fontFamily.semibold}`}>
             Save Selection
           </Text>
         </TouchableOpacity>

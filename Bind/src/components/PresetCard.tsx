@@ -6,7 +6,7 @@ import {
 } from 'react-native';
 import Svg, { Path, Circle } from 'react-native-svg';
 import { lightTap, mediumTap } from '../utils/haptics';
-import { useTheme } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius } from '../context/ThemeContext';
 import AnimatedSwitch from './AnimatedSwitch';
 
 // Bookmark icon (Feather Icons) for scheduled presets
@@ -276,24 +276,26 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, disabled
       renderToHardwareTextureAndroid={true}
       style={{
         backgroundColor: colors.card,
+        borderWidth: 1,
+        borderColor: colors.border,
         shadowColor: '#000000',
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.3,
         shadowRadius: 6,
         elevation: 6,
       }}
-      className="rounded-2xl p-4 mb-3"
+      className={`${radius['2xl']} p-4 mb-3`}
     >
       <View className="flex-row items-center">
         <View className="flex-1">
           {/* Preset Name with Badges */}
           <View className="flex-row items-center mb-1">
-            <Text style={{ color: isExpired ? colors.textMuted : colors.text }} className="text-lg font-nunito-semibold">
+            <Text style={{ color: isExpired ? colors.textMuted : colors.text }} className={`${textSize.large} ${fontFamily.semibold}`}>
               {preset.name}
             </Text>
             {isExpired ? (
-              <View style={{ backgroundColor: `${'#FF5C5C'}33` }} className="ml-2 px-2 py-0.5 rounded-full">
-                <Text style={{ color: '#FF5C5C' }} className="text-xs font-nunito-semibold">
+              <View style={{ backgroundColor: `${'#FF5C5C'}33` }} className={`ml-2 px-2 py-0.5 ${radius.full}`}>
+                <Text style={{ color: '#FF5C5C' }} className={`${textSize.extraSmall} ${fontFamily.semibold}`}>
                   Expired
                 </Text>
               </View>
@@ -314,18 +316,18 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, disabled
           </View>
 
           {/* Settings Description */}
-          <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">
+          <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular}`}>
             {getSettingsDescription()}
           </Text>
 
           {/* Time */}
-          <Text style={{ color: colors.textMuted }} className="text-xs font-nunito mt-1">
+          <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-1`}>
             {getTimeDescription()}
           </Text>
 
           {/* Details (strict mode, emergency tapout, settings blocked) */}
           {getDetailsDescription() && (
-            <Text style={{ color: colors.textMuted }} className="text-xs font-nunito mt-0.5">
+            <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-0.5`}>
               {getDetailsDescription()}
             </Text>
           )}

@@ -35,7 +35,7 @@ import StrictModeWarningModal from './StrictModeWarningModal';
 import { Preset } from './PresetCard';
 import { getEmergencyTapoutStatus, setEmergencyTapoutEnabled } from '../services/cardApi';
 import { lightTap, mediumTap } from '../utils/haptics';
-import { useTheme } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 
 const SCHEDULE_INFO_DISMISSED_KEY = 'schedule_info_dismissed';
@@ -227,13 +227,13 @@ const DayCell = memo(({ day, selectable, selected, isToday: todayDay, textColor,
         borderColor: todayDay && !selected ? '#22c55e' : 'transparent',
         borderWidth: todayDay && !selected ? 1 : 0,
       }}
-      className="w-9 h-9 rounded-full items-center justify-center"
+      className={`w-9 h-9 ${radius.full} items-center justify-center`}
     >
       <Text
         style={{
           color: selected ? '#FFFFFF' : selectable ? textColor : textMutedColor,
         }}
-        className={`text-base font-nunito ${selected ? 'font-nunito-bold' : ''}`}
+        className={`${textSize.base} ${fontFamily.regular} ${selected ? fontFamily.bold : ''}`}
       >
         {day}
       </Text>
@@ -258,18 +258,18 @@ const AmPmSelector = memo(({ value, onChange, cardColor, textMutedColor }: AmPmS
     <TouchableOpacity
       onPress={() => { lightTap(); onChange('AM'); }}
       style={{ backgroundColor: value === 'AM' ? '#22c55e' : cardColor }}
-      className="px-3 py-2 rounded-lg"
+      className={`px-3 py-2 ${radius.lg}`}
     >
-      <Text style={{ color: value === 'AM' ? '#FFFFFF' : textMutedColor }} className="text-base font-nunito-semibold">
+      <Text style={{ color: value === 'AM' ? '#FFFFFF' : textMutedColor }} className={`${textSize.base} ${fontFamily.semibold}`}>
         AM
       </Text>
     </TouchableOpacity>
     <TouchableOpacity
       onPress={() => { lightTap(); onChange('PM'); }}
       style={{ backgroundColor: value === 'PM' ? '#22c55e' : cardColor }}
-      className="px-3 py-2 rounded-lg mt-1"
+      className={`px-3 py-2 ${radius.lg} mt-1`}
     >
-      <Text style={{ color: value === 'PM' ? '#FFFFFF' : textMutedColor }} className="text-base font-nunito-semibold">
+      <Text style={{ color: value === 'PM' ? '#FFFFFF' : textMutedColor }} className={`${textSize.base} ${fontFamily.semibold}`}>
         PM
       </Text>
     </TouchableOpacity>
@@ -1211,7 +1211,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
         onPress={() => toggleApp(item.id)}
         activeOpacity={0.7}
         style={{ backgroundColor: colors.card, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
-        className="flex-row items-center py-3 px-4 rounded-xl mb-2"
+        className={`flex-row items-center py-3 px-4 ${radius.xl} mb-2`}
       >
         {/* App Icon - native already provides squircle shape */}
         {item.icon ? (
@@ -1229,7 +1229,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
         )}
 
         {/* App Name */}
-        <Text style={{ color: colors.text }} className="flex-1 text-base font-nunito">{item.name}</Text>
+        <Text style={{ color: colors.text }} className={`flex-1 ${textSize.base} ${fontFamily.regular}`}>{item.name}</Text>
 
         {/* Animated Checkbox */}
         <AnimatedCheckbox checked={isSelected} size={s(24)} skipAnimation={skipCheckboxAnimation} />
@@ -1241,7 +1241,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
 
   const ListHeaderComponent = useMemo(() =>
     installedSelectedApps.length > 0 ? (
-      <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito mb-3">
+      <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular} mb-3`}>
         {installedSelectedApps.length} app{installedSelectedApps.length !== 1 ? 's' : ''} selected
       </Text>
     ) : null,
@@ -1261,15 +1261,15 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
             {/* Header */}
             <View style={{ borderBottomColor: colors.border }} className="flex-row items-center justify-between px-4 py-3 border-b">
               <TouchableOpacity onPress={dpHandleCancel} className="px-2">
-                <Text style={{ color: '#FFFFFF' }} className="text-base font-nunito">Cancel</Text>
+                <Text style={{ color: '#FFFFFF' }} className={`${textSize.base} ${fontFamily.regular}`}>Cancel</Text>
               </TouchableOpacity>
-              <Text style={{ color: colors.text }} className="text-lg font-nunito-semibold">Pick Date and Time</Text>
+              <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.semibold}`}>Pick Date and Time</Text>
               <TouchableOpacity
                 onPress={dpHandleConfirm}
                 disabled={!dpIsFutureDateTime}
                 className="px-2"
               >
-                <Text style={{ color: dpIsFutureDateTime ? '#FFFFFF' : colors.textMuted }} className="text-base font-nunito-semibold">
+                <Text style={{ color: dpIsFutureDateTime ? '#FFFFFF' : colors.textMuted }} className={`${textSize.base} ${fontFamily.semibold}`}>
                   Done
                 </Text>
               </TouchableOpacity>
@@ -1286,12 +1286,12 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                   disabled={!dpCanGoPrev}
                   className="w-10 h-10 items-center justify-center"
                 >
-                  <Text style={{ color: dpCanGoPrev ? colors.text : colors.textMuted }} className="text-2xl">
+                  <Text style={{ color: dpCanGoPrev ? colors.text : colors.textMuted }} className={`${textSize['2xLarge']}`}>
                     ‹
                   </Text>
                 </TouchableOpacity>
 
-                <Text style={{ color: colors.text }} className="text-xl font-nunito-semibold">
+                <Text style={{ color: colors.text }} className={`${textSize.xLarge} ${fontFamily.semibold}`}>
                   {MONTHS[dpViewMonth]} {dpViewYear}
                 </Text>
 
@@ -1300,7 +1300,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                   disabled={!dpCanGoNext}
                   className="w-10 h-10 items-center justify-center"
                 >
-                  <Text style={{ color: dpCanGoNext ? colors.text : colors.textMuted }} className="text-2xl">
+                  <Text style={{ color: dpCanGoNext ? colors.text : colors.textMuted }} className={`${textSize['2xLarge']}`}>
                     ›
                   </Text>
                 </TouchableOpacity>
@@ -1310,7 +1310,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               <View className="flex-row mb-1">
                 {DAYS_OF_WEEK.map((day) => (
                   <View key={day} className="flex-1 items-center py-1">
-                    <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">{day}</Text>
+                    <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular}`}>{day}</Text>
                   </View>
                 ))}
               </View>
@@ -1340,7 +1340,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               {/* Time Picker */}
               {dpTempSelectedDate && (
                 <View style={{ borderTopColor: colors.border, marginHorizontal: s(-24), paddingHorizontal: s(24) }} className="mt-6 pt-4 pb-4 border-t">
-                  <Text style={{ color: colors.textMuted }} className="text-xs font-nunito tracking-wider mb-3">
+                  <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} tracking-wider mb-3`}>
                     Time
                   </Text>
                   <View className="flex-row items-center justify-center">
@@ -1385,21 +1385,21 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               <View style={{ borderTopColor: colors.border, marginHorizontal: s(-24), paddingHorizontal: s(24) }} className="mt-6 py-4 border-t">
                 <View className="flex-row justify-between items-center">
                   <View>
-                    <Text style={{ color: colors.text }} className="text-base font-nunito mb-1">Selected</Text>
-                    <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito-semibold">{dpSelectedDateTimeText}</Text>
+                    <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.regular} mb-1`}>Selected</Text>
+                    <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.semibold}`}>{dpSelectedDateTimeText}</Text>
                   </View>
                   {dpTempSelectedDate && (
                     <TouchableOpacity
                       onPress={dpHandleClear}
                       style={{ backgroundColor: colors.card, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
-                      className="ml-4 px-4 py-2 rounded-full"
+                      className={`ml-4 px-4 py-2 ${radius.full}`}
                     >
-                      <Text style={{ color: '#FFFFFF' }} className="text-sm font-nunito-semibold">Clear</Text>
+                      <Text style={{ color: '#FFFFFF' }} className={`${textSize.small} ${fontFamily.semibold}`}>Clear</Text>
                     </TouchableOpacity>
                   )}
                 </View>
                 {dpTempSelectedDate && !dpIsFutureDateTime && (
-                  <Text style={{ color: '#FF5C5C' }} className="text-xs font-nunito mt-2">
+                  <Text style={{ color: '#FF5C5C' }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-2`}>
                     Please select a future date and time
                   </Text>
                 )}
@@ -1423,11 +1423,11 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
             {/* Header */}
             <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between px-4 py-3">
               <TouchableOpacity onPress={() => { lightTap(); goToStep('first'); }} disabled={isSaving} className="px-2">
-                <Text style={{ color: isSaving ? '#FFFFFF' : '#FFFFFF' }} className="text-base font-nunito">Back</Text>
+                <Text style={{ color: isSaving ? '#FFFFFF' : '#FFFFFF' }} className={`${textSize.base} ${fontFamily.regular}`}>Back</Text>
               </TouchableOpacity>
-              <Text style={{ color: colors.text }} className="text-lg font-nunito-semibold">Final Settings</Text>
+              <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.semibold}`}>Final Settings</Text>
               <TouchableOpacity onPress={handleSave} disabled={isSaving || !canSave} className="px-2 min-w-[50px] items-end justify-center" style={{ height: s(24), overflow: 'visible' }}>
-                <Text style={{ color: canSave ? '#FFFFFF' : colors.textMuted, opacity: isSaving ? 0 : 1 }} className="text-base font-nunito-semibold">Save</Text>
+                <Text style={{ color: canSave ? '#FFFFFF' : colors.textMuted, opacity: isSaving ? 0 : 1 }} className={`${textSize.base} ${fontFamily.semibold}`}>Save</Text>
                 {isSaving && (
                   <View style={{ position: 'absolute', top: s(-63), right: s(-50), width: s(150), height: s(150), justifyContent: 'center', alignItems: 'center' }}>
                     <Lottie
@@ -1444,7 +1444,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
 
             <ScrollView ref={finalScrollRef} className="flex-1 pt-6" contentContainerStyle={{ paddingBottom: s(100) }}>
 
-            <Text style={{ color: '#FFFFFF' }} className="text-xs font-nunito px-6 mb-4">
+            <Text style={{ color: '#FFFFFF' }} className={`${textSize.extraSmall} ${fontFamily.regular} px-6 mb-4`}>
               Tap on toggle text to see further details
             </Text>
 
@@ -1454,8 +1454,8 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
             <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }}>
               <View style={{ paddingVertical: s(20) }} className="flex-row items-center justify-between px-6">
                 <TouchableOpacity onPress={() => toggleInfo('noTimeLimit')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
-                  <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">No Time Limit</Text>
-                  <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">Block until manually unlocked</Text>
+                  <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>No Time Limit</Text>
+                  <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>Block until manually unlocked</Text>
                 </TouchableOpacity>
                 <AnimatedSwitch
                   value={noTimeLimit}
@@ -1474,7 +1474,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               </View>
               <ExpandableInfo expanded={!!expandedInfo.noTimeLimit}>
                 <TouchableOpacity onPress={() => toggleInfo('noTimeLimit')} activeOpacity={0.7} className="px-6 pb-4">
-                  <Text style={{ color: colors.text }} className="text-sm font-nunito leading-5">
+                  <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular} leading-5`}>
                     Block stays active until manually ended for No Time Limit Presets. Strict Mode for this toggle ONLY disables tap to continue functionality.
                   </Text>
                 </TouchableOpacity>
@@ -1486,8 +1486,8 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
             <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }}>
               <View style={{ paddingVertical: s(20) }} className="flex-row items-center justify-between px-6">
                 <TouchableOpacity onPress={() => toggleInfo('schedule')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
-                  <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">Schedule for Later</Text>
-                  <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">Set a future start and end time</Text>
+                  <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Schedule for Later</Text>
+                  <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>Set a future start and end time</Text>
                 </TouchableOpacity>
                 <AnimatedSwitch
                   value={isScheduled}
@@ -1518,7 +1518,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               </View>
               <ExpandableInfo expanded={!!expandedInfo.schedule}>
                 <TouchableOpacity onPress={() => toggleInfo('schedule')} activeOpacity={0.7} className="px-6 pb-4">
-                  <Text style={{ color: colors.text }} className="text-sm font-nunito leading-5">
+                  <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular} leading-5`}>
                     Set a future start and end time. Hides timer options since duration is determined by your schedule.
                   </Text>
                 </TouchableOpacity>
@@ -1529,7 +1529,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
             {/* Schedule Date Pickers */}
             <ExpandableInfo expanded={isScheduled} lazy>
               <View className="mt-4 px-6">
-                <Text style={{ color: colors.textMuted }} className="text-xs font-nunito text-white tracking-wider mb-4">
+                <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} text-white tracking-wider mb-4`}>
                   Schedule
                 </Text>
 
@@ -1538,17 +1538,17 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                   onPress={() => openDatePicker('scheduleStart')}
                   activeOpacity={0.7}
                   style={{ backgroundColor: colors.card, paddingVertical: s(14), shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
-                  className="flex-row items-center px-4 rounded-xl mb-3"
+                  className={`flex-row items-center px-4 ${radius.xl} mb-3`}
                 >
-                  <View  className="w-10 h-10 rounded-lg items-center justify-center mr-3">
+                  <View  className={`w-10 h-10 ${radius.lg} items-center justify-center mr-3`}>
                     <CalendarIcon size={s(26)} />
                   </View>
                   <View className="flex-1">
-                    <Text style={{ color: colors.text }} className="text-sm font-nunito-semibold">
+                    <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
                       {scheduleStartDate ? 'Start Date' : 'Pick Start Date'}
                     </Text>
                     {scheduleStartDate && (
-                      <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">
+                      <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>
                         {scheduleStartDate.toLocaleDateString('en-US', {
                           month: 'short',
                           day: 'numeric',
@@ -1566,7 +1566,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                       onPress={() => { lightTap(); setScheduleStartDate(null); }}
                       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     >
-                      <Text style={{ color: '#FFFFFF' }} className="text-lg">✕</Text>
+                      <Text style={{ color: '#FFFFFF' }} className={`${textSize.large}`}>✕</Text>
                     </TouchableOpacity>
                   ) : (
                     <ChevronRightIcon size={s(20)} color="#FFFFFF" />
@@ -1578,17 +1578,17 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                   onPress={() => openDatePicker('scheduleEnd')}
                   activeOpacity={0.7}
                   style={{ backgroundColor: colors.card, paddingVertical: s(14), shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
-                  className="flex-row items-center px-4 rounded-xl"
+                  className={`flex-row items-center px-4 ${radius.xl}`}
                 >
-                  <View  className="w-10 h-10 rounded-lg items-center justify-center mr-3">
+                  <View  className={`w-10 h-10 ${radius.lg} items-center justify-center mr-3`}>
                     <FlagIcon size={s(26)} />
                   </View>
                   <View className="flex-1">
-                    <Text style={{ color: colors.text }} className="text-sm font-nunito-semibold">
+                    <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
                       {scheduleEndDate ? 'End Date' : 'Pick End Date'}
                     </Text>
                     {scheduleEndDate && (
-                      <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">
+                      <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>
                         {scheduleEndDate.toLocaleDateString('en-US', {
                           month: 'short',
                           day: 'numeric',
@@ -1606,7 +1606,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                       onPress={() => { lightTap(); setScheduleEndDate(null); }}
                       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     >
-                      <Text style={{ color: '#FFFFFF' }} className="text-lg">✕</Text>
+                      <Text style={{ color: '#FFFFFF' }} className={`${textSize.large}`}>✕</Text>
                     </TouchableOpacity>
                   ) : (
                     <ChevronRightIcon size={s(20)} color="#FFFFFF" />
@@ -1615,7 +1615,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
 
                 {/* Schedule Validation Message */}
                 {scheduleStartDate && scheduleEndDate && scheduleEndDate <= scheduleStartDate && (
-                  <Text style={{ color: '#FF5C5C' }} className="text-sm font-nunito mt-2">
+                  <Text style={{ color: '#FF5C5C' }} className={`${textSize.small} ${fontFamily.regular} mt-2`}>
                     End date must be after start date
                   </Text>
                 )}
@@ -1630,8 +1630,8 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                   <View className="-mx-6">
                     <View style={{ paddingVertical: s(20) }} className="flex-row items-center justify-between px-6">
                       <TouchableOpacity onPress={() => toggleInfo('recurring')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
-                        <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">Recurring Schedule</Text>
-                        <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">Repeat this block automatically</Text>
+                        <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Recurring Schedule</Text>
+                        <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>Repeat this block automatically</Text>
                       </TouchableOpacity>
                       <AnimatedSwitch
                         value={isRecurring}
@@ -1654,7 +1654,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                     </View>
                     <ExpandableInfo expanded={!!expandedInfo.recurring}>
                       <TouchableOpacity onPress={() => toggleInfo('recurring')} activeOpacity={0.7} className="px-6 pb-4">
-                        <Text style={{ color: colors.text }} className="text-sm font-nunito leading-5">
+                        <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular} leading-5`}>
                           Automatically repeats this blocking session at the interval you choose. After each session ends, the next one will start based on your selected frequency.
                         </Text>
                       </TouchableOpacity>
@@ -1666,7 +1666,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                     {/* Recurring Options */}
                     <ExpandableInfo expanded={isRecurring} lazy>
                       <View className="mt-4 px-6">
-                        <Text style={{ color: colors.textMuted }} className="text-xs font-nunito tracking-wider mb-4">
+                        <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} tracking-wider mb-4`}>
                           Recurrence
                         </Text>
 
@@ -1674,19 +1674,19 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                         <View
                           renderToHardwareTextureAndroid={true}
                           style={{ backgroundColor: colors.card, paddingVertical: s(14), shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
-                          className="flex-row items-center px-4 rounded-xl mb-3"
+                          className={`flex-row items-center px-4 ${radius.xl} mb-3`}
                         >
-                          <View className="w-10 h-10 rounded-lg items-center justify-center mr-3">
+                          <View className={`w-10 h-10 ${radius.lg} items-center justify-center mr-3`}>
                             <RotateCwIcon size={s(26)} />
                           </View>
                           <View className="flex-1">
-                            <Text style={{ color: colors.text }} className="text-sm font-nunito-semibold">
+                            <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
                               Repeat Every
                             </Text>
                           </View>
                           <TextInput
                             style={{ color: colors.text, minWidth: s(40), textAlign: 'center', height: s(28), padding: 0 }}
-                            className="text-base font-nunito-semibold"
+                            className={`${textSize.base} ${fontFamily.semibold}`}
                             value={recurringValue}
                             onChangeText={(text) => {
                               // Only allow numbers
@@ -1708,13 +1708,13 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                           }}
                           activeOpacity={0.7}
                           style={{ backgroundColor: colors.card, paddingVertical: s(14), shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
-                          className="flex-row items-center px-4 rounded-xl mb-3"
+                          className={`flex-row items-center px-4 ${radius.xl} mb-3`}
                         >
-                          <View className="w-10 h-10 rounded-lg items-center justify-center mr-3">
+                          <View className={`w-10 h-10 ${radius.lg} items-center justify-center mr-3`}>
                             <ClockIcon size={s(26)} />
                           </View>
                           <View className="flex-1">
-                            <Text style={{ color: colors.text }} className="text-sm font-nunito-semibold capitalize">
+                            <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold} capitalize`}>
                               {recurringUnit}
                             </Text>
                           </View>
@@ -1729,15 +1729,15 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                           const isSameDay = nextOccurrence.start.toDateString() === nextOccurrence.end.toDateString();
 
                           return (
-                            <View renderToHardwareTextureAndroid={true} style={{ backgroundColor: colors.card, paddingVertical: s(14), shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }} className="flex-row items-center px-4 rounded-xl">
-                              <View className="w-10 h-10 rounded-lg items-center justify-center mr-3">
+                            <View renderToHardwareTextureAndroid={true} style={{ backgroundColor: colors.card, paddingVertical: s(14), shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }} className={`flex-row items-center px-4 ${radius.xl}`}>
+                              <View className={`w-10 h-10 ${radius.lg} items-center justify-center mr-3`}>
                                 <SendIcon size={s(26)} />
                               </View>
                               <View className="flex-1">
-                                <Text style={{ color: colors.text }} className="text-sm font-nunito-semibold">
+                                <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
                                   Next Occurrence
                                 </Text>
-                                <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">
+                                <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>
                                   {`${nextOccurrence.start.toLocaleDateString('en-US', {
                                     month: 'short',
                                     day: 'numeric',
@@ -1774,7 +1774,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                   onTouchEnd={() => finalScrollRef.current?.setNativeProps({ scrollEnabled: true })}
                   onTouchCancel={() => finalScrollRef.current?.setNativeProps({ scrollEnabled: true })}
                 >
-                  <Text style={{ color: colors.textMuted }} className="text-xs font-nunito text-white tracking-wider">
+                  <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} text-white tracking-wider`}>
                     Duration
                   </Text>
                   <TimerPicker
@@ -1804,7 +1804,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                 {/* Or Pick a Date Divider */}
                 <View className="flex-row items-center my-6 -mx-6">
                   <View style={{ backgroundColor: colors.border }} className="flex-1 h-px" />
-                  <Text style={{ color: colors.textMuted }} className="text-xs font-nunito px-4">or</Text>
+                  <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} px-4`}>or</Text>
                   <View style={{ backgroundColor: colors.border }} className="flex-1 h-px" />
                 </View>
 
@@ -1820,17 +1820,17 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                   }}
                   activeOpacity={0.7}
                   style={{ backgroundColor: colors.card, paddingVertical: s(14), shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
-                  className="flex-row items-center px-4 rounded-xl"
+                  className={`flex-row items-center px-4 ${radius.xl}`}
                 >
-                  <View className="w-10 h-10 rounded-lg items-center justify-center mr-3">
+                  <View className={`w-10 h-10 ${radius.lg} items-center justify-center mr-3`}>
                     <CalendarIcon size={s(26)} />
                   </View>
                   <View className="flex-1">
-                    <Text style={{ color: colors.text }} className="text-sm font-nunito-semibold">
+                    <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
                       {targetDate ? 'Change Date' : 'Pick a Date'}
                     </Text>
                     {targetDate && (
-                      <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">
+                      <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>
                         Until {targetDate.toLocaleDateString('en-US', {
                           month: 'short',
                           day: 'numeric',
@@ -1848,7 +1848,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                       onPress={() => { lightTap(); setTargetDate(null); }}
                       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     >
-                      <Text style={{ color: '#FFFFFF' }} className="text-lg">✕</Text>
+                      <Text style={{ color: '#FFFFFF' }} className={`${textSize.large}`}>✕</Text>
                     </TouchableOpacity>
                   ) : (
                     <ChevronRightIcon size={s(20)} color="#FFFFFF" />
@@ -1864,8 +1864,8 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
             <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }}>
               <View style={{ paddingVertical: s(20) }} className="flex-row items-center justify-between px-6">
                 <TouchableOpacity onPress={() => toggleInfo('blockSettings')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
-                  <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">Block Settings App</Text>
-                  <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">Essential settings remain accessible</Text>
+                  <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Block Settings App</Text>
+                  <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>Essential settings remain accessible</Text>
                 </TouchableOpacity>
                 <AnimatedSwitch
                   value={blockSettings}
@@ -1886,7 +1886,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               </View>
               <ExpandableInfo expanded={!!expandedInfo.blockSettings}>
                 <TouchableOpacity onPress={() => toggleInfo('blockSettings')} activeOpacity={0.7} className="px-6 pb-4">
-                  <Text style={{ color: colors.text }} className="text-sm font-nunito leading-5">
+                  <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular} leading-5`}>
                     Prevents access to Android Settings during the block so that overlays and essential permissions cannot be disabled. Most essential settings like WiFi or battery settings remain accessible via quick panel by sliding down from your phone.
                   </Text>
                 </TouchableOpacity>
@@ -1897,8 +1897,8 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
             <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }}>
               <View style={{ paddingVertical: s(20) }} className="flex-row items-center justify-between px-6">
                 <TouchableOpacity onPress={() => toggleInfo('strictMode')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
-                  <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">Strict Mode</Text>
-                  <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">
+                  <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Strict Mode</Text>
+                  <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>
                     {noTimeLimit ? 'Disable "Continue anyway" button for blocked apps' : 'Lock until timer ends or emergency tapout'}
                   </Text>
                 </TouchableOpacity>
@@ -1933,7 +1933,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               </View>
               <ExpandableInfo expanded={!!expandedInfo.strictMode}>
                 <TouchableOpacity onPress={() => toggleInfo('strictMode')} activeOpacity={0.7} className="px-6 pb-4">
-                  <Text style={{ color: colors.text }} className="text-sm font-nunito leading-5">
+                  <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular} leading-5`}>
                     Removes the ability to unlock in any way and to dismiss blocked apps or sites. ONLY EXITS: timer expiring or Emergency Tapout (if enabled). Pair with the block settings toggle for maximum strictness.
                   </Text>
                 </TouchableOpacity>
@@ -1945,8 +1945,8 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }}>
                 <View style={{ paddingVertical: s(20) }} className="flex-row items-center justify-between px-6">
                   <TouchableOpacity onPress={() => toggleInfo('emergencyTapout')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
-                    <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">Allow Emergency Tapout</Text>
-                    <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">Use your emergency tapouts for this preset</Text>
+                    <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Allow Emergency Tapout</Text>
+                    <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>Use your emergency tapouts for this preset</Text>
                   </TouchableOpacity>
                   <AnimatedSwitch
                     value={allowEmergencyTapout}
@@ -1955,7 +1955,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                 </View>
                 <ExpandableInfo expanded={!!expandedInfo.emergencyTapout}>
                   <TouchableOpacity onPress={() => toggleInfo('emergencyTapout')} activeOpacity={0.7} className="px-6 pb-4">
-                    <Text style={{ color: colors.text }} className="text-sm font-nunito leading-5">
+                    <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular} leading-5`}>
                       Your safety net for Strict Mode blocks. Limited uses that refill +1 every two weeks. Disabling means NO way out except waiting.
                     </Text>
                   </TouchableOpacity>
@@ -1999,9 +1999,9 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               onPress={() => setRecurringUnitModalVisible(false)}
               className="flex-1 bg-black/70 justify-center items-center px-6"
             >
-              <View renderToHardwareTextureAndroid={true} style={{ backgroundColor: colors.card, shadowColor: '#000000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 10, elevation: 10 }} className="w-full rounded-2xl overflow-hidden">
+              <View renderToHardwareTextureAndroid={true} style={{ backgroundColor: colors.card, shadowColor: '#000000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 10, elevation: 10 }} className={`w-full ${radius['2xl']} overflow-hidden`}>
                 <View className="p-4">
-                  <Text style={{ color: colors.text }} className="text-lg font-nunito-bold text-center mb-4">
+                  <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.bold} text-center mb-4`}>
                     Select Unit
                   </Text>
                   {(['minutes', 'hours', 'days', 'weeks', 'months'] as RecurringUnit[]).map((unit) => (
@@ -2015,12 +2015,17 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                       activeOpacity={0.7}
                       style={{
                         backgroundColor: recurringUnit === unit ? '#22c55e' : colors.cardLight,
+                        shadowColor: '#000000',
+                        shadowOffset: { width: 0, height: 4 },
+                        shadowOpacity: 0.3,
+                        shadowRadius: 6,
+                        elevation: 6,
                       }}
-                      className="items-center justify-center py-4 px-4 rounded-xl mb-2"
+                      className={`items-center justify-center py-4 px-4 ${radius.xl} mb-2`}
                     >
                       <Text
                         style={{ color: recurringUnit === unit ? '#FFFFFF' : colors.text }}
-                        className="text-sm font-nunito-semibold capitalize"
+                        className={`${textSize.small} ${fontFamily.semibold} capitalize`}
                       >
                         {unit}
                       </Text>
@@ -2116,9 +2121,9 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
           {/* Header */}
           <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between px-4 py-3">
             <TouchableOpacity onPress={() => { lightTap(); onClose(); }} className="px-2">
-              <Text style={{ color: '#FFFFFF' }} className="text-base font-nunito">Cancel</Text>
+              <Text style={{ color: '#FFFFFF' }} className={`${textSize.base} ${fontFamily.regular}`}>Cancel</Text>
             </TouchableOpacity>
-            <Text style={{ color: colors.text }} className="text-lg font-nunito-semibold">
+            <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.semibold}`}>
               {preset ? 'Edit Preset' : 'New Preset'}
             </Text>
             <TouchableOpacity
@@ -2126,7 +2131,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               disabled={!canContinue}
               className="px-2"
             >
-              <Text style={{ color: canContinue ? '#FFFFFF' : colors.textMuted }} className="text-base font-nunito-semibold">
+              <Text style={{ color: canContinue ? '#FFFFFF' : colors.textMuted }} className={`${textSize.base} ${fontFamily.semibold}`}>
                 Next
               </Text>
             </TouchableOpacity>
@@ -2145,7 +2150,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               onChangeText={setName}
               maxLength={20}
               style={{ backgroundColor: colors.card, color: colors.text, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
-              className="rounded-xl px-4 py-3 text-sm font-nunito-semibold"
+              className={`${radius.xl} px-4 py-3 ${textSize.small} ${fontFamily.semibold}`}
             />
           </View>
 
@@ -2154,10 +2159,10 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
             <TouchableOpacity
               onPress={() => { lightTap(); switchTab('apps'); }}
               style={{ backgroundColor: activeTab === 'apps' ? colors.text : colors.card, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
-              className="flex-1 py-2 rounded-full items-center justify-center flex-row"
+              className={`flex-1 py-2 ${radius.full} items-center justify-center flex-row`}
             >
               <AndroidIcon size={s(16)} color={activeTab === 'apps' ? colors.bg : colors.text} />
-              <Text style={{ color: activeTab === 'apps' ? colors.bg : colors.text, marginLeft: 6 }} className="text-sm font-nunito-semibold">
+              <Text style={{ color: activeTab === 'apps' ? colors.bg : colors.text, marginLeft: 6 }} className={`${textSize.small} ${fontFamily.semibold}`}>
                 Apps
               </Text>
             </TouchableOpacity>
@@ -2165,10 +2170,10 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
             <TouchableOpacity
               onPress={() => { lightTap(); switchTab('websites'); }}
               style={{ backgroundColor: activeTab === 'websites' ? colors.text : colors.card, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
-              className="flex-1 py-3 rounded-full items-center justify-center flex-row"
+              className={`flex-1 py-3 ${radius.full} items-center justify-center flex-row`}
             >
               <GlobeIcon size={s(16)} color={activeTab === 'websites' ? colors.bg : colors.text} />
-              <Text style={{ color: activeTab === 'websites' ? colors.bg : colors.text, marginLeft: 6 }} className="text-sm font-nunito-semibold">
+              <Text style={{ color: activeTab === 'websites' ? colors.bg : colors.text, marginLeft: 6 }} className={`${textSize.small} ${fontFamily.semibold}`}>
                 Websites
               </Text>
             </TouchableOpacity>
@@ -2183,16 +2188,16 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                     onPress={openIOSAppPicker}
                     activeOpacity={0.7}
                     style={{ backgroundColor: colors.card, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
-                    className="flex-row items-center py-4 px-4 rounded-xl mb-4"
+                    className={`flex-row items-center py-4 px-4 ${radius.xl} mb-4`}
                   >
-                    <View className="w-12 h-12 rounded-xl items-center justify-center mr-4">
+                    <View className={`w-12 h-12 ${radius.xl} items-center justify-center mr-4`}>
                       <AppsIcon size={s(26)} color={colors.text} />
                     </View>
                     <View className="flex-1">
-                      <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">
+                      <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>
                         Select Apps to Block
                       </Text>
-                      <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">
+                      <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular}`}>
                         {iosSelectedAppsCount > 0
                           ? `${iosSelectedAppsCount} app${iosSelectedAppsCount !== 1 ? 's' : ''} selected`
                           : 'Tap to choose apps'}
@@ -2201,7 +2206,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                     <ChevronRightIcon size={s(24)} color={colors.textSecondary} />
                   </TouchableOpacity>
 
-                  <Text style={{ color: colors.textMuted }} className="text-sm font-nunito text-center px-4">
+                  <Text style={{ color: colors.textMuted }} className={`${textSize.small} ${fontFamily.regular} text-center px-4`}>
                     iOS uses Screen Time to block apps. Tap above to open the app picker.
                   </Text>
                 </View>
@@ -2216,7 +2221,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                     value={searchQuery}
                     onChangeText={setSearchQuery}
                     style={{ backgroundColor: colors.card, color: colors.text, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
-                    className="rounded-xl px-4 py-3 text-sm font-nunito-semibold"
+                    className={`${radius.xl} px-4 py-3 ${textSize.small} ${fontFamily.semibold}`}
                   />
                 </View>
 
@@ -2238,9 +2243,9 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                         });
                       }}
                       style={{ backgroundColor: colors.card, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
-                      className="flex-1 py-2 rounded-xl items-center mr-2"
+                      className={`flex-1 py-2 ${radius.xl} items-center mr-2`}
                     >
-                      <Text style={{ color: '#FFFFFF' }} className="text-sm font-nunito-semibold">
+                      <Text style={{ color: '#FFFFFF' }} className={`${textSize.small} ${fontFamily.semibold}`}>
                         Select All
                       </Text>
                     </TouchableOpacity>
@@ -2255,9 +2260,9 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                         setSelectedApps(prev => prev.filter(id => !filteredIds.has(id)));
                       }}
                       style={{ backgroundColor: colors.card, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
-                      className="flex-1 py-2 rounded-xl items-center"
+                      className={`flex-1 py-2 ${radius.xl} items-center`}
                     >
-                      <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito-semibold">
+                      <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.semibold}`}>
                         Deselect All
                       </Text>
                     </TouchableOpacity>
@@ -2313,18 +2318,18 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                       shadowRadius: 6,
                       elevation: 6,
                     }}
-                    className="flex-1 rounded-xl px-4 h-12 text-sm  font-nunito-semibold mr-2"
+                    className={`flex-1 ${radius.xl} px-4 h-12 ${textSize.small}  ${fontFamily.semibold} mr-2`}
                   />
                   <TouchableOpacity
                     onPress={addWebsite}
                     style={{ backgroundColor: colors.card, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
-                    className="w-11 h-11 rounded-full items-center justify-center"
+                    className={`w-11 h-11 ${radius.full} items-center justify-center`}
                   >
-                    <Text className="text-white text-2xl font-nunito-light">+</Text>
+                    <Text className={`text-white ${textSize['2xLarge']} ${fontFamily.light}`}>+</Text>
                   </TouchableOpacity>
                 </View>
 
-                <Text style={{ color: colors.textMuted }} className="text-xs font-nunito mb-4">
+                <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} mb-4`}>
                   Enter URLs like: instagram.com, reddit.com, etc
                 </Text>
 
@@ -2334,23 +2339,23 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                     key={site}
                     renderToHardwareTextureAndroid={true}
                     style={{ backgroundColor: colors.card, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
-                    className="flex-row items-center py-3 px-4 rounded-xl mb-2"
+                    className={`flex-row items-center py-3 px-4 ${radius.xl} mb-2`}
                   >
                     <View className="w-10 h-10 items-center justify-center mr-3">
                       <GlobeIcon size={s(32)} color={colors.textSecondary} />
                     </View>
-                    <Text style={{ color: colors.text }} className="flex-1 text-base font-nunito">{site}</Text>
+                    <Text style={{ color: colors.text }} className={`flex-1 ${textSize.base} ${fontFamily.regular}`}>{site}</Text>
                     <TouchableOpacity
                       onPress={() => removeWebsite(site)}
                       className="p-2"
                     >
-                      <Text style={{ color: "#FFFFFF" }} className="text-lg">✕</Text>
+                      <Text style={{ color: "#FFFFFF" }} className={`${textSize.large}`}>✕</Text>
                     </TouchableOpacity>
                   </View>
                 ))}
 
                 {blockedWebsites.length === 0 && (
-                  <Text style={{ color: colors.textSecondary }} className="text-center text-base font-nunito py-8">
+                  <Text style={{ color: colors.textSecondary }} className={`text-center ${textSize.base} ${fontFamily.regular} py-8`}>
                     No websites blocked yet
                   </Text>
                 )}

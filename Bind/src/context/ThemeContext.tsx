@@ -4,6 +4,58 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export type Theme = 'dark' | 'light';
 
+// Text size classes
+export const textSize = {
+  extraSmall: 'text-xs',
+  small: 'text-sm',
+  base: 'text-base',
+  large: 'text-lg',
+  xLarge: 'text-xl',
+  '2xLarge': 'text-2xl',
+  '4xLarge': 'text-4xl',
+} as const;
+
+// Font classes
+export const fontFamily = {
+  regular: 'font-nunito',
+  light: 'font-nunito-light',
+  semibold: 'font-nunito-semibold',
+  bold: 'font-nunito-bold',
+} as const;
+
+// Border radius classes
+export const radius = {
+  lg: 'rounded-lg',
+  xl: 'rounded-xl',
+  '2xl': 'rounded-2xl',
+  full: 'rounded-full',
+} as const;
+
+// Shadow style objects
+export const shadow = {
+  card: {
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 6,
+  },
+  modal: {
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    elevation: 10,
+  },
+  tabBar: {
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 8,
+  },
+} as const;
+
 // Color definitions for each theme
 export const themeColors = {
   dark: {

@@ -20,7 +20,7 @@ import BlockNowButton from '../components/BlockNowButton';
 import InfoModal from '../components/InfoModal';
 import EmergencyTapoutModal from '../components/EmergencyTapoutModal';
 import { getPresets, getLockStatus, updateLockStatus, Preset, getEmergencyTapoutStatus, useEmergencyTapout, EmergencyTapoutStatus, activatePreset, invalidateUserCaches, isFirstLoad, markInitialLoadComplete, clearAllCaches } from '../services/cardApi';
-import { useTheme } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { lightTap } from '../utils/haptics';
 
@@ -57,7 +57,7 @@ function GlowText({ text, color, glowOpacity, fontSize = 20 }: GlowTextProps) {
       {/* Invisible text for exact layout matching */}
       <Text
         style={{ opacity: 0 }}
-        className="text-xl font-nunito-semibold text-center"
+        className={`${textSize.xLarge} ${fontFamily.semibold} text-center`}
       >
         {text}
       </Text>
@@ -1077,30 +1077,30 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
           <View className="items-center justify-center mb-4">
             {isLocked && timeRemaining ? (
               <>
-                <Text style={{ color: colors.textMuted }} className="text-sm font-nunito mb-1">
+                <Text style={{ color: colors.textMuted }} className={`${textSize.small} ${fontFamily.regular} mb-1`}>
                   Will unlock in
                 </Text>
-                <Text style={{ color: colors.text }} className="text-4xl font-nunito-bold tracking-tight">
+                <Text style={{ color: colors.text }} className={`${textSize['4xLarge']} ${fontFamily.bold} tracking-tight`}>
                   {timeRemaining}
                 </Text>
               </>
             ) : isLocked && elapsedTime ? (
               <>
-                <Text style={{ color: colors.textMuted }} className="text-sm font-nunito">
+                <Text style={{ color: colors.textMuted }} className={`${textSize.small} ${fontFamily.regular}`}>
                   Locked for
                 </Text>
-                <Text style={{ color: colors.text }} className="text-4xl font-nunito-bold tracking-tight mt-2">
+                <Text style={{ color: colors.text }} className={`${textSize['4xLarge']} ${fontFamily.bold} tracking-tight mt-2`}>
                   {elapsedTime}
                 </Text>
               </>
             ) : isLocked ? (
               <>
-                <Text style={{ color: colors.text }} className="text-4xl font-nunito-bold mb-1">
+                <Text style={{ color: colors.text }} className={`${textSize['4xLarge']} ${fontFamily.bold} mb-1`}>
                   Locked
                 </Text>
               </>
             ) : (
-              <Text style={{ color: colors.text }} className="text-4xl font-nunito-bold">
+              <Text style={{ color: colors.text }} className={`${textSize['4xLarge']} ${fontFamily.bold}`}>
                 Not Locked
               </Text>
             )}
@@ -1111,7 +1111,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
             <View className="items-center justify-center">
               <Text
                 style={{ color: colors.text }}
-                className="text-lg font-nunito-semibold text-center"
+                className={`${textSize.large} ${fontFamily.semibold} text-center`}
               >
                 Preset: {currentPreset || 'None Selected'}
               </Text>
@@ -1119,7 +1119,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
 
             {/* Active settings display */}
             {activePreset && getActiveSettingsDisplay().length > 0 && (
-              <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito mt-2 text-center px-4">
+              <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular} mt-2 text-center px-4`}>
                 Blocking {getActiveSettingsDisplay().join(', ')}
               </Text>
             )}
@@ -1128,7 +1128,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
             {getPresetTimingSubtext() && (
               <Text
                 style={{ color: colors.textMuted }}
-                className="text-sm font-nunito mt-1 text-center"
+                className={`${textSize.small} ${fontFamily.regular} mt-1 text-center`}
               >
                 {getPresetTimingSubtext()}
               </Text>
@@ -1139,7 +1139,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
               <TouchableOpacity
                 onPress={() => { lightTap(); setScheduledPresetsModalVisible(true); }}
                 activeOpacity={0.7}
-                className="px-5 py-2.5 rounded-full flex-row items-center"
+                className={`px-5 py-2.5 ${radius.full} flex-row items-center`}
                 style={{
                   backgroundColor: colors.card,
                   position: 'absolute',
@@ -1176,7 +1176,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
                     })(),
                   }}
                 />
-                <Text style={{ color: colors.text }} className="text-sm font-nunito-semibold">
+                <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
                   {scheduledPresets.length} Scheduled
                 </Text>
               </TouchableOpacity>
@@ -1236,14 +1236,14 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
               shadowRadius: 10,
               elevation: 10,
             }}
-            className="w-full rounded-2xl overflow-hidden max-h-[70%]"
+            className={`w-full ${radius['2xl']} overflow-hidden max-h-[70%]`}
           >
             {/* Header */}
             <View style={{ borderBottomColor: colors.border }} className="p-4 border-b">
-              <Text style={{ color: colors.text }} className="text-lg font-nunito-bold text-center">
+              <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.bold} text-center`}>
                 Scheduled Presets
               </Text>
-              <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito text-center mt-1">
+              <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular} text-center mt-1`}>
                 {scheduledPresets.length} preset{scheduledPresets.length !== 1 ? 's' : ''} scheduled
               </Text>
             </View>
@@ -1264,17 +1264,17 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
                     className={`p-4 ${index < scheduledPresets.length - 1 ? 'border-b' : ''}`}
                   >
                     <View className="flex-row items-center">
-                      <View style={{ backgroundColor: isCurrentlyActive ? '#22c55e' : '#f59e0b' }} className="w-2 h-2 rounded-full mr-3" />
+                      <View style={{ backgroundColor: isCurrentlyActive ? '#22c55e' : '#f59e0b' }} className={`w-2 h-2 ${radius.full} mr-3`} />
                       <View className="flex-1">
-                        <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">
+                        <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>
                           {preset.name}
                         </Text>
-                        <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito mt-1">
+                        <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-1`}>
                           {formatScheduleDate(preset.scheduleStartDate!)} - {formatScheduleDate(preset.scheduleEndDate!)}
                         </Text>
                       </View>
-                      <View style={{ backgroundColor: colors.border }} className="px-2 py-0.5 rounded-full">
-                        <Text style={{ color: '#FFFFFF' }} className="text-xs font-nunito-semibold">
+                      <View style={{ backgroundColor: colors.border }} className={`px-2 py-0.5 ${radius.full}`}>
+                        <Text style={{ color: '#FFFFFF' }} className={`${textSize.extraSmall} ${fontFamily.semibold}`}>
                           {isCurrentlyActive ? 'Active' : isPending ? 'Pending' : 'Scheduled'}
                         </Text>
                       </View>
@@ -1291,7 +1291,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
                 activeOpacity={0.7}
                 className="py-4 items-center"
               >
-                <Text style={{ color: colors.textSecondary }} className="text-base font-nunito-semibold">
+                <Text style={{ color: colors.textSecondary }} className={`${textSize.base} ${fontFamily.semibold}`}>
                   Close
                 </Text>
               </TouchableOpacity>

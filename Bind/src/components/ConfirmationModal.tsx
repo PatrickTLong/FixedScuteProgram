@@ -6,7 +6,7 @@ import {
   Modal,
 } from 'react-native';
 import { lightTap, heavyTap } from '../utils/haptics';
-import { useTheme } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius } from '../context/ThemeContext';
 
 interface ConfirmationModalProps {
   visible: boolean;
@@ -49,14 +49,14 @@ function ConfirmationModal({
             shadowRadius: 10,
             elevation: 10,
           }}
-          className="w-full rounded-2xl overflow-hidden"
+          className={`w-full ${radius['2xl']} overflow-hidden`}
         >
           {/* Content */}
           <View className="p-6">
-            <Text style={{ color: colors.text }} className="text-xl font-nunito-bold text-center mb-3">
+            <Text style={{ color: colors.text }} className={`${textSize.xLarge} ${fontFamily.bold} text-center mb-3`}>
               {title}
             </Text>
-            <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito text-center leading-6">
+            <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular} text-center leading-6`}>
               {message}
             </Text>
           </View>
@@ -70,7 +70,7 @@ function ConfirmationModal({
               style={{ borderRightColor: colors.border }}
               className="flex-1 py-4 items-center border-r"
             >
-              <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">
+              <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular}`}>
                 {cancelText}
               </Text>
             </TouchableOpacity>
@@ -81,7 +81,7 @@ function ConfirmationModal({
               activeOpacity={0.7}
               className="flex-1 py-4 items-center"
             >
-              <Text style={{ color: '#FFFFFF' }} className="text-sm font-nunito-semibold">
+              <Text style={{ color: '#FFFFFF' }} className={`${textSize.small} ${fontFamily.semibold}`}>
                 {confirmText}
               </Text>
             </TouchableOpacity>

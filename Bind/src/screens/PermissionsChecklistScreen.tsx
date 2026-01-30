@@ -13,7 +13,7 @@ import LottieView from 'lottie-react-native';
 const Lottie = LottieView as any;
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
-import { useTheme } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { lightTap } from '../utils/haptics';
 
@@ -282,7 +282,7 @@ function PermissionsChecklistScreen({ onComplete }: Props) {
           speed={2}
           style={{ width: s(250), height: s(250) }}
         />
-        <Text style={{ color: colors.textSecondary }} className="text-base font-nunito mt-4">
+        <Text style={{ color: colors.textSecondary }} className={`${textSize.base} ${fontFamily.regular} mt-4`}>
           Checking permissions...
         </Text>
       </SafeAreaView>
@@ -301,12 +301,12 @@ function PermissionsChecklistScreen({ onComplete }: Props) {
         </View>
 
         {/* Title */}
-        <Text style={{ color: colors.text }} className="text-2xl font-nunito-bold text-center mb-3">
+        <Text style={{ color: colors.text }} className={`${textSize['2xLarge']} ${fontFamily.bold} text-center mb-3`}>
           {missingCount} permission{missingCount !== 1 ? 's' : ''} missing
         </Text>
 
         {/* Subtitle */}
-        <Text style={{ color: colors.textSecondary }} className="text-center text-sm font-nunito mb-8 px-4">
+        <Text style={{ color: colors.textSecondary }} className={`text-center ${textSize.small} ${fontFamily.regular} mb-8 px-4`}>
           Scute needs these permissions to block distractions & cheats.
         </Text>
 
@@ -317,13 +317,13 @@ function PermissionsChecklistScreen({ onComplete }: Props) {
             onPress={() => { lightTap(); openPermissionSettings(permission); }}
             activeOpacity={0.7}
             style={{ backgroundColor: colors.card, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
-            className="flex-row items-center p-4 rounded-2xl mb-3"
+            className={`flex-row items-center p-4 ${radius['2xl']} mb-3`}
           >
             <View className="flex-1">
-              <Text style={{ color: colors.text }} className="text-base font-nunito-semibold mb-1">
+              <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold} mb-1`}>
                 {permission.title}
               </Text>
-              <Text style={{ color: colors.textSecondary }} className={`${permission.descriptionStyle || 'text-xs'} text-xs font-nunito`}>
+              <Text style={{ color: colors.textSecondary }} className={`${permission.descriptionStyle || textSize.extraSmall} ${textSize.extraSmall} ${fontFamily.regular}`}>
                 {permission.description}
               </Text>
             </View>
@@ -335,7 +335,7 @@ function PermissionsChecklistScreen({ onComplete }: Props) {
         {/* Granted permissions (collapsed) */}
         {grantedCount > 0 && (
           <View className="mt-4">
-            <Text style={{ color: colors.textMuted }} className="text-sm font-nunito mb-2 uppercase tracking-wider">
+            <Text style={{ color: colors.textMuted }} className={`${textSize.small} ${fontFamily.regular} mb-2 uppercase tracking-wider`}>
               Enabled ({grantedCount})
             </Text>
             {permissions.filter(p => p.isGranted).map((permission) => (
@@ -343,10 +343,10 @@ function PermissionsChecklistScreen({ onComplete }: Props) {
                 key={permission.id}
                 renderToHardwareTextureAndroid={true}
                 style={{ backgroundColor: colors.card, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
-                className="flex-row items-center py-3 px-4 rounded-xl mb-2"
+                className={`flex-row items-center py-3 px-4 ${radius.xl} mb-2`}
               >
                 <AndroidIcon size={28} color="#FFFFFF" />
-                <Text style={{ color: '#FFFFFF' }} className="text-sm font-nunito ml-3">
+                <Text style={{ color: '#FFFFFF' }} className={`${textSize.small} ${fontFamily.regular} ml-3`}>
                   {permission.title}
                 </Text>
               </View>

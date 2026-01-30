@@ -7,7 +7,7 @@ import {
   Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useTheme } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { lightTap } from '../utils/haptics';
 
@@ -110,7 +110,7 @@ function LandingScreen({ onGetStarted }: Props) {
 
         {/* Tap to continue text below logo */}
         <Animated.View style={{ opacity: tapTextOpacity, marginTop: s(24) }}>
-          <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">
+          <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular}`}>
             Tap to continue...
           </Text>
         </Animated.View>

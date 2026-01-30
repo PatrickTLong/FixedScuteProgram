@@ -3,7 +3,7 @@ import { View, TouchableOpacity, Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import { lightTap } from '../utils/haptics';
-import { useTheme } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 
 type TabName = 'home' | 'presets' | 'settings';
@@ -95,7 +95,7 @@ const TabItem = memo(({ name, label, isActive, onPress, icon, activeColor, inact
       {icon}
       <Text
         style={{ color: isActive ? activeColor : inactiveColor }}
-        className="text-xs mt-1 font-nunito"
+        className={`${textSize.extraSmall} mt-1 ${fontFamily.regular}`}
       >
         {label}
       </Text>
