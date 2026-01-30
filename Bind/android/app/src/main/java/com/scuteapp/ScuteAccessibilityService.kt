@@ -142,28 +142,14 @@ class ScuteAccessibilityService : AccessibilityService() {
 
         // INSTANT Settings blocking via Accessibility (faster than UsageStats polling)
         // Only handle Settings here; regular apps are handled by AppMonitorService
-        // Only act on TYPE_WINDOW_STATE_CHANGED (new activity/dialog), not TYPE_WINDOW_CONTENT_CHANGED
-        // Content change events carry View class names (ListView, etc.) not Activity names
-        if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED &&
-            isSettingsPackage(packageName) && shouldBlockSettings()) {
-            val className = event.className?.toString() ?: ""
+        if (isSettingsPackage(packageName) && shouldBlockSettings()) {
+            Log.d(TAG, "BLOCKING Settings via Accessibility: $packageName")
 
-            // Skip framework view classes (FrameLayout, etc.) - these are transition/loading
-            // windows, not real activity changes
-            if (className.startsWith("android.") || className.isEmpty()) return
+            // Show blocked overlay INSTANTLY (before Settings renders)
+            AppMonitorService.instance?.blockSettingsNow(packageName)
 
-            // Allow WiFi settings screen through
-            if (isWifiSettingsActivity(className)) {
-                Log.d(TAG, "ALLOWING WiFi settings screen: $className")
-            } else {
-                Log.d(TAG, "BLOCKING Settings via Accessibility: $packageName (class: $className)")
-
-                // Show blocked overlay INSTANTLY (before Settings renders)
-                AppMonitorService.instance?.blockSettingsNow(packageName)
-
-                // Also go back to close Settings underneath the overlay
-                performGlobalAction(GLOBAL_ACTION_BACK)
-            }
+            // Also go back to close Settings underneath the overlay
+            performGlobalAction(GLOBAL_ACTION_BACK)
         }
 
         // Website blocking is now handled by WebsiteMonitorService with fast polling
@@ -188,29 +174,6 @@ class ScuteAccessibilityService : AccessibilityService() {
                packageName == "com.asus.settings" ||
                packageName == "com.sony.settings" ||
                packageName.contains("settings", ignoreCase = true)
-    }
-
-    /**
-     * Check if this is a WiFi settings activity (allowed through even when Settings is blocked).
-     * Covers WiFi activity names across Android versions and manufacturers:
-     * - "wifi" / "wi-fi" / "wi_fi": WifiSettings, MobileWifiSettings, etc.
-     * - "networkprovidersettings": Android 12+ replacement for WifiSettings
-     * - "internetdialog": Android 12+ quick panel for WiFi/mobile data
-     * - "deeplinkhomepageactivity": Android 12+ deep link from quick settings tiles
-     * - "settingshomepageactivity": Main settings homepage (allows navigating to WiFi)
-     * - "subsettings": Generic container for settings sub-screens
-     */
-    private fun isWifiSettingsActivity(className: String): Boolean {
-        if (className.isEmpty()) return false
-        val lower = className.lowercase()
-        return lower.contains("wifi") ||
-               lower.contains("wi-fi") ||
-               lower.contains("wi_fi") ||
-               lower.contains("networkprovidersettings") ||
-               lower.contains("internetdialog") ||
-               lower.contains("deeplinkhomepageactivity") ||
-               lower.contains("settingshomepageactivity") ||
-               lower.contains("subsettings")
     }
 
     /**
