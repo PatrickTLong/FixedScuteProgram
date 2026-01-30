@@ -112,7 +112,16 @@ export default function GoogleSignInBtn({ onSuccess, onError, disabled }: Props)
       onPress={handleGoogleSignIn}
       disabled={disabled || loading}
       activeOpacity={0.8}
-      style={{ backgroundColor: colors.card, position: 'relative' }}
+      renderToHardwareTextureAndroid={true}
+      style={{
+        backgroundColor: colors.card,
+        position: 'relative',
+        shadowColor: '#000000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 6,
+        elevation: 6,
+      }}
       className="rounded-full py-4 items-center justify-center"
     >
       <View style={{ opacity: loading ? 0 : 1 }} className="flex-row items-center justify-center">

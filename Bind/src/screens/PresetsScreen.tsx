@@ -690,7 +690,14 @@ function PresetsScreen({ userEmail }: Props) {
           onPress={() => { lightTap(); handleAddPreset(); }}
           activeOpacity={0.7}
           disabled={isDisabled}
-          style={{ backgroundColor: colors.card }}
+          style={{
+            backgroundColor: colors.card,
+            shadowColor: '#000000',
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.3,
+            shadowRadius: 6,
+            elevation: 6,
+          }}
           className="w-11 h-11 rounded-full items-center justify-center"
         >
           <Text className="text-2xl font-nunito-light text-white">+</Text>

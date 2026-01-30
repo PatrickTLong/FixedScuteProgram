@@ -635,7 +635,7 @@ function App() {
         case 'main':
           return (
             <View style={{ flex: 1, backgroundColor: colors.bg }}>
-              <Animated.View style={{ flex: 1, backgroundColor: colors.bg, opacity: tabFadeAnim }}>
+              <Animated.View renderToHardwareTextureAndroid={true} style={{ flex: 1, backgroundColor: colors.bg, opacity: tabFadeAnim }}>
                 {displayedTab === 'home' && (
                   <HomeScreen
                     email={userEmail}
@@ -673,7 +673,7 @@ function App() {
     if (isAuthScreen) {
       return (
         <View style={{ flex: 1, backgroundColor: colors.bg }}>
-          <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
+          <Animated.View renderToHardwareTextureAndroid={true} style={{ flex: 1, opacity: fadeAnim }}>
             {screenContent}
           </Animated.View>
         </View>

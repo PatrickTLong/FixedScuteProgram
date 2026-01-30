@@ -1210,7 +1210,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
       <TouchableOpacity
         onPress={() => toggleApp(item.id)}
         activeOpacity={0.7}
-        style={{ backgroundColor: colors.card }}
+        style={{ backgroundColor: colors.card, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
         className="flex-row items-center py-3 px-4 rounded-xl mb-2"
       >
         {/* App Icon - native already provides squircle shape */}
@@ -1257,7 +1257,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
         presentationStyle="pageSheet"
       >
         <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
-          <Animated.View style={{ flex: 1, opacity: stepFadeAnim }}>
+          <Animated.View renderToHardwareTextureAndroid={true} style={{ flex: 1, opacity: stepFadeAnim }}>
             {/* Header */}
             <View style={{ borderBottomColor: colors.border }} className="flex-row items-center justify-between px-4 py-3 border-b">
               <TouchableOpacity onPress={dpHandleCancel} className="px-2">
@@ -1391,7 +1391,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                   {dpTempSelectedDate && (
                     <TouchableOpacity
                       onPress={dpHandleClear}
-                      style={{ backgroundColor: colors.card }}
+                      style={{ backgroundColor: colors.card, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
                       className="ml-4 px-4 py-2 rounded-full"
                     >
                       <Text style={{ color: '#FFFFFF' }} className="text-sm font-nunito-semibold">Clear</Text>
@@ -1419,7 +1419,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
         presentationStyle="pageSheet"
       >
         <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
-          <Animated.View style={{ flex: 1, opacity: stepFadeAnim }}>
+          <Animated.View renderToHardwareTextureAndroid={true} style={{ flex: 1, opacity: stepFadeAnim }}>
             {/* Header */}
             <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between px-4 py-3">
               <TouchableOpacity onPress={() => { lightTap(); goToStep('first'); }} disabled={isSaving} className="px-2">
@@ -1537,7 +1537,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                 <TouchableOpacity
                   onPress={() => openDatePicker('scheduleStart')}
                   activeOpacity={0.7}
-                  style={{ backgroundColor: colors.card, paddingVertical: s(14) }}
+                  style={{ backgroundColor: colors.card, paddingVertical: s(14), shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
                   className="flex-row items-center px-4 rounded-xl mb-3"
                 >
                   <View  className="w-10 h-10 rounded-lg items-center justify-center mr-3">
@@ -1577,7 +1577,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                 <TouchableOpacity
                   onPress={() => openDatePicker('scheduleEnd')}
                   activeOpacity={0.7}
-                  style={{ backgroundColor: colors.card, paddingVertical: s(14) }}
+                  style={{ backgroundColor: colors.card, paddingVertical: s(14), shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
                   className="flex-row items-center px-4 rounded-xl"
                 >
                   <View  className="w-10 h-10 rounded-lg items-center justify-center mr-3">
@@ -1672,7 +1672,8 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
 
                         {/* Number Input */}
                         <View
-                          style={{ backgroundColor: colors.card, paddingVertical: s(14) }}
+                          renderToHardwareTextureAndroid={true}
+                          style={{ backgroundColor: colors.card, paddingVertical: s(14), shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
                           className="flex-row items-center px-4 rounded-xl mb-3"
                         >
                           <View className="w-10 h-10 rounded-lg items-center justify-center mr-3">
@@ -1706,7 +1707,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                             setRecurringUnitModalVisible(true);
                           }}
                           activeOpacity={0.7}
-                          style={{ backgroundColor: colors.card, paddingVertical: s(14) }}
+                          style={{ backgroundColor: colors.card, paddingVertical: s(14), shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
                           className="flex-row items-center px-4 rounded-xl mb-3"
                         >
                           <View className="w-10 h-10 rounded-lg items-center justify-center mr-3">
@@ -1728,7 +1729,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                           const isSameDay = nextOccurrence.start.toDateString() === nextOccurrence.end.toDateString();
 
                           return (
-                            <View style={{ backgroundColor: colors.card, paddingVertical: s(14) }} className="flex-row items-center px-4 rounded-xl">
+                            <View renderToHardwareTextureAndroid={true} style={{ backgroundColor: colors.card, paddingVertical: s(14), shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }} className="flex-row items-center px-4 rounded-xl">
                               <View className="w-10 h-10 rounded-lg items-center justify-center mr-3">
                                 <SendIcon size={s(26)} />
                               </View>
@@ -1818,7 +1819,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                     openDatePicker('targetDate');
                   }}
                   activeOpacity={0.7}
-                  style={{ backgroundColor: colors.card, paddingVertical: s(14) }}
+                  style={{ backgroundColor: colors.card, paddingVertical: s(14), shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
                   className="flex-row items-center px-4 rounded-xl"
                 >
                   <View className="w-10 h-10 rounded-lg items-center justify-center mr-3">
@@ -1998,7 +1999,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               onPress={() => setRecurringUnitModalVisible(false)}
               className="flex-1 bg-black/70 justify-center items-center px-6"
             >
-              <View style={{ backgroundColor: colors.card }} className="w-full rounded-2xl overflow-hidden">
+              <View renderToHardwareTextureAndroid={true} style={{ backgroundColor: colors.card, shadowColor: '#000000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 10, elevation: 10 }} className="w-full rounded-2xl overflow-hidden">
                 <View className="p-4">
                   <Text style={{ color: colors.text }} className="text-lg font-nunito-bold text-center mb-4">
                     Select Unit
@@ -2111,7 +2112,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
       presentationStyle="pageSheet"
     >
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
-        <Animated.View style={{ flex: 1, opacity: stepFadeAnim }}>
+        <Animated.View renderToHardwareTextureAndroid={true} style={{ flex: 1, opacity: stepFadeAnim }}>
           {/* Header */}
           <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between px-4 py-3">
             <TouchableOpacity onPress={() => { lightTap(); onClose(); }} className="px-2">
@@ -2143,7 +2144,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               value={name}
               onChangeText={setName}
               maxLength={20}
-              style={{ backgroundColor: colors.card, color: colors.text }}
+              style={{ backgroundColor: colors.card, color: colors.text, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
               className="rounded-xl px-4 py-3 text-sm font-nunito-semibold"
             />
           </View>
@@ -2152,7 +2153,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
           <View className="flex-row mx-6 mb-4">
             <TouchableOpacity
               onPress={() => { lightTap(); switchTab('apps'); }}
-              style={{ backgroundColor: activeTab === 'apps' ? colors.text : colors.card }}
+              style={{ backgroundColor: activeTab === 'apps' ? colors.text : colors.card, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
               className="flex-1 py-2 rounded-full items-center justify-center flex-row"
             >
               <AndroidIcon size={s(16)} color={activeTab === 'apps' ? colors.bg : colors.text} />
@@ -2163,7 +2164,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
             <View className="w-2" />
             <TouchableOpacity
               onPress={() => { lightTap(); switchTab('websites'); }}
-              style={{ backgroundColor: activeTab === 'websites' ? colors.text : colors.card }}
+              style={{ backgroundColor: activeTab === 'websites' ? colors.text : colors.card, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
               className="flex-1 py-3 rounded-full items-center justify-center flex-row"
             >
               <GlobeIcon size={s(16)} color={activeTab === 'websites' ? colors.bg : colors.text} />
@@ -2181,7 +2182,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                   <TouchableOpacity
                     onPress={openIOSAppPicker}
                     activeOpacity={0.7}
-                    style={{ backgroundColor: colors.card }}
+                    style={{ backgroundColor: colors.card, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
                     className="flex-row items-center py-4 px-4 rounded-xl mb-4"
                   >
                     <View className="w-12 h-12 rounded-xl items-center justify-center mr-4">
@@ -2214,7 +2215,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                     placeholderTextColor={colors.textMuted}
                     value={searchQuery}
                     onChangeText={setSearchQuery}
-                    style={{ backgroundColor: colors.card, color: colors.text }}
+                    style={{ backgroundColor: colors.card, color: colors.text, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
                     className="rounded-xl px-4 py-3 text-sm font-nunito-semibold"
                   />
                 </View>
@@ -2236,7 +2237,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                           return Array.from(newSet);
                         });
                       }}
-                      style={{ backgroundColor: colors.card }}
+                      style={{ backgroundColor: colors.card, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
                       className="flex-1 py-2 rounded-xl items-center mr-2"
                     >
                       <Text style={{ color: '#FFFFFF' }} className="text-sm font-nunito-semibold">
@@ -2253,7 +2254,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                         const filteredIds = new Set(filteredApps.map(app => app.id));
                         setSelectedApps(prev => prev.filter(id => !filteredIds.has(id)));
                       }}
-                      style={{ backgroundColor: colors.card }}
+                      style={{ backgroundColor: colors.card, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
                       className="flex-1 py-2 rounded-xl items-center"
                     >
                       <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito-semibold">
@@ -2306,12 +2307,17 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                       textAlignVertical: 'center',
                       includeFontPadding: false,
                       paddingVertical: 0,
+                      shadowColor: '#000000',
+                      shadowOffset: { width: 0, height: 4 },
+                      shadowOpacity: 0.3,
+                      shadowRadius: 6,
+                      elevation: 6,
                     }}
                     className="flex-1 rounded-xl px-4 h-12 text-sm  font-nunito-semibold mr-2"
                   />
                   <TouchableOpacity
                     onPress={addWebsite}
-                    style={{ backgroundColor: colors.card }}
+                    style={{ backgroundColor: colors.card, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
                     className="w-11 h-11 rounded-full items-center justify-center"
                   >
                     <Text className="text-white text-2xl font-nunito-light">+</Text>
@@ -2326,7 +2332,8 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                 {blockedWebsites.map((site) => (
                   <View
                     key={site}
-                    style={{ backgroundColor: colors.card }}
+                    renderToHardwareTextureAndroid={true}
+                    style={{ backgroundColor: colors.card, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
                     className="flex-row items-center py-3 px-4 rounded-xl mb-2"
                   >
                     <View className="w-10 h-10 items-center justify-center mr-3">

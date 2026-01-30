@@ -223,6 +223,11 @@ function BlockNowButton({
         style={{
           backgroundColor: colors.card,
           opacity: 0.6,
+          shadowColor: '#000000',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.3,
+          shadowRadius: 6,
+          elevation: 6,
         }}
       >
         <View className="flex-1 flex-row items-center justify-center">
@@ -245,9 +250,15 @@ function BlockNowButton({
       <View
         onLayout={(e) => { buttonWidthRef.current = e.nativeEvent.layout.width; }}
         {...slidePanResponder.panHandlers}
+        renderToHardwareTextureAndroid={true}
         className="h-14 rounded-full overflow-hidden"
         style={{
           backgroundColor: colors.card,
+          shadowColor: '#000000',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.3,
+          shadowRadius: 6,
+          elevation: 6,
         }}
       >
         {/* Text - always visible, positioned below the fill */}
@@ -278,10 +289,16 @@ function BlockNowButton({
   return (
     <View
       {...(canActivate ? holdPanResponder.panHandlers : {})}
+      renderToHardwareTextureAndroid={true}
       className="h-14 rounded-full overflow-hidden"
       style={{
         backgroundColor: colors.card,
         borderWidth: 0,
+        shadowColor: '#000000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 6,
+        elevation: 6,
       }}
     >
       {/* Button Content */}

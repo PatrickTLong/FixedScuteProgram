@@ -535,10 +535,10 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
         showsVerticalScrollIndicator={false}
       >
         {/* ACCOUNT Section */}
-        <Text style={{ color: colors.textMuted }} className="text-xs font-nunito uppercase tracking-wider mb-2">
+        <Text style={{ color: colors.textMuted }} className="text-xs font-nunito tracking-wider mb-2">
           Account
         </Text>
-        <View style={{ backgroundColor: colors.card }} className="rounded-2xl mb-6">
+        <View renderToHardwareTextureAndroid={true} style={{ backgroundColor: colors.card, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }} className="rounded-2xl mb-6">
           <SettingsRow
             icon={<MailIcon />}
             label={email}
@@ -587,10 +587,10 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
         </View>
 
         {/* EMERGENCY TAPOUT Section */}
-        <Text style={{ color: colors.textMuted }} className="text-xs font-nunito uppercase tracking-wider mb-2">
+        <Text style={{ color: colors.textMuted }} className="text-xs font-nunito  tracking-wider mb-2">
           Emergency Tapout
         </Text>
-        <View style={{ backgroundColor: colors.card }} className="rounded-2xl mb-6">
+        <View renderToHardwareTextureAndroid={true} style={{ backgroundColor: colors.card, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }} className="rounded-2xl mb-6">
           {/* Header Row */}
           <View
             style={getTimeUntilRefill() ? { borderBottomWidth: 1, borderBottomColor: colors.border, paddingVertical: s(16) } : { paddingVertical: s(16) }}
@@ -622,10 +622,10 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
         </View>
 
         {/* SUPPORT Section */}
-        <Text style={{ color: colors.textMuted }} className="text-xs font-nunito uppercase tracking-wider mb-2">
+        <Text style={{ color: colors.textMuted }} className="text-xs font-nunito  tracking-wider mb-2">
           Support
         </Text>
-        <View style={{ backgroundColor: colors.card }} className="rounded-2xl">
+        <View renderToHardwareTextureAndroid={true} style={{ backgroundColor: colors.card, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }} className="rounded-2xl">
           <SettingsRow
             icon={<MessageIcon />}
             label="Contact Support"
@@ -666,7 +666,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
         </View>
 
         {/* DATA Section */}
-        <Text style={{ color: colors.textMuted }} className="text-xs font-nunito uppercase tracking-wider mb-2 mt-6">
+        <Text style={{ color: colors.textMuted }} className="text-xs font-nunito tracking-wider mb-2 mt-6">
           Data
         </Text>
         {resetError && (
@@ -679,7 +679,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
             <Text style={{ color: '#FF5C5C' }} className="text-sm font-nunito">{deleteError}</Text>
           </View>
         )}
-        <View style={{ backgroundColor: colors.card }} className="rounded-2xl">
+        <View renderToHardwareTextureAndroid={true} style={{ backgroundColor: colors.card, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }} className="rounded-2xl">
           <SettingsRow
             icon={<RefreshIcon />}
             label="Reset Account"
@@ -1046,6 +1046,11 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
                 borderWidth: 2,
                 borderColor: selectedPlan === 'monthly' ? '#FFFFFF' : 'transparent',
                 padding: s(16),
+                shadowColor: '#000000',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.3,
+                shadowRadius: 6,
+                elevation: 6,
               }}
               className="rounded-2xl mb-3"
             >
@@ -1074,6 +1079,11 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
                 borderWidth: 2,
                 borderColor: selectedPlan === 'yearly' ? '#FFFFFF' : 'transparent',
                 padding: s(16),
+                shadowColor: '#000000',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.3,
+                shadowRadius: 6,
+                elevation: 6,
               }}
               className="rounded-2xl mb-3"
             >
@@ -1107,6 +1117,11 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
                 borderWidth: 2,
                 borderColor: selectedPlan === 'lifetime' ? '#FFFFFF' : 'transparent',
                 padding: s(16),
+                shadowColor: '#000000',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.3,
+                shadowRadius: 6,
+                elevation: 6,
               }}
               className="rounded-2xl mb-6"
             >
@@ -1139,6 +1154,11 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
               style={{
                 backgroundColor: selectedPlan ? '#FFFFFF' : colors.border,
                 opacity: selectedPlan ? 1 : 0.5,
+                shadowColor: '#000000',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.3,
+                shadowRadius: 6,
+                elevation: 6,
               }}
               className="rounded-full py-3.5 items-center mb-3"
             >

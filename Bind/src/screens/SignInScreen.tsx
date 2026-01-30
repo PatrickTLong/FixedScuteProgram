@@ -236,7 +236,7 @@ function SignInScreen({ onBack, onSuccess, onForgotPassword }: Props) {
                     autoCapitalize="none"
                     autoCorrect={false}
                     editable={!loading}
-                    style={{ backgroundColor: colors.card, color: colors.text, height: s(52), paddingVertical: s(16) }}
+                    style={{ backgroundColor: colors.card, color: colors.text, height: s(52), paddingVertical: s(16), shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
                     className="rounded-full px-5 text-sm font-nunito"
                   />
                 </View>
@@ -254,7 +254,7 @@ function SignInScreen({ onBack, onSuccess, onForgotPassword }: Props) {
                       autoCapitalize="none"
                       autoCorrect={false}
                       editable={!loading}
-                      style={{ backgroundColor: colors.card, color: colors.text, paddingRight: s(50), height: s(52), paddingVertical: s(16) }}
+                      style={{ backgroundColor: colors.card, color: colors.text, paddingRight: s(50), height: s(52), paddingVertical: s(16), shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
                       className="rounded-full px-5 text-sm font-nunito"
                     />
                     <TouchableOpacity
@@ -321,7 +321,7 @@ function SignInScreen({ onBack, onSuccess, onForgotPassword }: Props) {
               onPress={() => { lightTap(); step === 'credentials' ? handleSignIn() : handleVerifyCode(); }}
               disabled={loading}
               activeOpacity={0.8}
-              style={{ backgroundColor: loading ? colors.textMuted : colors.text }}
+              style={{ backgroundColor: loading ? colors.textMuted : colors.text, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
               className="rounded-full py-4 items-center mb-4"
             >
               <Text style={{ color: loading ? colors.textSecondary : colors.bg }} className="text-sm font-nunito-semibold">

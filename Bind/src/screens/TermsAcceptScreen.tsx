@@ -146,7 +146,7 @@ function TermsAcceptScreen({ onAccept }: Props) {
         <TouchableOpacity
           onPress={() => { lightTap(); handleAcceptTerms(); }}
           activeOpacity={0.8}
-          style={{ backgroundColor: colors.card  }}
+          style={{ backgroundColor: colors.card, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
           className="rounded-full py-4 items-center"
         >
           <Text style={{ color: '#FFFFFF' }} className="text-sm font-nunito-semibold">

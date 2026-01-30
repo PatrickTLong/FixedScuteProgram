@@ -89,7 +89,18 @@ function EmergencyTapoutModal({
       onRequestClose={onClose}
     >
       <View className="flex-1 bg-black/70 justify-center items-center px-6">
-        <View style={{ backgroundColor: colors.card }} className="w-full rounded-2xl overflow-hidden">
+        <View
+          renderToHardwareTextureAndroid={true}
+          style={{
+            backgroundColor: colors.card,
+            shadowColor: '#000000',
+            shadowOffset: { width: 0, height: 6 },
+            shadowOpacity: 0.4,
+            shadowRadius: 10,
+            elevation: 10,
+          }}
+          className="w-full rounded-2xl overflow-hidden"
+        >
           {/* Header */}
           <View className="p-6 pb-4 items-center">
             <Text style={{ color: colors.text }} className="text-2xl font-nunito-bold text-center">
@@ -127,6 +138,7 @@ function EmergencyTapoutModal({
                   : getUnavailableReason()}
               </Text>
 
+              <View renderToHardwareTextureAndroid={true} style={{ shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6 }}>
               <TouchableOpacity
                 onPress={() => {
                   mediumTap();
@@ -137,7 +149,8 @@ function EmergencyTapoutModal({
                 style={{
                   backgroundColor: canUseTapout ? '#f59e0b' : `${colors.textMuted}50`,
                   paddingVertical: s(14),
-                  width: '100%'
+                  width: '100%',
+                  elevation: 6,
                 }}
                 className="rounded-2xl items-center"
               >
@@ -159,6 +172,7 @@ function EmergencyTapoutModal({
                   </View>
                 )}
               </TouchableOpacity>
+              </View>
             </View>
           </View>
 

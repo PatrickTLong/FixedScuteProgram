@@ -52,6 +52,11 @@ function MembershipScreen({ onPurchaseComplete }: Props) {
             borderWidth: 2,
             borderColor: selectedPlan === 'monthly' ? '#FFFFFF' : 'transparent',
             padding: s(16),
+            shadowColor: '#000000',
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.3,
+            shadowRadius: 6,
+            elevation: 6,
           }}
           className="rounded-2xl mb-3"
         >
@@ -80,6 +85,11 @@ function MembershipScreen({ onPurchaseComplete }: Props) {
             borderWidth: 2,
             borderColor: selectedPlan === 'yearly' ? '#FFFFFF' : 'transparent',
             padding: s(16),
+            shadowColor: '#000000',
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.3,
+            shadowRadius: 6,
+            elevation: 6,
           }}
           className="rounded-2xl mb-3"
         >
@@ -113,6 +123,11 @@ function MembershipScreen({ onPurchaseComplete }: Props) {
             borderWidth: 2,
             borderColor: selectedPlan === 'lifetime' ? '#FFFFFF' : 'transparent',
             padding: s(16),
+            shadowColor: '#000000',
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.3,
+            shadowRadius: 6,
+            elevation: 6,
           }}
           className="rounded-2xl mb-6"
         >
@@ -145,6 +160,11 @@ function MembershipScreen({ onPurchaseComplete }: Props) {
           style={{
             backgroundColor: selectedPlan ? '#FFFFFF' : colors.border,
             opacity: selectedPlan ? 1 : 0.5,
+            shadowColor: '#000000',
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.3,
+            shadowRadius: 6,
+            elevation: 6,
           }}
           className="rounded-full py-3.5 items-center mb-3"
         >

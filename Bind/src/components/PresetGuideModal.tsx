@@ -39,7 +39,7 @@ function PresetGuideModal({ visible, onClose }: PresetGuideModalProps) {
       onRequestClose={onClose}
     >
       <View style={{ flex: 1, backgroundColor: colors.bg }}>
-        <Animated.View style={{ flex: 1, opacity: contentFadeAnim }}>
+        <Animated.View renderToHardwareTextureAndroid={true} style={{ flex: 1, opacity: contentFadeAnim }}>
           <SafeAreaView style={{ flex: 1 }}>
         {/* Header */}
         <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between px-4 py-3">

@@ -1046,7 +1046,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
           style={{ position: 'absolute', top: s(-32), left: s(-8), zIndex: 10 }}
         >
           {/* Unlocked logo - fades out when actively locked */}
-          <Animated.View style={{ opacity: unlockedOpacity, position: 'absolute' }}>
+          <Animated.View renderToHardwareTextureAndroid={true} style={{ opacity: unlockedOpacity, position: 'absolute' }}>
             <Image
               source={scuteLogo}
               style={{
@@ -1058,7 +1058,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
             />
           </Animated.View>
           {/* Locked logo - fades in when actively locked */}
-          <Animated.View style={{ opacity: lockedOpacity }}>
+          <Animated.View renderToHardwareTextureAndroid={true} style={{ opacity: lockedOpacity }}>
             <Image
               source={scuteLogo}
               style={{
@@ -1145,6 +1145,11 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
                   position: 'absolute',
                   top: '100%',
                   marginTop: s(24),
+                  shadowColor: '#000000',
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.3,
+                  shadowRadius: 6,
+                  elevation: 6,
                 }}
               >
                 {/* Status dot */}
@@ -1221,7 +1226,18 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
         onRequestClose={() => setScheduledPresetsModalVisible(false)}
       >
         <View className="flex-1 bg-black/70 justify-center items-center px-6">
-          <View style={{ backgroundColor: colors.card }} className="w-full rounded-2xl overflow-hidden max-h-[70%]">
+          <View
+            renderToHardwareTextureAndroid={true}
+            style={{
+              backgroundColor: colors.card,
+              shadowColor: '#000000',
+              shadowOffset: { width: 0, height: 6 },
+              shadowOpacity: 0.4,
+              shadowRadius: 10,
+              elevation: 10,
+            }}
+            className="w-full rounded-2xl overflow-hidden max-h-[70%]"
+          >
             {/* Header */}
             <View style={{ borderBottomColor: colors.border }} className="p-4 border-b">
               <Text style={{ color: colors.text }} className="text-lg font-nunito-bold text-center">

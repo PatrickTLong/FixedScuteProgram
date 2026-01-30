@@ -32,7 +32,7 @@ function RecurrenceInfoModal({ visible, onClose }: RecurrenceInfoModalProps) {
       onRequestClose={handleClose}
     >
       <View className="flex-1 bg-black/70 justify-center items-center px-6">
-        <View style={{ backgroundColor: colors.card }} className="w-full rounded-2xl overflow-hidden">
+        <View renderToHardwareTextureAndroid={true} style={{ backgroundColor: colors.card, shadowColor: '#000000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 10, elevation: 10 }} className="w-full rounded-2xl overflow-hidden">
           {/* Content */}
           <View className="p-6">
             <Text style={{ color: colors.text }} className="text-xl font-nunito-bold text-center mb-4">

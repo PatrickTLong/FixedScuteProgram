@@ -115,7 +115,17 @@ function BottomTabBar({ activeTab, onTabPress }: BottomTabBarProps) {
 
   return (
     <View
-      style={{ backgroundColor: colors.bg, borderTopColor: colors.border, paddingBottom: bottomPadding }}
+      renderToHardwareTextureAndroid={true}
+      style={{
+        backgroundColor: colors.bg,
+        borderTopColor: colors.border,
+        paddingBottom: bottomPadding,
+        shadowColor: '#000000',
+        shadowOffset: { width: 0, height: -4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 6,
+        elevation: 8,
+      }}
       className="flex-row border-t pt-2"
     >
       <TabItem

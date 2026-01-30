@@ -230,7 +230,7 @@ const AmPmSelector = memo(({ value, onChange, greenColor, cardColor, textMutedCo
   <View className="ml-2">
     <TouchableOpacity
       onPress={() => { lightTap(); onChange('AM'); }}
-      style={{ backgroundColor: value === 'AM' ? '#22c55e' : cardColor }}
+      style={{ backgroundColor: value === 'AM' ? '#22c55e' : cardColor, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
       className="px-3 py-2 rounded-lg"
     >
       <Text style={{ color: value === 'AM' ? '#FFFFFF' : textMutedColor }} className="text-base font-nunito-semibold">
@@ -239,7 +239,7 @@ const AmPmSelector = memo(({ value, onChange, greenColor, cardColor, textMutedCo
     </TouchableOpacity>
     <TouchableOpacity
       onPress={() => { lightTap(); onChange('PM'); }}
-      style={{ backgroundColor: value === 'PM' ? '#22c55e' : cardColor }}
+      style={{ backgroundColor: value === 'PM' ? '#22c55e' : cardColor, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
       className="px-3 py-2 rounded-lg mt-1"
     >
       <Text style={{ color: value === 'PM' ? '#FFFFFF' : textMutedColor }} className="text-base font-nunito-semibold">
@@ -594,7 +594,7 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
               {tempSelectedDate && (
                 <TouchableOpacity
                   onPress={handleClear}
-                  style={{ backgroundColor: colors.card }}
+                  style={{ backgroundColor: colors.card, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
                   className="ml-4 px-4 py-2 rounded-full"
                 >
                   <Text style={{ color: '#FFFFFF' }} className="text-sm font-nunito-semibold">Clear</Text>

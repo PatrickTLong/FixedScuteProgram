@@ -70,7 +70,14 @@ function Button({
       onPress={handlePress}
       disabled={disabled || loading}
       activeOpacity={0.8}
-      style={getButtonStyle()}
+      renderToHardwareTextureAndroid={true}
+      style={[getButtonStyle(), {
+        shadowColor: '#000000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 6,
+        elevation: 6,
+      }]}
       className={`rounded-full py-4 px-6 items-center justify-center${fullWidth ? ' w-full' : ''}`}
     >
       <Text style={[getTextStyle(), loading && { opacity: 0 }]} className="text-base font-nunito-semibold">{title}</Text>

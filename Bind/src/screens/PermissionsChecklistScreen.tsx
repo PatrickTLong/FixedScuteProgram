@@ -316,7 +316,7 @@ function PermissionsChecklistScreen({ onComplete }: Props) {
             key={permission.id}
             onPress={() => { lightTap(); openPermissionSettings(permission); }}
             activeOpacity={0.7}
-            style={{ backgroundColor: colors.card }}
+            style={{ backgroundColor: colors.card, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
             className="flex-row items-center p-4 rounded-2xl mb-3"
           >
             <View className="flex-1">
@@ -341,7 +341,8 @@ function PermissionsChecklistScreen({ onComplete }: Props) {
             {permissions.filter(p => p.isGranted).map((permission) => (
               <View
                 key={permission.id}
-                style={{ backgroundColor: colors.card }}
+                renderToHardwareTextureAndroid={true}
+                style={{ backgroundColor: colors.card, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
                 className="flex-row items-center py-3 px-4 rounded-xl mb-2"
               >
                 <AndroidIcon size={28} color="#FFFFFF" />

@@ -273,7 +273,15 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, disabled
       onPress={handlePress}
       onLongPress={handleLongPress}
       delayLongPress={500}
-      style={{ backgroundColor: colors.card }}
+      renderToHardwareTextureAndroid={true}
+      style={{
+        backgroundColor: colors.card,
+        shadowColor: '#000000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 6,
+        elevation: 6,
+      }}
       className="rounded-2xl p-4 mb-3"
     >
       <View className="flex-row items-center">
