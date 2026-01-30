@@ -103,6 +103,7 @@ class ScuteAccessibilityService : AccessibilityService() {
     }
 
     private var lastScheduleCheckTime = 0L
+    private var lastAllowedWifiSettings = false
 
     override fun onServiceConnected() {
         super.onServiceConnected()
@@ -140,6 +141,11 @@ class ScuteAccessibilityService : AccessibilityService() {
             return
         }
 
+        // Reset WiFi flag when user leaves Settings entirely
+        if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED && !isSettingsPackage(packageName)) {
+            lastAllowedWifiSettings = false
+        }
+
         // INSTANT Settings blocking via Accessibility (faster than UsageStats polling)
         // Only handle Settings here; regular apps are handled by AppMonitorService
         // Only block on TYPE_WINDOW_STATE_CHANGED (32) - actual activity opens
@@ -151,12 +157,18 @@ class ScuteAccessibilityService : AccessibilityService() {
             // Skip framework view classes (FrameLayout, ViewGroup, etc.) - not real activities
             if (className.startsWith("android.") || className.startsWith("androidx.") || className.isEmpty()) return
 
-            // Allow WiFi settings through (quick settings opens these activities)
+            // Allow WiFi/Connections settings through (quick settings opens these activities)
             if (className.contains("WifiSettings", ignoreCase = true) ||
-                className.contains("DeepLinkHomepageActivity", ignoreCase = true)) {
+                className.contains("DeepLinkHomepageActivity", ignoreCase = true) ||
+                className.contains("ConnectionsSettingsActivity", ignoreCase = true)) {
                 Log.d(TAG, "ALLOWING WiFi settings: $className")
+                lastAllowedWifiSettings = true
+            } else if (className.contains("SubSettings", ignoreCase = true) && lastAllowedWifiSettings) {
+                // Allow SubSettings if the user navigated from WiFi settings
+                Log.d(TAG, "ALLOWING SubSettings (came from WiFi): $className")
             } else {
                 Log.d(TAG, "BLOCKING Settings via Accessibility: $packageName (class: $className)")
+                lastAllowedWifiSettings = false
 
                 // Show blocked overlay INSTANTLY (before Settings renders)
                 AppMonitorService.instance?.blockSettingsNow(packageName)

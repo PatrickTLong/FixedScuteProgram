@@ -46,7 +46,8 @@
       "Bash(where:*)",
       "Bash(git revert:*)",
       "Bash(git stash:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "WebFetch(domain:raw.githubusercontent.com)"
     ]
   }
 }

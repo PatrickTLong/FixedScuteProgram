@@ -11,7 +11,7 @@ import { lightTap, mediumTap, successTap } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 
-const HOLD_DURATION = 750; // 0.75 seconds
+const HOLD_DURATION = 1000; // 1 second
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const BASE_BUTTON_HORIZONTAL_PADDING = 48; // px-6 = 24px * 2 from parent
 const FILL_COLOR = '#22c55e';
@@ -86,7 +86,7 @@ function BlockNowButton({
     // Single haptic at halfway through hold
     const hapticTimeout = setTimeout(() => {
       lightTap();
-    }, 375);
+    }, 500);
 
     animationRef.current = Animated.timing(fillAnimation, {
       toValue: 1,

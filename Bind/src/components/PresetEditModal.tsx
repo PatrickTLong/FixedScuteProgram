@@ -1864,7 +1864,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               <View style={{ paddingVertical: s(20) }} className="flex-row items-center justify-between px-6">
                 <TouchableOpacity onPress={() => toggleInfo('blockSettings')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
                   <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">Block Settings App</Text>
-                  <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">WiFi settings remain accessible</Text>
+                  <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">Essential settings remain accessible</Text>
                 </TouchableOpacity>
                 <AnimatedSwitch
                   value={blockSettings}
@@ -1940,7 +1940,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
             </View>
 
             {/* Emergency Tapout Toggle */}
-            <ExpandableInfo expanded={strictMode} lazy>
+            <ExpandableInfo expanded={strictMode && !noTimeLimit} lazy>
               <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }}>
                 <View style={{ paddingVertical: s(20) }} className="flex-row items-center justify-between px-6">
                   <TouchableOpacity onPress={() => toggleInfo('emergencyTapout')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
