@@ -99,7 +99,7 @@ const AppItem = memo(({ item, isSelected, onToggle, cardColor, cardLightColor, t
     <TouchableOpacity
       onPress={handlePress}
       activeOpacity={0.7}
-      style={{ backgroundColor: cardColor, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
+      style={{ backgroundColor: cardColor, borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
       className={`flex-row items-center py-3 px-4 ${radius.xl} mb-2`}
     >
       {/* App Icon - native already provides squircle shape */}
@@ -186,7 +186,7 @@ function SelectAppsScreen({
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
       {/* Header */}
-      <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between px-4 py-3">
+      <View style={{ borderBottomWidth: 1, borderBottomColor: colors.divider }} className="flex-row items-center justify-between px-4 py-3">
         <TouchableOpacity
           onPress={() => { lightTap(); onClose(); }}
           className="p-2"
@@ -208,7 +208,7 @@ function SelectAppsScreen({
       <View className="flex-row mx-4 my-4">
         <TouchableOpacity
           onPress={() => { lightTap(); setActiveTab('apps'); }}
-          style={{ backgroundColor: activeTab === 'apps' ? colors.text : colors.card, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
+          style={{ backgroundColor: activeTab === 'apps' ? colors.text : colors.card, borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
           className={`flex-1 py-2 ${radius.full} items-center`}
         >
           <Text style={{ color: activeTab === 'apps' ? colors.bg : colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>
@@ -218,7 +218,7 @@ function SelectAppsScreen({
         <View className="w-2" />
         <TouchableOpacity
           onPress={() => { lightTap(); setActiveTab('websites'); }}
-          style={{ backgroundColor: activeTab === 'websites' ? colors.text : colors.card, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
+          style={{ backgroundColor: activeTab === 'websites' ? colors.text : colors.card, borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
           className={`flex-1 py-2 ${radius.full} items-center`}
         >
           <Text style={{ color: activeTab === 'websites' ? colors.bg : colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>
@@ -322,7 +322,7 @@ function SelectAppsScreen({
             data={blockedWebsites}
             keyExtractor={(item) => item}
             renderItem={({ item }) => (
-              <View renderToHardwareTextureAndroid={true} style={{ backgroundColor: colors.card, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }} className={`flex-row items-center py-3 px-4 ${radius.xl} mb-2`}>
+              <View renderToHardwareTextureAndroid={true} style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }} className={`flex-row items-center py-3 px-4 ${radius.xl} mb-2`}>
                 <View className="w-10 h-10 items-center justify-center mr-3">
                   <GlobeIcon color={colors.textSecondary} size={32} />
                 </View>
@@ -345,11 +345,11 @@ function SelectAppsScreen({
       )}
 
       {/* Save Button */}
-      <View style={{ backgroundColor: colors.bg, borderTopWidth: 1, borderTopColor: colors.border }} className="absolute bottom-0 left-0 right-0 p-4">
+      <View style={{ backgroundColor: colors.bg, borderTopWidth: 1, borderTopColor: colors.divider }} className="absolute bottom-0 left-0 right-0 p-4">
         <TouchableOpacity
           onPress={() => { lightTap(); onSave(); }}
           activeOpacity={0.8}
-          style={{ backgroundColor: colors.text, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
+          style={{ backgroundColor: colors.text, borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
           className={`${radius.full} py-4 items-center`}
         >
           <Text style={{ color: colors.bg }} className={`${textSize.large} ${fontFamily.semibold}`}>

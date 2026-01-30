@@ -43,7 +43,7 @@ function ConfirmationModal({
           renderToHardwareTextureAndroid={true}
           style={{
             backgroundColor: colors.card,
-            shadowColor: '#000000',
+            borderWidth: 1, borderColor: colors.border, shadowColor: '#000000',
             shadowOffset: { width: 0, height: 6 },
             shadowOpacity: 0.4,
             shadowRadius: 10,
@@ -62,12 +62,12 @@ function ConfirmationModal({
           </View>
 
           {/* Buttons */}
-          <View style={{ borderTopColor: colors.border, borderRightColor: colors.border }} className="flex-row border-t">
+          <View style={{ borderTopColor: colors.divider, borderRightColor: colors.divider }} className="flex-row border-t">
             {/* Cancel Button */}
             <TouchableOpacity
               onPress={() => { lightTap(); onCancel(); }}
               activeOpacity={0.7}
-              style={{ borderRightColor: colors.border }}
+              style={{ borderRightColor: colors.divider }}
               className="flex-1 py-4 items-center border-r"
             >
               <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular}`}>

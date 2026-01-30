@@ -160,7 +160,7 @@ function MembershipScreen({ onPurchaseComplete }: Props) {
           style={{
             backgroundColor: selectedPlan ? '#FFFFFF' : colors.border,
             opacity: selectedPlan ? 1 : 0.5,
-            shadowColor: '#000000',
+            borderWidth: 1, borderColor: colors.border, shadowColor: '#000000',
             shadowOffset: { width: 0, height: 4 },
             shadowOpacity: 0.3,
             shadowRadius: 6,

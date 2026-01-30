@@ -116,7 +116,7 @@ export default function GoogleSignInBtn({ onSuccess, onError, disabled }: Props)
       style={{
         backgroundColor: colors.card,
         position: 'relative',
-        shadowColor: '#000000',
+        borderWidth: 1, borderColor: colors.border, shadowColor: '#000000',
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.3,
         shadowRadius: 6,

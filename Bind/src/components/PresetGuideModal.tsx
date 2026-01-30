@@ -42,7 +42,7 @@ function PresetGuideModal({ visible, onClose }: PresetGuideModalProps) {
         <Animated.View renderToHardwareTextureAndroid={true} style={{ flex: 1, opacity: contentFadeAnim }}>
           <SafeAreaView style={{ flex: 1 }}>
         {/* Header */}
-        <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between px-4 py-3">
+        <View style={{ borderBottomWidth: 1, borderBottomColor: colors.divider }} className="flex-row items-center justify-between px-4 py-3">
           <View className="w-16" />
           <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.semibold}`}>Preset Guide</Text>
           <TouchableOpacity onPress={() => { lightTap(); onClose(); }} className="w-16 items-end">

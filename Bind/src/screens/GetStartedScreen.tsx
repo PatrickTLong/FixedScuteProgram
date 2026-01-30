@@ -232,7 +232,7 @@ function GetStartedScreen({ onBack, onSuccess, onSignIn }: Props) {
                     autoCapitalize="none"
                     autoCorrect={false}
                     editable={!loading}
-                    style={{ backgroundColor: colors.card, color: colors.text, height: s(52), paddingVertical: s(16), shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
+                    style={{ backgroundColor: colors.card, color: colors.text, height: s(52), paddingVertical: s(16), borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
                     className={`${radius.full} px-5 ${textSize.small} ${fontFamily.regular}`}
                   />
                 </View>
@@ -250,7 +250,7 @@ function GetStartedScreen({ onBack, onSuccess, onSignIn }: Props) {
                       autoCapitalize="none"
                       autoCorrect={false}
                       editable={!loading}
-                      style={{ backgroundColor: colors.card, color: colors.text, paddingRight: s(50), height: s(52), paddingVertical: s(16), shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
+                      style={{ backgroundColor: colors.card, color: colors.text, paddingRight: s(50), height: s(52), paddingVertical: s(16), borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
                       className={`${radius.full} px-5 ${textSize.small} ${fontFamily.regular}`}
                     />
                     <TouchableOpacity
@@ -306,7 +306,7 @@ function GetStartedScreen({ onBack, onSuccess, onSignIn }: Props) {
               onPress={() => { lightTap(); step === 'form' ? handleSignUp() : handleVerifyCode(); }}
               disabled={loading}
               activeOpacity={0.8}
-              style={{ backgroundColor: loading ? colors.textMuted : colors.text, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
+              style={{ backgroundColor: loading ? colors.textMuted : colors.text, borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
               className={`${radius.full} py-4 items-center mb-4`}
             >
               <Text style={{ color: loading ? colors.textSecondary : colors.bg }} className={`${textSize.small} ${fontFamily.semibold}`}>

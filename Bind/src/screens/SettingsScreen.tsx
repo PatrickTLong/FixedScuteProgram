@@ -14,7 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import ConfirmationModal from '../components/ConfirmationModal';
 import EmailConfirmationModal from '../components/EmailConfirmationModal';
-import { getLockStatus, getEmergencyTapoutStatus, EmergencyTapoutStatus, saveUserTheme, getCachedLockStatus, getCachedTapoutStatus, getMembershipStatus, MembershipStatus, getCachedMembershipStatus } from '../services/cardApi';
+import { getLockStatus, getEmergencyTapoutStatus, EmergencyTapoutStatus, getCachedLockStatus, getCachedTapoutStatus, getMembershipStatus, MembershipStatus, getCachedMembershipStatus } from '../services/cardApi';
 import { useTheme , textSize, fontFamily, radius } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { lightTap } from '../utils/haptics';
@@ -324,8 +324,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-  // Theme state
-  const { theme, setTheme, colors } = useTheme();
+  const { colors } = useTheme();
 
   // Emergency Tapout state - initialize from cache if available
   const [tapoutStatus, setTapoutStatus] = useState<EmergencyTapoutStatus | null>(cachedTapoutStatus);
@@ -421,13 +420,6 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
   const handleBugReport = () => {
     if (isLocked) return;
     Linking.openURL('mailto:info@scuteapp.com?subject=Scute%20Bug%20Report');
-  };
-
-  const handleThemeToggle = async () => {
-    const newTheme = theme === 'dark' ? 'light' : 'dark';
-    setTheme(newTheme);
-    // Save to backend
-    await saveUserTheme(email, newTheme);
   };
 
   const handleLogout = () => {
@@ -544,13 +536,13 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
             label={email}
             showArrow={false}
             labelColor={colors.text}
-            borderColor={colors.border}
+            borderColor={colors.divider}
             s={s}
           />
           {/* Membership Row with Trial Countdown */}
           <TouchableOpacity
             onPress={() => { lightTap(); setMembershipModalVisible(true); }}
-            style={{ borderBottomWidth: 1, borderBottomColor: colors.border, paddingVertical: s(16) }}
+            style={{ borderBottomWidth: 1, borderBottomColor: colors.divider, paddingVertical: s(16) }}
             className="px-4"
           >
             <View className="flex-row items-center">
@@ -558,7 +550,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
               <View className="flex-1">
                 <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular}`}>Membership</Text>
                 {membershipStatus?.isMember ? (
-                  <Text style={{ color: '#4CAF50' }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-0.5`}>
+                  <Text style={{ color: colors.green }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-0.5`}>
                     Active Member
                   </Text>
                 ) : getTrialTimeRemaining() ? (
@@ -566,7 +558,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
                     Trial ends in {getTrialTimeRemaining()}
                   </Text>
                 ) : (
-                  <Text style={{ color: '#FF5C5C' }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-0.5`}>
+                  <Text style={{ color: colors.red }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-0.5`}>
                     Trial expired
                   </Text>
                 )}
@@ -579,7 +571,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
             label="Log Out"
             onPress={isDisabled ? undefined : () => setLogoutModalVisible(true)}
             labelColor={colors.text}
-            borderColor={colors.border}
+            borderColor={colors.divider}
             arrowColor={colors.textSecondary}
             isLast
             s={s}
@@ -593,7 +585,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
         <View renderToHardwareTextureAndroid={true} style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }} className={`${radius['2xl']} mb-6`}>
           {/* Header Row */}
           <View
-            style={getTimeUntilRefill() ? { borderBottomWidth: 1, borderBottomColor: colors.border, paddingVertical: s(16) } : { paddingVertical: s(16) }}
+            style={getTimeUntilRefill() ? { borderBottomWidth: 1, borderBottomColor: colors.divider, paddingVertical: s(16) } : { paddingVertical: s(16) }}
             className="flex-row items-center px-4"
           >
             <View className="mr-4">
@@ -631,7 +623,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
             label="Contact Support"
             onPress={isDisabled ? undefined : handleContactSupport}
             labelColor={colors.text}
-            borderColor={colors.border}
+            borderColor={colors.divider}
             arrowColor={colors.textSecondary}
             s={s}
           />
@@ -640,7 +632,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
             label="Bug Report"
             onPress={isDisabled ? undefined : handleBugReport}
             labelColor={colors.text}
-            borderColor={colors.border}
+            borderColor={colors.divider}
             arrowColor={colors.textSecondary}
             s={s}
           />
@@ -649,7 +641,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
             label="Privacy Policy"
             onPress={() => setPrivacyModalVisible(true)}
             labelColor={colors.text}
-            borderColor={colors.border}
+            borderColor={colors.divider}
             arrowColor={colors.textSecondary}
             s={s}
           />
@@ -658,7 +650,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
             label="Terms of Service"
             onPress={() => setTermsModalVisible(true)}
             labelColor={colors.text}
-            borderColor={colors.border}
+            borderColor={colors.divider}
             arrowColor={colors.textSecondary}
             isLast
             s={s}
@@ -670,13 +662,13 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
           Data
         </Text>
         {resetError && (
-          <View style={{ backgroundColor: 'rgba(239, 68, 68, 0.2)' }} className={`${radius.xl} px-4 py-3 mb-3`}>
-            <Text style={{ color: '#FF5C5C' }} className={`${textSize.small} ${fontFamily.regular}`}>{resetError}</Text>
+          <View style={{ backgroundColor: `${colors.red}33` }} className={`${radius.xl} px-4 py-3 mb-3`}>
+            <Text style={{ color: colors.red }} className={`${textSize.small} ${fontFamily.regular}`}>{resetError}</Text>
           </View>
         )}
         {deleteError && (
-          <View style={{ backgroundColor: 'rgba(239, 68, 68, 0.2)' }} className={`${radius.xl} px-4 py-3 mb-3`}>
-            <Text style={{ color: '#FF5C5C' }} className={`${textSize.small} ${fontFamily.regular}`}>{deleteError}</Text>
+          <View style={{ backgroundColor: `${colors.red}33` }} className={`${radius.xl} px-4 py-3 mb-3`}>
+            <Text style={{ color: colors.red }} className={`${textSize.small} ${fontFamily.regular}`}>{deleteError}</Text>
           </View>
         )}
         <View renderToHardwareTextureAndroid={true} style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }} className={`${radius['2xl']}`}>
@@ -685,16 +677,16 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
             label="Reset Account"
             onPress={isDisabled ? undefined : () => setResetModalVisible(true)}
             labelColor={colors.text}
-            borderColor={colors.border}
+            borderColor={colors.divider}
             arrowColor={colors.textSecondary}
             s={s}
           />
           <SettingsRow
-            icon={<TrashIcon color="#FF5C5C" />}
+            icon={<TrashIcon color={colors.red} />}
             label="Delete Account"
             onPress={isDisabled ? undefined : () => setDeleteAccountModalVisible(true)}
-            labelColor="#FF5C5C"
-            borderColor={colors.border}
+            labelColor={colors.red}
+            borderColor={colors.divider}
             arrowColor={colors.textSecondary}
             isLast
             s={s}
@@ -754,7 +746,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
       >
         <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
           {/* Header */}
-          <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between px-4 py-3">
+          <View style={{ borderBottomWidth: 1, borderBottomColor: colors.divider }} className="flex-row items-center justify-between px-4 py-3">
             <View className="w-16" />
             <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.semibold}`}>Privacy Policy</Text>
             <TouchableOpacity onPress={() => { lightTap(); setPrivacyModalVisible(false); }} className="w-16 items-end">
@@ -872,7 +864,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
       >
         <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
           {/* Header */}
-          <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between px-4 py-3">
+          <View style={{ borderBottomWidth: 1, borderBottomColor: colors.divider }} className="flex-row items-center justify-between px-4 py-3">
             <View className="w-16" />
             <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.semibold}`}>Terms of Service</Text>
             <TouchableOpacity onPress={() => { lightTap(); setTermsModalVisible(false); }} className="w-16 items-end">
@@ -1005,7 +997,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
       >
         <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
           {/* Header */}
-          <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-between px-4 py-3">
+          <View style={{ borderBottomWidth: 1, borderBottomColor: colors.divider }} className="flex-row items-center justify-between px-4 py-3">
             {/* Only show back button if trial hasn't expired */}
             {!membershipStatus?.trialExpired ? (
               <TouchableOpacity onPress={() => { lightTap(); setMembershipModalVisible(false); }} className="w-16">

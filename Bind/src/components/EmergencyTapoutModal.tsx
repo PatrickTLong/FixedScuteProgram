@@ -93,7 +93,7 @@ function EmergencyTapoutModal({
           renderToHardwareTextureAndroid={true}
           style={{
             backgroundColor: colors.card,
-            shadowColor: '#000000',
+            borderWidth: 1, borderColor: colors.border, shadowColor: '#000000',
             shadowOffset: { width: 0, height: 6 },
             shadowOpacity: 0.4,
             shadowRadius: 10,
@@ -138,7 +138,7 @@ function EmergencyTapoutModal({
                   : getUnavailableReason()}
               </Text>
 
-              <View renderToHardwareTextureAndroid={true} style={{ shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6 }}>
+              <View renderToHardwareTextureAndroid={true} style={{ borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6 }}>
               <TouchableOpacity
                 onPress={() => {
                   mediumTap();
@@ -177,7 +177,7 @@ function EmergencyTapoutModal({
           </View>
 
           {/* Close Button */}
-          <View style={{ borderTopColor: colors.border }} className="border-t">
+          <View style={{ borderTopColor: colors.divider }} className="border-t">
             <TouchableOpacity
               onPress={() => {
                 lightTap();

@@ -71,7 +71,7 @@ function ShieldIconsInfoModal({ visible, onClose }: ShieldIconsInfoModalProps) {
           renderToHardwareTextureAndroid={true}
           style={{
             backgroundColor: colors.card,
-            shadowColor: '#000000',
+            borderWidth: 1, borderColor: colors.border, shadowColor: '#000000',
             shadowOffset: { width: 0, height: 6 },
             shadowOpacity: 0.4,
             shadowRadius: 10,
@@ -123,8 +123,8 @@ function ShieldIconsInfoModal({ visible, onClose }: ShieldIconsInfoModalProps) {
             >
               <View
                 style={{
-                  backgroundColor: dontShowAgain ? '#22c55e' : 'transparent',
-                  borderColor: dontShowAgain ? '#22c55e' : colors.textSecondary,
+                  backgroundColor: dontShowAgain ? colors.green : 'transparent',
+                  borderColor: dontShowAgain ? colors.green : colors.textSecondary,
                 }}
                 className="w-5 h-5 rounded border-2 items-center justify-center mr-3"
               >
@@ -149,7 +149,7 @@ function ShieldIconsInfoModal({ visible, onClose }: ShieldIconsInfoModalProps) {
           </View>
 
           {/* Button */}
-          <View style={{ borderTopColor: colors.border }} className="border-t">
+          <View style={{ borderTopColor: colors.divider }} className="border-t">
             <TouchableOpacity
               onPress={handleClose}
               activeOpacity={0.7}

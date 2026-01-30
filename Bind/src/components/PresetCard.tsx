@@ -273,7 +273,6 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, disabled
       onPress={handlePress}
       onLongPress={handleLongPress}
       delayLongPress={500}
-      renderToHardwareTextureAndroid={true}
       style={{
         backgroundColor: colors.card,
         borderWidth: 1,
@@ -294,8 +293,8 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, disabled
               {preset.name}
             </Text>
             {isExpired ? (
-              <View style={{ backgroundColor: `${'#FF5C5C'}33` }} className={`ml-2 px-2 py-0.5 ${radius.full}`}>
-                <Text style={{ color: '#FF5C5C' }} className={`${textSize.extraSmall} ${fontFamily.semibold}`}>
+              <View style={{ backgroundColor: `${colors.red}33` }} className={`ml-2 px-2 py-0.5 ${radius.full}`}>
+                <Text style={{ color: colors.red }} className={`${textSize.extraSmall} ${fontFamily.semibold}`}>
                   Expired
                 </Text>
               </View>

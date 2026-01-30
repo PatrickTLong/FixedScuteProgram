@@ -25,7 +25,7 @@ function TermsAcceptScreen({ onAccept }: Props) {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
       {/* Header */}
-      <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} className="flex-row items-center justify-center px-4 py-3">
+      <View style={{ borderBottomWidth: 1, borderBottomColor: colors.divider }} className="flex-row items-center justify-center px-4 py-3">
         <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.semibold}`}>Terms of Service</Text>
       </View>
 
@@ -139,14 +139,14 @@ function TermsAcceptScreen({ onAccept }: Props) {
       </ScrollView>
 
       {/* Accept Terms Section */}
-      <View style={{ borderTopWidth: 1, borderTopColor: colors.border, backgroundColor: colors.bg }} className="px-6 py-4">
+      <View style={{ borderTopWidth: 1, borderTopColor: colors.divider, backgroundColor: colors.bg }} className="px-6 py-4">
         <Text style={{ color: colors.textSecondary }} className={`${textSize.small} text-white ${fontFamily.regular} text-center mb-4`}>
           Do you accept these Terms of Service?
         </Text>
         <TouchableOpacity
           onPress={() => { lightTap(); handleAcceptTerms(); }}
           activeOpacity={0.8}
-          style={{ backgroundColor: colors.card, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
+          style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
           className={`${radius.full} py-4 items-center`}
         >
           <Text style={{ color: '#FFFFFF' }} className={`${textSize.small} ${fontFamily.semibold}`}>

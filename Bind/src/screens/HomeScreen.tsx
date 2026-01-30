@@ -1145,7 +1145,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
                   position: 'absolute',
                   top: '100%',
                   marginTop: s(24),
-                  shadowColor: '#000000',
+                  borderWidth: 1, borderColor: colors.border, shadowColor: '#000000',
                   shadowOffset: { width: 0, height: 4 },
                   shadowOpacity: 0.3,
                   shadowRadius: 6,
@@ -1230,7 +1230,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
             renderToHardwareTextureAndroid={true}
             style={{
               backgroundColor: colors.card,
-              shadowColor: '#000000',
+              borderWidth: 1, borderColor: colors.border, shadowColor: '#000000',
               shadowOffset: { width: 0, height: 6 },
               shadowOpacity: 0.4,
               shadowRadius: 10,
@@ -1239,7 +1239,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
             className={`w-full ${radius['2xl']} overflow-hidden max-h-[70%]`}
           >
             {/* Header */}
-            <View style={{ borderBottomColor: colors.border }} className="p-4 border-b">
+            <View style={{ borderBottomColor: colors.divider }} className="p-4 border-b">
               <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.bold} text-center`}>
                 Scheduled Presets
               </Text>
@@ -1260,11 +1260,11 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
                 return (
                   <View
                     key={preset.id}
-                    style={{ borderBottomColor: colors.border }}
+                    style={{ borderBottomColor: colors.divider }}
                     className={`p-4 ${index < scheduledPresets.length - 1 ? 'border-b' : ''}`}
                   >
                     <View className="flex-row items-center">
-                      <View style={{ backgroundColor: isCurrentlyActive ? '#22c55e' : '#f59e0b' }} className={`w-2 h-2 ${radius.full} mr-3`} />
+                      <View style={{ backgroundColor: isCurrentlyActive ? colors.green : colors.yellow }} className={`w-2 h-2 ${radius.full} mr-3`} />
                       <View className="flex-1">
                         <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>
                           {preset.name}
@@ -1285,7 +1285,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
             </ScrollView>
 
             {/* Close Button */}
-            <View style={{ borderTopColor: colors.border }} className="border-t">
+            <View style={{ borderTopColor: colors.divider }} className="border-t">
               <TouchableOpacity
                 onPress={() => { lightTap(); setScheduledPresetsModalVisible(false); }}
                 activeOpacity={0.7}

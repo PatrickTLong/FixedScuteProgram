@@ -186,7 +186,9 @@ interface DayCellProps {
   cellHeight: number;
 }
 
-const DayCell = memo(({ day, selectable, selected, isToday: todayDay, textColor, textMutedColor, onSelect, cellHeight }: DayCellProps) => (
+const DayCell = memo(({ day, selectable, selected, isToday: todayDay, textColor, textMutedColor, onSelect, cellHeight }: DayCellProps) => {
+  const { colors } = useTheme();
+  return (
   <TouchableOpacity
     onPress={() => onSelect(day)}
     disabled={!selectable}
@@ -195,8 +197,8 @@ const DayCell = memo(({ day, selectable, selected, isToday: todayDay, textColor,
   >
     <View
       style={{
-        backgroundColor: selected ? '#22c55e' : 'transparent',
-        borderColor: todayDay && !selected ? '#22c55e' : 'transparent',
+        backgroundColor: selected ? colors.green : 'transparent',
+        borderColor: todayDay && !selected ? colors.green : 'transparent',
         borderWidth: todayDay && !selected ? 1 : 0,
       }}
       className={`w-9 h-9 ${radius.full} items-center justify-center`}
@@ -211,7 +213,8 @@ const DayCell = memo(({ day, selectable, selected, isToday: todayDay, textColor,
       </Text>
     </View>
   </TouchableOpacity>
-));
+  );
+});
 
 const EmptyCell = memo(({ cellHeight }: { cellHeight: number }) => (
   <View style={{ width: '14.28%', height: cellHeight }} />
@@ -226,11 +229,13 @@ interface AmPmSelectorProps {
   textMutedColor: string;
 }
 
-const AmPmSelector = memo(({ value, onChange, greenColor, cardColor, textMutedColor }: AmPmSelectorProps) => (
+const AmPmSelector = memo(({ value, onChange, greenColor, cardColor, textMutedColor }: AmPmSelectorProps) => {
+  const { colors } = useTheme();
+  return (
   <View className="ml-2">
     <TouchableOpacity
       onPress={() => { lightTap(); onChange('AM'); }}
-      style={{ backgroundColor: value === 'AM' ? '#22c55e' : cardColor, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
+      style={{ backgroundColor: value === 'AM' ? colors.green : cardColor, borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
       className={`px-3 py-2 ${radius.lg}`}
     >
       <Text style={{ color: value === 'AM' ? '#FFFFFF' : textMutedColor }} className={`${textSize.base} ${fontFamily.semibold}`}>
@@ -239,7 +244,7 @@ const AmPmSelector = memo(({ value, onChange, greenColor, cardColor, textMutedCo
     </TouchableOpacity>
     <TouchableOpacity
       onPress={() => { lightTap(); onChange('PM'); }}
-      style={{ backgroundColor: value === 'PM' ? '#22c55e' : cardColor, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
+      style={{ backgroundColor: value === 'PM' ? colors.green : cardColor, borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
       className={`px-3 py-2 ${radius.lg} mt-1`}
     >
       <Text style={{ color: value === 'PM' ? '#FFFFFF' : textMutedColor }} className={`${textSize.base} ${fontFamily.semibold}`}>
@@ -247,7 +252,8 @@ const AmPmSelector = memo(({ value, onChange, greenColor, cardColor, textMutedCo
       </Text>
     </TouchableOpacity>
   </View>
-));
+  );
+});
 
 function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate }: DatePickerModalProps) {
   const { colors } = useTheme();
@@ -460,7 +466,7 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
       <View style={{ flex: 1 }}>
           <SafeAreaView style={{ flex: 1 }}>
           {/* Header */}
-          <View style={{ borderBottomColor: colors.border }} className="flex-row items-center justify-between px-4 py-3 border-b">
+          <View style={{ borderBottomColor: colors.divider }} className="flex-row items-center justify-between px-4 py-3 border-b">
             <TouchableOpacity onPress={() => { lightTap(); handleClose(); }} className="px-2">
               <Text style={{ color: '#FFFFFF'}} className={`${textSize.base} ${fontFamily.regular}`}>Cancel</Text>
             </TouchableOpacity>
@@ -540,7 +546,7 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
 
           {/* Time Picker */}
           {tempSelectedDate && (
-            <View style={{ borderTopColor: colors.border, marginHorizontal: s(-24), paddingHorizontal: s(24) }} className="mt-6 pt-4 pb-4 border-t">
+            <View style={{ borderTopColor: colors.divider, marginHorizontal: s(-24), paddingHorizontal: s(24) }} className="mt-6 pt-4 pb-4 border-t">
               <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} tracking-wider mb-3`}>
                 Time
               </Text>
@@ -575,7 +581,7 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
                 <AmPmSelector
                   value={selectedAmPm}
                   onChange={setSelectedAmPm}
-                  greenColor={'#22c55e'}
+                  greenColor={colors.green}
                   cardColor={colors.card}
                   textMutedColor={colors.textSecondary}
                 />
@@ -584,7 +590,7 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
           )}
 
           {/* Selected Date/Time Display */}
-          <View style={{ borderTopColor: colors.border, marginHorizontal: s(-24), paddingHorizontal: s(24) }} className="mt-6 py-4 border-t">
+          <View style={{ borderTopColor: colors.divider, marginHorizontal: s(-24), paddingHorizontal: s(24) }} className="mt-6 py-4 border-t">
             <View className="flex-row justify-between items-center">
               <View>
                 <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.regular} mb-1`}>Selected</Text>
@@ -594,7 +600,7 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
               {tempSelectedDate && (
                 <TouchableOpacity
                   onPress={handleClear}
-                  style={{ backgroundColor: colors.card, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
+                  style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
                   className={`ml-4 px-4 py-2 ${radius.full}`}
                 >
                   <Text style={{ color: '#FFFFFF' }} className={`${textSize.small} ${fontFamily.semibold}`}>Clear</Text>
@@ -602,7 +608,7 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
               )}
             </View>
             {tempSelectedDate && !isFutureDateTime && (
-              <Text style={{ color: '#FF5C5C' }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-2`}>
+              <Text style={{ color: colors.red }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-2`}>
                 Please select a future date and time
               </Text>
             )}

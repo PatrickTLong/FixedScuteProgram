@@ -48,7 +48,7 @@ function EmailConfirmationModal({ visible, userEmail, onConfirm, onCancel }: Ema
           renderToHardwareTextureAndroid={true}
           style={{
             backgroundColor: colors.card,
-            shadowColor: '#000000',
+            borderWidth: 1, borderColor: colors.border, shadowColor: '#000000',
             shadowOffset: { width: 0, height: 6 },
             shadowOpacity: 0.4,
             shadowRadius: 10,
@@ -95,13 +95,13 @@ function EmailConfirmationModal({ visible, userEmail, onConfirm, onCancel }: Ema
           </View>
 
           {/* Buttons - Side by Side */}
-          <View style={{ borderTopColor: colors.border }} className="border-t flex-row">
+          <View style={{ borderTopColor: colors.divider }} className="border-t flex-row">
             {/* Cancel Button */}
             <TouchableOpacity
               onPress={handleCancel}
               activeOpacity={0.7}
               className="flex-1 py-4 items-center"
-              style={{ borderRightWidth: 1, borderRightColor: colors.border }}
+              style={{ borderRightWidth: 1, borderRightColor: colors.divider }}
             >
               <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular}`}>
                 Cancel

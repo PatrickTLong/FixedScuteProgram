@@ -33,7 +33,7 @@ function AppSelectionInfoModal({ visible, onClose }: AppSelectionInfoModalProps)
       onRequestClose={handleConfirm}
     >
       <View className="flex-1 bg-black/70 justify-center items-center px-6">
-        <View renderToHardwareTextureAndroid={true} style={{ backgroundColor: colors.card, shadowColor: '#000000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 10, elevation: 10 }} className={`w-full ${radius['2xl']} overflow-hidden`}>
+        <View renderToHardwareTextureAndroid={true} style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 10, elevation: 10 }} className={`w-full ${radius['2xl']} overflow-hidden`}>
           {/* Content */}
           <View className="p-6">
             <Text style={{ color: colors.text }} className={`${textSize.xLarge} ${fontFamily.bold} text-center mb-4`}>
@@ -52,8 +52,8 @@ function AppSelectionInfoModal({ visible, onClose }: AppSelectionInfoModalProps)
             >
               <View
                 style={{
-                  backgroundColor: dontShowAgain ? '#22c55e' : 'transparent',
-                  borderColor: dontShowAgain ? '#22c55e' : colors.textSecondary,
+                  backgroundColor: dontShowAgain ? colors.green : 'transparent',
+                  borderColor: dontShowAgain ? colors.green : colors.textSecondary,
                 }}
                 className="w-5 h-5 rounded border-2 items-center justify-center mr-3"
               >
@@ -78,7 +78,7 @@ function AppSelectionInfoModal({ visible, onClose }: AppSelectionInfoModalProps)
           </View>
 
           {/* Button */}
-          <View style={{ borderTopColor: colors.border }} className="border-t">
+          <View style={{ borderTopColor: colors.divider }} className="border-t">
             <TouchableOpacity
               onPress={handleConfirm}
               activeOpacity={0.7}
