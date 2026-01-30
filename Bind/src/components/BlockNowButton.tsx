@@ -11,9 +11,10 @@ import { lightTap, mediumTap, successTap } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 
-const HOLD_DURATION = 1250; // 1.25 seconds
+const HOLD_DURATION = 750; // 0.75 seconds
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const BASE_BUTTON_HORIZONTAL_PADDING = 48; // px-6 = 24px * 2 from parent
+const FILL_COLOR = '#22c55e';
 
 interface BlockNowButtonProps {
   onActivate: () => void;
@@ -38,38 +39,27 @@ function BlockNowButton({
   const { s } = useResponsive();
   const buttonHorizontalPadding = s(BASE_BUTTON_HORIZONTAL_PADDING);
   const [isPressed, setIsPressed] = useState(false);
+  const [isUnlocking, setIsUnlocking] = useState(false);
   const fillAnimation = useRef(new Animated.Value(0)).current;
   const animationRef = useRef<Animated.CompositeAnimation | null>(null);
 
-  // Slide to unlock state
-  const [isSliding, setIsSliding] = useState(false);
-  const [isUnlocking, setIsUnlocking] = useState(false);
+  // Slide state — ref-only to avoid re-renders during drag
   const slidePosition = useRef(new Animated.Value(0)).current;
-  const [buttonWidth, setButtonWidth] = useState(SCREEN_WIDTH - buttonHorizontalPadding);
+  const buttonWidthRef = useRef(SCREEN_WIDTH - buttonHorizontalPadding);
   const hapticTriggeredRef = useRef({ first: false, second: false, third: false });
 
   // Can activate only when not disabled and not locked
   const canActivate = !disabled && !isLocked;
 
-  // Store refs for PanResponder to avoid dependency changes
+  // Stable refs for PanResponder closures (inline assignment, no useEffect needed)
   const canActivateRef = useRef(canActivate);
   canActivateRef.current = canActivate;
-
   const onActivateRef = useRef(onActivate);
   onActivateRef.current = onActivate;
-
   const onSlideUnlockRef = useRef(onSlideUnlock);
   onSlideUnlockRef.current = onSlideUnlock;
-
-  const buttonWidthRef = useRef(buttonWidth);
-  useEffect(() => {
-    buttonWidthRef.current = buttonWidth;
-  }, [buttonWidth]);
-
   const isUnlockingRef = useRef(isUnlocking);
-  useEffect(() => {
-    isUnlockingRef.current = isUnlocking;
-  }, [isUnlocking]);
+  isUnlockingRef.current = isUnlocking;
 
   // Determine if we should show slide-to-unlock
   // Show slide-to-unlock when:
@@ -96,7 +86,7 @@ function BlockNowButton({
     // Single haptic at halfway through hold
     const hapticTimeout = setTimeout(() => {
       lightTap();
-    }, 625);
+    }, 375);
 
     animationRef.current = Animated.timing(fillAnimation, {
       toValue: 1,
@@ -117,12 +107,8 @@ function BlockNowButton({
   }, [fillAnimation]);
 
   const cancelAnimation = useCallback(() => {
-    if (animationRef.current) {
-      animationRef.current.stop();
-    }
-
+    animationRef.current?.stop();
     setIsPressed(false);
-
     Animated.timing(fillAnimation, {
       toValue: 0,
       duration: 150,
@@ -133,9 +119,6 @@ function BlockNowButton({
   // Slide-to-unlock functions
   const resetSlider = useCallback(() => {
     hapticTriggeredRef.current = { first: false, second: false, third: false };
-    // Set isSliding to false immediately so text changes right away
-    setIsSliding(false);
-    // Animate the slider back to starting position
     Animated.spring(slidePosition, {
       toValue: 0,
       useNativeDriver: false,
@@ -148,25 +131,20 @@ function BlockNowButton({
     isUnlockingRef.current = true;
     successTap();
     try {
-      if (onSlideUnlockRef.current) {
-        await onSlideUnlockRef.current();
-      }
+      await onSlideUnlockRef.current?.();
     } finally {
       setIsUnlocking(false);
       isUnlockingRef.current = false;
-      setIsSliding(false);
       slidePosition.setValue(0);
       hapticTriggeredRef.current = { first: false, second: false, third: false };
     }
   }, [slidePosition]);
 
+  // Keep refs fresh for PanResponder (inline, no useEffect)
   const handleSlideCompleteRef = useRef(handleSlideComplete);
+  handleSlideCompleteRef.current = handleSlideComplete;
   const resetSliderRef = useRef(resetSlider);
-
-  useEffect(() => {
-    handleSlideCompleteRef.current = handleSlideComplete;
-    resetSliderRef.current = resetSlider;
-  }, [handleSlideComplete, resetSlider]);
+  resetSliderRef.current = resetSlider;
 
   // Hold-to-lock PanResponder
   const holdPanResponder = useMemo(
@@ -174,15 +152,9 @@ function BlockNowButton({
       PanResponder.create({
         onStartShouldSetPanResponder: () => canActivateRef.current,
         onMoveShouldSetPanResponder: () => false,
-        onPanResponderGrant: () => {
-          startAnimation();
-        },
-        onPanResponderRelease: () => {
-          cancelAnimation();
-        },
-        onPanResponderTerminate: () => {
-          cancelAnimation();
-        },
+        onPanResponderGrant: () => { startAnimation(); },
+        onPanResponderRelease: () => { cancelAnimation(); },
+        onPanResponderTerminate: () => { cancelAnimation(); },
       }),
     [startAnimation, cancelAnimation]
   );
@@ -191,24 +163,16 @@ function BlockNowButton({
   const slidePanResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => !isUnlockingRef.current,
-      onMoveShouldSetPanResponder: (_, gestureState) => {
-        // Only respond to horizontal movement
-        return !isUnlockingRef.current && Math.abs(gestureState.dx) > 5;
-      },
+      onMoveShouldSetPanResponder: (_, g) => !isUnlockingRef.current && Math.abs(g.dx) > 5,
       onPanResponderGrant: () => {
         mediumTap();
-        setIsSliding(true);
         hapticTriggeredRef.current = { first: false, second: false, third: false };
       },
-      onPanResponderMove: (_, gestureState) => {
+      onPanResponderMove: (_, g) => {
         const maxSlide = buttonWidthRef.current;
-        const newPosition = Math.max(0, Math.min(gestureState.dx, maxSlide));
-        slidePosition.setValue(newPosition);
-
-        // Calculate progress percentage
-        const progress = newPosition / maxSlide;
-
-        // Haptic feedback at 33%, 66%, and 90% thresholds
+        const pos = Math.max(0, Math.min(g.dx, maxSlide));
+        slidePosition.setValue(pos);
+        const progress = pos / maxSlide;
         if (progress >= 0.33 && !hapticTriggeredRef.current.first) {
           hapticTriggeredRef.current.first = true;
           lightTap();
@@ -222,21 +186,16 @@ function BlockNowButton({
           mediumTap();
         }
       },
-      onPanResponderRelease: (_, gestureState) => {
+      onPanResponderRelease: (_, g) => {
         const maxSlide = buttonWidthRef.current;
-        const currentPosition = Math.max(0, Math.min(gestureState.dx, maxSlide));
-
-        if (currentPosition >= maxSlide * 0.85) {
-          // Slid far enough - unlock
+        const pos = Math.max(0, Math.min(g.dx, maxSlide));
+        if (pos >= maxSlide * 0.85) {
           handleSlideCompleteRef.current();
         } else {
-          // Not far enough - reset
           resetSliderRef.current();
         }
       },
-      onPanResponderTerminate: () => {
-        resetSliderRef.current();
-      },
+      onPanResponderTerminate: () => { resetSliderRef.current(); },
     })
   ).current;
 
@@ -246,12 +205,8 @@ function BlockNowButton({
     outputRange: ['0%', '100%'],
   });
 
-  const fillColor = '#22c55e';
-
   const getTextColor = () => {
-    if (isLocked) return colors.text;
     if (!canActivate) return colors.textMuted;
-    if (isPressed) return colors.text;
     return colors.text;
   };
 
@@ -281,14 +236,14 @@ function BlockNowButton({
   if (showSlideToUnlock) {
     // Green fill only appears when sliding - starts from 0 and grows with slide
     const slideFillWidth = slidePosition.interpolate({
-      inputRange: [0, buttonWidth],
-      outputRange: [0, buttonWidth],
+      inputRange: [0, buttonWidthRef.current],
+      outputRange: [0, buttonWidthRef.current],
       extrapolate: 'clamp',
     });
 
     return (
       <View
-        onLayout={(e) => setButtonWidth(e.nativeEvent.layout.width)}
+        onLayout={(e) => { buttonWidthRef.current = e.nativeEvent.layout.width; }}
         {...slidePanResponder.panHandlers}
         className="h-14 rounded-full overflow-hidden"
         style={{
@@ -298,7 +253,7 @@ function BlockNowButton({
         {/* Text - always visible, positioned below the fill */}
         <View className="flex-1 flex-row items-center justify-center" style={{ zIndex: 1 }}>
           <Text style={{ color: colors.text }} className="text-sm font-nunito-semibold">
-            {isUnlocking ? 'Unlocking...' : isSliding ? 'Sliding...' : 'Slide to Unlock'}
+            {isUnlocking ? 'Unlocking...' : 'Slide to Unlock'}
           </Text>
         </View>
 
@@ -310,7 +265,7 @@ function BlockNowButton({
             left: 0,
             bottom: 0,
             width: slideFillWidth,
-            backgroundColor: fillColor,
+            backgroundColor: FILL_COLOR,
             borderRadius: s(28),
             zIndex: 2,
           }}
@@ -348,7 +303,7 @@ function BlockNowButton({
             left: 0,
             bottom: 0,
             width: fillWidth,
-            backgroundColor: fillColor,
+            backgroundColor: FILL_COLOR,
             borderRadius: s(28),
             zIndex: 2,
           }}

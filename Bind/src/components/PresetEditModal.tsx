@@ -1475,7 +1475,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               <ExpandableInfo expanded={!!expandedInfo.noTimeLimit}>
                 <TouchableOpacity onPress={() => toggleInfo('noTimeLimit')} activeOpacity={0.7} className="px-6 pb-4">
                   <Text style={{ color: colors.text }} className="text-sm font-nunito leading-5">
-                    Block stays active until manually ended for No Time Limit Presets. Leave disabled for timed preset options.
+                    Block stays active until manually ended for No Time Limit Presets. Strict Mode for this toggle ONLY disables tap to continue functionality.
                   </Text>
                 </TouchableOpacity>
               </ExpandableInfo>
@@ -1628,11 +1628,11 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                 {/* Recurring Schedule Toggle */}
                 <ExpandableInfo expanded={!!(scheduleStartDate && scheduleEndDate && scheduleEndDate > scheduleStartDate)} lazy>
                   <View className="-mx-6">
-                    <View style={{ paddingVertical: s(20), borderBottomWidth: isRecurring ? 1 : 0, borderBottomColor: colors.border }} className="flex-row items-center justify-between px-6">
-                      <View style={{ maxWidth: '75%' }}>
+                    <View style={{ paddingVertical: s(20) }} className="flex-row items-center justify-between px-6">
+                      <TouchableOpacity onPress={() => toggleInfo('recurring')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
                         <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">Recurring Schedule</Text>
                         <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">Repeat this block automatically</Text>
-                      </View>
+                      </TouchableOpacity>
                       <AnimatedSwitch
                         value={isRecurring}
                         onValueChange={(value: boolean) => {
@@ -1652,6 +1652,16 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                         }}
                       />
                     </View>
+                    <ExpandableInfo expanded={!!expandedInfo.recurring}>
+                      <TouchableOpacity onPress={() => toggleInfo('recurring')} activeOpacity={0.7} className="px-6 pb-4">
+                        <Text style={{ color: colors.text }} className="text-sm font-nunito leading-5">
+                          Automatically repeats this blocking session at the interval you choose. After each session ends, the next one will start based on your selected frequency.
+                        </Text>
+                      </TouchableOpacity>
+                    </ExpandableInfo>
+                    {(isRecurring || !!expandedInfo.recurring) && (
+                      <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }} />
+                    )}
 
                     {/* Recurring Options */}
                     <ExpandableInfo expanded={isRecurring} lazy>
@@ -1876,7 +1886,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               <ExpandableInfo expanded={!!expandedInfo.blockSettings}>
                 <TouchableOpacity onPress={() => toggleInfo('blockSettings')} activeOpacity={0.7} className="px-6 pb-4">
                   <Text style={{ color: colors.text }} className="text-sm font-nunito leading-5">
-                    Prevents access to Android Settings during the block. WiFi remains accessible via quick settings.
+                    Prevents access to Android Settings during the block so that overlays and essential permissions cannot be disabled. Most essential settings like WiFi or battery settings remain accessible via quick panel by sliding down from your phone.
                   </Text>
                 </TouchableOpacity>
               </ExpandableInfo>
@@ -1923,7 +1933,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               <ExpandableInfo expanded={!!expandedInfo.strictMode}>
                 <TouchableOpacity onPress={() => toggleInfo('strictMode')} activeOpacity={0.7} className="px-6 pb-4">
                   <Text style={{ color: colors.text }} className="text-sm font-nunito leading-5">
-                    Removes the slide-to-unlock option & the ability to dismiss a blocked app. Only exits: timer expiring or Emergency Tapout (if enabled).
+                    Removes the ability to unlock in any way and to dismiss blocked apps or sites. ONLY EXITS: timer expiring or Emergency Tapout (if enabled). Pair with the block settings toggle for maximum strictness.
                   </Text>
                 </TouchableOpacity>
               </ExpandableInfo>

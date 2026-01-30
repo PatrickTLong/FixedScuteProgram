@@ -230,11 +230,11 @@ const FileTextIcon = () => (
 );
 
 // Chevron right icon - matches PresetEditModal
-const ChevronRightIcon = ({ size = 24 }: { size?: number }) => (
+const ChevronRightIcon = ({ size = 24, color = "#FFFFFF" }: { size?: number; color?: string }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Path
       d="M9 18l6-6-6-6"
-      stroke="#FFFFFF"
+      stroke={color}
       strokeWidth={2.5}
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -265,6 +265,7 @@ interface SettingsRowProps {
   borderColor?: string;
   valueColor?: string;
   arrowColor?: string;
+  s: (size: number) => number;
 }
 
 const SettingsRow = ({
@@ -278,13 +279,14 @@ const SettingsRow = ({
   borderColor,
   valueColor,
   arrowColor,
+  s,
 }: SettingsRowProps) => (
   <TouchableOpacity
     onPress={() => { if (onPress) { lightTap(); onPress(); } }}
     disabled={!onPress}
     activeOpacity={onPress ? 0.7 : 1}
-    style={!isLast ? { borderBottomWidth: 1, borderBottomColor: borderColor } : undefined}
-    className="flex-row items-center py-4"
+    style={!isLast ? { borderBottomWidth: 1, borderBottomColor: borderColor, paddingVertical: s(16) } : { paddingVertical: s(16) }}
+    className="flex-row items-center px-4"
   >
     <View className="mr-4">{icon}</View>
     <Text style={{ color: labelColor }} className="flex-1 text-sm font-nunito">{label}</Text>
@@ -292,7 +294,7 @@ const SettingsRow = ({
       <Text style={{ color: valueColor }} className="text-sm font-nunito mr-2">{value}</Text>
     )}
     {showArrow && onPress && (
-      <ChevronRightIcon size={20} />
+      <ChevronRightIcon size={s(16)} />
     )}
   </TouchableOpacity>
 );
@@ -529,26 +531,27 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
 
       <ScrollView
         className="flex-1"
-        contentContainerStyle={{ paddingHorizontal: s(20), paddingTop: s(16), paddingBottom: s(32) }}
+        contentContainerStyle={{ paddingHorizontal: s(16), paddingTop: s(16), paddingBottom: s(32) }}
         showsVerticalScrollIndicator={false}
       >
         {/* ACCOUNT Section */}
         <Text style={{ color: colors.textMuted }} className="text-xs font-nunito uppercase tracking-wider mb-2">
           Account
         </Text>
-        <View style={{ backgroundColor: colors.card }} className="rounded-2xl px-4 mb-6">
+        <View style={{ backgroundColor: colors.card }} className="rounded-2xl mb-6">
           <SettingsRow
             icon={<MailIcon />}
             label={email}
             showArrow={false}
             labelColor={colors.text}
             borderColor={colors.border}
+            s={s}
           />
           {/* Membership Row with Trial Countdown */}
           <TouchableOpacity
             onPress={() => { lightTap(); setMembershipModalVisible(true); }}
-            style={{ borderBottomWidth: 1, borderBottomColor: colors.border }}
-            className="py-4"
+            style={{ borderBottomWidth: 1, borderBottomColor: colors.border, paddingVertical: s(16) }}
+            className="px-4"
           >
             <View className="flex-row items-center">
               <View className="mr-4"><MembershipIcon /></View>
@@ -568,7 +571,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
                   </Text>
                 )}
               </View>
-              <ChevronRightIcon size={20} />
+              <ChevronRightIcon size={s(16)} />
             </View>
           </TouchableOpacity>
           <SettingsRow
@@ -579,6 +582,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
             borderColor={colors.border}
             arrowColor={colors.textSecondary}
             isLast
+            s={s}
           />
         </View>
 
@@ -586,11 +590,11 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
         <Text style={{ color: colors.textMuted }} className="text-xs font-nunito uppercase tracking-wider mb-2">
           Emergency Tapout
         </Text>
-        <View style={{ backgroundColor: colors.card }} className="rounded-2xl px-4 mb-6">
+        <View style={{ backgroundColor: colors.card }} className="rounded-2xl mb-6">
           {/* Header Row */}
           <View
-            style={getTimeUntilRefill() ? { borderBottomWidth: 1, borderBottomColor: colors.border } : undefined}
-            className="flex-row items-center py-4"
+            style={getTimeUntilRefill() ? { borderBottomWidth: 1, borderBottomColor: colors.border, paddingVertical: s(16) } : { paddingVertical: s(16) }}
+            className="flex-row items-center px-4"
           >
             <View className="mr-4">
               <TapoutIcon />
@@ -608,7 +612,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
 
           {/* Refill Timer Row - shows when below 3 tapouts */}
           {tapoutStatus && getTimeUntilRefill() && (
-            <View className="flex-row items-center justify-between py-4">
+            <View style={{ paddingVertical: s(16) }} className="flex-row items-center justify-between px-4">
               <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">Next Refill</Text>
               <Text style={{ color: '#FFFFFF' }} className="text-sm font-nunito-semibold">
                 {getTimeUntilRefill()}
@@ -621,7 +625,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
         <Text style={{ color: colors.textMuted }} className="text-xs font-nunito uppercase tracking-wider mb-2">
           Support
         </Text>
-        <View style={{ backgroundColor: colors.card }} className="rounded-2xl px-4">
+        <View style={{ backgroundColor: colors.card }} className="rounded-2xl">
           <SettingsRow
             icon={<MessageIcon />}
             label="Contact Support"
@@ -629,6 +633,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
             labelColor={colors.text}
             borderColor={colors.border}
             arrowColor={colors.textSecondary}
+            s={s}
           />
           <SettingsRow
             icon={<BugIcon />}
@@ -637,6 +642,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
             labelColor={colors.text}
             borderColor={colors.border}
             arrowColor={colors.textSecondary}
+            s={s}
           />
           <SettingsRow
             icon={<ShieldIcon />}
@@ -645,6 +651,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
             labelColor={colors.text}
             borderColor={colors.border}
             arrowColor={colors.textSecondary}
+            s={s}
           />
           <SettingsRow
             icon={<FileTextIcon />}
@@ -654,6 +661,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
             borderColor={colors.border}
             arrowColor={colors.textSecondary}
             isLast
+            s={s}
           />
         </View>
 
@@ -671,7 +679,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
             <Text style={{ color: '#FF5C5C' }} className="text-sm font-nunito">{deleteError}</Text>
           </View>
         )}
-        <View style={{ backgroundColor: colors.card }} className="rounded-2xl px-4">
+        <View style={{ backgroundColor: colors.card }} className="rounded-2xl">
           <SettingsRow
             icon={<RefreshIcon />}
             label="Reset Account"
@@ -679,6 +687,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
             labelColor={colors.text}
             borderColor={colors.border}
             arrowColor={colors.textSecondary}
+            s={s}
           />
           <SettingsRow
             icon={<TrashIcon color="#FF5C5C" />}
@@ -688,6 +697,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
             borderColor={colors.border}
             arrowColor={colors.textSecondary}
             isLast
+            s={s}
           />
         </View>
       </ScrollView>
