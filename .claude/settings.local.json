@@ -42,7 +42,11 @@
       "Bash(git -C /c/Users/Shado/OneDrive/Desktop/ScuteProgram diff --stat)",
       "Bash(git -C /c/Users/Shado/OneDrive/Desktop/ScuteProgram diff -- 'Bind/src/')",
       "Bash(python3 -c \" import json, sys with open\\(''C:/Users/Shado/.claude/projects/c--Users-Shado-OneDrive-Desktop-ScuteProgram/b6455092-eabe-4549-ae62-98990afda22a/subagents/agent-aff6147.jsonl'', ''r'', encoding=''utf-8''\\) as f: for line in f: try: obj = json.loads\\(line.strip\\(\\)\\) # Look for assistant messages with text content if obj.get\\(''type''\\) == ''assistant'': msg = obj.get\\(''message'', {}\\) for block in msg.get\\(''content'', []\\): if block.get\\(''type''\\) == ''text'' and len\\(block.get\\(''text'',''''\\)\\) > 50: print\\(''=== ASSISTANT TEXT ===''\\) print\\(block[''text''][:3000]\\) print\\(''...''\\) print\\(\\) except: pass \")",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(where:*)",
+      "Bash(git revert:*)",
+      "Bash(git stash:*)",
+      "Bash(git add:*)"
     ]
   }
 }

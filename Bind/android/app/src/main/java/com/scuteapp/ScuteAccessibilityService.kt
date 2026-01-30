@@ -142,14 +142,28 @@ class ScuteAccessibilityService : AccessibilityService() {
 
         // INSTANT Settings blocking via Accessibility (faster than UsageStats polling)
         // Only handle Settings here; regular apps are handled by AppMonitorService
-        if (isSettingsPackage(packageName) && shouldBlockSettings()) {
-            Log.d(TAG, "BLOCKING Settings via Accessibility: $packageName")
+        // Only block on TYPE_WINDOW_STATE_CHANGED (32) - actual activity opens
+        // Ignore TYPE_WINDOW_CONTENT_CHANGED (2048) - just UI updates within an existing window
+        if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED &&
+            isSettingsPackage(packageName) && shouldBlockSettings()) {
+            val className = event.className?.toString() ?: ""
 
-            // Show blocked overlay INSTANTLY (before Settings renders)
-            AppMonitorService.instance?.blockSettingsNow(packageName)
+            // Skip framework view classes (FrameLayout, ViewGroup, etc.) - not real activities
+            if (className.startsWith("android.") || className.startsWith("androidx.") || className.isEmpty()) return
 
-            // Also go back to close Settings underneath the overlay
-            performGlobalAction(GLOBAL_ACTION_BACK)
+            // Allow WiFi settings through (quick settings opens these activities)
+            if (className.contains("WifiSettings", ignoreCase = true) ||
+                className.contains("DeepLinkHomepageActivity", ignoreCase = true)) {
+                Log.d(TAG, "ALLOWING WiFi settings: $className")
+            } else {
+                Log.d(TAG, "BLOCKING Settings via Accessibility: $packageName (class: $className)")
+
+                // Show blocked overlay INSTANTLY (before Settings renders)
+                AppMonitorService.instance?.blockSettingsNow(packageName)
+
+                // Also go back to close Settings underneath the overlay
+                performGlobalAction(GLOBAL_ACTION_BACK)
+            }
         }
 
         // Website blocking is now handled by WebsiteMonitorService with fast polling
