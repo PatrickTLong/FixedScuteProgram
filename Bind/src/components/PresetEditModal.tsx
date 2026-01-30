@@ -73,9 +73,11 @@ interface TimeWheelProps {
   textMutedColor: string;
   itemHeight: number;
   wheelWidth: number;
+  selectedFontSize: number;
+  unselectedFontSize: number;
 }
 
-const TimeWheel = memo(({ values, selectedValue, onValueChange, padZero = true, textColor, textMutedColor, itemHeight, wheelWidth }: TimeWheelProps) => {
+const TimeWheel = memo(({ values, selectedValue, onValueChange, padZero = true, textColor, textMutedColor, itemHeight, wheelWidth, selectedFontSize, unselectedFontSize }: TimeWheelProps) => {
   const scrollRef = useRef<ScrollView>(null);
   const lastHapticIndex = useRef(-1);
   const windowCenterRef = useRef(values.indexOf(selectedValue));
@@ -184,7 +186,7 @@ const TimeWheel = memo(({ values, selectedValue, onValueChange, padZero = true, 
             >
               <Text
                 style={{
-                  fontSize: isSelected ? 24 : 18,
+                  fontSize: isSelected ? selectedFontSize : unselectedFontSize,
                   fontFamily: isSelected ? 'Nunito-Bold' : 'Nunito-Regular',
                   color: isSelected ? textColor : textMutedColor,
                 }}
@@ -537,6 +539,8 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
   const { s } = useResponsive();
   const timeItemHeight = s(BASE_TIME_ITEM_HEIGHT);
   const wheelWidth = s(50);
+  const timeSelectedFontSize = s(24);
+  const timeUnselectedFontSize = s(18);
   const dayCellHeight = s(44);
   const [name, setName] = useState('');
   const [selectedApps, setSelectedApps] = useState<string[]>([]);
@@ -1349,6 +1353,8 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                       textMutedColor={colors.text === '#ffffff' ? 'rgba(255,255,255,0.3)' : 'rgba(26,26,26,0.3)'}
                       itemHeight={timeItemHeight}
                       wheelWidth={wheelWidth}
+                      selectedFontSize={timeSelectedFontSize}
+                      unselectedFontSize={timeUnselectedFontSize}
                     />
                     <View style={{ height: timeItemHeight, justifyContent: 'center', marginHorizontal: s(4), marginTop: -timeItemHeight * 0.15 }}>
                       <Text style={{ color: colors.textMuted, fontSize: s(24) }}>:</Text>
@@ -1362,6 +1368,8 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                       textMutedColor={colors.text === '#ffffff' ? 'rgba(255,255,255,0.3)' : 'rgba(26,26,26,0.3)'}
                       itemHeight={timeItemHeight}
                       wheelWidth={wheelWidth}
+                      selectedFontSize={timeSelectedFontSize}
+                      unselectedFontSize={timeUnselectedFontSize}
                     />
                     <AmPmSelector
                       value={dpSelectedAmPm}
@@ -1666,7 +1674,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                             </Text>
                           </View>
                           <TextInput
-                            style={{ color: colors.text, minWidth: s(40), textAlign: 'center' }}
+                            style={{ color: colors.text, minWidth: s(40), textAlign: 'center', height: s(28), padding: 0 }}
                             className="text-base font-nunito-semibold"
                             value={recurringValue}
                             onChangeText={(text) => {

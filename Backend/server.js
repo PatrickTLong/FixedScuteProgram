@@ -230,7 +230,10 @@ app.get('/privacy-policy', (req, res) => {
           <li>To protect the rights, safety, or property of Scute or its users.</li>
         </ul>
 
-        <h2>7. Your Rights</h2>
+        <h2>7. Email Marketing</h2>
+        <p>By providing your email address and creating an account, you consent to receive promotional emails, product updates, feature announcements, and other marketing communications from Scute. You may opt out of marketing emails at any time by using the unsubscribe link included in each email. Please note that even if you opt out of marketing emails, we may still send you transactional or account-related communications (such as account verification, security alerts, and service updates).</p>
+
+        <h2>8. Your Rights</h2>
         <p>You have the right to:</p>
         <ul>
           <li>Access, update, or delete your account information.</li>
@@ -238,13 +241,13 @@ app.get('/privacy-policy', (req, res) => {
         </ul>
         <p>To exercise these rights, contact us at <a href="mailto:info@scuteapp.com">info@scuteapp.com</a>.</p>
 
-        <h2>8. Children's Privacy</h2>
+        <h2>9. Children's Privacy</h2>
         <p>Scute is not intended for children under the age of 13. We do not knowingly collect personal information from children.</p>
 
-        <h2>9. Changes to This Policy</h2>
+        <h2>10. Changes to This Policy</h2>
         <p>We may update this Privacy Policy from time to time. Any changes will be posted in the app, and the "Effective Date" will be updated accordingly.</p>
 
-        <h2>10. Contact Us</h2>
+        <h2>11. Contact Us</h2>
         <p>If you have any questions or concerns about this Privacy Policy, please contact us at:</p>
         <p>Email: <a href="mailto:info@scuteapp.com">info@scuteapp.com</a></p>
       </div>

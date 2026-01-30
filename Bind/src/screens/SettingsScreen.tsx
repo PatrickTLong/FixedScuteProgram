@@ -812,7 +812,12 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
               • To protect the rights, safety, or property of Scute or its users.
             </Text>
 
-            <Text style={{ color: colors.text }} className="text-sm font-nunito-bold mb-2">7. Your Rights</Text>
+            <Text style={{ color: colors.text }} className="text-sm font-nunito-bold mb-2">7. Email Marketing</Text>
+            <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
+              By providing your email address and creating an account, you consent to receive promotional emails, product updates, feature announcements, and other marketing communications from Scute. You may opt out of marketing emails at any time by using the unsubscribe link included in each email. Please note that even if you opt out of marketing emails, we may still send you transactional or account-related communications (such as account verification, security alerts, and service updates).
+            </Text>
+
+            <Text style={{ color: colors.text }} className="text-sm font-nunito-bold mb-2">8. Your Rights</Text>
             <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
               You have the right to:{'\n'}
               • Access, update, or delete your account information.{'\n'}
@@ -820,22 +825,22 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
               To exercise these rights, contact us at info@scuteapp.com.
             </Text>
 
-            <Text style={{ color: colors.text }} className="text-sm font-nunito-bold mb-2">8. Children's Privacy</Text>
+            <Text style={{ color: colors.text }} className="text-sm font-nunito-bold mb-2">9. Children's Privacy</Text>
             <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
               Scute is not intended for children under the age of 13. We do not knowingly collect personal information from children.
             </Text>
 
-            <Text style={{ color: colors.text }} className="text-sm font-nunito-bold mb-2">9. Data Retention</Text>
+            <Text style={{ color: colors.text }} className="text-sm font-nunito-bold mb-2">10. Data Retention</Text>
             <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
               We retain your email address for as long as your account is active. App usage data is stored locally on your device and is deleted when you uninstall the App. Upon account deletion, all associated data is permanently removed from our servers.
             </Text>
 
-            <Text style={{ color: colors.text }} className="text-sm font-nunito-bold mb-2">10. Changes to This Policy</Text>
+            <Text style={{ color: colors.text }} className="text-sm font-nunito-bold mb-2">11. Changes to This Policy</Text>
             <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
               We may update this Privacy Policy from time to time. Any changes will be posted in the app, and the "Effective Date" will be updated accordingly.
             </Text>
 
-            <Text style={{ color: colors.text }} className="text-sm font-nunito-bold mb-2">11. Contact Us</Text>
+            <Text style={{ color: colors.text }} className="text-sm font-nunito-bold mb-2">12. Contact Us</Text>
             <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
               If you have any questions or concerns about this Privacy Policy, please contact us at:{'\n'}
               Email: info@scuteapp.com
@@ -943,22 +948,27 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
               Subscriptions are processed through Google Play. By subscribing, you agree to Google Play's terms of service. Subscriptions automatically renew unless cancelled at least 24 hours before the end of the current billing period. You can manage or cancel your subscription through Google Play Store settings. Refunds are handled according to Google Play's refund policy.
             </Text>
 
-            <Text style={{ color: colors.text }} className="text-sm font-nunito-bold mb-2">11. Modifications to Terms</Text>
+            <Text style={{ color: colors.text }} className="text-sm font-nunito-bold mb-2">11. Email Marketing</Text>
+            <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
+              By creating an account and providing your email address, you agree to receive promotional emails, product updates, feature announcements, and other marketing communications from Scute. You may opt out of marketing emails at any time by using the unsubscribe link included in each email. Opting out of marketing emails will not affect transactional or account-related communications (such as account verification, security alerts, and service updates).
+            </Text>
+
+            <Text style={{ color: colors.text }} className="text-sm font-nunito-bold mb-2">12. Modifications to Terms</Text>
             <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
               We reserve the right to modify these Terms at any time. Changes will be effective upon posting within the App. Your continued use of the App after any modifications constitutes acceptance of the updated Terms.
             </Text>
 
-            <Text style={{ color: colors.text }} className="text-sm font-nunito-bold mb-2">12. Governing Law</Text>
+            <Text style={{ color: colors.text }} className="text-sm font-nunito-bold mb-2">13. Governing Law</Text>
             <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
               These Terms shall be governed by and construed in accordance with the laws of the jurisdiction in which Scute operates, without regard to conflict of law principles.
             </Text>
 
-            <Text style={{ color: colors.text }} className="text-sm font-nunito-bold mb-2">13. Severability</Text>
+            <Text style={{ color: colors.text }} className="text-sm font-nunito-bold mb-2">14. Severability</Text>
             <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
               If any provision of these Terms is found to be unenforceable or invalid, that provision shall be limited or eliminated to the minimum extent necessary, and the remaining provisions shall remain in full force and effect.
             </Text>
 
-            <Text style={{ color: colors.text }} className="text-sm font-nunito-bold mb-2">14. Contact Us</Text>
+            <Text style={{ color: colors.text }} className="text-sm font-nunito-bold mb-2">15. Contact Us</Text>
             <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
               If you have any questions about these Terms of Service, please contact us at:{'\n'}
               Email: info@scuteapp.com

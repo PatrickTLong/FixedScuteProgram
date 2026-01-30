@@ -107,22 +107,27 @@ function TermsAcceptScreen({ onAccept }: Props) {
           Subscriptions are processed through Google Play. By subscribing, you agree to Google Play's terms of service. Subscriptions automatically renew unless cancelled at least 24 hours before the end of the current billing period. You can manage or cancel your subscription through Google Play Store settings. Refunds are handled according to Google Play's refund policy.
         </Text>
 
-        <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">11. Modifications to Terms</Text>
+        <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">11. Email Marketing</Text>
+        <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
+          By creating an account and providing your email address, you agree to receive promotional emails, product updates, feature announcements, and other marketing communications from Scute. You may opt out of marketing emails at any time by using the unsubscribe link included in each email. Opting out of marketing emails will not affect transactional or account-related communications (such as account verification, security alerts, and service updates).
+        </Text>
+
+        <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">12. Modifications to Terms</Text>
         <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
           We reserve the right to modify these Terms at any time. Changes will be effective upon posting within the App. Your continued use of the App after any modifications constitutes acceptance of the updated Terms.
         </Text>
 
-        <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">12. Governing Law</Text>
+        <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">13. Governing Law</Text>
         <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
           These Terms shall be governed by and construed in accordance with the laws of the jurisdiction in which Scute operates, without regard to conflict of law principles.
         </Text>
 
-        <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">13. Severability</Text>
+        <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">14. Severability</Text>
         <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
           If any provision of these Terms is found to be unenforceable or invalid, that provision shall be limited or eliminated to the minimum extent necessary, and the remaining provisions shall remain in full force and effect.
         </Text>
 
-        <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">14. Contact Us</Text>
+        <Text style={{ color: colors.text }} className="text-base font-nunito-bold mb-2">15. Contact Us</Text>
         <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito leading-5 mb-4">
           If you have any questions about these Terms of Service, please contact us at:{'\n'}
           Email: info@scuteapp.com
