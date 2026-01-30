@@ -24,9 +24,13 @@ interface WheelProps {
   labelColor: string;
   itemHeight: number;
   wheelWidth: number;
+  selectedFontSize: number;
+  unselectedFontSize: number;
+  labelFontSize: number;
+  labelMarginTop: number;
 }
 
-const Wheel = memo(({ values, selectedValue, onValueChange, label, textColor, textMutedColor, labelColor, itemHeight, wheelWidth }: WheelProps) => {
+const Wheel = memo(({ values, selectedValue, onValueChange, label, textColor, textMutedColor, labelColor, itemHeight, wheelWidth, selectedFontSize, unselectedFontSize, labelFontSize, labelMarginTop }: WheelProps) => {
   const scrollRef = useRef<ScrollView>(null);
   const lastHapticIndex = useRef(-1);
   const windowCenterRef = useRef(values.indexOf(selectedValue));
@@ -142,7 +146,7 @@ const Wheel = memo(({ values, selectedValue, onValueChange, label, textColor, te
               >
                 <Text
                   style={{
-                    fontSize: isSelected ? 24 : 18,
+                    fontSize: isSelected ? selectedFontSize : unselectedFontSize,
                     fontFamily: isSelected ? 'Nunito-Bold' : 'Nunito-Regular',
                     color: isSelected ? textColor : textMutedColor,
                   }}
@@ -157,9 +161,9 @@ const Wheel = memo(({ values, selectedValue, onValueChange, label, textColor, te
       </View>
       <Text
         style={{
-          fontSize: 12,
+          fontSize: labelFontSize,
           color: labelColor,
-          marginTop: 6,
+          marginTop: labelMarginTop,
           fontFamily: 'Nunito-Regular',
         }}
       >
@@ -206,22 +210,27 @@ function TimerPicker({
     ? 'rgba(255,255,255,0.3)'
     : 'rgba(26,26,26,0.3)';
 
+  const selectedFontSize = s(24);
+  const unselectedFontSize = s(18);
+  const labelFontSize = s(12);
+  const labelMarginTop = s(4);
+
   return (
     <View
       style={{
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'flex-start',
-        gap: 4,
+        gap: s(4),
       }}
     >
-      <Wheel values={DAYS} selectedValue={days} onValueChange={onDaysChange} label="days" textColor={colors.text} textMutedColor={textMutedColor} labelColor={colors.textMuted} itemHeight={itemHeight} wheelWidth={wheelWidth} />
-      <View style={{ height: itemHeight * VISIBLE_ITEMS, justifyContent: 'center', marginHorizontal: 2, marginTop: -itemHeight * 0.08 }}><Text style={{ color: colors.textMuted, fontSize: 24 }}>:</Text></View>
-      <Wheel values={HOURS} selectedValue={hours} onValueChange={onHoursChange} label="hrs" textColor={colors.text} textMutedColor={textMutedColor} labelColor={colors.textMuted} itemHeight={itemHeight} wheelWidth={wheelWidth} />
-      <View style={{ height: itemHeight * VISIBLE_ITEMS, justifyContent: 'center', marginHorizontal: 2, marginTop: -itemHeight * 0.08 }}><Text style={{ color: colors.textMuted, fontSize: 24 }}>:</Text></View>
-      <Wheel values={MINUTES} selectedValue={minutes} onValueChange={onMinutesChange} label="min" textColor={colors.text} textMutedColor={textMutedColor} labelColor={colors.textMuted} itemHeight={itemHeight} wheelWidth={wheelWidth} />
-      <View style={{ height: itemHeight * VISIBLE_ITEMS, justifyContent: 'center', marginHorizontal: 2, marginTop: -itemHeight * 0.08 }}><Text style={{ color: colors.textMuted, fontSize: 24 }}>:</Text></View>
-      <Wheel values={SECONDS} selectedValue={seconds} onValueChange={onSecondsChange} label="sec" textColor={colors.text} textMutedColor={textMutedColor} labelColor={colors.textMuted} itemHeight={itemHeight} wheelWidth={wheelWidth} />
+      <Wheel values={DAYS} selectedValue={days} onValueChange={onDaysChange} label="days" textColor={colors.text} textMutedColor={textMutedColor} labelColor={colors.textMuted} itemHeight={itemHeight} wheelWidth={wheelWidth} selectedFontSize={selectedFontSize} unselectedFontSize={unselectedFontSize} labelFontSize={labelFontSize} labelMarginTop={labelMarginTop} />
+      <View style={{ height: itemHeight * VISIBLE_ITEMS, justifyContent: 'center', marginHorizontal: s(2), marginTop: -itemHeight * 0.08 }}><Text style={{ color: colors.textMuted, fontSize: s(24) }}>:</Text></View>
+      <Wheel values={HOURS} selectedValue={hours} onValueChange={onHoursChange} label="hrs" textColor={colors.text} textMutedColor={textMutedColor} labelColor={colors.textMuted} itemHeight={itemHeight} wheelWidth={wheelWidth} selectedFontSize={selectedFontSize} unselectedFontSize={unselectedFontSize} labelFontSize={labelFontSize} labelMarginTop={labelMarginTop} />
+      <View style={{ height: itemHeight * VISIBLE_ITEMS, justifyContent: 'center', marginHorizontal: s(2), marginTop: -itemHeight * 0.08 }}><Text style={{ color: colors.textMuted, fontSize: s(24) }}>:</Text></View>
+      <Wheel values={MINUTES} selectedValue={minutes} onValueChange={onMinutesChange} label="min" textColor={colors.text} textMutedColor={textMutedColor} labelColor={colors.textMuted} itemHeight={itemHeight} wheelWidth={wheelWidth} selectedFontSize={selectedFontSize} unselectedFontSize={unselectedFontSize} labelFontSize={labelFontSize} labelMarginTop={labelMarginTop} />
+      <View style={{ height: itemHeight * VISIBLE_ITEMS, justifyContent: 'center', marginHorizontal: s(2), marginTop: -itemHeight * 0.08 }}><Text style={{ color: colors.textMuted, fontSize: s(24) }}>:</Text></View>
+      <Wheel values={SECONDS} selectedValue={seconds} onValueChange={onSecondsChange} label="sec" textColor={colors.text} textMutedColor={textMutedColor} labelColor={colors.textMuted} itemHeight={itemHeight} wheelWidth={wheelWidth} selectedFontSize={selectedFontSize} unselectedFontSize={unselectedFontSize} labelFontSize={labelFontSize} labelMarginTop={labelMarginTop} />
     </View>
   );
 }

@@ -8,6 +8,7 @@ import {
 import Svg, { Path } from 'react-native-svg';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../context/ThemeContext';
+import { useResponsive } from '../utils/responsive';
 import { lightTap } from '../utils/haptics';
 
 // Google Play Store Icon (colored)
@@ -26,6 +27,7 @@ interface Props {
 
 function MembershipScreen({ onPurchaseComplete }: Props) {
   const { colors } = useTheme();
+  const { s } = useResponsive();
   const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'yearly' | 'lifetime' | null>(null);
 
   return (
@@ -49,7 +51,7 @@ function MembershipScreen({ onPurchaseComplete }: Props) {
             backgroundColor: colors.card,
             borderWidth: 2,
             borderColor: selectedPlan === 'monthly' ? '#FFFFFF' : 'transparent',
-            padding: 16,
+            padding: s(16),
           }}
           className="rounded-2xl mb-3"
         >
@@ -77,7 +79,7 @@ function MembershipScreen({ onPurchaseComplete }: Props) {
             backgroundColor: colors.card,
             borderWidth: 2,
             borderColor: selectedPlan === 'yearly' ? '#FFFFFF' : 'transparent',
-            padding: 16,
+            padding: s(16),
           }}
           className="rounded-2xl mb-3"
         >
@@ -110,7 +112,7 @@ function MembershipScreen({ onPurchaseComplete }: Props) {
             backgroundColor: colors.card,
             borderWidth: 2,
             borderColor: selectedPlan === 'lifetime' ? '#FFFFFF' : 'transparent',
-            padding: 16,
+            padding: s(16),
           }}
           className="rounded-2xl mb-6"
         >

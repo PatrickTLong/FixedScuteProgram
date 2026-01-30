@@ -4,6 +4,7 @@ import LottieView from 'lottie-react-native';
 const Lottie = LottieView as any;
 import { lightTap } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
+import { useResponsive } from '../utils/responsive';
 
 interface ButtonProps {
   title: string;
@@ -23,6 +24,7 @@ function Button({
   fullWidth = false,
 }: ButtonProps) {
   const { colors } = useTheme();
+  const { s } = useResponsive();
 
   const getButtonStyle = () => {
     if (disabled) {
@@ -79,7 +81,7 @@ function Button({
             autoPlay
             loop
             speed={2}
-            style={{ width: 150, height: 150 }}
+            style={{ width: s(150), height: s(150) }}
           />
         </View>
       )}

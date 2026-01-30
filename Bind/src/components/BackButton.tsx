@@ -3,6 +3,7 @@ import { TouchableOpacity } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { lightTap } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
+import { useResponsive } from '../utils/responsive';
 
 interface BackButtonProps {
   onPress: () => void;
@@ -10,6 +11,7 @@ interface BackButtonProps {
 
 function BackButton({ onPress }: BackButtonProps) {
   const { colors } = useTheme();
+  const { s } = useResponsive();
   const handlePress = useCallback(() => {
     lightTap();
     onPress();
@@ -19,8 +21,8 @@ function BackButton({ onPress }: BackButtonProps) {
     <TouchableOpacity
       onPress={handlePress}
       activeOpacity={0.7}
-      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-      style={{ padding: 16 }}
+      hitSlop={{ top: s(10), bottom: s(10), left: s(10), right: s(10) }}
+      style={{ padding: s(16) }}
     >
       {/* Minimalistic straight left arrow */}
       <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">

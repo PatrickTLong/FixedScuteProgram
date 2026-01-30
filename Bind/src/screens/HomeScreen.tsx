@@ -137,9 +137,6 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
   // Scheduled presets expandable modal
   const [scheduledPresetsModalVisible, setScheduledPresetsModalVisible] = useState(false);
 
-  // Shake animation for locked card
-  const shakeAnim = useRef(new Animated.Value(0)).current;
-
   // Fade animation for logo transition between locked/unlocked
   // Start both at 0 to avoid flash - will be set correctly after initial load
   const lockedOpacity = useRef(new Animated.Value(0)).current;
@@ -152,29 +149,6 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
 
   // Prevent concurrent loadStats calls (race condition fix)
   const loadStatsInProgressRef = useRef(false);
-
-  // Shake animation when tapping locked card
-  const triggerShakeAnimation = useCallback(() => {
-    Vibration.vibrate([0, 50, 30, 50]); // pattern: wait, vibrate, wait, vibrate
-    Animated.sequence([
-      Animated.timing(shakeAnim, { toValue: 10, duration: 50, useNativeDriver: true }),
-      Animated.timing(shakeAnim, { toValue: -10, duration: 50, useNativeDriver: true }),
-      Animated.timing(shakeAnim, { toValue: 8, duration: 50, useNativeDriver: true }),
-      Animated.timing(shakeAnim, { toValue: -8, duration: 50, useNativeDriver: true }),
-      Animated.timing(shakeAnim, { toValue: 5, duration: 50, useNativeDriver: true }),
-      Animated.timing(shakeAnim, { toValue: -5, duration: 50, useNativeDriver: true }),
-      Animated.timing(shakeAnim, { toValue: 0, duration: 50, useNativeDriver: true }),
-    ]).start();
-  }, [shakeAnim]);
-
-  // Show emergency tapout modal when tapping locked card
-  const handleLockedCardPress = useCallback(async () => {
-    triggerShakeAnimation();
-    // Fetch fresh tapout status before showing modal
-    const freshTapoutStatus = await getEmergencyTapoutStatus(email);
-    setTapoutStatus(freshTapoutStatus);
-    setEmergencyTapoutModalVisible(true);
-  }, [triggerShakeAnimation, email]);
 
   const showModal = useCallback((title: string, message: string) => {
     setModalTitle(title);
@@ -733,19 +707,6 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
     });
   }, []);
 
-  const handleConfigurePress = useCallback(() => {
-    // If locked, show emergency tapout modal
-    if (isLocked) {
-      handleLockedCardPress();
-      return;
-    }
-
-    // Card tap now always navigates to presets (when registered or not)
-    if (onNavigateToPresets) {
-      onNavigateToPresets();
-    }
-  }, [isLocked, handleLockedCardPress, onNavigateToPresets]);
-
   // Memoize unlock press handler for timed presets (shows emergency tapout modal)
   const handleUnlockPress = useCallback(() => {
     // Timed preset - show emergency tapout modal
@@ -1071,7 +1032,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
           autoPlay
           loop
           speed={2}
-          style={{ width: 250, height: 250 }}
+          style={{ width: s(250), height: s(250) }}
         />
       </SafeAreaView>
     );
@@ -1081,39 +1042,34 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }} edges={['top']}>
       <View className="flex-1 px-6">
         {/* Scute Logo - absolute positioned so it doesn't affect centering */}
-        <TouchableOpacity
-          onPress={() => { lightTap(); handleConfigurePress(); }}
+        <View
           style={{ position: 'absolute', top: s(-32), left: s(-8), zIndex: 10 }}
         >
-          <Animated.View
-            style={{ transform: [{ translateX: shakeAnim }] }}
-          >
-            {/* Unlocked logo - fades out when actively locked */}
-            <Animated.View style={{ opacity: unlockedOpacity, position: 'absolute' }}>
-              <Image
-                source={scuteLogo}
-                style={{
-                  width: s(150),
-                  height: s(150),
-                  tintColor: colors.logoTint,
-                }}
-                resizeMode="contain"
-              />
-            </Animated.View>
-            {/* Locked logo - fades in when actively locked */}
-            <Animated.View style={{ opacity: lockedOpacity }}>
-              <Image
-                source={scuteLogo}
-                style={{
-                  width: s(150),
-                  height: s(150),
-                  tintColor: colors.logoTint,
-                }}
-                resizeMode="contain"
-              />
-            </Animated.View>
+          {/* Unlocked logo - fades out when actively locked */}
+          <Animated.View style={{ opacity: unlockedOpacity, position: 'absolute' }}>
+            <Image
+              source={scuteLogo}
+              style={{
+                width: s(150),
+                height: s(150),
+                tintColor: colors.logoTint,
+              }}
+              resizeMode="contain"
+            />
           </Animated.View>
-        </TouchableOpacity>
+          {/* Locked logo - fades in when actively locked */}
+          <Animated.View style={{ opacity: lockedOpacity }}>
+            <Image
+              source={scuteLogo}
+              style={{
+                width: s(150),
+                height: s(150),
+                tintColor: colors.logoTint,
+              }}
+              resizeMode="contain"
+            />
+          </Animated.View>
+        </View>
 
         {/* Status + Preset + Scheduled - centered in full screen */}
         <View className="flex-1 items-center justify-center" style={{ paddingTop: '8%' }}>
@@ -1124,7 +1080,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
                 <Text style={{ color: colors.textMuted }} className="text-sm font-nunito mb-1">
                   Will unlock in
                 </Text>
-                <Text style={{ color: colors.text }} className="text-2xl font-nunito-bold tracking-tight">
+                <Text style={{ color: colors.text }} className="text-4xl font-nunito-bold tracking-tight">
                   {timeRemaining}
                 </Text>
               </>
@@ -1133,18 +1089,18 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
                 <Text style={{ color: colors.textMuted }} className="text-sm font-nunito">
                   Locked for
                 </Text>
-                <Text style={{ color: colors.text }} className="text-2xl font-nunito-bold tracking-tight mt-2">
+                <Text style={{ color: colors.text }} className="text-4xl font-nunito-bold tracking-tight mt-2">
                   {elapsedTime}
                 </Text>
               </>
             ) : isLocked ? (
               <>
-                <Text style={{ color: colors.text }} className="text-2xl font-nunito-bold mb-1">
+                <Text style={{ color: colors.text }} className="text-4xl font-nunito-bold mb-1">
                   Locked
                 </Text>
               </>
             ) : (
-              <Text style={{ color: colors.text }} className="text-2xl font-nunito-bold">
+              <Text style={{ color: colors.text }} className="text-4xl font-nunito-bold">
                 Not Locked
               </Text>
             )}
@@ -1155,7 +1111,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
             <View className="items-center justify-center">
               <Text
                 style={{ color: colors.text }}
-                className="text-base font-nunito-semibold text-center"
+                className="text-lg font-nunito-semibold text-center"
               >
                 Preset: {currentPreset || 'None Selected'}
               </Text>
@@ -1188,16 +1144,16 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
                   backgroundColor: colors.card,
                   position: 'absolute',
                   top: '100%',
-                  marginTop: 24,
+                  marginTop: s(24),
                 }}
               >
                 {/* Status dot */}
                 <View
                   style={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: 4,
-                    marginRight: 8,
+                    width: s(8),
+                    height: s(8),
+                    borderRadius: s(4),
+                    marginRight: s(8),
                     backgroundColor: (() => {
                       const now = new Date();
                       const hasActive = scheduledPresets.some(p => {

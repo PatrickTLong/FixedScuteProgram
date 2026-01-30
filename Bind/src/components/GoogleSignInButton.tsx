@@ -12,6 +12,7 @@ import { setAuthToken } from '../services/cardApi';
 import { API_URL } from '../config/api';
 import { lightTap } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
+import { useResponsive } from '../utils/responsive';
 
 interface Props {
   onSuccess: (email: string) => void;
@@ -49,6 +50,7 @@ GoogleSignin.configure({
 
 export default function GoogleSignInBtn({ onSuccess, onError, disabled }: Props) {
   const { colors } = useTheme();
+  const { s } = useResponsive();
   const [loading, setLoading] = useState(false);
 
   async function handleGoogleSignIn() {
@@ -128,7 +130,7 @@ export default function GoogleSignInBtn({ onSuccess, onError, disabled }: Props)
             autoPlay
             loop
             speed={2}
-            style={{ width: 150, height: 150 }}
+            style={{ width: s(150), height: s(150) }}
           />
         </View>
       )}

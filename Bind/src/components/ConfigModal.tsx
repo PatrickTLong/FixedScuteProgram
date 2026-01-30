@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import TimerPicker from './TimerPicker';
+import { useResponsive } from '../utils/responsive';
 
 interface ConfigModalProps {
   visible: boolean;
@@ -61,6 +62,7 @@ function ConfigModal({
   onHoursChange,
   onMinutesChange,
 }: ConfigModalProps) {
+  const { s } = useResponsive();
   return (
     <Modal
       visible={visible}
@@ -73,8 +75,8 @@ function ConfigModal({
           flexDirection: 'row',
           justifyContent: 'space-between',
           alignItems: 'center',
-          paddingHorizontal: 16,
-          paddingVertical: 12,
+          paddingHorizontal: s(16),
+          paddingVertical: s(12),
           backgroundColor: '#fff',
           borderBottomWidth: 1,
           borderBottomColor: '#eee',
@@ -82,19 +84,19 @@ function ConfigModal({
           <TouchableOpacity
             onPress={onClose}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            style={{ minWidth: 60 }}
+            style={{ minWidth: s(60) }}
           >
-            <Text style={{ color: '#007AFF', fontSize: 16 }}>Cancel</Text>
+            <Text style={{ color: '#007AFF', fontSize: s(16) }}>Cancel</Text>
           </TouchableOpacity>
-          <Text style={{ fontSize: 17, fontWeight: '600', flex: 1, textAlign: 'center' }}>
+          <Text style={{ fontSize: s(17), fontWeight: '600', flex: 1, textAlign: 'center' }}>
             {configMode === 'all' ? 'Disable Phone Use' : 'Select Apps'}
           </Text>
           <TouchableOpacity
             onPress={onSave}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            style={{ minWidth: 60, alignItems: 'flex-end' }}
+            style={{ minWidth: s(60), alignItems: 'flex-end' }}
           >
-            <Text style={{ color: '#007AFF', fontSize: 16, fontWeight: '600' }}>Save</Text>
+            <Text style={{ color: '#007AFF', fontSize: s(16), fontWeight: '600' }}>Save</Text>
           </TouchableOpacity>
         </View>
 
@@ -104,7 +106,7 @@ function ConfigModal({
         >
           <ScrollView
             style={{ flex: 1 }}
-            contentContainerStyle={{ paddingBottom: 16 }}
+            contentContainerStyle={{ paddingBottom: s(16) }}
             keyboardShouldPersistTaps="handled"
             nestedScrollEnabled={true}
           >
@@ -117,35 +119,35 @@ function ConfigModal({
                   flexDirection: 'row',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  padding: 16,
-                  marginHorizontal: 16,
-                  marginTop: 16,
+                  padding: s(16),
+                  marginHorizontal: s(16),
+                  marginTop: s(16),
                   backgroundColor: '#fff',
-                  borderRadius: 12,
+                  borderRadius: s(12),
                 }}
               >
                 <View>
-                  <Text style={{ fontSize: 16, fontWeight: '500', color: '#333' }}>Select Apps</Text>
-                  <Text style={{ fontSize: 14, color: '#666', marginTop: 2 }}>
+                  <Text style={{ fontSize: s(16), fontWeight: '500', color: '#333' }}>Select Apps</Text>
+                  <Text style={{ fontSize: s(14), color: '#666', marginTop: s(2) }}>
                     {selectedApps.length === 0 ? 'No apps selected' : `${selectedApps.length} apps selected`}
                   </Text>
                 </View>
-                <Text style={{ fontSize: 20, color: '#ccc' }}>›</Text>
+                <Text style={{ fontSize: s(20), color: '#ccc' }}>›</Text>
               </TouchableOpacity>
             )}
 
             {/* Website Blocking - Only show for specific apps mode */}
             {configMode === 'specific' && (
               <View style={{
-                marginHorizontal: 16,
-                marginTop: 16,
+                marginHorizontal: s(16),
+                marginTop: s(16),
                 backgroundColor: '#fff',
-                borderRadius: 12,
-                padding: 16,
+                borderRadius: s(12),
+                padding: s(16),
               }}>
-                <Text style={{ fontSize: 16, fontWeight: '500', color: '#333', marginBottom: 12 }}>Block Websites</Text>
+                <Text style={{ fontSize: s(16), fontWeight: '500', color: '#333', marginBottom: s(12) }}>Block Websites</Text>
 
-                <View style={{ flexDirection: 'row', gap: 8 }}>
+                <View style={{ flexDirection: 'row', gap: s(8) }}>
                   <TextInput
                     value={websiteInput}
                     onChangeText={onWebsiteInputChange}
@@ -156,12 +158,12 @@ function ConfigModal({
                     keyboardType="url"
                     style={{
                       flex: 1,
-                      height: 44,
+                      height: s(44),
                       borderWidth: 1,
                       borderColor: '#ddd',
-                      borderRadius: 8,
-                      paddingHorizontal: 12,
-                      fontSize: 15,
+                      borderRadius: s(8),
+                      paddingHorizontal: s(12),
+                      fontSize: s(15),
                       color: '#333',
                       backgroundColor: '#f9f9f9',
                     }}
@@ -170,20 +172,20 @@ function ConfigModal({
                     onPress={onAddWebsite}
                     disabled={!isWebsiteValid}
                     style={{
-                      width: 44,
-                      height: 44,
+                      width: s(44),
+                      height: s(44),
                       backgroundColor: isWebsiteValid ? '#007AFF' : '#ccc',
-                      borderRadius: 8,
+                      borderRadius: s(8),
                       justifyContent: 'center',
                       alignItems: 'center',
                     }}
                   >
-                    <Text style={{ color: '#fff', fontSize: 28, fontWeight: '400', lineHeight: 28, textAlign: 'center' }}>+</Text>
+                    <Text style={{ color: '#fff', fontSize: s(28), fontWeight: '400', lineHeight: s(28), textAlign: 'center' }}>+</Text>
                   </TouchableOpacity>
                 </View>
 
                 {blockedWebsites.length > 0 && (
-                  <View style={{ marginTop: 12, flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                  <View style={{ marginTop: s(12), flexDirection: 'row', flexWrap: 'wrap', gap: s(8) }}>
                     {blockedWebsites.map((site) => (
                       <TouchableOpacity
                         key={site}
@@ -192,23 +194,23 @@ function ConfigModal({
                           flexDirection: 'row',
                           alignItems: 'center',
                           backgroundColor: '#e3f2fd',
-                          paddingVertical: 6,
-                          paddingLeft: 12,
-                          paddingRight: 8,
-                          borderRadius: 16,
+                          paddingVertical: s(6),
+                          paddingLeft: s(12),
+                          paddingRight: s(8),
+                          borderRadius: s(16),
                         }}
                       >
-                        <Text style={{ color: '#1976D2', fontSize: 13, marginRight: 4 }}>
+                        <Text style={{ color: '#1976D2', fontSize: s(13), marginRight: s(4) }}>
                           {site.length > 8 ? `${site.substring(0, 8)}...` : site}
                         </Text>
-                        <Text style={{ color: '#1976D2', fontSize: 16 }}>×</Text>
+                        <Text style={{ color: '#1976D2', fontSize: s(16) }}>×</Text>
                       </TouchableOpacity>
                     ))}
                   </View>
                 )}
 
                 {blockedWebsites.length === 0 && (
-                  <Text style={{ color: '#999', fontSize: 13, marginTop: 8 }}>
+                  <Text style={{ color: '#999', fontSize: s(13), marginTop: s(8) }}>
                     No websites blocked. Add domains above.
                   </Text>
                 )}
@@ -217,10 +219,10 @@ function ConfigModal({
 
             {/* Toggles and Timer Section */}
             <View style={{
-              marginHorizontal: 16,
-              marginTop: 16,
+              marginHorizontal: s(16),
+              marginTop: s(16),
               backgroundColor: '#fff',
-              borderRadius: 12,
+              borderRadius: s(12),
               overflow: 'hidden',
             }}>
               {/* Block Settings Toggle */}
@@ -230,30 +232,30 @@ function ConfigModal({
                 style={{
                   flexDirection: 'row',
                   alignItems: 'center',
-                  paddingVertical: 12,
-                  paddingHorizontal: 16,
+                  paddingVertical: s(12),
+                  paddingHorizontal: s(16),
                 }}
               >
                 <View style={{
-                  width: 22,
-                  height: 22,
-                  borderRadius: 6,
+                  width: s(22),
+                  height: s(22),
+                  borderRadius: s(6),
                   backgroundColor: blockSettings ? '#ff9800' : '#ddd',
                   justifyContent: 'center',
                   alignItems: 'center',
-                  marginRight: 12,
+                  marginRight: s(12),
                 }}>
-                  {blockSettings && <Text style={{ color: '#fff', fontSize: 14, fontWeight: 'bold' }}>✓</Text>}
+                  {blockSettings && <Text style={{ color: '#fff', fontSize: s(14), fontWeight: 'bold' }}>✓</Text>}
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={{ fontSize: 15, fontWeight: '500', color: '#333' }}>Block Settings App</Text>
-                  <Text style={{ fontSize: 12, color: '#888', marginTop: 1 }}>
+                  <Text style={{ fontSize: s(15), fontWeight: '500', color: '#333' }}>Block Settings App</Text>
+                  <Text style={{ fontSize: s(12), color: '#888', marginTop: s(1) }}>
                     WiFi & emergency remain accessible
                   </Text>
                 </View>
               </TouchableOpacity>
 
-              <View style={{ height: 1, backgroundColor: '#eee', marginHorizontal: 16 }} />
+              <View style={{ height: 1, backgroundColor: '#eee', marginHorizontal: s(16) }} />
 
               {/* No Time Limit Toggle */}
               <TouchableOpacity
@@ -262,24 +264,24 @@ function ConfigModal({
                 style={{
                   flexDirection: 'row',
                   alignItems: 'center',
-                  paddingVertical: 12,
-                  paddingHorizontal: 16,
+                  paddingVertical: s(12),
+                  paddingHorizontal: s(16),
                 }}
               >
                 <View style={{
-                  width: 22,
-                  height: 22,
-                  borderRadius: 6,
+                  width: s(22),
+                  height: s(22),
+                  borderRadius: s(6),
                   backgroundColor: noTimeLimit ? '#007AFF' : '#ddd',
                   justifyContent: 'center',
                   alignItems: 'center',
-                  marginRight: 12,
+                  marginRight: s(12),
                 }}>
-                  {noTimeLimit && <Text style={{ color: '#fff', fontSize: 14, fontWeight: 'bold' }}>✓</Text>}
+                  {noTimeLimit && <Text style={{ color: '#fff', fontSize: s(14), fontWeight: 'bold' }}>✓</Text>}
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={{ fontSize: 15, fontWeight: '500', color: '#333' }}>No Time Limit</Text>
-                  <Text style={{ fontSize: 12, color: '#888', marginTop: 1 }}>
+                  <Text style={{ fontSize: s(15), fontWeight: '500', color: '#333' }}>No Time Limit</Text>
+                  <Text style={{ fontSize: s(12), color: '#888', marginTop: s(1) }}>
                     Block until manually unlocked
                   </Text>
                 </View>
@@ -288,13 +290,13 @@ function ConfigModal({
               {/* Timer Section */}
               {!noTimeLimit && (
                 <>
-                  <View style={{ height: 1, backgroundColor: '#eee', marginHorizontal: 16 }} />
-                  <View style={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8 }}>
+                  <View style={{ height: 1, backgroundColor: '#eee', marginHorizontal: s(16) }} />
+                  <View style={{ paddingHorizontal: s(16), paddingTop: s(12), paddingBottom: s(8) }}>
                     <Text style={{
-                      fontSize: 13,
+                      fontSize: s(13),
                       fontWeight: '500',
                       color: '#666',
-                      marginBottom: 4,
+                      marginBottom: s(4),
                       textTransform: 'uppercase',
                       letterSpacing: 0.5,
                     }}>

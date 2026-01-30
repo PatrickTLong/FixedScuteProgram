@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import { lightTap } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
+import { useResponsive } from '../utils/responsive';
 
 type TabName = 'home' | 'presets' | 'settings';
 
@@ -105,11 +106,12 @@ const TabItem = memo(({ name, label, isActive, onPress, icon, activeColor, inact
 function BottomTabBar({ activeTab, onTabPress }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
+  const { s } = useResponsive();
   const getIconColor = (tab: TabName) =>
     activeTab === tab ? colors.text : colors.textMuted;
 
   // Use safe area bottom inset with a minimum of 24px for devices without navigation buttons
-  const bottomPadding = Math.max(insets.bottom, 24);
+  const bottomPadding = Math.max(insets.bottom, s(24));
 
   return (
     <View

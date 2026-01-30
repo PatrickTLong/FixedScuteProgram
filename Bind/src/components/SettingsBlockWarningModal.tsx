@@ -7,6 +7,7 @@ import {
 } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 import { lightTap } from '../utils/haptics';
+import { useResponsive } from '../utils/responsive';
 
 interface SettingsBlockWarningModalProps {
   visible: boolean;
@@ -15,6 +16,7 @@ interface SettingsBlockWarningModalProps {
 
 function SettingsBlockWarningModal({ visible, onClose }: SettingsBlockWarningModalProps) {
   const { colors } = useTheme();
+  const { s } = useResponsive();
   const [dontShowAgain, setDontShowAgain] = useState(false);
 
   const handleConfirm = () => {
@@ -64,13 +66,13 @@ function SettingsBlockWarningModal({ visible, onClose }: SettingsBlockWarningMod
                 {dontShowAgain && (
                   <View
                     style={{
-                      width: 8,
-                      height: 13,
+                      width: s(8),
+                      height: s(13),
                       borderRightWidth: 2.5,
                       borderBottomWidth: 2.5,
                       borderColor: '#FFFFFF',
                       transform: [{ rotate: '45deg' }],
-                      marginTop: -2,
+                      marginTop: s(-2),
                     }}
                   />
                 )}

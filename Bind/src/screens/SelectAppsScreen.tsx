@@ -12,6 +12,7 @@ const Lottie = LottieView as any;
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import { useTheme } from '../context/ThemeContext';
+import { useResponsive } from '../utils/responsive';
 import { lightTap } from '../utils/haptics';
 
 interface InstalledApp {
@@ -82,9 +83,13 @@ interface AppItemProps {
   textSecondaryColor: string;
   cyanColor: string;
   borderColor: string;
+  iconSize: number;
+  iconMarginRight: number;
+  fallbackBorderRadius: number;
+  fallbackFontSize: number;
 }
 
-const AppItem = memo(({ item, isSelected, onToggle, cardColor, cardLightColor, textColor, textSecondaryColor, cyanColor, borderColor }: AppItemProps) => {
+const AppItem = memo(({ item, isSelected, onToggle, cardColor, cardLightColor, textColor, textSecondaryColor, cyanColor, borderColor, iconSize, iconMarginRight, fallbackBorderRadius, fallbackFontSize }: AppItemProps) => {
   const handlePress = useCallback(() => {
     lightTap();
     onToggle(item.id);
@@ -101,11 +106,11 @@ const AppItem = memo(({ item, isSelected, onToggle, cardColor, cardLightColor, t
       {item.icon ? (
         <Image
           source={{ uri: item.icon }}
-          style={{ width: 40, height: 40, marginRight: 12 }}
+          style={{ width: iconSize, height: iconSize, marginRight: iconMarginRight }}
         />
       ) : (
-        <View style={{ width: 40, height: 40, marginRight: 12, backgroundColor: cardLightColor, borderRadius: 10, alignItems: 'center', justifyContent: 'center' }}>
-          <Text style={{ color: textSecondaryColor, fontSize: 18, fontWeight: 'bold' }}>
+        <View style={{ width: iconSize, height: iconSize, marginRight: iconMarginRight, backgroundColor: cardLightColor, borderRadius: fallbackBorderRadius, alignItems: 'center', justifyContent: 'center' }}>
+          <Text style={{ color: textSecondaryColor, fontSize: fallbackFontSize, fontWeight: 'bold' }}>
             {item.name.charAt(0)}
           </Text>
         </View>
@@ -136,6 +141,7 @@ function SelectAppsScreen({
   onRemoveWebsite,
 }: Props) {
   const { colors } = useTheme();
+  const { s } = useResponsive();
   const [activeTab, setActiveTab] = useState<TabType>('apps');
   const [searchQuery, setSearchQuery] = useState('');
   const [websiteInput, setWebsiteInput] = useState('');
@@ -160,8 +166,12 @@ function SelectAppsScreen({
       textSecondaryColor={colors.textSecondary}
       cyanColor={colors.cyan}
       borderColor={colors.border}
+      iconSize={s(40)}
+      iconMarginRight={s(12)}
+      fallbackBorderRadius={s(10)}
+      fallbackFontSize={s(18)}
     />
-  ), [selectedSet, onToggle, colors]);
+  ), [selectedSet, onToggle, colors, s]);
 
   const keyExtractor = useCallback((item: InstalledApp) => item.id, []);
 
@@ -246,7 +256,7 @@ function SelectAppsScreen({
                 autoPlay
                 loop
                 speed={2}
-                style={{ width: 250, height: 250 }}
+                style={{ width: s(250), height: s(250) }}
               />
               <Text style={{ color: colors.textSecondary }} className="text-base font-nunito mt-4">
                 Loading apps...
@@ -262,7 +272,7 @@ function SelectAppsScreen({
               windowSize={10}
               initialNumToRender={15}
               className="flex-1"
-              contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 100 }}
+              contentContainerStyle={{ paddingHorizontal: s(16), paddingBottom: s(100) }}
               ListHeaderComponent={
                 selectedApps.length > 0 ? (
                   <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito mb-3">
@@ -322,7 +332,7 @@ function SelectAppsScreen({
                 </View>
               </View>
             )}
-            contentContainerStyle={{ paddingBottom: 100 }}
+            contentContainerStyle={{ paddingBottom: s(100) }}
             ListEmptyComponent={
               <View className="items-center py-12">
                 <Text style={{ color: colors.textSecondary }} className="text-base font-nunito">

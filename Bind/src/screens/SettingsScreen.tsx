@@ -486,7 +486,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
           autoPlay
           loop
           speed={2}
-          style={{ width: 250, height: 250 }}
+          style={{ width: s(250), height: s(250) }}
         />
         <Text style={{ color: colors.text }} className="text-lg font-nunito-semibold mt-4">{loadingMessage}</Text>
       </SafeAreaView>
@@ -502,7 +502,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
           autoPlay
           loop
           speed={2}
-          style={{ width: 250, height: 250 }}
+          style={{ width: s(250), height: s(250) }}
         />
       </SafeAreaView>
     );
@@ -529,7 +529,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
 
       <ScrollView
         className="flex-1"
-        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 32 }}
+        contentContainerStyle={{ paddingHorizontal: s(20), paddingTop: s(16), paddingBottom: s(32) }}
         showsVerticalScrollIndicator={false}
       >
         {/* ACCOUNT Section */}
@@ -1025,7 +1025,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
                 backgroundColor: colors.card,
                 borderWidth: 2,
                 borderColor: selectedPlan === 'monthly' ? '#FFFFFF' : 'transparent',
-                padding: 16,
+                padding: s(16),
               }}
               className="rounded-2xl mb-3"
             >
@@ -1053,7 +1053,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
                 backgroundColor: colors.card,
                 borderWidth: 2,
                 borderColor: selectedPlan === 'yearly' ? '#FFFFFF' : 'transparent',
-                padding: 16,
+                padding: s(16),
               }}
               className="rounded-2xl mb-3"
             >
@@ -1086,7 +1086,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
                 backgroundColor: colors.card,
                 borderWidth: 2,
                 borderColor: selectedPlan === 'lifetime' ? '#FFFFFF' : 'transparent',
-                padding: 16,
+                padding: s(16),
               }}
               className="rounded-2xl mb-6"
             >

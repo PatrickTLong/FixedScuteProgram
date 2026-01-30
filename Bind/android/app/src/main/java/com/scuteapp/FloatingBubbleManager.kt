@@ -538,6 +538,12 @@ class FloatingBubbleManager(private val context: Context) {
             hideHideButton()
         }
 
+        // Don't allow toggling when 10 seconds or less remaining - keep expanded
+        if (!isNoTimeLimit && endTime > 0) {
+            val remaining = (endTime - System.currentTimeMillis()) / 1000
+            if (remaining <= 10) return
+        }
+
         if (isExpanded) {
             collapse()
         } else {

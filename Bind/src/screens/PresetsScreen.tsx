@@ -652,7 +652,7 @@ function PresetsScreen({ userEmail }: Props) {
               autoPlay
               loop
               speed={2}
-              style={{ width: 250, height: 250 }}
+              style={{ width: s(250), height: s(250) }}
             />
           </View>
         )}
@@ -704,7 +704,7 @@ function PresetsScreen({ userEmail }: Props) {
         renderItem={renderPresetItem}
         keyExtractor={keyExtractor}
         ListEmptyComponent={ListEmptyComponent}
-        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32 }}
+        contentContainerStyle={{ paddingHorizontal: s(20), paddingBottom: s(32) }}
         removeClippedSubviews={true}
         maxToRenderPerBatch={10}
         windowSize={5}

@@ -14,6 +14,7 @@ const Lottie = LottieView as any;
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import { useTheme } from '../context/ThemeContext';
+import { useResponsive } from '../utils/responsive';
 import { lightTap } from '../utils/haptics';
 
 const { PermissionsModule } = NativeModules;
@@ -125,6 +126,7 @@ const DEFAULT_PERMISSIONS = Platform.OS === 'ios' ? IOS_PERMISSIONS : ANDROID_PE
 
 function PermissionsChecklistScreen({ onComplete }: Props) {
   const { colors } = useTheme();
+  const { s } = useResponsive();
   const [permissions, setPermissions] = useState<Permission[]>(DEFAULT_PERMISSIONS);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -278,7 +280,7 @@ function PermissionsChecklistScreen({ onComplete }: Props) {
           autoPlay
           loop
           speed={2}
-          style={{ width: 250, height: 250 }}
+          style={{ width: s(250), height: s(250) }}
         />
         <Text style={{ color: colors.textSecondary }} className="text-base font-nunito mt-4">
           Checking permissions...
@@ -291,7 +293,7 @@ function PermissionsChecklistScreen({ onComplete }: Props) {
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
       <ScrollView
         className="flex-1"
-        contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 32, paddingBottom: 16 }}
+        contentContainerStyle={{ paddingHorizontal: s(24), paddingTop: s(32), paddingBottom: s(16) }}
       >
         {/* Android Icon */}
         <View className="items-center justify-center mb-6">

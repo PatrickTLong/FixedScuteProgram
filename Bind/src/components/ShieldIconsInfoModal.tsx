@@ -8,6 +8,7 @@ import {
 import Svg, { Path } from 'react-native-svg';
 import { useTheme } from '../context/ThemeContext';
 import { lightTap } from '../utils/haptics';
+import { useResponsive } from '../utils/responsive';
 
 interface ShieldIconsInfoModalProps {
   visible: boolean;
@@ -49,6 +50,7 @@ const RotateCwIcon = ({ color, size = 24 }: { color: string; size?: number }) =>
 
 function ShieldIconsInfoModal({ visible, onClose }: ShieldIconsInfoModalProps) {
   const { colors } = useTheme();
+  const { s } = useResponsive();
   const [dontShowAgain, setDontShowAgain] = useState(false);
 
   const handleClose = () => {
@@ -118,13 +120,13 @@ function ShieldIconsInfoModal({ visible, onClose }: ShieldIconsInfoModalProps) {
                 {dontShowAgain && (
                   <View
                     style={{
-                      width: 8,
-                      height: 13,
+                      width: s(8),
+                      height: s(13),
                       borderRightWidth: 2.5,
                       borderBottomWidth: 2.5,
                       borderColor: '#FFFFFF',
                       transform: [{ rotate: '45deg' }],
-                      marginTop: -2,
+                      marginTop: s(-2),
                     }}
                   />
                 )}

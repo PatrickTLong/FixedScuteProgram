@@ -10,6 +10,7 @@ const Lottie = LottieView as any;
 import Svg, { Path } from 'react-native-svg';
 import { useTheme } from '../context/ThemeContext';
 import { lightTap, mediumTap } from '../utils/haptics';
+import { useResponsive } from '../utils/responsive';
 
 interface EmergencyTapoutModalProps {
   visible: boolean;
@@ -31,6 +32,7 @@ function EmergencyTapoutModal({
   lockEndsAt,
 }: EmergencyTapoutModalProps) {
   const { colors } = useTheme();
+  const { s } = useResponsive();
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Auto-close modal when timer expires
@@ -134,7 +136,7 @@ function EmergencyTapoutModal({
                 activeOpacity={0.7}
                 style={{
                   backgroundColor: canUseTapout ? '#f59e0b' : `${colors.textMuted}50`,
-                  paddingVertical: 14,
+                  paddingVertical: s(14),
                   width: '100%'
                 }}
                 className="rounded-2xl items-center"
@@ -152,7 +154,7 @@ function EmergencyTapoutModal({
                       autoPlay
                       loop
                       speed={2}
-                      style={{ width: 150, height: 150 }}
+                      style={{ width: s(150), height: s(150) }}
                     />
                   </View>
                 )}

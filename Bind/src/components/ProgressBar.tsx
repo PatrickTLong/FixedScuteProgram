@@ -1,5 +1,6 @@
 import React, { memo, useEffect, useRef } from 'react';
 import { View, Animated } from 'react-native';
+import { useResponsive } from '../utils/responsive';
 
 interface ProgressBarProps {
   currentStep: number;
@@ -7,8 +8,9 @@ interface ProgressBarProps {
 }
 
 function ProgressBar({ currentStep, totalSteps }: ProgressBarProps) {
+  const { s } = useResponsive();
   return (
-    <View style={{ position: 'absolute', top: 60, left: 0, right: 0, zIndex: 5 }} className="flex-row items-center justify-center gap-3">
+    <View style={{ position: 'absolute', top: s(60), left: 0, right: 0, zIndex: 5 }} className="flex-row items-center justify-center gap-3">
       {Array.from({ length: totalSteps }).map((_, index) => {
         const stepNumber = index + 1;
         const isActive = stepNumber === currentStep;
@@ -22,6 +24,7 @@ function ProgressBar({ currentStep, totalSteps }: ProgressBarProps) {
 }
 
 function AnimatedDot({ isActive }: { isActive: boolean }) {
+  const { s } = useResponsive();
   const translateYAnim = useRef(new Animated.Value(0)).current;
   const floatAnim = useRef(new Animated.Value(0)).current;
 
@@ -71,9 +74,9 @@ function AnimatedDot({ isActive }: { isActive: boolean }) {
       style={{
         backgroundColor: '#FFFFFF',
         opacity: isActive ? 1.0 : 0.3,
-        width: 8,
-        height: 8,
-        borderRadius: 4,
+        width: s(8),
+        height: s(8),
+        borderRadius: s(4),
         transform: [
           { translateY: Animated.add(translateYAnim, floatAnim) },
         ],

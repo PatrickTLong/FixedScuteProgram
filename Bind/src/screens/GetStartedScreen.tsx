@@ -58,6 +58,7 @@ import InfoModal from '../components/InfoModal';
 import OTPInput from '../components/OTPInput';
 import GoogleSignInBtn from '../components/GoogleSignInButton';
 import { useTheme } from '../context/ThemeContext';
+import { useResponsive } from '../utils/responsive';
 import { setAuthToken } from '../services/cardApi';
 import { API_URL } from '../config/api';
 import { lightTap } from '../utils/haptics';
@@ -70,6 +71,7 @@ interface Props {
 
 function GetStartedScreen({ onBack, onSuccess, onSignIn }: Props) {
   const { colors } = useTheme();
+  const { s } = useResponsive();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -184,7 +186,7 @@ function GetStartedScreen({ onBack, onSuccess, onSignIn }: Props) {
           autoPlay
           loop
           speed={2}
-          style={{ width: 250, height: 250 }}
+          style={{ width: s(250), height: s(250) }}
         />
       </SafeAreaView>
     );
@@ -220,7 +222,7 @@ function GetStartedScreen({ onBack, onSuccess, onSignIn }: Props) {
 
                 {/* Email Input */}
                 <View className="mb-4 mt-6">
-                  <Text style={{ color: colors.text, position: 'absolute', top: -22, left: 8 }} className="text-sm font-nunito">
+                  <Text style={{ color: colors.text, position: 'absolute', top: s(-22), left: s(8) }} className="text-sm font-nunito">
                     Email
                   </Text>
                   <TextInput
@@ -230,14 +232,14 @@ function GetStartedScreen({ onBack, onSuccess, onSignIn }: Props) {
                     autoCapitalize="none"
                     autoCorrect={false}
                     editable={!loading}
-                    style={{ backgroundColor: colors.card, color: colors.text, height: 52, paddingVertical: 16 }}
+                    style={{ backgroundColor: colors.card, color: colors.text, height: s(52), paddingVertical: s(16) }}
                     className="rounded-full px-5 text-sm font-nunito"
                   />
                 </View>
 
                 {/* Password Input */}
                 <View className="mb-8 mt-6">
-                  <Text style={{ color: colors.text, position: 'absolute', top: -22, left: 8 }} className="text-sm font-nunito">
+                  <Text style={{ color: colors.text, position: 'absolute', top: s(-22), left: s(8) }} className="text-sm font-nunito">
                     Password
                   </Text>
                   <View style={{ position: 'relative' }}>
@@ -248,12 +250,12 @@ function GetStartedScreen({ onBack, onSuccess, onSignIn }: Props) {
                       autoCapitalize="none"
                       autoCorrect={false}
                       editable={!loading}
-                      style={{ backgroundColor: colors.card, color: colors.text, paddingRight: 50, height: 52, paddingVertical: 16 }}
+                      style={{ backgroundColor: colors.card, color: colors.text, paddingRight: s(50), height: s(52), paddingVertical: s(16) }}
                       className="rounded-full px-5 text-sm font-nunito"
                     />
                     <TouchableOpacity
                       onPress={() => setShowPassword(!showPassword)}
-                      style={{ position: 'absolute', right: 16, top: 0, bottom: 0, justifyContent: 'center' }}
+                      style={{ position: 'absolute', right: s(16), top: 0, bottom: 0, justifyContent: 'center' }}
                     >
                       {showPassword ? <EyeIcon color={colors.text} /> : <EyeOffIcon color={colors.text} />}
                     </TouchableOpacity>

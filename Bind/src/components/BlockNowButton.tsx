@@ -311,7 +311,7 @@ function BlockNowButton({
             bottom: 0,
             width: slideFillWidth,
             backgroundColor: fillColor,
-            borderRadius: 28,
+            borderRadius: s(28),
             zIndex: 2,
           }}
         />
@@ -349,7 +349,7 @@ function BlockNowButton({
             bottom: 0,
             width: fillWidth,
             backgroundColor: fillColor,
-            borderRadius: 28,
+            borderRadius: s(28),
             zIndex: 2,
           }}
         />

@@ -209,13 +209,14 @@ interface DayCellProps {
   textColor: string;
   textMutedColor: string;
   onSelect: (day: number) => void;
+  cellHeight: number;
 }
 
-const DayCell = memo(({ day, selectable, selected, isToday: todayDay, textColor, textMutedColor, onSelect }: DayCellProps) => (
+const DayCell = memo(({ day, selectable, selected, isToday: todayDay, textColor, textMutedColor, onSelect, cellHeight }: DayCellProps) => (
   <TouchableOpacity
     onPress={() => onSelect(day)}
     disabled={!selectable}
-    style={{ width: '14.28%', height: 44 }}
+    style={{ width: '14.28%', height: cellHeight }}
     className="items-center justify-center"
   >
     <View
@@ -238,8 +239,8 @@ const DayCell = memo(({ day, selectable, selected, isToday: todayDay, textColor,
   </TouchableOpacity>
 ));
 
-const EmptyCell = memo(() => (
-  <View style={{ width: '14.28%', height: 44 }} />
+const EmptyCell = memo(({ cellHeight }: { cellHeight: number }) => (
+  <View style={{ width: '14.28%', height: cellHeight }} />
 ));
 
 // AM/PM Selector
@@ -536,6 +537,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
   const { s } = useResponsive();
   const timeItemHeight = s(BASE_TIME_ITEM_HEIGHT);
   const wheelWidth = s(50);
+  const dayCellHeight = s(44);
   const [name, setName] = useState('');
   const [selectedApps, setSelectedApps] = useState<string[]>([]);
   const [skipCheckboxAnimation, setSkipCheckboxAnimation] = useState(false);
@@ -1211,12 +1213,12 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
         {item.icon ? (
           <Image
             source={{ uri: item.icon }}
-            style={{ width: 48, height: 48, marginRight: 12 }}
+            style={{ width: s(48), height: s(48), marginRight: s(12) }}
             resizeMode="contain"
           />
         ) : (
-          <View style={{ width: 48, height: 48, marginRight: 12, backgroundColor: colors.cardLight, borderRadius: 12, alignItems: 'center', justifyContent: 'center' }}>
-            <Text style={{ color: colors.textSecondary, fontSize: 18, fontWeight: 'bold' }}>
+          <View style={{ width: s(48), height: s(48), marginRight: s(12), backgroundColor: colors.cardLight, borderRadius: s(12), alignItems: 'center', justifyContent: 'center' }}>
+            <Text style={{ color: colors.textSecondary, fontSize: s(18), fontWeight: 'bold' }}>
               {item.name.charAt(0)}
             </Text>
           </View>
@@ -1226,7 +1228,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
         <Text style={{ color: colors.text }} className="flex-1 text-base font-nunito">{item.name}</Text>
 
         {/* Animated Checkbox */}
-        <AnimatedCheckbox checked={isSelected} size={24} skipAnimation={skipCheckboxAnimation} />
+        <AnimatedCheckbox checked={isSelected} size={s(24)} skipAnimation={skipCheckboxAnimation} />
       </TouchableOpacity>
     );
   }, [selectedApps, toggleApp, colors, skipCheckboxAnimation]);
@@ -1271,7 +1273,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
 
             <View
               className="flex-1"
-              style={{ paddingTop: 16, paddingBottom: 40, paddingHorizontal: 24 }}
+              style={{ paddingTop: s(16), paddingBottom: s(40), paddingHorizontal: s(24) }}
             >
               {/* Month/Year Navigation */}
               <View className="flex-row items-center justify-between mb-4">
@@ -1313,7 +1315,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               <View className="flex-row flex-wrap">
                 {dpCalendarDays.map((cell, index) => {
                   if (cell.type === 'empty') {
-                    return <EmptyCell key={`empty-${index}`} />;
+                    return <EmptyCell key={`empty-${index}`} cellHeight={dayCellHeight} />;
                   }
                   return (
                     <DayCell
@@ -1325,6 +1327,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                       textColor={colors.text}
                       textMutedColor={colors.textMuted}
                       onSelect={dpHandleSelectDay}
+                      cellHeight={dayCellHeight}
                     />
                   );
                 })}
@@ -1332,7 +1335,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
 
               {/* Time Picker */}
               {dpTempSelectedDate && (
-                <View style={{ borderTopColor: colors.border, marginHorizontal: -24, paddingHorizontal: 24 }} className="mt-6 pt-4 pb-4 border-t">
+                <View style={{ borderTopColor: colors.border, marginHorizontal: s(-24), paddingHorizontal: s(24) }} className="mt-6 pt-4 pb-4 border-t">
                   <Text style={{ color: colors.textMuted }} className="text-xs font-nunito tracking-wider mb-3">
                     Time
                   </Text>
@@ -1347,8 +1350,8 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                       itemHeight={timeItemHeight}
                       wheelWidth={wheelWidth}
                     />
-                    <View style={{ height: timeItemHeight, justifyContent: 'center', marginHorizontal: 4, marginTop: -timeItemHeight * 0.15 }}>
-                      <Text style={{ color: colors.textMuted, fontSize: 24 }}>:</Text>
+                    <View style={{ height: timeItemHeight, justifyContent: 'center', marginHorizontal: s(4), marginTop: -timeItemHeight * 0.15 }}>
+                      <Text style={{ color: colors.textMuted, fontSize: s(24) }}>:</Text>
                     </View>
                     <TimeWheel
                       values={MINUTES}
@@ -1371,7 +1374,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               )}
 
               {/* Selected Date/Time Display */}
-              <View style={{ borderTopColor: colors.border, marginHorizontal: -24, paddingHorizontal: 24 }} className="mt-6 py-4 border-t">
+              <View style={{ borderTopColor: colors.border, marginHorizontal: s(-24), paddingHorizontal: s(24) }} className="mt-6 py-4 border-t">
                 <View className="flex-row justify-between items-center">
                   <View>
                     <Text style={{ color: colors.text }} className="text-base font-nunito mb-1">Selected</Text>
@@ -1415,23 +1418,23 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                 <Text style={{ color: isSaving ? '#FFFFFF' : '#FFFFFF' }} className="text-base font-nunito">Back</Text>
               </TouchableOpacity>
               <Text style={{ color: colors.text }} className="text-lg font-nunito-semibold">Final Settings</Text>
-              <TouchableOpacity onPress={handleSave} disabled={isSaving || !canSave} className="px-2 min-w-[50px] items-end justify-center" style={{ height: 24, overflow: 'visible' }}>
+              <TouchableOpacity onPress={handleSave} disabled={isSaving || !canSave} className="px-2 min-w-[50px] items-end justify-center" style={{ height: s(24), overflow: 'visible' }}>
                 <Text style={{ color: canSave ? '#FFFFFF' : colors.textMuted, opacity: isSaving ? 0 : 1 }} className="text-base font-nunito-semibold">Save</Text>
                 {isSaving && (
-                  <View style={{ position: 'absolute', top: -63, right: -50, width: 150, height: 150, justifyContent: 'center', alignItems: 'center' }}>
+                  <View style={{ position: 'absolute', top: s(-63), right: s(-50), width: s(150), height: s(150), justifyContent: 'center', alignItems: 'center' }}>
                     <Lottie
                       source={require('../frontassets/Loading Dots Blue.json')}
                       autoPlay
                       loop
                       speed={2}
-                      style={{ width: 150, height: 150 }}
+                      style={{ width: s(150), height: s(150) }}
                     />
                   </View>
                 )}
               </TouchableOpacity>
             </View>
 
-            <ScrollView ref={finalScrollRef} className="flex-1 pt-6" contentContainerStyle={{ paddingBottom: 100 }}>
+            <ScrollView ref={finalScrollRef} className="flex-1 pt-6" contentContainerStyle={{ paddingBottom: s(100) }}>
 
             <Text style={{ color: '#FFFFFF' }} className="text-xs font-nunito px-6 mb-4">
               Tap on toggle text to see further details
@@ -1441,7 +1444,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
 
             {/* No Time Limit Toggle */}
             <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }}>
-              <View style={{ paddingVertical: 20 }} className="flex-row items-center justify-between px-6">
+              <View style={{ paddingVertical: s(20) }} className="flex-row items-center justify-between px-6">
                 <TouchableOpacity onPress={() => toggleInfo('noTimeLimit')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
                   <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">No Time Limit</Text>
                   <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">Block until manually unlocked</Text>
@@ -1473,7 +1476,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
             {/* Schedule for Later Toggle */}
             <ExpandableInfo expanded={!noTimeLimit} lazy>
             <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }}>
-              <View style={{ paddingVertical: 20 }} className="flex-row items-center justify-between px-6">
+              <View style={{ paddingVertical: s(20) }} className="flex-row items-center justify-between px-6">
                 <TouchableOpacity onPress={() => toggleInfo('schedule')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
                   <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">Schedule for Later</Text>
                   <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">Set a future start and end time</Text>
@@ -1526,11 +1529,11 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                 <TouchableOpacity
                   onPress={() => openDatePicker('scheduleStart')}
                   activeOpacity={0.7}
-                  style={{ backgroundColor: colors.card, paddingVertical: 14 }}
+                  style={{ backgroundColor: colors.card, paddingVertical: s(14) }}
                   className="flex-row items-center px-4 rounded-xl mb-3"
                 >
                   <View  className="w-10 h-10 rounded-lg items-center justify-center mr-3">
-                    <CalendarIcon size={26} />
+                    <CalendarIcon size={s(26)} />
                   </View>
                   <View className="flex-1">
                     <Text style={{ color: colors.text }} className="text-sm font-nunito-semibold">
@@ -1558,7 +1561,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                       <Text style={{ color: '#FFFFFF' }} className="text-lg">✕</Text>
                     </TouchableOpacity>
                   ) : (
-                    <ChevronRightIcon size={20} color="#FFFFFF" />
+                    <ChevronRightIcon size={s(20)} color="#FFFFFF" />
                   )}
                 </TouchableOpacity>
 
@@ -1566,11 +1569,11 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                 <TouchableOpacity
                   onPress={() => openDatePicker('scheduleEnd')}
                   activeOpacity={0.7}
-                  style={{ backgroundColor: colors.card, paddingVertical: 14 }}
+                  style={{ backgroundColor: colors.card, paddingVertical: s(14) }}
                   className="flex-row items-center px-4 rounded-xl"
                 >
                   <View  className="w-10 h-10 rounded-lg items-center justify-center mr-3">
-                    <FlagIcon size={26} />
+                    <FlagIcon size={s(26)} />
                   </View>
                   <View className="flex-1">
                     <Text style={{ color: colors.text }} className="text-sm font-nunito-semibold">
@@ -1598,7 +1601,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                       <Text style={{ color: '#FFFFFF' }} className="text-lg">✕</Text>
                     </TouchableOpacity>
                   ) : (
-                    <ChevronRightIcon size={20} color="#FFFFFF" />
+                    <ChevronRightIcon size={s(20)} color="#FFFFFF" />
                   )}
                 </TouchableOpacity>
 
@@ -1611,13 +1614,13 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
 
                 {/* Divider when recurring schedule is not available */}
                 <ExpandableInfo expanded={!(scheduleStartDate && scheduleEndDate && scheduleEndDate > scheduleStartDate)}>
-                  <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border, marginTop: 20, marginHorizontal: -24 }} />
+                  <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border, marginTop: s(20), marginHorizontal: s(-24) }} />
                 </ExpandableInfo>
 
                 {/* Recurring Schedule Toggle */}
                 <ExpandableInfo expanded={!!(scheduleStartDate && scheduleEndDate && scheduleEndDate > scheduleStartDate)} lazy>
                   <View className="-mx-6">
-                    <View style={{ paddingVertical: 20, borderBottomWidth: isRecurring ? 1 : 0, borderBottomColor: colors.border }} className="flex-row items-center justify-between px-6">
+                    <View style={{ paddingVertical: s(20), borderBottomWidth: isRecurring ? 1 : 0, borderBottomColor: colors.border }} className="flex-row items-center justify-between px-6">
                       <View style={{ maxWidth: '75%' }}>
                         <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">Recurring Schedule</Text>
                         <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">Repeat this block automatically</Text>
@@ -1651,11 +1654,11 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
 
                         {/* Number Input */}
                         <View
-                          style={{ backgroundColor: colors.card, paddingVertical: 14 }}
+                          style={{ backgroundColor: colors.card, paddingVertical: s(14) }}
                           className="flex-row items-center px-4 rounded-xl mb-3"
                         >
                           <View className="w-10 h-10 rounded-lg items-center justify-center mr-3">
-                            <RotateCwIcon size={26} />
+                            <RotateCwIcon size={s(26)} />
                           </View>
                           <View className="flex-1">
                             <Text style={{ color: colors.text }} className="text-sm font-nunito-semibold">
@@ -1663,7 +1666,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                             </Text>
                           </View>
                           <TextInput
-                            style={{ color: colors.text, minWidth: 40, textAlign: 'center' }}
+                            style={{ color: colors.text, minWidth: s(40), textAlign: 'center' }}
                             className="text-base font-nunito-semibold"
                             value={recurringValue}
                             onChangeText={(text) => {
@@ -1685,18 +1688,18 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                             setRecurringUnitModalVisible(true);
                           }}
                           activeOpacity={0.7}
-                          style={{ backgroundColor: colors.card, paddingVertical: 14 }}
+                          style={{ backgroundColor: colors.card, paddingVertical: s(14) }}
                           className="flex-row items-center px-4 rounded-xl mb-3"
                         >
                           <View className="w-10 h-10 rounded-lg items-center justify-center mr-3">
-                            <ClockIcon size={26} />
+                            <ClockIcon size={s(26)} />
                           </View>
                           <View className="flex-1">
                             <Text style={{ color: colors.text }} className="text-sm font-nunito-semibold capitalize">
                               {recurringUnit}
                             </Text>
                           </View>
-                          <ChevronRightIcon size={20} color="#FFFFFF" />
+                          <ChevronRightIcon size={s(20)} color="#FFFFFF" />
                         </TouchableOpacity>
 
                         {/* Next Occurrence Preview */}
@@ -1707,9 +1710,9 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                           const isSameDay = nextOccurrence.start.toDateString() === nextOccurrence.end.toDateString();
 
                           return (
-                            <View style={{ backgroundColor: colors.card, paddingVertical: 14 }} className="flex-row items-center px-4 rounded-xl">
+                            <View style={{ backgroundColor: colors.card, paddingVertical: s(14) }} className="flex-row items-center px-4 rounded-xl">
                               <View className="w-10 h-10 rounded-lg items-center justify-center mr-3">
-                                <SendIcon size={26} />
+                                <SendIcon size={s(26)} />
                               </View>
                               <View className="flex-1">
                                 <Text style={{ color: colors.text }} className="text-sm font-nunito-semibold">
@@ -1739,7 +1742,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                       </View>
                     </ExpandableInfo>
                   </View>
-                  <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border, marginTop: isRecurring ? 16 : 0, marginHorizontal: -24 }} />
+                  <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border, marginTop: isRecurring ? s(16) : 0, marginHorizontal: s(-24) }} />
                 </ExpandableInfo>
               </View>
             </ExpandableInfo>
@@ -1797,11 +1800,11 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                     openDatePicker('targetDate');
                   }}
                   activeOpacity={0.7}
-                  style={{ backgroundColor: colors.card, paddingVertical: 14 }}
+                  style={{ backgroundColor: colors.card, paddingVertical: s(14) }}
                   className="flex-row items-center px-4 rounded-xl"
                 >
                   <View className="w-10 h-10 rounded-lg items-center justify-center mr-3">
-                    <CalendarIcon size={26} />
+                    <CalendarIcon size={s(26)} />
                   </View>
                   <View className="flex-1">
                     <Text style={{ color: colors.text }} className="text-sm font-nunito-semibold">
@@ -1829,18 +1832,18 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                       <Text style={{ color: '#FFFFFF' }} className="text-lg">✕</Text>
                     </TouchableOpacity>
                   ) : (
-                    <ChevronRightIcon size={20} color="#FFFFFF" />
+                    <ChevronRightIcon size={s(20)} color="#FFFFFF" />
                   )}
                 </TouchableOpacity>
               </View>
-              <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border, marginTop: 16 }} />
+              <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border, marginTop: s(16) }} />
             </ExpandableInfo>
 
             {/* ── Block Behavior ── */}
 
             {/* Block Settings Toggle */}
             <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }}>
-              <View style={{ paddingVertical: 20 }} className="flex-row items-center justify-between px-6">
+              <View style={{ paddingVertical: s(20) }} className="flex-row items-center justify-between px-6">
                 <TouchableOpacity onPress={() => toggleInfo('blockSettings')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
                   <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">Block Settings App</Text>
                   <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">WiFi settings remain accessible</Text>
@@ -1873,7 +1876,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
 
             {/* Strict Mode Toggle */}
             <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }}>
-              <View style={{ paddingVertical: 20 }} className="flex-row items-center justify-between px-6">
+              <View style={{ paddingVertical: s(20) }} className="flex-row items-center justify-between px-6">
                 <TouchableOpacity onPress={() => toggleInfo('strictMode')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
                   <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">Strict Mode</Text>
                   <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">
@@ -1921,7 +1924,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
             {/* Emergency Tapout Toggle */}
             <ExpandableInfo expanded={strictMode} lazy>
               <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border }}>
-                <View style={{ paddingVertical: 20 }} className="flex-row items-center justify-between px-6">
+                <View style={{ paddingVertical: s(20) }} className="flex-row items-center justify-between px-6">
                   <TouchableOpacity onPress={() => toggleInfo('emergencyTapout')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
                     <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">Allow Emergency Tapout</Text>
                     <Text style={{ color: colors.textSecondary }} className="text-xs font-nunito">Use your emergency tapouts for this preset</Text>
@@ -2134,7 +2137,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               style={{ backgroundColor: activeTab === 'apps' ? colors.text : colors.card }}
               className="flex-1 py-2 rounded-full items-center justify-center flex-row"
             >
-              <AndroidIcon size={16} color={activeTab === 'apps' ? colors.bg : colors.text} />
+              <AndroidIcon size={s(16)} color={activeTab === 'apps' ? colors.bg : colors.text} />
               <Text style={{ color: activeTab === 'apps' ? colors.bg : colors.text, marginLeft: 6 }} className="text-sm font-nunito-semibold">
                 Apps
               </Text>
@@ -2145,7 +2148,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               style={{ backgroundColor: activeTab === 'websites' ? colors.text : colors.card }}
               className="flex-1 py-3 rounded-full items-center justify-center flex-row"
             >
-              <GlobeIcon size={16} color={activeTab === 'websites' ? colors.bg : colors.text} />
+              <GlobeIcon size={s(16)} color={activeTab === 'websites' ? colors.bg : colors.text} />
               <Text style={{ color: activeTab === 'websites' ? colors.bg : colors.text, marginLeft: 6 }} className="text-sm font-nunito-semibold">
                 Websites
               </Text>
@@ -2164,7 +2167,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                     className="flex-row items-center py-4 px-4 rounded-xl mb-4"
                   >
                     <View className="w-12 h-12 rounded-xl items-center justify-center mr-4">
-                      <AppsIcon size={26} color={colors.text} />
+                      <AppsIcon size={s(26)} color={colors.text} />
                     </View>
                     <View className="flex-1">
                       <Text style={{ color: colors.text }} className="text-base font-nunito-semibold">
@@ -2176,7 +2179,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                           : 'Tap to choose apps'}
                       </Text>
                     </View>
-                    <ChevronRightIcon size={24} color={colors.textSecondary} />
+                    <ChevronRightIcon size={s(24)} color={colors.textSecondary} />
                   </TouchableOpacity>
 
                   <Text style={{ color: colors.textMuted }} className="text-sm font-nunito text-center px-4">
@@ -2250,7 +2253,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                       autoPlay
                       loop
                       speed={2}
-                      style={{ width: 250, height: 250 }}
+                      style={{ width: s(250), height: s(250) }}
                     />
                   </View>
                 ) : (
@@ -2258,7 +2261,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                     data={filteredApps}
                     renderItem={renderAppItem}
                     keyExtractor={keyExtractor}
-                    contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 24 }}
+                    contentContainerStyle={{ paddingHorizontal: s(24), paddingBottom: s(24) }}
                     ListHeaderComponent={ListHeaderComponent}
                     removeClippedSubviews={true}
                     maxToRenderPerBatch={15}
@@ -2309,7 +2312,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                     className="flex-row items-center py-3 px-4 rounded-xl mb-2"
                   >
                     <View className="w-10 h-10 items-center justify-center mr-3">
-                      <GlobeIcon size={32} color={colors.textSecondary} />
+                      <GlobeIcon size={s(32)} color={colors.textSecondary} />
                     </View>
                     <Text style={{ color: colors.text }} className="flex-1 text-base font-nunito">{site}</Text>
                     <TouchableOpacity

@@ -45,9 +45,11 @@ interface TimeWheelProps {
   textMutedColor: string;
   itemHeight: number;
   wheelWidth: number;
+  selectedFontSize: number;
+  unselectedFontSize: number;
 }
 
-const TimeWheel = memo(({ values, selectedValue, onValueChange, padZero = true, textColor, textMutedColor, itemHeight, wheelWidth }: TimeWheelProps) => {
+const TimeWheel = memo(({ values, selectedValue, onValueChange, padZero = true, textColor, textMutedColor, itemHeight, wheelWidth, selectedFontSize, unselectedFontSize }: TimeWheelProps) => {
   const scrollRef = useRef<ScrollView>(null);
   const lastHapticIndex = useRef(-1);
   const windowCenterRef = useRef(values.indexOf(selectedValue));
@@ -156,7 +158,7 @@ const TimeWheel = memo(({ values, selectedValue, onValueChange, padZero = true, 
             >
               <Text
                 style={{
-                  fontSize: isSelected ? 24 : 18,
+                  fontSize: isSelected ? selectedFontSize : unselectedFontSize,
                   fontFamily: isSelected ? 'Nunito-Bold' : 'Nunito-Regular',
                   color: isSelected ? textColor : textMutedColor,
                 }}
@@ -181,13 +183,14 @@ interface DayCellProps {
   textColor: string;
   textMutedColor: string;
   onSelect: (day: number) => void;
+  cellHeight: number;
 }
 
-const DayCell = memo(({ day, selectable, selected, isToday: todayDay, textColor, textMutedColor, onSelect }: DayCellProps) => (
+const DayCell = memo(({ day, selectable, selected, isToday: todayDay, textColor, textMutedColor, onSelect, cellHeight }: DayCellProps) => (
   <TouchableOpacity
     onPress={() => onSelect(day)}
     disabled={!selectable}
-    style={{ width: '14.28%', height: 44 }}
+    style={{ width: '14.28%', height: cellHeight }}
     className="items-center justify-center"
   >
     <View
@@ -210,8 +213,8 @@ const DayCell = memo(({ day, selectable, selected, isToday: todayDay, textColor,
   </TouchableOpacity>
 ));
 
-const EmptyCell = memo(() => (
-  <View style={{ width: '14.28%', height: 44 }} />
+const EmptyCell = memo(({ cellHeight }: { cellHeight: number }) => (
+  <View style={{ width: '14.28%', height: cellHeight }} />
 ));
 
 // AM/PM Selector
@@ -251,6 +254,9 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
   const { s } = useResponsive();
   const timeItemHeight = s(BASE_TIME_ITEM_HEIGHT);
   const wheelWidth = s(50);
+  const dayCellHeight = s(44);
+  const timeSelectedFontSize = s(24);
+  const timeUnselectedFontSize = s(18);
   const today = useMemo(() => new Date(), []);
   const maxDate = useMemo(() => {
     const max = new Date(today);
@@ -472,7 +478,7 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
 
           <View
             className="flex-1"
-            style={{ paddingTop: 16, paddingBottom: 40, paddingHorizontal: 24 }}
+            style={{ paddingTop: s(16), paddingBottom: s(40), paddingHorizontal: s(24) }}
           >
           {/* Month/Year Navigation */}
           <View className="flex-row items-center justify-between mb-4">
@@ -514,7 +520,7 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
           <View className="flex-row flex-wrap">
             {calendarDays.map((cell, index) => {
               if (cell.type === 'empty') {
-                return <EmptyCell key={`empty-${index}`} />;
+                return <EmptyCell key={`empty-${index}`} cellHeight={dayCellHeight} />;
               }
               return (
                 <DayCell
@@ -526,6 +532,7 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
                   textColor={colors.text}
                   textMutedColor={colors.textMuted}
                   onSelect={handleSelectDay}
+                  cellHeight={dayCellHeight}
                 />
               );
             })}
@@ -533,7 +540,7 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
 
           {/* Time Picker */}
           {tempSelectedDate && (
-            <View style={{ borderTopColor: colors.border, marginHorizontal: -24, paddingHorizontal: 24 }} className="mt-6 pt-4 pb-4 border-t">
+            <View style={{ borderTopColor: colors.border, marginHorizontal: s(-24), paddingHorizontal: s(24) }} className="mt-6 pt-4 pb-4 border-t">
               <Text style={{ color: colors.textMuted }} className="text-xs font-nunito tracking-wider mb-3">
                 Time
               </Text>
@@ -547,9 +554,11 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
                   textMutedColor={colors.text === '#ffffff' ? 'rgba(255,255,255,0.3)' : 'rgba(26,26,26,0.3)'}
                   itemHeight={timeItemHeight}
                   wheelWidth={wheelWidth}
+                  selectedFontSize={timeSelectedFontSize}
+                  unselectedFontSize={timeUnselectedFontSize}
                 />
-                <View style={{ height: timeItemHeight, justifyContent: 'center', marginHorizontal: 4, marginTop: -timeItemHeight * 0.15 }}>
-                  <Text style={{ color: colors.textMuted, fontSize: 24 }}>:</Text>
+                <View style={{ height: timeItemHeight, justifyContent: 'center', marginHorizontal: s(4), marginTop: -timeItemHeight * 0.15 }}>
+                  <Text style={{ color: colors.textMuted, fontSize: s(24) }}>:</Text>
                 </View>
                 <TimeWheel
                   values={MINUTES}
@@ -560,6 +569,8 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
                   textMutedColor={colors.text === '#ffffff' ? 'rgba(255,255,255,0.3)' : 'rgba(26,26,26,0.3)'}
                   itemHeight={timeItemHeight}
                   wheelWidth={wheelWidth}
+                  selectedFontSize={timeSelectedFontSize}
+                  unselectedFontSize={timeUnselectedFontSize}
                 />
                 <AmPmSelector
                   value={selectedAmPm}
@@ -573,7 +584,7 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
           )}
 
           {/* Selected Date/Time Display */}
-          <View style={{ borderTopColor: colors.border, marginHorizontal: -24, paddingHorizontal: 24 }} className="mt-6 py-4 border-t">
+          <View style={{ borderTopColor: colors.border, marginHorizontal: s(-24), paddingHorizontal: s(24) }} className="mt-6 py-4 border-t">
             <View className="flex-row justify-between items-center">
               <View>
                 <Text style={{ color: colors.text }} className="text-base font-nunito mb-1">Selected</Text>

@@ -55,7 +55,7 @@ function OTPInput({ value, onChange, length = 6, disabled = false, autoFocus = f
         style={{
           position: 'absolute',
           opacity: 0,
-          height: 50,
+          height: s(50),
           width: '100%',
           zIndex: 1,
         }}
@@ -63,7 +63,7 @@ function OTPInput({ value, onChange, length = 6, disabled = false, autoFocus = f
 
       {/* Visual digit boxes */}
       <Pressable onPress={handlePress}>
-        <View className="flex-row justify-center" style={{ gap: 6 }}>
+        <View className="flex-row justify-center" style={{ gap: s(6) }}>
           {Array.from({ length }).map((_, index) => {
             const isFilled = index < digits.length;
             const isCurrentPosition = index === digits.length;
@@ -87,7 +87,7 @@ function OTPInput({ value, onChange, length = 6, disabled = false, autoFocus = f
                   editable={false}
                   style={{
                     color: colors.text,
-                    fontSize: 18,
+                    fontSize: s(18),
                     fontFamily: 'Nunito-Bold',
                     textAlign: 'center',
                     width: '100%',

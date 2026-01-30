@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../context/ThemeContext';
+import { useResponsive } from '../utils/responsive';
 import { lightTap } from '../utils/haptics';
 
 // Glowing logo component - adds animated glow effect around the logo
@@ -45,6 +46,7 @@ interface Props {
 
 function LandingScreen({ onGetStarted }: Props) {
   const { colors, theme } = useTheme();
+  const { s } = useResponsive();
   const isDark = theme === 'dark';
 
   // Pulsating glow animation for logo
@@ -107,7 +109,7 @@ function LandingScreen({ onGetStarted }: Props) {
         />
 
         {/* Tap to continue text below logo */}
-        <Animated.View style={{ opacity: tapTextOpacity, marginTop: 24 }}>
+        <Animated.View style={{ opacity: tapTextOpacity, marginTop: s(24) }}>
           <Text style={{ color: colors.textSecondary }} className="text-sm font-nunito">
             Tap to continue...
           </Text>
