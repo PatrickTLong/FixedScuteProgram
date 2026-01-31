@@ -5,7 +5,7 @@ import {
   TouchableOpacity,
   Modal,
 } from 'react-native';
-import { useTheme , textSize, fontFamily, radius } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
 import { lightTap } from '../utils/haptics';
 import { useResponsive } from '../utils/responsive';
 
@@ -39,7 +39,7 @@ function TapoutWarningModal({ visible, onClose }: TapoutWarningModalProps) {
       onRequestClose={handleCancel}
     >
       <View className="flex-1 bg-black/70 justify-center items-center px-6">
-        <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 10, elevation: 10 }} className={`w-full ${radius['2xl']} overflow-hidden`}>
+        <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.modal }} className={`w-full ${radius['2xl']} overflow-hidden`}>
           {/* Content */}
           <View className="p-6">
             <Text style={{ color: colors.text }} className={`${textSize.xLarge} ${fontFamily.bold} text-center mb-4`}>

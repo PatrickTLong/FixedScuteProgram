@@ -57,7 +57,7 @@ import BackButton from '../components/BackButton';
 import InfoModal from '../components/InfoModal';
 import OTPInput from '../components/OTPInput';
 import GoogleSignInBtn from '../components/GoogleSignInButton';
-import { useTheme , textSize, fontFamily, radius } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { setAuthToken } from '../services/cardApi';
 import { API_URL } from '../config/api';
@@ -236,7 +236,7 @@ function SignInScreen({ onBack, onSuccess, onForgotPassword }: Props) {
                     autoCapitalize="none"
                     autoCorrect={false}
                     editable={!loading}
-                    style={{ backgroundColor: colors.card, color: colors.text, height: s(52), borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
+                    style={{ backgroundColor: colors.card, color: colors.text, height: s(52), borderWidth: 1, borderColor: colors.border, ...shadow.card }}
                     className={`${radius.full} px-5 ${textSize.small} ${fontFamily.regular}`}
                   />
                 </View>
@@ -254,7 +254,7 @@ function SignInScreen({ onBack, onSuccess, onForgotPassword }: Props) {
                       autoCapitalize="none"
                       autoCorrect={false}
                       editable={!loading}
-                      style={{ backgroundColor: colors.card, color: colors.text, paddingRight: s(50), height: s(52), borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
+                      style={{ backgroundColor: colors.card, color: colors.text, paddingRight: s(50), height: s(52), borderWidth: 1, borderColor: colors.border, ...shadow.card }}
                       className={`${radius.full} px-5 ${textSize.small} ${fontFamily.regular}`}
                     />
                     <TouchableOpacity
@@ -321,7 +321,7 @@ function SignInScreen({ onBack, onSuccess, onForgotPassword }: Props) {
               onPress={() => { lightTap(); step === 'credentials' ? handleSignIn() : handleVerifyCode(); }}
               disabled={loading}
               activeOpacity={0.8}
-              style={{ backgroundColor: loading ? colors.textMuted : colors.text, borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
+              style={{ backgroundColor: loading ? colors.textMuted : colors.text, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
               className={`${radius.full} py-4 items-center mb-4`}
             >
               <Text style={{ color: loading ? colors.textSecondary : colors.bg }} className={`${textSize.small} ${fontFamily.semibold}`}>

@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { lightTap } from '../utils/haptics';
-import { useTheme , textSize, fontFamily, radius } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 
 interface DatePickerModalProps {
@@ -235,7 +235,7 @@ const AmPmSelector = memo(({ value, onChange, greenColor, cardColor, textMutedCo
   <View className="ml-2">
     <TouchableOpacity
       onPress={() => { lightTap(); onChange('AM'); }}
-      style={{ backgroundColor: value === 'AM' ? colors.green : cardColor, borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
+      style={{ backgroundColor: value === 'AM' ? colors.green : cardColor, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
       className={`px-3 py-2 ${radius.lg}`}
     >
       <Text style={{ color: value === 'AM' ? '#FFFFFF' : textMutedColor }} className={`${textSize.base} ${fontFamily.semibold}`}>
@@ -244,7 +244,7 @@ const AmPmSelector = memo(({ value, onChange, greenColor, cardColor, textMutedCo
     </TouchableOpacity>
     <TouchableOpacity
       onPress={() => { lightTap(); onChange('PM'); }}
-      style={{ backgroundColor: value === 'PM' ? colors.green : cardColor, borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
+      style={{ backgroundColor: value === 'PM' ? colors.green : cardColor, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
       className={`px-3 py-2 ${radius.lg} mt-1`}
     >
       <Text style={{ color: value === 'PM' ? '#FFFFFF' : textMutedColor }} className={`${textSize.base} ${fontFamily.semibold}`}>
@@ -600,7 +600,7 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
               {tempSelectedDate && (
                 <TouchableOpacity
                   onPress={handleClear}
-                  style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
+                  style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
                   className={`ml-4 px-4 py-2 ${radius.full}`}
                 >
                   <Text style={{ color: '#FFFFFF' }} className={`${textSize.small} ${fontFamily.semibold}`}>Clear</Text>

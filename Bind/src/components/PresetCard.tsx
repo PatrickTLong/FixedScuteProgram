@@ -6,7 +6,7 @@ import {
 } from 'react-native';
 import Svg, { Path, Circle } from 'react-native-svg';
 import { lightTap, mediumTap } from '../utils/haptics';
-import { useTheme , textSize, fontFamily, radius } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
 import AnimatedSwitch from './AnimatedSwitch';
 
 // Bookmark icon (Feather Icons) for scheduled presets
@@ -277,11 +277,7 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, disabled
         backgroundColor: colors.card,
         borderWidth: 1,
         borderColor: colors.border,
-        shadowColor: '#000000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 6,
-        elevation: 6,
+        ...shadow.card,
       }}
       className={`${radius['2xl']} p-4 mb-3`}
     >

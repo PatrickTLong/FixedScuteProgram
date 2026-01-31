@@ -7,7 +7,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useTheme , textSize, fontFamily, radius } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
 import { lightTap } from '../utils/haptics';
 
 interface Props {
@@ -146,7 +146,7 @@ function TermsAcceptScreen({ onAccept }: Props) {
         <TouchableOpacity
           onPress={() => { lightTap(); handleAcceptTerms(); }}
           activeOpacity={0.8}
-          style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
+          style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
           className={`${radius.full} py-4 items-center`}
         >
           <Text style={{ color: '#FFFFFF' }} className={`${textSize.small} ${fontFamily.semibold}`}>

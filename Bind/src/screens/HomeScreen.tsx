@@ -20,7 +20,7 @@ import BlockNowButton from '../components/BlockNowButton';
 import InfoModal from '../components/InfoModal';
 import EmergencyTapoutModal from '../components/EmergencyTapoutModal';
 import { getPresets, getLockStatus, updateLockStatus, Preset, getEmergencyTapoutStatus, useEmergencyTapout, EmergencyTapoutStatus, activatePreset, invalidateUserCaches, isFirstLoad, markInitialLoadComplete, clearAllCaches } from '../services/cardApi';
-import { useTheme , textSize, fontFamily, radius } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { lightTap } from '../utils/haptics';
 
@@ -1145,11 +1145,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
                   position: 'absolute',
                   top: '100%',
                   marginTop: s(24),
-                  borderWidth: 1, borderColor: colors.border, shadowColor: '#000000',
-                  shadowOffset: { width: 0, height: 4 },
-                  shadowOpacity: 0.3,
-                  shadowRadius: 6,
-                  elevation: 6,
+                  borderWidth: 1, borderColor: colors.border, ...shadow.card,
                 }}
               >
                 {/* Status dot */}
@@ -1229,11 +1225,8 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
           <View
             style={{
               backgroundColor: colors.card,
-              borderWidth: 1, borderColor: colors.border, shadowColor: '#000000',
-              shadowOffset: { width: 0, height: 6 },
-              shadowOpacity: 0.4,
-              shadowRadius: 10,
-              elevation: 10,
+              borderWidth: 1, borderColor: colors.border,
+              ...shadow.modal,
             }}
             className={`w-full ${radius['2xl']} overflow-hidden max-h-[70%]`}
           >

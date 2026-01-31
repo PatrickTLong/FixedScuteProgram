@@ -15,7 +15,7 @@ import Svg, { Path } from 'react-native-svg';
 import ConfirmationModal from '../components/ConfirmationModal';
 import EmailConfirmationModal from '../components/EmailConfirmationModal';
 import { getLockStatus, getEmergencyTapoutStatus, EmergencyTapoutStatus, getCachedLockStatus, getCachedTapoutStatus, getMembershipStatus, MembershipStatus, getCachedMembershipStatus } from '../services/cardApi';
-import { useTheme , textSize, fontFamily, radius } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { lightTap } from '../utils/haptics';
 
@@ -530,7 +530,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
         <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} tracking-wider mb-2`}>
           Account
         </Text>
-        <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }} className={`${radius['2xl']} mb-6`}>
+        <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }} className={`${radius['2xl']} mb-6`}>
           <SettingsRow
             icon={<MailIcon />}
             label={email}
@@ -582,7 +582,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
         <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular}  tracking-wider mb-2`}>
           Emergency Tapout
         </Text>
-        <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }} className={`${radius['2xl']} mb-6`}>
+        <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }} className={`${radius['2xl']} mb-6`}>
           {/* Header Row */}
           <View
             style={getTimeUntilRefill() ? { borderBottomWidth: 1, borderBottomColor: colors.divider, paddingVertical: s(16) } : { paddingVertical: s(16) }}
@@ -617,7 +617,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
         <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular}  tracking-wider mb-2`}>
           Support
         </Text>
-        <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }} className={`${radius['2xl']}`}>
+        <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }} className={`${radius['2xl']}`}>
           <SettingsRow
             icon={<MessageIcon />}
             label="Contact Support"
@@ -671,7 +671,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
             <Text style={{ color: colors.red }} className={`${textSize.small} ${fontFamily.regular}`}>{deleteError}</Text>
           </View>
         )}
-        <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }} className={`${radius['2xl']}`}>
+        <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }} className={`${radius['2xl']}`}>
           <SettingsRow
             icon={<RefreshIcon />}
             label="Reset Account"
@@ -1038,11 +1038,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
                 borderWidth: 2,
                 borderColor: selectedPlan === 'monthly' ? '#FFFFFF' : 'transparent',
                 padding: s(16),
-                shadowColor: '#000000',
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.3,
-                shadowRadius: 6,
-                elevation: 6,
+                ...shadow.card,
               }}
               className={`${radius['2xl']} mb-3`}
             >
@@ -1071,11 +1067,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
                 borderWidth: 2,
                 borderColor: selectedPlan === 'yearly' ? '#FFFFFF' : 'transparent',
                 padding: s(16),
-                shadowColor: '#000000',
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.3,
-                shadowRadius: 6,
-                elevation: 6,
+                ...shadow.card,
               }}
               className={`${radius['2xl']} mb-3`}
             >
@@ -1109,11 +1101,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
                 borderWidth: 2,
                 borderColor: selectedPlan === 'lifetime' ? '#FFFFFF' : 'transparent',
                 padding: s(16),
-                shadowColor: '#000000',
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.3,
-                shadowRadius: 6,
-                elevation: 6,
+                ...shadow.card,
               }}
               className={`${radius['2xl']} mb-6`}
             >
@@ -1146,11 +1134,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
               style={{
                 backgroundColor: selectedPlan ? '#FFFFFF' : colors.border,
                 opacity: selectedPlan ? 1 : 0.5,
-                shadowColor: '#000000',
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.3,
-                shadowRadius: 6,
-                elevation: 6,
+                ...shadow.card,
               }}
               className={`${radius.full} py-3.5 items-center mb-3`}
             >

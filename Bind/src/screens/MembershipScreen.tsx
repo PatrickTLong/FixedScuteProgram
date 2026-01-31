@@ -7,7 +7,7 @@ import {
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useTheme , textSize, fontFamily, radius } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { lightTap } from '../utils/haptics';
 
@@ -52,11 +52,7 @@ function MembershipScreen({ onPurchaseComplete }: Props) {
             borderWidth: 2,
             borderColor: selectedPlan === 'monthly' ? '#FFFFFF' : 'transparent',
             padding: s(16),
-            shadowColor: '#000000',
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.3,
-            shadowRadius: 6,
-            elevation: 6,
+            ...shadow.card,
           }}
           className={`${radius['2xl']} mb-3`}
         >
@@ -85,11 +81,7 @@ function MembershipScreen({ onPurchaseComplete }: Props) {
             borderWidth: 2,
             borderColor: selectedPlan === 'yearly' ? '#FFFFFF' : 'transparent',
             padding: s(16),
-            shadowColor: '#000000',
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.3,
-            shadowRadius: 6,
-            elevation: 6,
+            ...shadow.card,
           }}
           className={`${radius['2xl']} mb-3`}
         >
@@ -123,11 +115,7 @@ function MembershipScreen({ onPurchaseComplete }: Props) {
             borderWidth: 2,
             borderColor: selectedPlan === 'lifetime' ? '#FFFFFF' : 'transparent',
             padding: s(16),
-            shadowColor: '#000000',
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.3,
-            shadowRadius: 6,
-            elevation: 6,
+            ...shadow.card,
           }}
           className={`${radius['2xl']} mb-6`}
         >
@@ -160,11 +148,7 @@ function MembershipScreen({ onPurchaseComplete }: Props) {
           style={{
             backgroundColor: selectedPlan ? '#FFFFFF' : colors.border,
             opacity: selectedPlan ? 1 : 0.5,
-            borderWidth: 1, borderColor: colors.border, shadowColor: '#000000',
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.3,
-            shadowRadius: 6,
-            elevation: 6,
+            borderWidth: 1, borderColor: colors.border, ...shadow.card,
           }}
           className={`${radius.full} py-3.5 items-center mb-3`}
         >

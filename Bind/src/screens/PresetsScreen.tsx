@@ -24,7 +24,7 @@ import {
   getLockStatus,
   invalidateUserCaches,
 } from '../services/cardApi';
-import { useTheme , textSize, fontFamily, radius } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { lightTap } from '../utils/haptics';
 
@@ -692,11 +692,7 @@ function PresetsScreen({ userEmail }: Props) {
           disabled={isDisabled}
           style={{
             backgroundColor: colors.card,
-            borderWidth: 1, borderColor: colors.border, shadowColor: '#000000',
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.3,
-            shadowRadius: 6,
-            elevation: 6,
+            borderWidth: 1, borderColor: colors.border, ...shadow.card,
           }}
           className={`w-11 h-11 ${radius.full} items-center justify-center`}
         >

@@ -35,7 +35,7 @@ import StrictModeWarningModal from './StrictModeWarningModal';
 import { Preset } from './PresetCard';
 import { getEmergencyTapoutStatus, setEmergencyTapoutEnabled } from '../services/cardApi';
 import { lightTap, mediumTap } from '../utils/haptics';
-import { useTheme , textSize, fontFamily, radius } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 
 const SCHEDULE_INFO_DISMISSED_KEY = 'schedule_info_dismissed';
@@ -554,7 +554,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
   const [blockedWebsites, setBlockedWebsites] = useState<string[]>([]);
   const [websiteInput, setWebsiteInput] = useState('');
   const [blockSettings, setBlockSettings] = useState(false);
-  const [noTimeLimit, setNoTimeLimit] = useState(true);
+  const [noTimeLimit, setNoTimeLimit] = useState(false);
   const [timerDays, setTimerDays] = useState(0);
   const [timerHours, setTimerHours] = useState(0);
   const [timerMinutes, setTimerMinutes] = useState(0);
@@ -580,6 +580,8 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
 
   // Ref for final-step ScrollView to disable scrolling over timer picker
   const finalScrollRef = useRef<ScrollView>(null);
+  // Ref for datepicker ScrollView to disable scrolling over time wheels
+  const dpScrollRef = useRef<ScrollView>(null);
 
   // Step transition animation (same pattern as App.tsx tab transitions)
   const stepFadeAnim = useRef(new Animated.Value(1)).current;
@@ -1001,7 +1003,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
         setSelectedApps([]);
         setBlockedWebsites([]);
         setBlockSettings(false);
-        setNoTimeLimit(true);
+        setNoTimeLimit(false);
         setTimerDays(0);
         setTimerHours(0);
         setTimerMinutes(0);
@@ -1158,49 +1160,6 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
     }
   }, [name, isSaving, canSave, preset, installedSelectedApps, blockedWebsites, blockSettings, noTimeLimit, timerDays, timerHours, timerMinutes, timerSeconds, targetDate, onSave, allowEmergencyTapout, strictMode, isScheduled, scheduleStartDate, scheduleEndDate, existingPresets, isRecurring, recurringValue, recurringUnit]);
 
-  // Calculate next recurring occurrence based on your specified logic:
-  // - Minutes/Hours: Add interval to END time → new START = END + interval, new END = new START + duration
-  // - Days/Weeks/Months: Add interval to START date (same time slot on different day)
-  const getNextRecurringOccurrence = useCallback(() => {
-    if (!scheduleStartDate || !scheduleEndDate || !isRecurring) return null;
-
-    const parsedValue = parseInt(recurringValue, 10);
-    const value = isNaN(parsedValue) || parsedValue <= 0 ? 1 : parsedValue;
-
-    const duration = scheduleEndDate.getTime() - scheduleStartDate.getTime();
-
-    if (recurringUnit === 'minutes' || recurringUnit === 'hours') {
-      // Add interval to END time to get new START, then add duration to get new END
-      // Example: 4:32-4:36 + 2 min → new start = 4:36 + 2 = 4:38, new end = 4:38 + 4 = 4:42
-      const intervalMs = recurringUnit === 'minutes'
-        ? value * 60 * 1000
-        : value * 60 * 60 * 1000;
-
-      const newStartTime = scheduleEndDate.getTime() + intervalMs;
-      const nextStart = new Date(newStartTime);
-      const nextEnd = new Date(newStartTime + duration);
-
-      return { start: nextStart, end: nextEnd };
-    } else {
-      // Add interval to START date (days/weeks/months) - same time slot, different day
-      const nextStart = new Date(scheduleStartDate);
-      const nextEnd = new Date(scheduleEndDate);
-
-      if (recurringUnit === 'days') {
-        nextStart.setDate(nextStart.getDate() + value);
-        nextEnd.setDate(nextEnd.getDate() + value);
-      } else if (recurringUnit === 'weeks') {
-        nextStart.setDate(nextStart.getDate() + (value * 7));
-        nextEnd.setDate(nextEnd.getDate() + (value * 7));
-      } else if (recurringUnit === 'months') {
-        nextStart.setMonth(nextStart.getMonth() + value);
-        nextEnd.setMonth(nextEnd.getMonth() + value);
-      }
-
-      return { start: nextStart, end: nextEnd };
-    }
-  }, [scheduleStartDate, scheduleEndDate, isRecurring, recurringValue, recurringUnit]);
-
   // Memoize filtered apps to avoid recalculation on every render
   const filteredApps = useMemo(() =>
     installedApps.filter(app =>
@@ -1216,7 +1175,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
       <TouchableOpacity
         onPress={() => toggleApp(item.id)}
         activeOpacity={0.7}
-        style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
+        style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
         className={`flex-row items-center py-3 px-4 ${radius.xl} mb-2`}
       >
         {/* App Icon - native already provides squircle shape */}
@@ -1281,9 +1240,10 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               </TouchableOpacity>
             </View>
 
-            <View
+            <ScrollView
+              ref={dpScrollRef}
               className="flex-1"
-              style={{ paddingTop: s(16), paddingBottom: s(40), paddingHorizontal: s(24) }}
+              contentContainerStyle={{ paddingTop: s(16), paddingBottom: s(40), paddingHorizontal: s(24) }}
             >
               {/* Month/Year Navigation */}
               <View className="flex-row items-center justify-between mb-4">
@@ -1349,7 +1309,12 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                   <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} tracking-wider mb-3`}>
                     Time
                   </Text>
-                  <View className="flex-row items-center justify-center">
+                  <View
+                    className="flex-row items-center justify-center"
+                    onTouchStart={() => dpScrollRef.current?.setNativeProps({ scrollEnabled: false })}
+                    onTouchEnd={() => dpScrollRef.current?.setNativeProps({ scrollEnabled: true })}
+                    onTouchCancel={() => dpScrollRef.current?.setNativeProps({ scrollEnabled: true })}
+                  >
                     <TimeWheel
                       values={HOURS_12}
                       selectedValue={dpSelectedHour}
@@ -1397,7 +1362,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                   {dpTempSelectedDate && (
                     <TouchableOpacity
                       onPress={dpHandleClear}
-                      style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
+                      style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
                       className={`ml-4 px-4 py-2 ${radius.full}`}
                     >
                       <Text style={{ color: '#FFFFFF' }} className={`${textSize.small} ${fontFamily.semibold}`}>Clear</Text>
@@ -1410,8 +1375,246 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                   </Text>
                 )}
               </View>
-            </View>
+
+              {/* Recurring Schedule - only when picking end date and start date is already set */}
+              {datePickerTarget === 'scheduleEnd' && scheduleStartDate && (
+                <View style={{ borderTopColor: colors.divider, marginHorizontal: s(-24), paddingHorizontal: s(24) }} className="mt-2 pt-4 border-t">
+                  <View style={{ marginHorizontal: s(-24) }}>
+                    <View style={{ paddingVertical: s(16) }} className="flex-row items-center justify-between px-6">
+                      <TouchableOpacity onPress={() => toggleInfo('recurring')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
+                        <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Recurring Schedule</Text>
+                        <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>Repeat this block automatically</Text>
+                      </TouchableOpacity>
+                      <AnimatedSwitch
+                        value={isRecurring}
+                        onValueChange={(value: boolean) => {
+                          setIsRecurring(value);
+                          if (value) {
+                            mediumTap();
+                            AsyncStorage.getItem(RECURRENCE_INFO_DISMISSED_KEY).then(dismissed => {
+                              if (dismissed !== 'true') {
+                                setRecurrenceInfoVisible(true);
+                              }
+                            });
+                          } else {
+                            setRecurringValue('1');
+                            setRecurringUnit('hours');
+                            mediumTap();
+                          }
+                        }}
+                      />
+                    </View>
+                    <ExpandableInfo expanded={!!expandedInfo.recurring}>
+                      <TouchableOpacity onPress={() => toggleInfo('recurring')} activeOpacity={0.7} className="px-6 pb-4">
+                        <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular} leading-5`}>
+                          Automatically repeats this blocking session at the interval you choose. After each session ends, the next one will start based on your selected frequency.
+                        </Text>
+                      </TouchableOpacity>
+                    </ExpandableInfo>
+                    {(isRecurring || !!expandedInfo.recurring) && (
+                      <View style={{ borderBottomWidth: 1, borderBottomColor: colors.divider }} />
+                    )}
+
+                    {/* Recurring Options */}
+                    <ExpandableInfo expanded={isRecurring} lazy>
+                      <View className="mt-4 px-6">
+                        <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} tracking-wider mb-4`}>
+                          Recurrence
+                        </Text>
+
+                        {/* Number Input */}
+                        <View
+                          style={{ backgroundColor: colors.card, paddingVertical: s(14), borderWidth: 1, borderColor: colors.border, ...shadow.card }}
+                          className={`flex-row items-center px-4 ${radius.xl} mb-3`}
+                        >
+                          <View className={`w-10 h-10 ${radius.lg} items-center justify-center mr-3`}>
+                            <RotateCwIcon size={s(26)} />
+                          </View>
+                          <View className="flex-1">
+                            <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
+                              Repeat Every
+                            </Text>
+                          </View>
+                          <TextInput
+                            style={{ color: colors.text, minWidth: s(40), textAlign: 'center', height: s(28), padding: 0 }}
+                            className={`${textSize.base} ${fontFamily.semibold}`}
+                            value={recurringValue}
+                            onChangeText={(text) => {
+                              const numericValue = text.replace(/[^0-9]/g, '');
+                              setRecurringValue(numericValue);
+                            }}
+                            keyboardType="number-pad"
+                            maxLength={3}
+                            placeholder="1"
+                            placeholderTextColor={colors.textMuted}
+                          />
+                        </View>
+
+                        {/* Unit Selector */}
+                        <TouchableOpacity
+                          onPress={() => {
+                            lightTap();
+                            setRecurringUnitModalVisible(true);
+                          }}
+                          activeOpacity={0.7}
+                          style={{ backgroundColor: colors.card, paddingVertical: s(14), borderWidth: 1, borderColor: colors.border, ...shadow.card }}
+                          className={`flex-row items-center px-4 ${radius.xl} mb-3`}
+                        >
+                          <View className={`w-10 h-10 ${radius.lg} items-center justify-center mr-3`}>
+                            <ClockIcon size={s(26)} />
+                          </View>
+                          <View className="flex-1">
+                            <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold} capitalize`}>
+                              {recurringUnit}
+                            </Text>
+                          </View>
+                          <ChevronRightIcon size={s(20)} color="#FFFFFF" />
+                        </TouchableOpacity>
+
+                        {/* Next Occurrence Preview - uses pending datepicker end date */}
+                        {(() => {
+                          if (!dpTempSelectedDate || !scheduleStartDate || !isRecurring) return null;
+
+                          // Build pending end date from current datepicker selection
+                          let hours24 = dpSelectedHour % 12;
+                          if (dpSelectedAmPm === 'PM') hours24 += 12;
+                          if (dpSelectedAmPm === 'AM' && dpSelectedHour === 12) hours24 = 0;
+                          const pendingEndDate = new Date(
+                            dpTempSelectedDate.getFullYear(),
+                            dpTempSelectedDate.getMonth(),
+                            dpTempSelectedDate.getDate(),
+                            hours24,
+                            dpSelectedMinute,
+                            0
+                          );
+
+                          if (pendingEndDate <= scheduleStartDate) return null;
+
+                          const parsedValue = parseInt(recurringValue, 10);
+                          const value = isNaN(parsedValue) || parsedValue <= 0 ? 1 : parsedValue;
+                          const duration = pendingEndDate.getTime() - scheduleStartDate.getTime();
+
+                          let nextStart: Date;
+                          let nextEnd: Date;
+
+                          if (recurringUnit === 'minutes' || recurringUnit === 'hours') {
+                            const intervalMs = recurringUnit === 'minutes'
+                              ? value * 60 * 1000
+                              : value * 60 * 60 * 1000;
+                            const newStartTime = pendingEndDate.getTime() + intervalMs;
+                            nextStart = new Date(newStartTime);
+                            nextEnd = new Date(newStartTime + duration);
+                          } else {
+                            nextStart = new Date(scheduleStartDate);
+                            nextEnd = new Date(pendingEndDate);
+                            if (recurringUnit === 'days') {
+                              nextStart.setDate(nextStart.getDate() + value);
+                              nextEnd.setDate(nextEnd.getDate() + value);
+                            } else if (recurringUnit === 'weeks') {
+                              nextStart.setDate(nextStart.getDate() + (value * 7));
+                              nextEnd.setDate(nextEnd.getDate() + (value * 7));
+                            } else if (recurringUnit === 'months') {
+                              nextStart.setMonth(nextStart.getMonth() + value);
+                              nextEnd.setMonth(nextEnd.getMonth() + value);
+                            }
+                          }
+
+                          const isSameDay = nextStart.toDateString() === nextEnd.toDateString();
+
+                          return (
+                            <View style={{ backgroundColor: colors.card, paddingVertical: s(14), borderWidth: 1, borderColor: colors.border, ...shadow.card }} className={`flex-row items-center px-4 ${radius.xl}`}>
+                              <View className={`w-10 h-10 ${radius.lg} items-center justify-center mr-3`}>
+                                <SendIcon size={s(26)} />
+                              </View>
+                              <View className="flex-1">
+                                <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
+                                  Next Occurrence
+                                </Text>
+                                <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>
+                                  {`e.g. ${nextStart.toLocaleDateString('en-US', {
+                                    month: 'short',
+                                    day: 'numeric',
+                                  })} ${nextStart.toLocaleTimeString('en-US', {
+                                    hour: 'numeric',
+                                    minute: '2-digit',
+                                    hour12: true,
+                                  })} - ${isSameDay ? '' : nextEnd.toLocaleDateString('en-US', {
+                                    month: 'short',
+                                    day: 'numeric',
+                                  }) + ' '}${nextEnd.toLocaleTimeString('en-US', {
+                                    hour: 'numeric',
+                                    minute: '2-digit',
+                                    hour12: true,
+                                  })}`}
+                                </Text>
+                              </View>
+                            </View>
+                          );
+                        })()}
+                      </View>
+                    </ExpandableInfo>
+                  </View>
+                </View>
+              )}
+            </ScrollView>
           </Animated.View>
+
+          {/* Recurrence Info Modal */}
+          <RecurrenceInfoModal
+            visible={recurrenceInfoVisible}
+            onClose={async (dontShowAgain) => {
+              setRecurrenceInfoVisible(false);
+              if (dontShowAgain) {
+                await AsyncStorage.setItem(RECURRENCE_INFO_DISMISSED_KEY, 'true');
+              }
+            }}
+          />
+
+          {/* Recurring Unit Selection Modal */}
+          <Modal
+            visible={recurringUnitModalVisible}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setRecurringUnitModalVisible(false)}
+          >
+            <TouchableOpacity
+              activeOpacity={1}
+              onPress={() => setRecurringUnitModalVisible(false)}
+              className="flex-1 bg-black/70 justify-center items-center px-6"
+            >
+              <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.modal }} className={`w-full ${radius['2xl']} overflow-hidden`}>
+                <View className="p-4">
+                  <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.bold} text-center mb-4`}>
+                    Select Unit
+                  </Text>
+                  {(['minutes', 'hours', 'days', 'weeks', 'months'] as RecurringUnit[]).map((unit) => (
+                    <TouchableOpacity
+                      key={unit}
+                      onPress={() => {
+                        setRecurringUnit(unit);
+                        setRecurringUnitModalVisible(false);
+                        lightTap();
+                      }}
+                      activeOpacity={0.7}
+                      style={{
+                        backgroundColor: recurringUnit === unit ? colors.green : colors.cardLight,
+                        borderWidth: 1, borderColor: colors.border,
+                        ...shadow.card,
+                      }}
+                      className={`items-center justify-center py-4 px-4 ${radius.xl} mb-2`}
+                    >
+                      <Text
+                        style={{ color: recurringUnit === unit ? '#FFFFFF' : colors.text }}
+                        className={`${textSize.small} ${fontFamily.semibold} capitalize`}
+                      >
+                        {unit}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+            </TouchableOpacity>
+          </Modal>
         </SafeAreaView>
       </Modal>
     );
@@ -1543,7 +1746,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                 <TouchableOpacity
                   onPress={() => openDatePicker('scheduleStart')}
                   activeOpacity={0.7}
-                  style={{ backgroundColor: colors.card, paddingVertical: s(14), borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
+                  style={{ backgroundColor: colors.card, paddingVertical: s(14), borderWidth: 1, borderColor: colors.border, ...shadow.card }}
                   className={`flex-row items-center px-4 ${radius.xl} mb-3`}
                 >
                   <View  className={`w-10 h-10 ${radius.lg} items-center justify-center mr-3`}>
@@ -1583,7 +1786,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                 <TouchableOpacity
                   onPress={() => openDatePicker('scheduleEnd')}
                   activeOpacity={0.7}
-                  style={{ backgroundColor: colors.card, paddingVertical: s(14), borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
+                  style={{ backgroundColor: colors.card, paddingVertical: s(14), borderWidth: 1, borderColor: colors.border, ...shadow.card }}
                   className={`flex-row items-center px-4 ${radius.xl}`}
                 >
                   <View  className={`w-10 h-10 ${radius.lg} items-center justify-center mr-3`}>
@@ -1626,148 +1829,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                   </Text>
                 )}
 
-                {/* Divider when recurring schedule is not available */}
-                <ExpandableInfo expanded={!(scheduleStartDate && scheduleEndDate && scheduleEndDate > scheduleStartDate)}>
-                  <View style={{ borderBottomWidth: 1, borderBottomColor: colors.divider, marginTop: s(20), marginHorizontal: s(-24) }} />
-                </ExpandableInfo>
-
-                {/* Recurring Schedule Toggle */}
-                <ExpandableInfo expanded={!!(scheduleStartDate && scheduleEndDate && scheduleEndDate > scheduleStartDate)} lazy>
-                  <View className="-mx-6">
-                    <View style={{ paddingVertical: s(20) }} className="flex-row items-center justify-between px-6">
-                      <TouchableOpacity onPress={() => toggleInfo('recurring')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
-                        <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Recurring Schedule</Text>
-                        <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>Repeat this block automatically</Text>
-                      </TouchableOpacity>
-                      <AnimatedSwitch
-                        value={isRecurring}
-                        onValueChange={(value: boolean) => {
-                          setIsRecurring(value);
-                          if (value) {
-                            mediumTap();
-                            AsyncStorage.getItem(RECURRENCE_INFO_DISMISSED_KEY).then(dismissed => {
-                              if (dismissed !== 'true') {
-                                setRecurrenceInfoVisible(true);
-                              }
-                            });
-                          } else {
-                            setRecurringValue('1');
-                            setRecurringUnit('hours');
-                            mediumTap();
-                          }
-                        }}
-                      />
-                    </View>
-                    <ExpandableInfo expanded={!!expandedInfo.recurring}>
-                      <TouchableOpacity onPress={() => toggleInfo('recurring')} activeOpacity={0.7} className="px-6 pb-4">
-                        <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular} leading-5`}>
-                          Automatically repeats this blocking session at the interval you choose. After each session ends, the next one will start based on your selected frequency.
-                        </Text>
-                      </TouchableOpacity>
-                    </ExpandableInfo>
-                    {(isRecurring || !!expandedInfo.recurring) && (
-                      <View style={{ borderBottomWidth: 1, borderBottomColor: colors.divider }} />
-                    )}
-
-                    {/* Recurring Options */}
-                    <ExpandableInfo expanded={isRecurring} lazy>
-                      <View className="mt-4 px-6">
-                        <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} tracking-wider mb-4`}>
-                          Recurrence
-                        </Text>
-
-                        {/* Number Input */}
-                        <View
-                          style={{ backgroundColor: colors.card, paddingVertical: s(14), borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
-                          className={`flex-row items-center px-4 ${radius.xl} mb-3`}
-                        >
-                          <View className={`w-10 h-10 ${radius.lg} items-center justify-center mr-3`}>
-                            <RotateCwIcon size={s(26)} />
-                          </View>
-                          <View className="flex-1">
-                            <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
-                              Repeat Every
-                            </Text>
-                          </View>
-                          <TextInput
-                            style={{ color: colors.text, minWidth: s(40), textAlign: 'center', height: s(28), padding: 0 }}
-                            className={`${textSize.base} ${fontFamily.semibold}`}
-                            value={recurringValue}
-                            onChangeText={(text) => {
-                              // Only allow numbers
-                              const numericValue = text.replace(/[^0-9]/g, '');
-                              setRecurringValue(numericValue);
-                            }}
-                            keyboardType="number-pad"
-                            maxLength={3}
-                            placeholder="1"
-                            placeholderTextColor={colors.textMuted}
-                          />
-                        </View>
-
-                        {/* Unit Selector */}
-                        <TouchableOpacity
-                          onPress={() => {
-                            lightTap();
-                            setRecurringUnitModalVisible(true);
-                          }}
-                          activeOpacity={0.7}
-                          style={{ backgroundColor: colors.card, paddingVertical: s(14), borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
-                          className={`flex-row items-center px-4 ${radius.xl} mb-3`}
-                        >
-                          <View className={`w-10 h-10 ${radius.lg} items-center justify-center mr-3`}>
-                            <ClockIcon size={s(26)} />
-                          </View>
-                          <View className="flex-1">
-                            <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold} capitalize`}>
-                              {recurringUnit}
-                            </Text>
-                          </View>
-                          <ChevronRightIcon size={s(20)} color="#FFFFFF" />
-                        </TouchableOpacity>
-
-                        {/* Next Occurrence Preview */}
-                        {(() => {
-                          const nextOccurrence = getNextRecurringOccurrence();
-                          if (!nextOccurrence) return null;
-
-                          const isSameDay = nextOccurrence.start.toDateString() === nextOccurrence.end.toDateString();
-
-                          return (
-                            <View style={{ backgroundColor: colors.card, paddingVertical: s(14), borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }} className={`flex-row items-center px-4 ${radius.xl}`}>
-                              <View className={`w-10 h-10 ${radius.lg} items-center justify-center mr-3`}>
-                                <SendIcon size={s(26)} />
-                              </View>
-                              <View className="flex-1">
-                                <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
-                                  Next Occurrence
-                                </Text>
-                                <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>
-                                  {`${nextOccurrence.start.toLocaleDateString('en-US', {
-                                    month: 'short',
-                                    day: 'numeric',
-                                  })} ${nextOccurrence.start.toLocaleTimeString('en-US', {
-                                    hour: 'numeric',
-                                    minute: '2-digit',
-                                    hour12: true,
-                                  })} - ${isSameDay ? '' : nextOccurrence.end.toLocaleDateString('en-US', {
-                                    month: 'short',
-                                    day: 'numeric',
-                                  }) + ' '}${nextOccurrence.end.toLocaleTimeString('en-US', {
-                                    hour: 'numeric',
-                                    minute: '2-digit',
-                                    hour12: true,
-                                  })}`}
-                                </Text>
-                              </View>
-                            </View>
-                          );
-                        })()}
-                      </View>
-                    </ExpandableInfo>
-                  </View>
-                  <View style={{ borderBottomWidth: 1, borderBottomColor: colors.divider, marginTop: isRecurring ? s(16) : 0, marginHorizontal: s(-24) }} />
-                </ExpandableInfo>
+                <View style={{ borderBottomWidth: 1, borderBottomColor: colors.divider, marginTop: s(20), marginHorizontal: s(-24) }} />
               </View>
             </ExpandableInfo>
 
@@ -1824,7 +1886,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                     openDatePicker('targetDate');
                   }}
                   activeOpacity={0.7}
-                  style={{ backgroundColor: colors.card, paddingVertical: s(14), borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
+                  style={{ backgroundColor: colors.card, paddingVertical: s(14), borderWidth: 1, borderColor: colors.border, ...shadow.card }}
                   className={`flex-row items-center px-4 ${radius.xl}`}
                 >
                   <View className={`w-10 h-10 ${radius.lg} items-center justify-center mr-3`}>
@@ -2004,7 +2066,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               onPress={() => setRecurringUnitModalVisible(false)}
               className="flex-1 bg-black/70 justify-center items-center px-6"
             >
-              <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 10, elevation: 10 }} className={`w-full ${radius['2xl']} overflow-hidden`}>
+              <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.modal }} className={`w-full ${radius['2xl']} overflow-hidden`}>
                 <View className="p-4">
                   <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.bold} text-center mb-4`}>
                     Select Unit
@@ -2020,11 +2082,8 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                       activeOpacity={0.7}
                       style={{
                         backgroundColor: recurringUnit === unit ? colors.green : colors.cardLight,
-                        borderWidth: 1, borderColor: colors.border, shadowColor: '#000000',
-                        shadowOffset: { width: 0, height: 4 },
-                        shadowOpacity: 0.3,
-                        shadowRadius: 6,
-                        elevation: 6,
+                        borderWidth: 1, borderColor: colors.border,
+                        ...shadow.card,
                       }}
                       className={`items-center justify-center py-4 px-4 ${radius.xl} mb-2`}
                     >
@@ -2154,7 +2213,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               value={name}
               onChangeText={setName}
               maxLength={20}
-              style={{ backgroundColor: colors.card, color: colors.text, borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
+              style={{ backgroundColor: colors.card, color: colors.text, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
               className={`${radius.xl} px-4 py-3 ${textSize.small} ${fontFamily.semibold}`}
             />
           </View>
@@ -2163,10 +2222,10 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
           <View className="flex-row mx-6 mb-4">
             <TouchableOpacity
               onPress={() => { lightTap(); switchTab('apps'); }}
-              style={{ backgroundColor: activeTab === 'apps' ? colors.text : colors.card, borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
+              style={{ backgroundColor: activeTab === 'apps' ? colors.text : colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
               className={`flex-1 py-2 ${radius.full} items-center justify-center flex-row`}
             >
-              <AndroidIcon size={s(16)} color={activeTab === 'apps' ? colors.bg : colors.text} />
+              <AndroidIcon size={s(26)} color={activeTab === 'apps' ? colors.bg : colors.text} />
               <Text style={{ color: activeTab === 'apps' ? colors.bg : colors.text, marginLeft: 6 }} className={`${textSize.small} ${fontFamily.semibold}`}>
                 Apps
               </Text>
@@ -2174,10 +2233,10 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
             <View className="w-2" />
             <TouchableOpacity
               onPress={() => { lightTap(); switchTab('websites'); }}
-              style={{ backgroundColor: activeTab === 'websites' ? colors.text : colors.card, borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
+              style={{ backgroundColor: activeTab === 'websites' ? colors.text : colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
               className={`flex-1 py-3 ${radius.full} items-center justify-center flex-row`}
             >
-              <GlobeIcon size={s(16)} color={activeTab === 'websites' ? colors.bg : colors.text} />
+              <GlobeIcon size={s(26)} color={activeTab === 'websites' ? colors.bg : colors.text} />
               <Text style={{ color: activeTab === 'websites' ? colors.bg : colors.text, marginLeft: 6 }} className={`${textSize.small} ${fontFamily.semibold}`}>
                 Websites
               </Text>
@@ -2192,7 +2251,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                   <TouchableOpacity
                     onPress={openIOSAppPicker}
                     activeOpacity={0.7}
-                    style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
+                    style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
                     className={`flex-row items-center py-4 px-4 ${radius.xl} mb-4`}
                   >
                     <View className={`w-12 h-12 ${radius.xl} items-center justify-center mr-4`}>
@@ -2225,7 +2284,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                     placeholderTextColor={colors.textMuted}
                     value={searchQuery}
                     onChangeText={setSearchQuery}
-                    style={{ backgroundColor: colors.card, color: colors.text, borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
+                    style={{ backgroundColor: colors.card, color: colors.text, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
                     className={`${radius.xl} px-4 py-3 ${textSize.small} ${fontFamily.semibold}`}
                   />
                 </View>
@@ -2247,7 +2306,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                           return Array.from(newSet);
                         });
                       }}
-                      style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
+                      style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
                       className={`flex-1 py-2 ${radius.xl} items-center mr-2`}
                     >
                       <Text style={{ color: '#FFFFFF' }} className={`${textSize.small} ${fontFamily.semibold}`}>
@@ -2264,7 +2323,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                         const filteredIds = new Set(filteredApps.map(app => app.id));
                         setSelectedApps(prev => prev.filter(id => !filteredIds.has(id)));
                       }}
-                      style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
+                      style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
                       className={`flex-1 py-2 ${radius.xl} items-center`}
                     >
                       <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.semibold}`}>
@@ -2317,17 +2376,14 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                       textAlignVertical: 'center',
                       includeFontPadding: false,
                       paddingVertical: 0,
-                      borderWidth: 1, borderColor: colors.border, shadowColor: '#000000',
-                      shadowOffset: { width: 0, height: 4 },
-                      shadowOpacity: 0.3,
-                      shadowRadius: 6,
-                      elevation: 6,
+                      borderWidth: 1, borderColor: colors.border,
+                      ...shadow.card,
                     }}
                     className={`flex-1 ${radius.xl} px-4 h-12 ${textSize.small}  ${fontFamily.semibold} mr-2`}
                   />
                   <TouchableOpacity
                     onPress={addWebsite}
-                    style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
+                    style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
                     className={`w-11 h-11 ${radius.full} items-center justify-center`}
                   >
                     <Text className={`text-white ${textSize['2xLarge']} ${fontFamily.light}`}>+</Text>
@@ -2342,7 +2398,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                 {blockedWebsites.map((site) => (
                   <View
                     key={site}
-                    style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
+                    style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
                     className={`flex-row items-center py-3 px-4 ${radius.xl} mb-2`}
                   >
                     <View className="w-10 h-10 items-center justify-center mr-3">

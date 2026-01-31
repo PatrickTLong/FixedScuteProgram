@@ -8,7 +8,7 @@ import {
 import LottieView from 'lottie-react-native';
 const Lottie = LottieView as any;
 import Svg, { Path } from 'react-native-svg';
-import { useTheme , textSize, fontFamily, radius } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
 import { lightTap, mediumTap } from '../utils/haptics';
 import { useResponsive } from '../utils/responsive';
 
@@ -92,11 +92,8 @@ function EmergencyTapoutModal({
         <View
           style={{
             backgroundColor: colors.card,
-            borderWidth: 1, borderColor: colors.border, shadowColor: '#000000',
-            shadowOffset: { width: 0, height: 6 },
-            shadowOpacity: 0.4,
-            shadowRadius: 10,
-            elevation: 10,
+            borderWidth: 1, borderColor: colors.border,
+            ...shadow.modal,
           }}
           className={`w-full ${radius['2xl']} overflow-hidden`}
         >
@@ -140,11 +137,7 @@ function EmergencyTapoutModal({
               <View
                 style={{
                   backgroundColor: colors.card,
-                  shadowColor: '#000000',
-                  shadowOffset: { width: 0, height: 4 },
-                  shadowOpacity: 0.3,
-                  shadowRadius: 6,
-                  elevation: 6,
+                  ...shadow.card,
                   borderRadius: 9999,
                   overflow: 'hidden',
                 }}

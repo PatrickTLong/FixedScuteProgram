@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, TouchableWithoutFeedback } from 'react-native';
 import { useResponsive } from '../utils/responsive';
-import { useTheme } from '../context/ThemeContext';
+import { useTheme, shadow } from '../context/ThemeContext';
 
 interface AnimatedSwitchProps {
   value: boolean;
@@ -119,11 +119,7 @@ export default function AnimatedSwitch({
           justifyContent: 'center',
           backgroundColor: trackBackgroundColor,
           opacity: disabled ? 0.5 : 1,
-          shadowColor: '#000000',
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.3,
-          shadowRadius: 6,
-          elevation: 6,
+          ...shadow.card,
         }}
       >
         <Animated.View

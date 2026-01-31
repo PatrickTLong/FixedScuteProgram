@@ -8,7 +8,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { lightTap, mediumTap, successTap } from '../utils/haptics';
-import { useTheme , textSize, fontFamily, radius } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 
 const HOLD_DURATION = 1000; // 1 second
@@ -217,11 +217,7 @@ function BlockNowButton({
         className={`h-14 ${radius.full} overflow-hidden`}
         style={{
           backgroundColor: colors.bg,
-          shadowColor: '#000000',
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.3,
-          shadowRadius: 6,
-          elevation: 6,
+          ...shadow.card,
         }}
       >
         <TouchableOpacity
@@ -265,11 +261,7 @@ function BlockNowButton({
           backgroundColor: colors.card,
           borderWidth: 1,
           borderColor: colors.border,
-          shadowColor: '#000000',
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.3,
-          shadowRadius: 6,
-          elevation: 6,
+          ...shadow.card,
         }}
       >
         {/* Text - always visible, positioned below the fill */}
@@ -305,11 +297,7 @@ function BlockNowButton({
         backgroundColor: colors.card,
         borderWidth: 1,
         borderColor: colors.border,
-        shadowColor: '#000000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 6,
-        elevation: 6,
+        ...shadow.card,
       }}
     >
       {/* Button Content */}

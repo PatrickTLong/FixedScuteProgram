@@ -6,7 +6,7 @@ import {
   Modal,
 } from 'react-native';
 import { lightTap, heavyTap } from '../utils/haptics';
-import { useTheme , textSize, fontFamily, radius } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
 
 interface ConfirmationModalProps {
   visible: boolean;
@@ -42,11 +42,8 @@ function ConfirmationModal({
         <View
           style={{
             backgroundColor: colors.card,
-            borderWidth: 1, borderColor: colors.border, shadowColor: '#000000',
-            shadowOffset: { width: 0, height: 6 },
-            shadowOpacity: 0.4,
-            shadowRadius: 10,
-            elevation: 10,
+            borderWidth: 1, borderColor: colors.border,
+            ...shadow.modal,
           }}
           className={`w-full ${radius['2xl']} overflow-hidden`}
         >

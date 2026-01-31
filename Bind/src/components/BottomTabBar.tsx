@@ -3,7 +3,7 @@ import { View, TouchableOpacity, Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import { lightTap } from '../utils/haptics';
-import { useTheme , textSize, fontFamily } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, shadow } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 
 type TabName = 'home' | 'presets' | 'settings';
@@ -119,11 +119,8 @@ function BottomTabBar({ activeTab, onTabPress }: BottomTabBarProps) {
         backgroundColor: colors.bg,
         borderTopColor: colors.divider,
         paddingBottom: bottomPadding,
-        borderWidth: 1, borderColor: colors.border, shadowColor: '#000000',
-        shadowOffset: { width: 0, height: -4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 6,
-        elevation: 8,
+        borderWidth: 1, borderColor: colors.border,
+        ...shadow.tabBar,
       }}
       className="flex-row border-t pt-2"
     >

@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { View, Vibration, NativeModules, AppState, Animated, DeviceEventEmitter } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { ThemeProvider, useTheme } from './src/context/ThemeContext';
+import { ThemeProvider, useTheme, shadow } from './src/context/ThemeContext';
 import LandingScreen from './src/screens/LandingScreen';
 import SignInScreen from './src/screens/SignInScreen';
 import GetStartedScreen from './src/screens/GetStartedScreen';
