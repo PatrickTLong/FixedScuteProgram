@@ -117,9 +117,8 @@ function BottomTabBar({ activeTab, onTabPress }: BottomTabBarProps) {
     <View
       style={{
         backgroundColor: colors.bg,
-        borderTopColor: colors.divider,
         paddingBottom: bottomPadding,
-        borderWidth: 1, borderColor: colors.border,
+        borderTopWidth: 1, borderTopColor: colors.border,
         ...shadow.tabBar,
       }}
       className="flex-row pt-2"
