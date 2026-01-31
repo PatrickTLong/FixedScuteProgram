@@ -12,6 +12,31 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { lightTap } from '../utils/haptics';
 import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
+import Svg, { Path } from 'react-native-svg';
+
+const ChevronRightIcon = ({ size = 24, color = "#FFFFFF" }: { size?: number; color?: string }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M9 18l6-6-6-6"
+      stroke={color}
+      strokeWidth={2.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+const ChevronLeftIcon = ({ size = 24, color = "#FFFFFF" }: { size?: number; color?: string }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M15 18l-6-6 6-6"
+      stroke={color}
+      strokeWidth={2.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
 
 interface DatePickerModalProps {
   visible: boolean;
@@ -235,7 +260,7 @@ const AmPmSelector = memo(({ value, onChange, greenColor, cardColor, textMutedCo
   <View className="ml-2">
     <TouchableOpacity
       onPress={() => { lightTap(); onChange('AM'); }}
-      style={{ backgroundColor: value === 'AM' ? colors.green : cardColor, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
+      style={{ backgroundColor: value === 'AM' ? colors.green : cardColor, borderWidth: 1, borderColor: value === 'AM' ? colors.green : colors.border, ...shadow.card }}
       className={`px-3 py-2 ${radius.lg}`}
     >
       <Text style={{ color: value === 'AM' ? '#FFFFFF' : textMutedColor }} className={`${textSize.base} ${fontFamily.semibold}`}>
@@ -244,7 +269,7 @@ const AmPmSelector = memo(({ value, onChange, greenColor, cardColor, textMutedCo
     </TouchableOpacity>
     <TouchableOpacity
       onPress={() => { lightTap(); onChange('PM'); }}
-      style={{ backgroundColor: value === 'PM' ? colors.green : cardColor, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
+      style={{ backgroundColor: value === 'PM' ? colors.green : cardColor, borderWidth: 1, borderColor: value === 'PM' ? colors.green : colors.border, ...shadow.card }}
       className={`px-3 py-2 ${radius.lg} mt-1`}
     >
       <Text style={{ color: value === 'PM' ? '#FFFFFF' : textMutedColor }} className={`${textSize.base} ${fontFamily.semibold}`}>
@@ -493,9 +518,7 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
               disabled={!canGoPrev}
               className="w-10 h-10 items-center justify-center"
             >
-              <Text style={{ color: canGoPrev ? colors.text : colors.textMuted }} className={`${textSize['2xLarge']}`}>
-                ‹
-              </Text>
+              <ChevronLeftIcon size={s(16)} color={canGoPrev ? colors.text : colors.textMuted} />
             </TouchableOpacity>
 
             <Text style={{ color: colors.text }} className={`${textSize.xLarge} ${fontFamily.semibold}`}>
@@ -507,9 +530,7 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
               disabled={!canGoNext}
               className="w-10 h-10 items-center justify-center"
             >
-              <Text style={{ color: canGoNext ? colors.text : colors.textMuted }} className={`${textSize['2xLarge']}`}>
-                ›
-              </Text>
+              <ChevronRightIcon size={s(16)} color={canGoNext ? colors.text : colors.textMuted} />
             </TouchableOpacity>
           </View>
 

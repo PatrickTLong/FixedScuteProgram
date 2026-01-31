@@ -7,7 +7,7 @@ import {
   NativeScrollEvent,
 } from 'react-native';
 import { lightTap } from '../utils/haptics';
-import { useTheme } from '../context/ThemeContext';
+import { useTheme, fontFamily } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 
 const BASE_ITEM_HEIGHT = 40;
@@ -28,9 +28,10 @@ interface WheelProps {
   unselectedFontSize: number;
   labelFontSize: number;
   labelMarginTop: number;
+  parentScrollRef?: React.RefObject<ScrollView | null>;
 }
 
-const Wheel = memo(({ values, selectedValue, onValueChange, label, textColor, textMutedColor, labelColor, itemHeight, wheelWidth, selectedFontSize, unselectedFontSize, labelFontSize, labelMarginTop }: WheelProps) => {
+const Wheel = memo(({ values, selectedValue, onValueChange, label, textColor, textMutedColor, labelColor, itemHeight, wheelWidth, selectedFontSize, unselectedFontSize, labelFontSize, labelMarginTop, parentScrollRef }: WheelProps) => {
   const scrollRef = useRef<ScrollView>(null);
   const lastHapticIndex = useRef(-1);
   const windowCenterRef = useRef(values.indexOf(selectedValue));
@@ -107,7 +108,12 @@ const Wheel = memo(({ values, selectedValue, onValueChange, label, textColor, te
   const paddingVertical = (itemHeight * (VISIBLE_ITEMS - 1)) / 2;
 
   return (
-    <View style={{ alignItems: 'center' }}>
+    <View
+      style={{ alignItems: 'center' }}
+      onTouchStart={parentScrollRef ? () => parentScrollRef.current?.setNativeProps({ scrollEnabled: false }) : undefined}
+      onTouchEnd={parentScrollRef ? () => parentScrollRef.current?.setNativeProps({ scrollEnabled: true }) : undefined}
+      onTouchCancel={parentScrollRef ? () => parentScrollRef.current?.setNativeProps({ scrollEnabled: true }) : undefined}
+    >
       <View
         style={{
           height: itemHeight * VISIBLE_ITEMS,
@@ -147,9 +153,9 @@ const Wheel = memo(({ values, selectedValue, onValueChange, label, textColor, te
                 <Text
                   style={{
                     fontSize: isSelected ? selectedFontSize : unselectedFontSize,
-                    fontFamily: isSelected ? 'Nunito-Bold' : 'Nunito-Regular',
                     color: isSelected ? textColor : textMutedColor,
                   }}
+                  className={isSelected ? fontFamily.bold : fontFamily.regular}
                 >
                   {String(value).padStart(2, '0')}
                 </Text>
@@ -164,8 +170,8 @@ const Wheel = memo(({ values, selectedValue, onValueChange, label, textColor, te
           fontSize: labelFontSize,
           color: labelColor,
           marginTop: labelMarginTop,
-          fontFamily: 'Nunito-Regular',
         }}
+        className={fontFamily.regular}
       >
         {label}
       </Text>
@@ -182,6 +188,7 @@ interface TimerPickerProps {
   onHoursChange: (value: number) => void;
   onMinutesChange: (value: number) => void;
   onSecondsChange: (value: number) => void;
+  parentScrollRef?: React.RefObject<ScrollView | null>;
 }
 
 // Pre-generate arrays once
@@ -199,6 +206,7 @@ function TimerPicker({
   onHoursChange,
   onMinutesChange,
   onSecondsChange,
+  parentScrollRef,
 }: TimerPickerProps) {
   const { colors } = useTheme();
   const { s } = useResponsive();
@@ -224,13 +232,13 @@ function TimerPicker({
         gap: s(4),
       }}
     >
-      <Wheel values={DAYS} selectedValue={days} onValueChange={onDaysChange} label="days" textColor={colors.text} textMutedColor={textMutedColor} labelColor={colors.textMuted} itemHeight={itemHeight} wheelWidth={wheelWidth} selectedFontSize={selectedFontSize} unselectedFontSize={unselectedFontSize} labelFontSize={labelFontSize} labelMarginTop={labelMarginTop} />
-      <View style={{ height: itemHeight * VISIBLE_ITEMS, justifyContent: 'center', marginHorizontal: s(2), marginTop: -itemHeight * 0.08 }}><Text style={{ color: colors.textMuted, fontSize: s(24) }}>:</Text></View>
-      <Wheel values={HOURS} selectedValue={hours} onValueChange={onHoursChange} label="hrs" textColor={colors.text} textMutedColor={textMutedColor} labelColor={colors.textMuted} itemHeight={itemHeight} wheelWidth={wheelWidth} selectedFontSize={selectedFontSize} unselectedFontSize={unselectedFontSize} labelFontSize={labelFontSize} labelMarginTop={labelMarginTop} />
-      <View style={{ height: itemHeight * VISIBLE_ITEMS, justifyContent: 'center', marginHorizontal: s(2), marginTop: -itemHeight * 0.08 }}><Text style={{ color: colors.textMuted, fontSize: s(24) }}>:</Text></View>
-      <Wheel values={MINUTES} selectedValue={minutes} onValueChange={onMinutesChange} label="min" textColor={colors.text} textMutedColor={textMutedColor} labelColor={colors.textMuted} itemHeight={itemHeight} wheelWidth={wheelWidth} selectedFontSize={selectedFontSize} unselectedFontSize={unselectedFontSize} labelFontSize={labelFontSize} labelMarginTop={labelMarginTop} />
-      <View style={{ height: itemHeight * VISIBLE_ITEMS, justifyContent: 'center', marginHorizontal: s(2), marginTop: -itemHeight * 0.08 }}><Text style={{ color: colors.textMuted, fontSize: s(24) }}>:</Text></View>
-      <Wheel values={SECONDS} selectedValue={seconds} onValueChange={onSecondsChange} label="sec" textColor={colors.text} textMutedColor={textMutedColor} labelColor={colors.textMuted} itemHeight={itemHeight} wheelWidth={wheelWidth} selectedFontSize={selectedFontSize} unselectedFontSize={unselectedFontSize} labelFontSize={labelFontSize} labelMarginTop={labelMarginTop} />
+      <Wheel values={DAYS} selectedValue={days} onValueChange={onDaysChange} label="days" textColor={colors.text} textMutedColor={textMutedColor} labelColor={colors.textMuted} itemHeight={itemHeight} wheelWidth={wheelWidth} selectedFontSize={selectedFontSize} unselectedFontSize={unselectedFontSize} labelFontSize={labelFontSize} labelMarginTop={labelMarginTop} parentScrollRef={parentScrollRef} />
+      <View style={{ height: itemHeight * VISIBLE_ITEMS, justifyContent: 'center', marginHorizontal: s(2), marginTop: -itemHeight * 0.08 }}><Text style={{ color: colors.textMuted, fontSize: s(24) }} className={fontFamily.regular}>:</Text></View>
+      <Wheel values={HOURS} selectedValue={hours} onValueChange={onHoursChange} label="hrs" textColor={colors.text} textMutedColor={textMutedColor} labelColor={colors.textMuted} itemHeight={itemHeight} wheelWidth={wheelWidth} selectedFontSize={selectedFontSize} unselectedFontSize={unselectedFontSize} labelFontSize={labelFontSize} labelMarginTop={labelMarginTop} parentScrollRef={parentScrollRef} />
+      <View style={{ height: itemHeight * VISIBLE_ITEMS, justifyContent: 'center', marginHorizontal: s(2), marginTop: -itemHeight * 0.08 }}><Text style={{ color: colors.textMuted, fontSize: s(24) }} className={fontFamily.regular}>:</Text></View>
+      <Wheel values={MINUTES} selectedValue={minutes} onValueChange={onMinutesChange} label="min" textColor={colors.text} textMutedColor={textMutedColor} labelColor={colors.textMuted} itemHeight={itemHeight} wheelWidth={wheelWidth} selectedFontSize={selectedFontSize} unselectedFontSize={unselectedFontSize} labelFontSize={labelFontSize} labelMarginTop={labelMarginTop} parentScrollRef={parentScrollRef} />
+      <View style={{ height: itemHeight * VISIBLE_ITEMS, justifyContent: 'center', marginHorizontal: s(2), marginTop: -itemHeight * 0.08 }}><Text style={{ color: colors.textMuted, fontSize: s(24) }} className={fontFamily.regular}>:</Text></View>
+      <Wheel values={SECONDS} selectedValue={seconds} onValueChange={onSecondsChange} label="sec" textColor={colors.text} textMutedColor={textMutedColor} labelColor={colors.textMuted} itemHeight={itemHeight} wheelWidth={wheelWidth} selectedFontSize={selectedFontSize} unselectedFontSize={unselectedFontSize} labelFontSize={labelFontSize} labelMarginTop={labelMarginTop} parentScrollRef={parentScrollRef} />
     </View>
   );
 }

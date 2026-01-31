@@ -48,6 +48,18 @@ const STRICT_MODE_WARNING_DISMISSED_KEY = 'strict_mode_warning_dismissed';
 // Recurring schedule unit types
 type RecurringUnit = 'minutes' | 'hours' | 'days' | 'weeks' | 'months';
 
+const ChevronLeftIcon = ({ size = 24, color = "#FFFFFF" }: { size?: number; color?: string }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M15 18l-6-6 6-6"
+      stroke={color}
+      strokeWidth={2.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
 // ============ Date Picker Constants & Components ============
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -253,28 +265,27 @@ interface AmPmSelectorProps {
   value: 'AM' | 'PM';
   onChange: (value: 'AM' | 'PM') => void;
   cardColor: string;
-  textMutedColor: string;
 }
 
-const AmPmSelector = memo(({ value, onChange, cardColor, textMutedColor }: AmPmSelectorProps) => {
+const AmPmSelector = memo(({ value, onChange, cardColor }: AmPmSelectorProps) => {
   const { colors } = useTheme();
   return (
   <View className="ml-2">
     <TouchableOpacity
       onPress={() => { lightTap(); onChange('AM'); }}
-      style={{ backgroundColor: value === 'AM' ? colors.green : cardColor }}
+      style={{ backgroundColor: value === 'AM' ? colors.green : cardColor, borderWidth: 1, borderColor: value === 'AM' ? colors.green : colors.border, ...shadow.card }}
       className={`px-3 py-2 ${radius.lg}`}
     >
-      <Text style={{ color: value === 'AM' ? '#FFFFFF' : textMutedColor }} className={`${textSize.base} ${fontFamily.semibold}`}>
+      <Text style={{ color: '#FFFFFF' }} className={`${textSize.base} ${fontFamily.semibold}`}>
         AM
       </Text>
     </TouchableOpacity>
     <TouchableOpacity
       onPress={() => { lightTap(); onChange('PM'); }}
-      style={{ backgroundColor: value === 'PM' ? colors.green : cardColor }}
+      style={{ backgroundColor: value === 'PM' ? colors.green : cardColor, borderWidth: 1, borderColor: value === 'PM' ? colors.green : colors.border, ...shadow.card }}
       className={`px-3 py-2 ${radius.lg} mt-1`}
     >
-      <Text style={{ color: value === 'PM' ? '#FFFFFF' : textMutedColor }} className={`${textSize.base} ${fontFamily.semibold}`}>
+      <Text style={{ color: '#FFFFFF' }} className={`${textSize.base} ${fontFamily.semibold}`}>
         PM
       </Text>
     </TouchableOpacity>
@@ -1252,9 +1263,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                   disabled={!dpCanGoPrev}
                   className="w-10 h-10 items-center justify-center"
                 >
-                  <Text style={{ color: dpCanGoPrev ? colors.text : colors.textMuted }} className={`${textSize['2xLarge']}`}>
-                    ‹
-                  </Text>
+                  <ChevronLeftIcon size={s(16)} color={dpCanGoPrev ? colors.text : colors.textMuted} />
                 </TouchableOpacity>
 
                 <Text style={{ color: colors.text }} className={`${textSize.xLarge} ${fontFamily.semibold}`}>
@@ -1266,9 +1275,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                   disabled={!dpCanGoNext}
                   className="w-10 h-10 items-center justify-center"
                 >
-                  <Text style={{ color: dpCanGoNext ? colors.text : colors.textMuted }} className={`${textSize['2xLarge']}`}>
-                    ›
-                  </Text>
+                  <ChevronRightIcon size={s(16)} color={dpCanGoNext ? colors.text : colors.textMuted} />
                 </TouchableOpacity>
               </View>
 
@@ -1309,44 +1316,50 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                   <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} tracking-wider mb-3`}>
                     Time
                   </Text>
-                  <View
-                    className="flex-row items-center justify-center"
-                    onTouchStart={() => dpScrollRef.current?.setNativeProps({ scrollEnabled: false })}
-                    onTouchEnd={() => dpScrollRef.current?.setNativeProps({ scrollEnabled: true })}
-                    onTouchCancel={() => dpScrollRef.current?.setNativeProps({ scrollEnabled: true })}
-                  >
-                    <TimeWheel
-                      values={HOURS_12}
-                      selectedValue={dpSelectedHour}
-                      onValueChange={setDpSelectedHour}
-                      padZero={false}
-                      textColor={colors.text}
-                      textMutedColor={colors.text === '#ffffff' ? 'rgba(255,255,255,0.3)' : 'rgba(26,26,26,0.3)'}
-                      itemHeight={timeItemHeight}
-                      wheelWidth={wheelWidth}
-                      selectedFontSize={timeSelectedFontSize}
-                      unselectedFontSize={timeUnselectedFontSize}
-                    />
+                  <View className="flex-row items-center justify-center">
+                    <View
+                      onTouchStart={() => dpScrollRef.current?.setNativeProps({ scrollEnabled: false })}
+                      onTouchEnd={() => dpScrollRef.current?.setNativeProps({ scrollEnabled: true })}
+                      onTouchCancel={() => dpScrollRef.current?.setNativeProps({ scrollEnabled: true })}
+                    >
+                      <TimeWheel
+                        values={HOURS_12}
+                        selectedValue={dpSelectedHour}
+                        onValueChange={setDpSelectedHour}
+                        padZero={false}
+                        textColor={colors.text}
+                        textMutedColor={colors.text === '#ffffff' ? 'rgba(255,255,255,0.3)' : 'rgba(26,26,26,0.3)'}
+                        itemHeight={timeItemHeight}
+                        wheelWidth={wheelWidth}
+                        selectedFontSize={timeSelectedFontSize}
+                        unselectedFontSize={timeUnselectedFontSize}
+                      />
+                    </View>
                     <View style={{ height: timeItemHeight, justifyContent: 'center', marginHorizontal: s(4), marginTop: -timeItemHeight * 0.15 }}>
                       <Text style={{ color: colors.textMuted, fontSize: s(24) }}>:</Text>
                     </View>
-                    <TimeWheel
-                      values={MINUTES}
-                      selectedValue={dpSelectedMinute}
-                      onValueChange={setDpSelectedMinute}
-                      padZero={true}
-                      textColor={colors.text}
-                      textMutedColor={colors.text === '#ffffff' ? 'rgba(255,255,255,0.3)' : 'rgba(26,26,26,0.3)'}
-                      itemHeight={timeItemHeight}
-                      wheelWidth={wheelWidth}
-                      selectedFontSize={timeSelectedFontSize}
-                      unselectedFontSize={timeUnselectedFontSize}
-                    />
+                    <View
+                      onTouchStart={() => dpScrollRef.current?.setNativeProps({ scrollEnabled: false })}
+                      onTouchEnd={() => dpScrollRef.current?.setNativeProps({ scrollEnabled: true })}
+                      onTouchCancel={() => dpScrollRef.current?.setNativeProps({ scrollEnabled: true })}
+                    >
+                      <TimeWheel
+                        values={MINUTES}
+                        selectedValue={dpSelectedMinute}
+                        onValueChange={setDpSelectedMinute}
+                        padZero={true}
+                        textColor={colors.text}
+                        textMutedColor={colors.text === '#ffffff' ? 'rgba(255,255,255,0.3)' : 'rgba(26,26,26,0.3)'}
+                        itemHeight={timeItemHeight}
+                        wheelWidth={wheelWidth}
+                        selectedFontSize={timeSelectedFontSize}
+                        unselectedFontSize={timeUnselectedFontSize}
+                      />
+                    </View>
                     <AmPmSelector
                       value={dpSelectedAmPm}
                       onChange={setDpSelectedAmPm}
                       cardColor={colors.card}
-                      textMutedColor={colors.textSecondary}
                     />
                   </View>
                 </View>
@@ -1417,7 +1430,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
 
                     {/* Recurring Options */}
                     <ExpandableInfo expanded={isRecurring} lazy>
-                      <View className="mt-4 px-6">
+                      <View className="mt-4 px-6 pb-6">
                         <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} tracking-wider mb-4`}>
                           Recurrence
                         </Text>
@@ -1696,7 +1709,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               <View style={{ paddingVertical: s(20) }} className="flex-row items-center justify-between px-6">
                 <TouchableOpacity onPress={() => toggleInfo('schedule')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
                   <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Schedule for Later</Text>
-                  <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>Set a future start and end time</Text>
+                  <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>Set a future start and end time, with optional recurrence</Text>
                 </TouchableOpacity>
                 <AnimatedSwitch
                   value={isScheduled}
@@ -1728,7 +1741,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               <ExpandableInfo expanded={!!expandedInfo.schedule}>
                 <TouchableOpacity onPress={() => toggleInfo('schedule')} activeOpacity={0.7} className="px-6 pb-4">
                   <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular} leading-5`}>
-                    Set a future start and end time. Hides timer options since duration is determined by your schedule.
+                    Set a future start and end time. Hides timer options since duration is determined by your schedule. You can also set up recurring blocks when picking your end date.
                   </Text>
                 </TouchableOpacity>
               </ExpandableInfo>
@@ -1836,13 +1849,9 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
             {/* Timer Picker (if time limit enabled and not scheduled) */}
             <ExpandableInfo expanded={!noTimeLimit && !isScheduled} lazy>
               <View className="mt-6 px-6">
-                <View
-                  onTouchStart={() => finalScrollRef.current?.setNativeProps({ scrollEnabled: false })}
-                  onTouchEnd={() => finalScrollRef.current?.setNativeProps({ scrollEnabled: true })}
-                  onTouchCancel={() => finalScrollRef.current?.setNativeProps({ scrollEnabled: true })}
-                >
+                <View>
                   <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} text-white tracking-wider`}>
-                    Duration
+                    Duration 
                   </Text>
                   <TimerPicker
                     days={timerDays}
@@ -1865,6 +1874,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                       setTimerSeconds(val);
                       if (val > 0) setTargetDate(null);
                     }}
+                    parentScrollRef={finalScrollRef}
                   />
                 </View>
 
