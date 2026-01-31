@@ -15,8 +15,21 @@ export const textSize = {
 export const fontFamily = {
   regular: 'font-nunito',
   light: 'font-nunito-light',
+  medium: 'font-nunito-medium',
   semibold: 'font-nunito-semibold',
   bold: 'font-nunito-bold',
+} as const;
+
+// Font weight paired with text size:
+// text-base and above → semibold, text-sm → semibold, text-xs → medium
+export const fontForSize = {
+  extraSmall: fontFamily.medium,       // text-xs → medium
+  small: fontFamily.semibold,          // text-sm → semibold
+  base: fontFamily.semibold,           // text-base → semibold
+  large: fontFamily.semibold,          // text-lg → semibold
+  xLarge: fontFamily.semibold,         // text-xl → semibold
+  '2xLarge': fontFamily.semibold,      // text-2xl → semibold
+  '4xLarge': fontFamily.semibold,      // text-4xl → semibold
 } as const;
 
 // Border radius classes
@@ -59,6 +72,7 @@ export const colors = {
   cardLight: '#424245',
   border: '#3d3d40',
   divider: '#3a3a3d',
+  dividerLight: '#2e2e31',
   text: '#ffffff',
   textSecondary: '#9ca3af',
   textMuted: '#6b7280',

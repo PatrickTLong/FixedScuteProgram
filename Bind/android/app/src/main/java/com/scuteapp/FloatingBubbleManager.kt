@@ -1,6 +1,5 @@
 package com.scuteapp
 
-import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.graphics.PixelFormat
@@ -67,7 +66,6 @@ class FloatingBubbleManager(private val context: Context) {
     private var bubbleExpanded: LinearLayout? = null
     private var bubbleHideButton: FrameLayout? = null
     private var bubbleMain: FrameLayout? = null
-    private var bubbleWifiIcon: ImageView? = null
     private var density: Float = 1f
 
     private val handler = Handler(Looper.getMainLooper())
@@ -96,11 +94,6 @@ class FloatingBubbleManager(private val context: Context) {
     // Auto-collapse runnable
     private val autoCollapseRunnable = Runnable {
         if (isExpanded) {
-            // Don't collapse if 10 seconds or less remaining (keep timer visible)
-            if (!isNoTimeLimit && endTime > 0) {
-                val remaining = (endTime - System.currentTimeMillis()) / 1000
-                if (remaining <= 10) return@Runnable
-            }
             collapse()
         }
     }
@@ -117,10 +110,6 @@ class FloatingBubbleManager(private val context: Context) {
                 val remaining = (endTime - System.currentTimeMillis()) / 1000
                 if (remaining > 0) {
                     updateTimerText(remaining)
-                    // Auto-expand bubble when 10 seconds remaining
-                    if (remaining <= 10 && !isExpanded) {
-                        expand()
-                    }
                     handler.postDelayed(this, 1000)
                 } else {
                     dismiss()
@@ -185,11 +174,6 @@ class FloatingBubbleManager(private val context: Context) {
             bubbleExpanded = bubbleView?.findViewById(R.id.bubble_expanded)
             bubbleHideButton = bubbleView?.findViewById(R.id.bubble_hide_button)
             bubbleMain = bubbleView?.findViewById(R.id.bubble_main)
-            bubbleWifiIcon = bubbleView?.findViewById(R.id.bubble_wifi_icon)
-
-            // Show WiFi icon if settings are blocked
-            setupWifiIcon()
-
             // Set up window parameters - LEFT side, fixed position
             layoutParams = WindowManager.LayoutParams().apply {
                 width = WindowManager.LayoutParams.WRAP_CONTENT
@@ -305,11 +289,6 @@ class FloatingBubbleManager(private val context: Context) {
             bubbleExpanded = bubbleView?.findViewById(R.id.bubble_expanded)
             bubbleHideButton = bubbleView?.findViewById(R.id.bubble_hide_button)
             bubbleMain = bubbleView?.findViewById(R.id.bubble_main)
-            bubbleWifiIcon = bubbleView?.findViewById(R.id.bubble_wifi_icon)
-
-            // Show WiFi icon if settings are blocked
-            setupWifiIcon()
-
             // Set up window parameters - LEFT side, fixed position
             layoutParams = WindowManager.LayoutParams().apply {
                 width = WindowManager.LayoutParams.WRAP_CONTENT
@@ -376,52 +355,6 @@ class FloatingBubbleManager(private val context: Context) {
         }
     }
 
-    /**
-     * Show WiFi icon and set click listener if settings are blocked
-     */
-    private fun setupWifiIcon() {
-        val prefs = context.getSharedPreferences(UninstallBlockerService.PREFS_NAME, Context.MODE_PRIVATE)
-        val blockedApps = prefs.getStringSet(UninstallBlockerService.KEY_BLOCKED_APPS, emptySet()) ?: emptySet()
-        val settingsBlocked = blockedApps.any { it.contains("settings", ignoreCase = true) }
-
-        if (settingsBlocked) {
-            bubbleWifiIcon?.visibility = View.VISIBLE
-            bubbleWifiIcon?.setOnClickListener {
-                performTapHaptic()
-                openConnectionsSettings()
-            }
-        } else {
-            bubbleWifiIcon?.visibility = View.GONE
-        }
-    }
-
-    /**
-     * Open the Connections/WiFi settings page directly
-     */
-    private fun openConnectionsSettings() {
-        try {
-            val intent = Intent().apply {
-                component = ComponentName(
-                    "com.android.settings",
-                    "com.android.settings.Settings\$ConnectionsSettingsActivity"
-                )
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            }
-            context.startActivity(intent)
-            Log.d(TAG, "Opened ConnectionsSettingsActivity from bubble WiFi icon")
-        } catch (e: Exception) {
-            // Fallback: try generic WiFi settings intent
-            try {
-                val intent = Intent(android.provider.Settings.ACTION_WIFI_SETTINGS).apply {
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                }
-                context.startActivity(intent)
-                Log.d(TAG, "Opened WiFi settings (fallback) from bubble WiFi icon")
-            } catch (e2: Exception) {
-                Log.e(TAG, "Failed to open WiFi settings", e2)
-            }
-        }
-    }
 
     /**
      * Set up touch listener for tap, long press, and drag detection
@@ -569,7 +502,6 @@ class FloatingBubbleManager(private val context: Context) {
                     bubbleExpanded = null
                     bubbleHideButton = null
                     bubbleMain = null
-                    bubbleWifiIcon = null
                     windowManager = null
                     layoutParams = null
                     isShowing = false
@@ -596,12 +528,6 @@ class FloatingBubbleManager(private val context: Context) {
         // Hide the hide button if visible
         if (bubbleHideButton?.visibility == View.VISIBLE) {
             hideHideButton()
-        }
-
-        // Don't allow toggling when 10 seconds or less remaining - keep expanded
-        if (!isNoTimeLimit && endTime > 0) {
-            val remaining = (endTime - System.currentTimeMillis()) / 1000
-            if (remaining <= 10) return
         }
 
         if (isExpanded) {
@@ -779,7 +705,6 @@ class FloatingBubbleManager(private val context: Context) {
         bubbleExpanded = null
         bubbleHideButton = null
         bubbleMain = null
-        bubbleWifiIcon = null
         windowManager = null
         layoutParams = null
         isShowing = false

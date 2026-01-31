@@ -491,7 +491,7 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
       <View style={{ flex: 1 }}>
           <SafeAreaView style={{ flex: 1 }}>
           {/* Header */}
-          <View style={{ borderBottomColor: colors.divider }} className="flex-row items-center justify-between px-4 py-3 border-b">
+          <View style={{ borderBottomWidth: 1, borderBottomColor: colors.divider }} className="flex-row items-center justify-between px-4 py-3">
             <TouchableOpacity onPress={() => { lightTap(); handleClose(); }} className="px-2">
               <Text style={{ color: '#FFFFFF'}} className={`${textSize.base} ${fontFamily.regular}`}>Cancel</Text>
             </TouchableOpacity>
@@ -567,7 +567,7 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
 
           {/* Time Picker */}
           {tempSelectedDate && (
-            <View style={{ borderTopColor: colors.divider, marginHorizontal: s(-24), paddingHorizontal: s(24) }} className="mt-6 pt-4 pb-4 border-t">
+            <View style={{ borderTopWidth: 1, borderTopColor: colors.divider, marginHorizontal: s(-24), paddingHorizontal: s(24) }} className="mt-6 pt-4 pb-4">
               <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} tracking-wider mb-3`}>
                 Time
               </Text>
@@ -611,7 +611,7 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
           )}
 
           {/* Selected Date/Time Display */}
-          <View style={{ borderTopColor: colors.divider, marginHorizontal: s(-24), paddingHorizontal: s(24) }} className="mt-6 py-4 border-t">
+          <View style={{ borderTopWidth: 1, borderTopColor: colors.divider, marginHorizontal: s(-24), paddingHorizontal: s(24) }} className="mt-6 py-4">
             <View className="flex-row justify-between items-center">
               <View>
                 <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.regular} mb-1`}>Selected</Text>

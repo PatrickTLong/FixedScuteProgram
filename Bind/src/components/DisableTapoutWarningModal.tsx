@@ -66,12 +66,12 @@ function DisableTapoutWarningModal({ visible, onConfirm, onCancel }: DisableTapo
           </View>
 
           {/* Buttons */}
-          <View style={{ borderTopColor: colors.divider }} className="border-t flex-row">
+          <View style={{ borderTopWidth: 1, borderTopColor: colors.divider }} className="flex-row">
             <TouchableOpacity
               onPress={handleCancel}
               activeOpacity={0.7}
-              style={{ borderRightColor: colors.divider }}
-              className="flex-1 py-4 items-center border-r"
+              style={{ borderRightWidth: 1, borderRightColor: colors.divider }}
+              className="flex-1 py-4 items-center"
             >
               <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.semibold}`}>
                 Keep Enabled

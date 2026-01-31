@@ -91,7 +91,7 @@ function EmailConfirmationModal({ visible, userEmail, onConfirm, onCancel }: Ema
           </View>
 
           {/* Buttons - Side by Side */}
-          <View style={{ borderTopColor: colors.divider }} className="border-t flex-row">
+          <View style={{ borderTopWidth: 1, borderTopColor: colors.divider }} className="flex-row">
             {/* Cancel Button */}
             <TouchableOpacity
               onPress={handleCancel}
@@ -113,7 +113,7 @@ function EmailConfirmationModal({ visible, userEmail, onConfirm, onCancel }: Ema
               style={{ opacity: isEmailMatch ? 1 : 0.5 }}
             >
               <Text
-                style={{ color: isEmailMatch ? '#FFFFFF' : colors.text }}
+                style={{ color: colors.text }}
                 className={`${textSize.small} ${fontFamily.semibold}`}
               >
                 Delete Account

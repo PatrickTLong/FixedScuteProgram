@@ -161,7 +161,7 @@ function EmergencyTapoutModal({
                 className="w-full items-center"
               >
                 <Text
-                  style={{ color: canUseTapout ? '#FFFFFF' : colors.textSecondary, opacity: isLoading ? 0 : 1 }}
+                  style={{ color: canUseTapout ? colors.text : colors.textSecondary, opacity: isLoading ? 0 : 1 }}
                   className={`${textSize.small} ${fontFamily.bold}`}
                 >
                   {canUseTapout ? 'Use Emergency Tapout' : 'Not Available'}
@@ -183,7 +183,7 @@ function EmergencyTapoutModal({
           </View>
 
           {/* Close Button */}
-          <View style={{ borderTopColor: colors.divider }} className="border-t">
+          <View style={{ borderTopWidth: 1, borderTopColor: colors.divider }}>
             <TouchableOpacity
               onPress={() => {
                 lightTap();

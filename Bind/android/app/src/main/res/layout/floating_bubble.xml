@@ -44,15 +44,6 @@
             android:paddingEnd="18dp"
             android:visibility="gone">
 
-            <!-- WiFi icon (only shown when settings are blocked) -->
-            <ImageView
-                android:id="@+id/bubble_wifi_icon"
-                android:layout_width="26dp"
-                android:layout_height="26dp"
-                android:src="@drawable/ic_wifi"
-                android:layout_marginEnd="8dp"
-                android:visibility="gone" />
-
             <!-- Android icon -->
             <ImageView
                 android:id="@+id/bubble_android_icon"

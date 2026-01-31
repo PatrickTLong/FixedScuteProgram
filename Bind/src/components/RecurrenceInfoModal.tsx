@@ -59,13 +59,13 @@ function RecurrenceInfoModal({ visible, onClose }: RecurrenceInfoModalProps) {
           </View>
 
           {/* Button */}
-          <View style={{ borderTopColor: colors.divider }} className="border-t">
+          <View style={{ borderTopWidth: 1, borderTopColor: colors.divider }}>
             <TouchableOpacity
               onPress={handleClose}
               activeOpacity={0.7}
               className="py-4 items-center"
             >
-              <Text style={{ color: '#FFFFFF' }} className={`${textSize.small} ${fontFamily.semibold}`}>
+              <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
                 Got it
               </Text>
             </TouchableOpacity>

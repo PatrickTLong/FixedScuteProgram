@@ -64,7 +64,7 @@ function AppSelectionInfoModal({ visible, onClose }: AppSelectionInfoModalProps)
                       height: s(13),
                       borderRightWidth: 2.5,
                       borderBottomWidth: 2.5,
-                      borderColor: '#FFFFFF',
+                      borderColor: colors.text,
                       transform: [{ rotate: '45deg' }],
                       marginTop: s(-2),
                     }}
@@ -78,13 +78,13 @@ function AppSelectionInfoModal({ visible, onClose }: AppSelectionInfoModalProps)
           </View>
 
           {/* Button */}
-          <View style={{ borderTopColor: colors.divider }} className="border-t">
+          <View style={{ borderTopWidth: 1, borderTopColor: colors.divider }}>
             <TouchableOpacity
               onPress={handleConfirm}
               activeOpacity={0.7}
               className="py-4 items-center"
             >
-              <Text style={{ color: '#FFFFFF' }} className={`${textSize.small} ${fontFamily.semibold}`}>
+              <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
                 Got it
               </Text>
             </TouchableOpacity>

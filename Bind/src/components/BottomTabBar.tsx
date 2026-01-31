@@ -122,7 +122,7 @@ function BottomTabBar({ activeTab, onTabPress }: BottomTabBarProps) {
         borderWidth: 1, borderColor: colors.border,
         ...shadow.tabBar,
       }}
-      className="flex-row border-t pt-2"
+      className="flex-row pt-2"
     >
       <TabItem
         name="home"

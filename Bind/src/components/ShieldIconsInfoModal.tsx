@@ -84,7 +84,7 @@ function ShieldIconsInfoModal({ visible, onClose }: ShieldIconsInfoModalProps) {
             {/* Bookmark - Scheduled */}
             <View className="flex-row items-center mb-4">
               <View className="mr-3">
-                <BookmarkIcon color="#FFFFFF" size={28} />
+                <BookmarkIcon color={colors.text} size={28} />
               </View>
               <View className="flex-1">
                 <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>
@@ -99,7 +99,7 @@ function ShieldIconsInfoModal({ visible, onClose }: ShieldIconsInfoModalProps) {
             {/* White Refresh - Recurring */}
             <View className="flex-row items-center">
               <View className="mr-3">
-                <RotateCwIcon color="#FFFFFF" size={28} />
+                <RotateCwIcon color={colors.text} size={28} />
               </View>
               <View className="flex-1">
                 <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>
@@ -131,7 +131,7 @@ function ShieldIconsInfoModal({ visible, onClose }: ShieldIconsInfoModalProps) {
                       height: s(13),
                       borderRightWidth: 2.5,
                       borderBottomWidth: 2.5,
-                      borderColor: '#FFFFFF',
+                      borderColor: colors.text,
                       transform: [{ rotate: '45deg' }],
                       marginTop: s(-2),
                     }}
@@ -145,13 +145,13 @@ function ShieldIconsInfoModal({ visible, onClose }: ShieldIconsInfoModalProps) {
           </View>
 
           {/* Button */}
-          <View style={{ borderTopColor: colors.divider }} className="border-t">
+          <View style={{ borderTopWidth: 1, borderTopColor: colors.divider }}>
             <TouchableOpacity
               onPress={handleClose}
               activeOpacity={0.7}
               className="py-4 items-center"
             >
-              <Text style={{ color: '#FFFFFF' }} className={`${textSize.small} ${fontFamily.semibold}`}>
+              <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
                 Got it
               </Text>
             </TouchableOpacity>

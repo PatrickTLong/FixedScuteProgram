@@ -70,7 +70,7 @@ function TapoutWarningModal({ visible, onClose }: TapoutWarningModalProps) {
                       height: s(13),
                       borderRightWidth: 2.5,
                       borderBottomWidth: 2.5,
-                      borderColor: '#FFFFFF',
+                      borderColor: colors.text,
                       transform: [{ rotate: '45deg' }],
                       marginTop: s(-2),
                     }}
@@ -84,12 +84,12 @@ function TapoutWarningModal({ visible, onClose }: TapoutWarningModalProps) {
           </View>
 
           {/* Buttons */}
-          <View style={{ borderTopColor: colors.divider }} className="border-t flex-row">
+          <View style={{ borderTopWidth: 1, borderTopColor: colors.divider }} className="flex-row">
             <TouchableOpacity
               onPress={handleCancel}
               activeOpacity={0.7}
-              style={{ borderRightColor: colors.divider }}
-              className="flex-1 py-4 items-center border-r"
+              style={{ borderRightWidth: 1, borderRightColor: colors.divider }}
+              className="flex-1 py-4 items-center"
             >
               <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.semibold}`}>
                 Keep Enabled
@@ -100,7 +100,7 @@ function TapoutWarningModal({ visible, onClose }: TapoutWarningModalProps) {
               activeOpacity={0.7}
               className="flex-1 py-4 items-center"
             >
-              <Text style={{ color: '#FFFFFF' }} className={`${textSize.small} ${fontFamily.semibold}`}>
+              <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
                 Disable
               </Text>
             </TouchableOpacity>

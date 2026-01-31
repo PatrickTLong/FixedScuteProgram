@@ -1231,7 +1231,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
             className={`w-full ${radius['2xl']} overflow-hidden max-h-[70%]`}
           >
             {/* Header */}
-            <View style={{ borderBottomColor: colors.divider }} className="p-4 border-b">
+            <View style={{ borderBottomWidth: 1, borderBottomColor: colors.divider }} className="p-4">
               <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.bold} text-center`}>
                 Scheduled Presets
               </Text>
@@ -1252,8 +1252,8 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
                 return (
                   <View
                     key={preset.id}
-                    style={{ borderBottomColor: colors.divider }}
-                    className={`p-4 ${index < scheduledPresets.length - 1 ? 'border-b' : ''}`}
+                    style={{ borderBottomWidth: index < scheduledPresets.length - 1 ? 1 : 0, borderBottomColor: colors.divider }}
+                    className="p-4"
                   >
                     <View className="flex-row items-center">
                       <View style={{ backgroundColor: isCurrentlyActive ? colors.green : colors.yellow }} className={`w-2 h-2 ${radius.full} mr-3`} />
@@ -1265,7 +1265,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
                           {formatScheduleDate(preset.scheduleStartDate!)} - {formatScheduleDate(preset.scheduleEndDate!)}
                         </Text>
                       </View>
-                      <View style={{ backgroundColor: colors.border }} className={`px-2 py-0.5 ${radius.full}`}>
+                      <View style={{ backgroundColor: colors.border, ...shadow.card }} className={`px-2 py-0.5 ${radius.full}`}>
                         <Text style={{ color: '#FFFFFF' }} className={`${textSize.extraSmall} ${fontFamily.semibold}`}>
                           {isCurrentlyActive ? 'Active' : isPending ? 'Pending' : 'Scheduled'}
                         </Text>
@@ -1277,13 +1277,13 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
             </ScrollView>
 
             {/* Close Button */}
-            <View style={{ borderTopColor: colors.divider }} className="border-t">
+            <View style={{ borderTopWidth: 1, borderTopColor: colors.divider }}>
               <TouchableOpacity
                 onPress={() => { lightTap(); setScheduledPresetsModalVisible(false); }}
                 activeOpacity={0.7}
                 className="py-4 items-center"
               >
-                <Text style={{ color: colors.textSecondary }} className={`${textSize.base} ${fontFamily.semibold}`}>
+                <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.semibold}`}>
                   Close
                 </Text>
               </TouchableOpacity>

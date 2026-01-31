@@ -1235,7 +1235,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
         <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
           <Animated.View renderToHardwareTextureAndroid={true} style={{ flex: 1, opacity: stepFadeAnim }}>
             {/* Header */}
-            <View style={{ borderBottomColor: colors.divider }} className="flex-row items-center justify-between px-4 py-3 border-b">
+            <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }} className="flex-row items-center justify-between px-4 py-3">
               <TouchableOpacity onPress={dpHandleCancel} className="px-2">
                 <Text style={{ color: '#FFFFFF' }} className={`${textSize.base} ${fontFamily.regular}`}>Cancel</Text>
               </TouchableOpacity>
@@ -1312,7 +1312,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
 
               {/* Time Picker */}
               {dpTempSelectedDate && (
-                <View style={{ borderTopColor: colors.divider, marginHorizontal: s(-24), paddingHorizontal: s(24) }} className="mt-6 pt-4 pb-4 border-t">
+                <View style={{ borderTopWidth: 1, borderTopColor: colors.dividerLight, marginHorizontal: s(-24), paddingHorizontal: s(24) }} className="mt-6 pt-4 pb-4">
                   <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} tracking-wider mb-3`}>
                     Time
                   </Text>
@@ -1366,7 +1366,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               )}
 
               {/* Selected Date/Time Display */}
-              <View style={{ borderTopColor: colors.divider, marginHorizontal: s(-24), paddingHorizontal: s(24) }} className="mt-6 py-4 border-t">
+              <View style={{ borderTopWidth: 1, borderTopColor: colors.dividerLight, marginHorizontal: s(-24), paddingHorizontal: s(24) }} className="mt-6 py-4">
                 <View className="flex-row justify-between items-center">
                   <View>
                     <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.regular} mb-1`}>Selected</Text>
@@ -1391,7 +1391,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
 
               {/* Recurring Schedule - only when picking end date and start date is already set */}
               {datePickerTarget === 'scheduleEnd' && scheduleStartDate && (
-                <View style={{ borderTopColor: colors.divider, marginHorizontal: s(-24), paddingHorizontal: s(24) }} className="mt-2 pt-4 border-t">
+                <View style={{ borderTopWidth: 1, borderTopColor: colors.dividerLight, marginHorizontal: s(-24), paddingHorizontal: s(24) }} className="mt-2 pt-4">
                   <View style={{ marginHorizontal: s(-24) }}>
                     <View style={{ paddingVertical: s(16) }} className="flex-row items-center justify-between px-6">
                       <TouchableOpacity onPress={() => toggleInfo('recurring')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
@@ -1425,7 +1425,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                       </TouchableOpacity>
                     </ExpandableInfo>
                     {(isRecurring || !!expandedInfo.recurring) && (
-                      <View style={{ borderBottomWidth: 1, borderBottomColor: colors.divider }} />
+                      <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }} />
                     )}
 
                     {/* Recurring Options */}
@@ -1643,7 +1643,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
         <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
           <Animated.View renderToHardwareTextureAndroid={true} style={{ flex: 1, opacity: stepFadeAnim }}>
             {/* Header */}
-            <View style={{ borderBottomWidth: 1, borderBottomColor: colors.divider }} className="flex-row items-center justify-between px-4 py-3">
+            <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }} className="flex-row items-center justify-between px-4 py-3">
               <TouchableOpacity onPress={() => { lightTap(); goToStep('first'); }} disabled={isSaving} className="px-2">
                 <Text style={{ color: isSaving ? '#FFFFFF' : '#FFFFFF' }} className={`${textSize.base} ${fontFamily.regular}`}>Back</Text>
               </TouchableOpacity>
@@ -1673,7 +1673,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
             {/* ── Time & Duration ── */}
 
             {/* No Time Limit Toggle */}
-            <View style={{ borderBottomWidth: 1, borderBottomColor: colors.divider }}>
+            <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}>
               <View style={{ paddingVertical: s(20) }} className="flex-row items-center justify-between px-6">
                 <TouchableOpacity onPress={() => toggleInfo('noTimeLimit')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
                   <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>No Time Limit</Text>
@@ -1705,7 +1705,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
 
             {/* Schedule for Later Toggle */}
             <ExpandableInfo expanded={!noTimeLimit} lazy>
-            <View style={{ borderBottomWidth: 1, borderBottomColor: colors.divider }}>
+            <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}>
               <View style={{ paddingVertical: s(20) }} className="flex-row items-center justify-between px-6">
                 <TouchableOpacity onPress={() => toggleInfo('schedule')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
                   <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Schedule for Later</Text>
@@ -1842,7 +1842,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                   </Text>
                 )}
 
-                <View style={{ borderBottomWidth: 1, borderBottomColor: colors.divider, marginTop: s(20), marginHorizontal: s(-24) }} />
+                <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight, marginTop: s(20), marginHorizontal: s(-24) }} />
               </View>
             </ExpandableInfo>
 
@@ -1932,13 +1932,13 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                   )}
                 </TouchableOpacity>
               </View>
-              <View style={{ borderBottomWidth: 1, borderBottomColor: colors.divider, marginTop: s(16) }} />
+              <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight, marginTop: s(16) }} />
             </ExpandableInfo>
 
             {/* ── Block Behavior ── */}
 
             {/* Block Settings Toggle */}
-            <View style={{ borderBottomWidth: 1, borderBottomColor: colors.divider }}>
+            <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}>
               <View style={{ paddingVertical: s(20) }} className="flex-row items-center justify-between px-6">
                 <TouchableOpacity onPress={() => toggleInfo('blockSettings')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
                   <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Block Settings App</Text>
@@ -1971,7 +1971,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
             </View>
 
             {/* Strict Mode Toggle */}
-            <View style={{ borderBottomWidth: 1, borderBottomColor: colors.divider }}>
+            <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}>
               <View style={{ paddingVertical: s(20) }} className="flex-row items-center justify-between px-6">
                 <TouchableOpacity onPress={() => toggleInfo('strictMode')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
                   <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Strict Mode</Text>
@@ -2019,7 +2019,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
 
             {/* Emergency Tapout Toggle */}
             <ExpandableInfo expanded={strictMode && !noTimeLimit} lazy>
-              <View style={{ borderBottomWidth: 1, borderBottomColor: colors.divider }}>
+              <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}>
                 <View style={{ paddingVertical: s(20) }} className="flex-row items-center justify-between px-6">
                   <TouchableOpacity onPress={() => toggleInfo('emergencyTapout')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
                     <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Allow Emergency Tapout</Text>
@@ -2193,7 +2193,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
         <Animated.View renderToHardwareTextureAndroid={true} style={{ flex: 1, opacity: stepFadeAnim }}>
           {/* Header */}
-          <View style={{ borderBottomWidth: 1, borderBottomColor: colors.divider }} className="flex-row items-center justify-between px-4 py-3">
+          <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }} className="flex-row items-center justify-between px-4 py-3">
             <TouchableOpacity onPress={() => { lightTap(); onClose(); }} className="px-2">
               <Text style={{ color: '#FFFFFF' }} className={`${textSize.base} ${fontFamily.regular}`}>Cancel</Text>
             </TouchableOpacity>

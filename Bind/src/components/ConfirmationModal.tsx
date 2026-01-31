@@ -58,13 +58,13 @@ function ConfirmationModal({
           </View>
 
           {/* Buttons */}
-          <View style={{ borderTopColor: colors.divider, borderRightColor: colors.divider }} className="flex-row border-t">
+          <View style={{ borderTopWidth: 1, borderTopColor: colors.divider }} className="flex-row">
             {/* Cancel Button */}
             <TouchableOpacity
               onPress={() => { lightTap(); onCancel(); }}
               activeOpacity={0.7}
-              style={{ borderRightColor: colors.divider }}
-              className="flex-1 py-4 items-center border-r"
+              style={{ borderRightWidth: 1, borderRightColor: colors.divider }}
+              className="flex-1 py-4 items-center"
             >
               <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular}`}>
                 {cancelText}
