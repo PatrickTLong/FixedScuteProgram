@@ -50,7 +50,7 @@ function MembershipScreen({ onPurchaseComplete }: Props) {
           style={{
             backgroundColor: colors.card,
             borderWidth: 2,
-            borderColor: selectedPlan === 'monthly' ? '#FFFFFF' : 'transparent',
+            borderColor: selectedPlan === 'monthly' ? colors.text : 'transparent',
             padding: s(16),
             ...shadow.card,
           }}
@@ -79,7 +79,7 @@ function MembershipScreen({ onPurchaseComplete }: Props) {
           style={{
             backgroundColor: colors.card,
             borderWidth: 2,
-            borderColor: selectedPlan === 'yearly' ? '#FFFFFF' : 'transparent',
+            borderColor: selectedPlan === 'yearly' ? colors.text : 'transparent',
             padding: s(16),
             ...shadow.card,
           }}
@@ -113,7 +113,7 @@ function MembershipScreen({ onPurchaseComplete }: Props) {
           style={{
             backgroundColor: colors.card,
             borderWidth: 2,
-            borderColor: selectedPlan === 'lifetime' ? '#FFFFFF' : 'transparent',
+            borderColor: selectedPlan === 'lifetime' ? colors.text : 'transparent',
             padding: s(16),
             ...shadow.card,
           }}
@@ -146,7 +146,7 @@ function MembershipScreen({ onPurchaseComplete }: Props) {
           onPress={() => { lightTap(); /* TODO: Trigger Google Play purchase */ }}
           disabled={!selectedPlan}
           style={{
-            backgroundColor: selectedPlan ? '#FFFFFF' : colors.border,
+            backgroundColor: selectedPlan ? colors.text : colors.border,
             opacity: selectedPlan ? 1 : 0.5,
             borderWidth: 1, borderColor: colors.border, ...shadow.card,
           }}

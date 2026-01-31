@@ -54,7 +54,7 @@ function Button({
       case 'secondary':
         return { color: '#000000' };
       case 'outline':
-        return { color: '#FFFFFF' };
+        return { color: colors.text };
       default:
         return { color: colors.bg };
     }

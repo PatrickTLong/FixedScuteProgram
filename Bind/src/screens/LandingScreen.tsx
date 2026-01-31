@@ -1,7 +1,6 @@
 import React, { memo, useEffect, useRef, useState } from 'react';
 import {
   Text,
-  View,
   Pressable,
   Image,
   Animated,
@@ -11,69 +10,20 @@ import { useTheme , textSize, fontFamily } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { lightTap } from '../utils/haptics';
 
-// Glowing logo component - adds animated glow effect around the logo
-function GlowingLogo({ glowOpacity, tintColor }: { glowOpacity: Animated.Value; tintColor?: string }) {
-  return (
-    <View style={{ position: 'relative' }}>
-      {/* Glow layer - subtle blur effect */}
-      <Animated.Image
-        source={require('../frontassets/TrueScute-Photoroom.png')}
-        className="w-96 h-96"
-        resizeMode="contain"
-        style={{
-          position: 'absolute',
-          tintColor: '#ffffff',
-          opacity: glowOpacity,
-          transform: [{ scale: 1.01 }],
-        }}
-        blurRadius={4}
-      />
-      {/* Main logo */}
-      <Image
-        source={require('../frontassets/TrueScute-Photoroom.png')}
-        className="w-96 h-96"
-        resizeMode="contain"
-        style={{ tintColor }}
-      />
-    </View>
-  );
-}
-
 interface Props {
   onSignIn: () => void;
   onGetStarted: () => void;
 }
 
 function LandingScreen({ onGetStarted }: Props) {
-  const { colors, theme } = useTheme();
+  const { colors } = useTheme();
   const { s } = useResponsive();
-  const isDark = theme === 'dark';
-
-  // Pulsating glow animation for logo
-  const glowOpacity = useRef(new Animated.Value(0)).current;
 
   // Fade in animation for "Tap to continue" text
   const tapTextOpacity = useRef(new Animated.Value(0)).current;
   const [showTapText, setShowTapText] = useState(false);
 
   useEffect(() => {
-    // Start slow pulsating animation (2 second cycle)
-    const animation = Animated.loop(
-      Animated.sequence([
-        Animated.timing(glowOpacity, {
-          toValue: 1,
-          duration: 1000,
-          useNativeDriver: false,
-        }),
-        Animated.timing(glowOpacity, {
-          toValue: 0,
-          duration: 1000,
-          useNativeDriver: false,
-        }),
-      ])
-    );
-    animation.start();
-
     // Show "Tap to continue" after a short delay with fade in
     const timeout = setTimeout(() => {
       setShowTapText(true);
@@ -85,10 +35,9 @@ function LandingScreen({ onGetStarted }: Props) {
     }, 500);
 
     return () => {
-      animation.stop();
       clearTimeout(timeout);
     };
-  }, [glowOpacity, tapTextOpacity]);
+  }, [tapTextOpacity]);
 
   const handleTap = () => {
     if (showTapText) {

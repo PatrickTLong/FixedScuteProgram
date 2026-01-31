@@ -10,7 +10,7 @@ interface ProgressBarProps {
 function ProgressBar({ currentStep, totalSteps }: ProgressBarProps) {
   const { s } = useResponsive();
   return (
-    <View style={{ position: 'absolute', top: s(60), left: 0, right: 0, zIndex: 5 }} className="flex-row items-center justify-center gap-3">
+    <View style={{ position: 'absolute', top: s(72), left: 0, right: 0, zIndex: 5 }} className="flex-row items-center justify-center gap-3">
       {Array.from({ length: totalSteps }).map((_, index) => {
         const stepNumber = index + 1;
         const isActive = stepNumber === currentStep;

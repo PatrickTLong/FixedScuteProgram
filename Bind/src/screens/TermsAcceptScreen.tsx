@@ -149,7 +149,7 @@ function TermsAcceptScreen({ onAccept }: Props) {
           style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
           className={`${radius.full} py-4 items-center`}
         >
-          <Text style={{ color: '#FFFFFF' }} className={`${textSize.small} ${fontFamily.semibold}`}>
+          <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
             I Accept
           </Text>
         </TouchableOpacity>

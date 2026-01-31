@@ -15,7 +15,7 @@ import {
 import LottieView from 'lottie-react-native';
 const Lottie = LottieView as any;
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Svg, { Text as SvgText, Defs, Filter, FeGaussianBlur } from 'react-native-svg';
+
 import BlockNowButton from '../components/BlockNowButton';
 import InfoModal from '../components/InfoModal';
 import EmergencyTapoutModal from '../components/EmergencyTapoutModal';
@@ -28,82 +28,6 @@ const scuteLogo = require('../frontassets/TrueScute-Photoroom.png');
 
 const { BlockingModule, PermissionsModule } = NativeModules;
 
-// Glowing text component using SVG blur filter for rounded glow
-// Uses invisible Text for layout so it matches the non-glowing version exactly
-interface GlowTextProps {
-  text: string;
-  color: string;
-  glowOpacity: Animated.Value;
-  fontSize?: number;
-}
-
-function GlowText({ text, color, glowOpacity, fontSize = 20 }: GlowTextProps) {
-  const [opacity, setOpacity] = useState(0);
-
-  useEffect(() => {
-    const listenerId = glowOpacity.addListener(({ value }) => {
-      setOpacity(value);
-    });
-    return () => glowOpacity.removeListener(listenerId);
-  }, [glowOpacity]);
-
-  const glowPadding = 12;
-  const textWidth = text.length * fontSize * 0.55;
-  const svgWidth = textWidth + glowPadding * 2;
-  const svgHeight = fontSize * 1.5 + glowPadding * 2;
-
-  return (
-    <View style={{ position: 'relative' }}>
-      {/* Invisible text for exact layout matching */}
-      <Text
-        style={{ opacity: 0 }}
-        className={`${textSize.xLarge} ${fontFamily.semibold} text-center`}
-      >
-        {text}
-      </Text>
-      {/* SVG overlay - absolutely positioned, doesn't affect layout */}
-      <Svg
-        width={svgWidth}
-        height={svgHeight}
-        style={{
-          position: 'absolute',
-          top: -glowPadding,
-          left: -glowPadding,
-        }}
-      >
-        <Defs>
-          <Filter id="presetGlow" x="-50%" y="-50%" width="200%" height="200%">
-            <FeGaussianBlur in="SourceGraphic" stdDeviation="3" />
-          </Filter>
-        </Defs>
-        {/* Glow layer */}
-        <SvgText
-          x={glowPadding}
-          y={glowPadding + fontSize}
-          textAnchor="start"
-          fontSize={fontSize}
-          fontFamily="Nunito-SemiBold"
-          fill="#ffffff"
-          opacity={opacity}
-          filter="url(#presetGlow)"
-        >
-          {text}
-        </SvgText>
-        {/* Main text layer */}
-        <SvgText
-          x={glowPadding}
-          y={glowPadding + fontSize}
-          textAnchor="start"
-          fontSize={fontSize}
-          fontFamily="Nunito-SemiBold"
-          fill={color}
-        >
-          {text}
-        </SvgText>
-      </Svg>
-    </View>
-  );
-}
 
 
 interface Props {
@@ -142,10 +66,6 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
   const lockedOpacity = useRef(new Animated.Value(0)).current;
   const unlockedOpacity = useRef(new Animated.Value(0)).current;
   const hasInitializedLogoRef = useRef(false);
-
-  // Fast pulsating glow for preset text when actively locking
-  const presetGlowOpacity = useRef(new Animated.Value(0)).current;
-  const presetGlowAnimationRef = useRef<Animated.CompositeAnimation | null>(null);
 
   // Prevent concurrent loadStats calls (race condition fix)
   const loadStatsInProgressRef = useRef(false);
@@ -622,42 +542,6 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
       ]).start();
     }
   }, [isActivelyLocked, lockedOpacity, unlockedOpacity, loading]);
-
-  // Fast pulsating glow animation for preset text when actively locked
-  useEffect(() => {
-    if (isActivelyLocked) {
-      // Start fast pulsating animation (800ms cycle - faster and more pulsating)
-      presetGlowAnimationRef.current = Animated.loop(
-        Animated.sequence([
-          Animated.timing(presetGlowOpacity, {
-            toValue: 1,
-            duration: 400,
-            useNativeDriver: false,
-          }),
-          Animated.timing(presetGlowOpacity, {
-            toValue: 0,
-            duration: 400,
-            useNativeDriver: false,
-          }),
-        ])
-      );
-      presetGlowAnimationRef.current.start();
-    } else {
-      // Stop animation
-      if (presetGlowAnimationRef.current) {
-        presetGlowAnimationRef.current.stop();
-        presetGlowAnimationRef.current = null;
-      }
-      presetGlowOpacity.setValue(0);
-    }
-
-    return () => {
-      if (presetGlowAnimationRef.current) {
-        presetGlowAnimationRef.current.stop();
-        presetGlowAnimationRef.current = null;
-      }
-    };
-  }, [isActivelyLocked, presetGlowOpacity]);
 
   // Elapsed time effect (for no-time-limit locks)
   useEffect(() => {
@@ -1266,7 +1150,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
                         </Text>
                       </View>
                       <View style={{ backgroundColor: colors.border, ...shadow.card }} className={`px-2 py-0.5 ${radius.full}`}>
-                        <Text style={{ color: '#FFFFFF' }} className={`${textSize.extraSmall} ${fontFamily.semibold}`}>
+                        <Text style={{ color: colors.text }} className={`${textSize.extraSmall} ${fontFamily.semibold}`}>
                           {isCurrentlyActive ? 'Active' : isPending ? 'Pending' : 'Scheduled'}
                         </Text>
                       </View>

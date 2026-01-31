@@ -230,7 +230,7 @@ const DayCell = memo(({ day, selectable, selected, isToday: todayDay, textColor,
     >
       <Text
         style={{
-          color: selected ? '#FFFFFF' : selectable ? textColor : textMutedColor,
+          color: selected ? colors.text : selectable ? textColor : textMutedColor,
         }}
         className={`${textSize.base} ${fontFamily.regular} ${selected ? fontFamily.bold : ''}`}
       >
@@ -263,7 +263,7 @@ const AmPmSelector = memo(({ value, onChange, greenColor, cardColor, textMutedCo
       style={{ backgroundColor: value === 'AM' ? colors.green : cardColor, borderWidth: 1, borderColor: value === 'AM' ? colors.green : colors.border, ...shadow.card }}
       className={`px-3 py-2 ${radius.lg}`}
     >
-      <Text style={{ color: value === 'AM' ? '#FFFFFF' : textMutedColor }} className={`${textSize.base} ${fontFamily.semibold}`}>
+      <Text style={{ color: value === 'AM' ? colors.text : textMutedColor }} className={`${textSize.base} ${fontFamily.semibold}`}>
         AM
       </Text>
     </TouchableOpacity>
@@ -272,7 +272,7 @@ const AmPmSelector = memo(({ value, onChange, greenColor, cardColor, textMutedCo
       style={{ backgroundColor: value === 'PM' ? colors.green : cardColor, borderWidth: 1, borderColor: value === 'PM' ? colors.green : colors.border, ...shadow.card }}
       className={`px-3 py-2 ${radius.lg} mt-1`}
     >
-      <Text style={{ color: value === 'PM' ? '#FFFFFF' : textMutedColor }} className={`${textSize.base} ${fontFamily.semibold}`}>
+      <Text style={{ color: value === 'PM' ? colors.text : textMutedColor }} className={`${textSize.base} ${fontFamily.semibold}`}>
         PM
       </Text>
     </TouchableOpacity>
@@ -493,7 +493,7 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
           {/* Header */}
           <View style={{ borderBottomWidth: 1, borderBottomColor: colors.divider }} className="flex-row items-center justify-between px-4 py-3">
             <TouchableOpacity onPress={() => { lightTap(); handleClose(); }} className="px-2">
-              <Text style={{ color: '#FFFFFF'}} className={`${textSize.base} ${fontFamily.regular}`}>Cancel</Text>
+              <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.regular}`}>Cancel</Text>
             </TouchableOpacity>
             <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.semibold}`}>Pick Date and Time</Text>
             <TouchableOpacity
@@ -501,7 +501,7 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
               disabled={!isFutureDateTime}
               className="px-2"
             >
-              <Text style={{ color: isFutureDateTime ? '#FFFFFF' : colors.textMuted }} className={`${textSize.base} ${fontFamily.semibold}`}>
+              <Text style={{ color: isFutureDateTime ? colors.text : colors.textMuted }} className={`${textSize.base} ${fontFamily.semibold}`}>
                 Done
               </Text>
             </TouchableOpacity>
@@ -624,7 +624,7 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
                   style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
                   className={`ml-4 px-4 py-2 ${radius.full}`}
                 >
-                  <Text style={{ color: '#FFFFFF' }} className={`${textSize.small} ${fontFamily.semibold}`}>Clear</Text>
+                  <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>Clear</Text>
                 </TouchableOpacity>
               )}
             </View>

@@ -82,7 +82,7 @@ function StrictModeWarningModal({ visible, onConfirm, onCancel }: StrictModeWarn
               activeOpacity={0.7}
               className="flex-1 py-4 items-center"
             >
-              <Text style={{ color: '#FFFFFF' }} className={`${textSize.small} ${fontFamily.semibold}`}>
+              <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
                 Enable
               </Text>
             </TouchableOpacity>

@@ -328,7 +328,7 @@ function PermissionsChecklistScreen({ onComplete }: Props) {
               </Text>
             </View>
 
-            <ChevronRightIcon size={24} color="#FFFFFF" />
+            <ChevronRightIcon size={24} color={colors.text} />
           </TouchableOpacity>
         ))}
 
@@ -344,8 +344,8 @@ function PermissionsChecklistScreen({ onComplete }: Props) {
                 style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
                 className={`flex-row items-center py-3 px-4 ${radius.xl} mb-2`}
               >
-                <AndroidIcon size={28} color="#FFFFFF" />
-                <Text style={{ color: '#FFFFFF' }} className={`${textSize.small} ${fontFamily.regular} ml-3`}>
+                <AndroidIcon size={28} color={colors.text} />
+                <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular} ml-3`}>
                   {permission.title}
                 </Text>
               </View>

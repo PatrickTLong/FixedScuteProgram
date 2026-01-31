@@ -36,18 +36,18 @@ const PlayStoreIcon = ({ size = 24 }: { size?: number }) => (
   </Svg>
 );
 
-const MailIcon = () => (
+const MailIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
   <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
     <Path
       d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
-      stroke="#FFFFFF"
+      stroke={color}
       strokeWidth={2.5}
       strokeLinecap="round"
       strokeLinejoin="round"
     />
     <Path
       d="M22 6l-10 7L2 6"
-      stroke="#FFFFFF"
+      stroke={color}
       strokeWidth={2.5}
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -55,32 +55,32 @@ const MailIcon = () => (
   </Svg>
 );
 
-const MembershipIcon = () => (
+const MembershipIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
   <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
     <Path
       d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"
-      stroke="#FFFFFF"
+      stroke={color}
       strokeWidth={2.5}
       strokeLinecap="round"
       strokeLinejoin="round"
     />
     <Path
       d="M9 11a4 4 0 100-8 4 4 0 000 8z"
-      stroke="#FFFFFF"
+      stroke={color}
       strokeWidth={2.5}
       strokeLinecap="round"
       strokeLinejoin="round"
     />
     <Path
       d="M23 21v-2a4 4 0 00-3-3.87"
-      stroke="#FFFFFF"
+      stroke={color}
       strokeWidth={2.5}
       strokeLinecap="round"
       strokeLinejoin="round"
     />
     <Path
       d="M16 3.13a4 4 0 010 7.75"
-      stroke="#FFFFFF"
+      stroke={color}
       strokeWidth={2.5}
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -88,11 +88,11 @@ const MembershipIcon = () => (
   </Svg>
 );
 
-const LogoutIcon = () => (
+const LogoutIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
   <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
     <Path
       d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"
-      stroke="#FFFFFF"
+      stroke={color}
       strokeWidth={2.5}
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -100,18 +100,18 @@ const LogoutIcon = () => (
   </Svg>
 );
 
-const RefreshIcon = () => (
+const RefreshIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
   <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
     <Path
       d="M23 4v6h-6M1 20v-6h6"
-      stroke="#FFFFFF"
+      stroke={color}
       strokeWidth={2.5}
       strokeLinecap="round"
       strokeLinejoin="round"
     />
     <Path
       d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"
-      stroke="#FFFFFF"
+      stroke={color}
       strokeWidth={2.5}
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -119,11 +119,11 @@ const RefreshIcon = () => (
   </Svg>
 );
 
-const CardIcon = () => (
+const CardIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
   <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
     <Path
       d="M20 4H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V6a2 2 0 00-2-2zM2 10h20"
-      stroke="#FFFFFF"
+      stroke={color}
       strokeWidth={2.5}
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -143,11 +143,11 @@ const TrashIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
   </Svg>
 );
 
-const MessageIcon = () => (
+const MessageIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
   <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
     <Path
       d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2v10z"
-      stroke="#FFFFFF"
+      stroke={color}
       strokeWidth={2.5}
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -155,11 +155,11 @@ const MessageIcon = () => (
   </Svg>
 );
 
-const BugIcon = () => (
+const BugIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
   <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
     <Path
       d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0zM12 9v4M12 17h.01"
-      stroke="#FFFFFF"
+      stroke={color}
       strokeWidth={2.5}
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -167,11 +167,11 @@ const BugIcon = () => (
   </Svg>
 );
 
-const SunIcon = () => (
+const SunIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
   <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
     <Path
       d="M12 17a5 5 0 100-10 5 5 0 000 10zM12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"
-      stroke="#FFFFFF"
+      stroke={color}
       strokeWidth={2.5}
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -179,18 +179,18 @@ const SunIcon = () => (
   </Svg>
 );
 
-const UnlockIcon = () => (
+const UnlockIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
   <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
     <Path
       d="M19 11H5a2 2 0 00-2 2v7a2 2 0 002 2h14a2 2 0 002-2v-7a2 2 0 00-2-2z"
-      stroke="#FFFFFF"
+      stroke={color}
       strokeWidth={2.5}
       strokeLinecap="round"
       strokeLinejoin="round"
     />
     <Path
       d="M7 11V7a5 5 0 019.9-1"
-      stroke="#FFFFFF"
+      stroke={color}
       strokeWidth={2.5}
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -198,11 +198,11 @@ const UnlockIcon = () => (
   </Svg>
 );
 
-const ShieldIcon = () => (
+const ShieldIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
   <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
     <Path
       d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"
-      stroke="#FFFFFF"
+      stroke={color}
       strokeWidth={2.5}
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -210,18 +210,18 @@ const ShieldIcon = () => (
   </Svg>
 );
 
-const FileTextIcon = () => (
+const FileTextIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
   <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
     <Path
       d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"
-      stroke="#FFFFFF"
+      stroke={color}
       strokeWidth={2.5}
       strokeLinecap="round"
       strokeLinejoin="round"
     />
     <Path
       d="M14 2v6h6M16 13H8M16 17H8M10 9H8"
-      stroke="#FFFFFF"
+      stroke={color}
       strokeWidth={2.5}
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -242,11 +242,11 @@ const ChevronRightIcon = ({ size = 24, color = "#FFFFFF" }: { size?: number; col
   </Svg>
 );
 
-const TapoutIcon = () => (
+const TapoutIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
   <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
     <Path
       d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0zM12 9v4M12 17h.01"
-      stroke="#FFFFFF"
+      stroke={color}
       strokeWidth={2.5}
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -606,7 +606,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
           {tapoutStatus && getTimeUntilRefill() && (
             <View style={{ paddingVertical: s(16) }} className="flex-row items-center justify-between px-4">
               <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular}`}>Next Refill</Text>
-              <Text style={{ color: '#FFFFFF' }} className={`${textSize.small} ${fontFamily.semibold}`}>
+              <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
                 {getTimeUntilRefill()}
               </Text>
             </View>
@@ -750,7 +750,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
             <View className="w-16" />
             <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.semibold}`}>Privacy Policy</Text>
             <TouchableOpacity onPress={() => { lightTap(); setPrivacyModalVisible(false); }} className="w-16 items-end">
-              <Text style={{ color: '#FFFFFF' }} className={`${textSize.base} ${fontFamily.regular}`}>Done</Text>
+              <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.regular}`}>Done</Text>
             </TouchableOpacity>
           </View>
 
@@ -868,7 +868,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
             <View className="w-16" />
             <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.semibold}`}>Terms of Service</Text>
             <TouchableOpacity onPress={() => { lightTap(); setTermsModalVisible(false); }} className="w-16 items-end">
-              <Text style={{ color: '#FFFFFF' }} className={`${textSize.base} ${fontFamily.regular}`}>Done</Text>
+              <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.regular}`}>Done</Text>
             </TouchableOpacity>
           </View>
 
@@ -1036,7 +1036,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
               style={{
                 backgroundColor: colors.card,
                 borderWidth: 2,
-                borderColor: selectedPlan === 'monthly' ? '#FFFFFF' : 'transparent',
+                borderColor: selectedPlan === 'monthly' ? colors.text : 'transparent',
                 padding: s(16),
                 ...shadow.card,
               }}
@@ -1065,7 +1065,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
               style={{
                 backgroundColor: colors.card,
                 borderWidth: 2,
-                borderColor: selectedPlan === 'yearly' ? '#FFFFFF' : 'transparent',
+                borderColor: selectedPlan === 'yearly' ? colors.text : 'transparent',
                 padding: s(16),
                 ...shadow.card,
               }}
@@ -1099,7 +1099,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
               style={{
                 backgroundColor: colors.card,
                 borderWidth: 2,
-                borderColor: selectedPlan === 'lifetime' ? '#FFFFFF' : 'transparent',
+                borderColor: selectedPlan === 'lifetime' ? colors.text : 'transparent',
                 padding: s(16),
                 ...shadow.card,
               }}
@@ -1132,7 +1132,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
               onPress={() => { lightTap(); }}
               disabled={!selectedPlan}
               style={{
-                backgroundColor: selectedPlan ? '#FFFFFF' : colors.border,
+                backgroundColor: selectedPlan ? colors.text : colors.border,
                 opacity: selectedPlan ? 1 : 0.5,
                 ...shadow.card,
               }}

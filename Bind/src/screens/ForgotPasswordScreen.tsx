@@ -287,7 +287,7 @@ function ForgotPasswordScreen({ onBack, onSuccess }: Props) {
                   disabled={loading}
                   className="items-center mb-4"
                 >
-                  <Text style={{ color: '#FFFFFF' }} className={`${textSize.small} ${fontFamily.regular}`}>
+                  <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular}`}>
                     Resend code
                   </Text>
                 </TouchableOpacity>

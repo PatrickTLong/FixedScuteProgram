@@ -270,7 +270,7 @@ function SignInScreen({ onBack, onSuccess, onForgotPassword }: Props) {
                       activeOpacity={0.7}
                       style={{ position: 'absolute', right: 0, top: s(60) }}
                     >
-                      <Text style={{ color: '#FFFFFF' }} className={`${textSize.small} ${fontFamily.regular}`}>
+                      <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular}`}>
                         Forgot Password?
                       </Text>
                     </TouchableOpacity>
@@ -306,7 +306,7 @@ function SignInScreen({ onBack, onSuccess, onForgotPassword }: Props) {
                   disabled={loading}
                   className="items-center mb-4"
                 >
-                  <Text style={{ color: '#FFFFFF' }} className={`${textSize.small} ${fontFamily.regular}`}>
+                  <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular}`}>
                     Resend code
                   </Text>
                 </TouchableOpacity>

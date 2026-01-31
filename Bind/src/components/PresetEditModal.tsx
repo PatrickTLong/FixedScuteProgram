@@ -245,7 +245,7 @@ const DayCell = memo(({ day, selectable, selected, isToday: todayDay, textColor,
     >
       <Text
         style={{
-          color: selected ? '#FFFFFF' : selectable ? textColor : textMutedColor,
+          color: selected ? colors.text : selectable ? textColor : textMutedColor,
         }}
         className={`${textSize.base} ${fontFamily.regular} ${selected ? fontFamily.bold : ''}`}
       >
@@ -276,7 +276,7 @@ const AmPmSelector = memo(({ value, onChange, cardColor }: AmPmSelectorProps) =>
       style={{ backgroundColor: value === 'AM' ? colors.green : cardColor, borderWidth: 1, borderColor: value === 'AM' ? colors.green : colors.border, ...shadow.card }}
       className={`px-3 py-2 ${radius.lg}`}
     >
-      <Text style={{ color: '#FFFFFF' }} className={`${textSize.base} ${fontFamily.semibold}`}>
+      <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>
         AM
       </Text>
     </TouchableOpacity>
@@ -285,7 +285,7 @@ const AmPmSelector = memo(({ value, onChange, cardColor }: AmPmSelectorProps) =>
       style={{ backgroundColor: value === 'PM' ? colors.green : cardColor, borderWidth: 1, borderColor: value === 'PM' ? colors.green : colors.border, ...shadow.card }}
       className={`px-3 py-2 ${radius.lg} mt-1`}
     >
-      <Text style={{ color: '#FFFFFF' }} className={`${textSize.base} ${fontFamily.semibold}`}>
+      <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>
         PM
       </Text>
     </TouchableOpacity>
@@ -382,8 +382,8 @@ async function loadInstalledAppsOnce(): Promise<InstalledApp[]> {
   return installedAppsLoadPromise;
 }
 
-// Calendar icon - white with thicker strokes
-const CalendarIcon = ({ size = 24 }: { size?: number }) => (
+// Calendar icon
+const CalendarIcon = ({ size = 24, color = '#FFFFFF' }: { size?: number; color?: string }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Rect
       x="3"
@@ -391,14 +391,14 @@ const CalendarIcon = ({ size = 24 }: { size?: number }) => (
       width="18"
       height="18"
       rx="2"
-      stroke="#FFFFFF"
+      stroke={color}
       strokeWidth={2.5}
       strokeLinecap="round"
       strokeLinejoin="round"
     />
     <Path
       d="M16 2v4M8 2v4M3 10h18"
-      stroke="#FFFFFF"
+      stroke={color}
       strokeWidth={2.5}
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -406,12 +406,12 @@ const CalendarIcon = ({ size = 24 }: { size?: number }) => (
   </Svg>
 );
 
-// Flag icon - white with thicker strokes (for end date)
-const FlagIcon = ({ size = 24 }: { size?: number }) => (
+// Flag icon (for end date)
+const FlagIcon = ({ size = 24, color = '#FFFFFF' }: { size?: number; color?: string }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Path
       d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1zM4 22v-7"
-      stroke="#FFFFFF"
+      stroke={color}
       strokeWidth={2.5}
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -482,11 +482,11 @@ const AndroidIcon = ({ size = 18, color = "#FFFFFF" }: { size?: number; color?: 
 );
 
 // Send icon (Feather send) - for next occurrence
-const SendIcon = ({ size = 24 }: { size?: number }) => (
+const SendIcon = ({ size = 24, color = '#FFFFFF' }: { size?: number; color?: string }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Path
       d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"
-      stroke="#FFFFFF"
+      stroke={color}
       strokeWidth={2.5}
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -494,19 +494,19 @@ const SendIcon = ({ size = 24 }: { size?: number }) => (
   </Svg>
 );
 
-// Repeat/Recurrence icon - white with thicker strokes
-const RotateCwIcon = ({ size = 24 }: { size?: number }) => (
+// Repeat/Recurrence icon
+const RotateCwIcon = ({ size = 24, color = '#FFFFFF' }: { size?: number; color?: string }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Path
       d="M23 4v6h-6"
-      stroke="#FFFFFF"
+      stroke={color}
       strokeWidth={2.5}
       strokeLinecap="round"
       strokeLinejoin="round"
     />
     <Path
       d="M20.49 15a9 9 0 11-2.12-9.36L23 10"
-      stroke="#FFFFFF"
+      stroke={color}
       strokeWidth={2.5}
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -515,18 +515,18 @@ const RotateCwIcon = ({ size = 24 }: { size?: number }) => (
 );
 
 // Clock icon for recurring unit selector
-const ClockIcon = ({ size = 24 }: { size?: number }) => (
+const ClockIcon = ({ size = 24, color = '#FFFFFF' }: { size?: number; color?: string }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Path
       d="M12 2a10 10 0 100 20 10 10 0 000-20z"
-      stroke="#FFFFFF"
+      stroke={color}
       strokeWidth={2.5}
       strokeLinecap="round"
       strokeLinejoin="round"
     />
     <Path
       d="M12 6v6l4 2"
-      stroke="#FFFFFF"
+      stroke={color}
       strokeWidth={2.5}
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -1237,7 +1237,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
             {/* Header */}
             <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }} className="flex-row items-center justify-between px-4 py-3">
               <TouchableOpacity onPress={dpHandleCancel} className="px-2">
-                <Text style={{ color: '#FFFFFF' }} className={`${textSize.base} ${fontFamily.regular}`}>Cancel</Text>
+                <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.regular}`}>Cancel</Text>
               </TouchableOpacity>
               <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.semibold}`}>Pick Date and Time</Text>
               <TouchableOpacity
@@ -1245,7 +1245,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                 disabled={!dpIsFutureDateTime}
                 className="px-2"
               >
-                <Text style={{ color: dpIsFutureDateTime ? '#FFFFFF' : colors.textMuted }} className={`${textSize.base} ${fontFamily.semibold}`}>
+                <Text style={{ color: dpIsFutureDateTime ? colors.text : colors.textMuted }} className={`${textSize.base} ${fontFamily.semibold}`}>
                   Done
                 </Text>
               </TouchableOpacity>
@@ -1378,7 +1378,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                       style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
                       className={`ml-4 px-4 py-2 ${radius.full}`}
                     >
-                      <Text style={{ color: '#FFFFFF' }} className={`${textSize.small} ${fontFamily.semibold}`}>Clear</Text>
+                      <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>Clear</Text>
                     </TouchableOpacity>
                   )}
                 </View>
@@ -1481,7 +1481,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                               {recurringUnit}
                             </Text>
                           </View>
-                          <ChevronRightIcon size={s(20)} color="#FFFFFF" />
+                          <ChevronRightIcon size={s(20)} color={colors.text} />
                         </TouchableOpacity>
 
                         {/* Next Occurrence Preview - uses pending datepicker end date */}
@@ -1617,7 +1617,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                       className={`items-center justify-center py-4 px-4 ${radius.xl} mb-2`}
                     >
                       <Text
-                        style={{ color: recurringUnit === unit ? '#FFFFFF' : colors.text }}
+                        style={{ color: recurringUnit === unit ? colors.text : colors.textSecondary }}
                         className={`${textSize.small} ${fontFamily.semibold} capitalize`}
                       >
                         {unit}
@@ -1645,11 +1645,11 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
             {/* Header */}
             <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }} className="flex-row items-center justify-between px-4 py-3">
               <TouchableOpacity onPress={() => { lightTap(); goToStep('first'); }} disabled={isSaving} className="px-2">
-                <Text style={{ color: isSaving ? '#FFFFFF' : '#FFFFFF' }} className={`${textSize.base} ${fontFamily.regular}`}>Back</Text>
+                <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.regular}`}>Back</Text>
               </TouchableOpacity>
               <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.semibold}`}>Final Settings</Text>
               <TouchableOpacity onPress={handleSave} disabled={isSaving || !canSave} className="px-2 min-w-[50px] items-end justify-center" style={{ height: s(24), overflow: 'visible' }}>
-                <Text style={{ color: canSave ? '#FFFFFF' : colors.textMuted, opacity: isSaving ? 0 : 1 }} className={`${textSize.base} ${fontFamily.semibold}`}>Save</Text>
+                <Text style={{ color: canSave ? colors.text : colors.textMuted, opacity: isSaving ? 0 : 1 }} className={`${textSize.base} ${fontFamily.semibold}`}>Save</Text>
                 {isSaving && (
                   <View style={{ position: 'absolute', top: s(-63), right: s(-50), width: s(150), height: s(150), justifyContent: 'center', alignItems: 'center' }}>
                     <Lottie
@@ -1666,7 +1666,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
 
             <ScrollView ref={finalScrollRef} className="flex-1 pt-6" contentContainerStyle={{ paddingBottom: s(100) }}>
 
-            <Text style={{ color: '#FFFFFF' }} className={`${textSize.extraSmall} ${fontFamily.regular} px-6 mb-4`}>
+            <Text style={{ color: colors.text }} className={`${textSize.extraSmall} ${fontFamily.regular} px-6 mb-4`}>
               Tap on toggle text to see further details
             </Text>
 
@@ -1788,10 +1788,10 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                       onPress={() => { lightTap(); setScheduleStartDate(null); }}
                       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     >
-                      <Text style={{ color: '#FFFFFF' }} className={`${textSize.large}`}>✕</Text>
+                      <Text style={{ color: colors.text }} className={`${textSize.large}`}>✕</Text>
                     </TouchableOpacity>
                   ) : (
-                    <ChevronRightIcon size={s(20)} color="#FFFFFF" />
+                    <ChevronRightIcon size={s(20)} color={colors.text} />
                   )}
                 </TouchableOpacity>
 
@@ -1828,10 +1828,10 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                       onPress={() => { lightTap(); setScheduleEndDate(null); }}
                       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     >
-                      <Text style={{ color: '#FFFFFF' }} className={`${textSize.large}`}>✕</Text>
+                      <Text style={{ color: colors.text }} className={`${textSize.large}`}>✕</Text>
                     </TouchableOpacity>
                   ) : (
-                    <ChevronRightIcon size={s(20)} color="#FFFFFF" />
+                    <ChevronRightIcon size={s(20)} color={colors.text} />
                   )}
                 </TouchableOpacity>
 
@@ -1925,10 +1925,10 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                       onPress={() => { lightTap(); setTargetDate(null); }}
                       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     >
-                      <Text style={{ color: '#FFFFFF' }} className={`${textSize.large}`}>✕</Text>
+                      <Text style={{ color: colors.text }} className={`${textSize.large}`}>✕</Text>
                     </TouchableOpacity>
                   ) : (
-                    <ChevronRightIcon size={s(20)} color="#FFFFFF" />
+                    <ChevronRightIcon size={s(20)} color={colors.text} />
                   )}
                 </TouchableOpacity>
               </View>
@@ -2098,7 +2098,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                       className={`items-center justify-center py-4 px-4 ${radius.xl} mb-2`}
                     >
                       <Text
-                        style={{ color: recurringUnit === unit ? '#FFFFFF' : colors.text }}
+                        style={{ color: recurringUnit === unit ? colors.text : colors.textSecondary }}
                         className={`${textSize.small} ${fontFamily.semibold} capitalize`}
                       >
                         {unit}
@@ -2195,7 +2195,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
           {/* Header */}
           <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }} className="flex-row items-center justify-between px-4 py-3">
             <TouchableOpacity onPress={() => { lightTap(); onClose(); }} className="px-2">
-              <Text style={{ color: '#FFFFFF' }} className={`${textSize.base} ${fontFamily.regular}`}>Cancel</Text>
+              <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.regular}`}>Cancel</Text>
             </TouchableOpacity>
             <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.semibold}`}>
               {preset ? 'Edit Preset' : 'New Preset'}
@@ -2205,7 +2205,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               disabled={!canContinue}
               className="px-2"
             >
-              <Text style={{ color: canContinue ? '#FFFFFF' : colors.textMuted }} className={`${textSize.base} ${fontFamily.semibold}`}>
+              <Text style={{ color: canContinue ? colors.text : colors.textMuted }} className={`${textSize.base} ${fontFamily.semibold}`}>
                 Next
               </Text>
             </TouchableOpacity>
@@ -2319,7 +2319,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                       style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
                       className={`flex-1 py-2 ${radius.xl} items-center mr-2`}
                     >
-                      <Text style={{ color: '#FFFFFF' }} className={`${textSize.small} ${fontFamily.semibold}`}>
+                      <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
                         Select All
                       </Text>
                     </TouchableOpacity>
@@ -2419,7 +2419,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                       onPress={() => removeWebsite(site)}
                       className="p-2"
                     >
-                      <Text style={{ color: "#FFFFFF" }} className={`${textSize.large}`}>✕</Text>
+                      <Text style={{ color: colors.text }} className={`${textSize.large}`}>✕</Text>
                     </TouchableOpacity>
                   </View>
                 ))}

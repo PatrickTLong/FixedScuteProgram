@@ -298,12 +298,12 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, disabled
               <>
                 {preset.isScheduled && (
                   <View className="ml-2">
-                    <BookmarkIcon color="#FFFFFF" size={18} />
+                    <BookmarkIcon color={colors.text} size={18} />
                   </View>
                 )}
                 {preset.repeat_enabled && (
                   <View className="ml-2">
-                    <RotateCwIcon color="#FFFFFF" size={18} />
+                    <RotateCwIcon color={colors.text} size={18} />
                   </View>
                 )}
               </>
