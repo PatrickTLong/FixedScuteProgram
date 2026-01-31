@@ -289,10 +289,12 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, disabled
               {preset.name}
             </Text>
             {isExpired ? (
-              <View style={{ backgroundColor: `${colors.red}33`, ...shadow.card }} className={`ml-2 px-2 py-0.5 ${radius.full}`}>
-                <Text style={{ color: colors.red }} className={`${textSize.extraSmall} ${fontFamily.semibold}`}>
-                  Expired
-                </Text>
+              <View style={{ backgroundColor: colors.card, ...shadow.card }} className={`ml-2 ${radius.full} overflow-hidden`}>
+                <View style={{ backgroundColor: `${colors.red}33` }} className={`px-2 py-0.5`}>
+                  <Text style={{ color: colors.red }} className={`${textSize.extraSmall} ${fontFamily.semibold}`}>
+                    Expired
+                  </Text>
+                </View>
               </View>
             ) : (
               <>

@@ -666,7 +666,7 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
                 presetId
             )
 
-            // Show floating bubble with countdown - user is outside the app when scheduled preset fires
+            // Show floating bubble with countdown
             try {
                 Log.d(TAG, "Showing floating bubble for preset activation: ${targetPreset.optString("name")}")
                 FloatingBubbleManager.getInstance(context).show(endTime)
