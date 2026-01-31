@@ -261,6 +261,76 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
     }
 
     /**
+     * Call backend API to deactivate the current no-time-limit preset and clear lock status.
+     * Mirrors the JS logic: activatePreset(email, null) + updateLockStatus(email, false, null)
+     */
+    private fun deactivateNoTimeLimitPresetBackend(context: Context) {
+        thread {
+            try {
+                val token = getAuthTokenFromAsyncStorage(context)
+                if (token == null) {
+                    Log.e(TAG, "[BACKEND] No auth token found, cannot deactivate no-time-limit preset in backend")
+                    return@thread
+                }
+
+                val apiBaseUrl = BuildConfig.API_URL
+
+                // 1. Deactivate the active preset: POST /api/presets/activate { presetId: null }
+                try {
+                    val activateUrl = URL("$apiBaseUrl/api/presets/activate")
+                    val activateConn = activateUrl.openConnection() as HttpURLConnection
+                    activateConn.requestMethod = "POST"
+                    activateConn.setRequestProperty("Content-Type", "application/json")
+                    activateConn.setRequestProperty("Authorization", "Bearer $token")
+                    activateConn.doOutput = true
+                    activateConn.connectTimeout = 10000
+                    activateConn.readTimeout = 10000
+
+                    val activateBody = JSONObject().apply { put("presetId", JSONObject.NULL) }
+                    activateConn.outputStream.use { os ->
+                        os.write(activateBody.toString().toByteArray(Charsets.UTF_8))
+                    }
+
+                    val activateCode = activateConn.responseCode
+                    Log.d(TAG, "[BACKEND] Deactivate preset response: $activateCode")
+                    activateConn.disconnect()
+                } catch (e: Exception) {
+                    Log.e(TAG, "[BACKEND] Error deactivating preset", e)
+                }
+
+                // 2. Clear lock status: POST /api/lock-status { isLocked: false, lockEndsAt: null }
+                try {
+                    val lockUrl = URL("$apiBaseUrl/api/lock-status")
+                    val lockConn = lockUrl.openConnection() as HttpURLConnection
+                    lockConn.requestMethod = "POST"
+                    lockConn.setRequestProperty("Content-Type", "application/json")
+                    lockConn.setRequestProperty("Authorization", "Bearer $token")
+                    lockConn.doOutput = true
+                    lockConn.connectTimeout = 10000
+                    lockConn.readTimeout = 10000
+
+                    val lockBody = JSONObject().apply {
+                        put("isLocked", false)
+                        put("lockEndsAt", JSONObject.NULL)
+                    }
+                    lockConn.outputStream.use { os ->
+                        os.write(lockBody.toString().toByteArray(Charsets.UTF_8))
+                    }
+
+                    val lockCode = lockConn.responseCode
+                    Log.d(TAG, "[BACKEND] Clear lock status response: $lockCode")
+                    lockConn.disconnect()
+                } catch (e: Exception) {
+                    Log.e(TAG, "[BACKEND] Error clearing lock status", e)
+                }
+
+            } catch (e: Exception) {
+                Log.e(TAG, "[BACKEND] Error in deactivateNoTimeLimitPresetBackend", e)
+            }
+        }
+    }
+
+    /**
      * Call backend API to update the preset's schedule dates
      */
     private fun updateBackendSchedule(
@@ -454,6 +524,9 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
                     // Stop the foreground service briefly
                     val stopServiceIntent = Intent(context, UninstallBlockerService::class.java)
                     context.stopService(stopServiceIntent)
+
+                    // Deactivate in backend (runs on background thread)
+                    deactivateNoTimeLimitPresetBackend(context)
                 }
             }
 
@@ -593,11 +666,10 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
                 presetId
             )
 
-            // Show floating bubble with countdown (start hidden, AppMonitorService will show when user leaves app)
+            // Show floating bubble with countdown - user is outside the app when scheduled preset fires
             try {
                 Log.d(TAG, "Showing floating bubble for preset activation: ${targetPreset.optString("name")}")
                 FloatingBubbleManager.getInstance(context).show(endTime)
-                FloatingBubbleManager.getInstance(context).temporaryHide()
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to show floating bubble", e)
             }

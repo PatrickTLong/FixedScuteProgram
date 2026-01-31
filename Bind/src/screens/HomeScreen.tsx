@@ -400,15 +400,8 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
       }
     });
 
-    // Check for scheduled presets every 30 seconds (uses cache for efficiency)
-    // Scheduled preset activation is also handled by the native module for precision
-    const scheduleInterval = setInterval(() => {
-      loadStats(); // Use cache - will only fetch if cache expired
-    }, 30000);
-
     return () => {
       subscription.remove();
-      clearInterval(scheduleInterval);
     };
   }, [loadStats, email]);
 
@@ -709,18 +702,8 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
         let blockEndTime: Date | null = null;
 
         if (activePreset.noTimeLimit) {
-          // No time limit - would definitely overlap with any future scheduled preset
-          const nextScheduled = scheduledPresets.find(sp =>
-            new Date(sp.scheduleStartDate!) > now
-          );
-          if (nextScheduled) {
-            setLoading(false);
-            showModal(
-              'Schedule Conflict',
-              `This preset has no time limit and would overlap with "${nextScheduled.name}" starting ${formatScheduleDate(nextScheduled.scheduleStartDate!)}.`
-            );
-            return;
-          }
+          // No time limit - allow activation; if a scheduled preset kicks in later,
+          // checkScheduledPresets will auto-deactivate this preset
         } else if (activePreset.targetDate) {
           blockEndTime = new Date(activePreset.targetDate);
         } else {
