@@ -7,7 +7,7 @@ import {
 } from 'react-native';
 import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
 import { lightTap } from '../utils/haptics';
-import { useResponsive } from '../utils/responsive';
+import AnimatedCheckbox from './AnimatedCheckbox';
 
 interface AppSelectionInfoModalProps {
   visible: boolean;
@@ -16,7 +16,6 @@ interface AppSelectionInfoModalProps {
 
 function AppSelectionInfoModal({ visible, onClose }: AppSelectionInfoModalProps) {
   const { colors } = useTheme();
-  const { s } = useResponsive();
   const [dontShowAgain, setDontShowAgain] = useState(false);
 
   const handleConfirm = () => {
@@ -50,26 +49,8 @@ function AppSelectionInfoModal({ visible, onClose }: AppSelectionInfoModalProps)
               activeOpacity={0.7}
               className="flex-row items-center justify-center mt-5"
             >
-              <View
-                style={{
-                  backgroundColor: dontShowAgain ? colors.green : 'transparent',
-                  borderColor: dontShowAgain ? colors.green : colors.textSecondary,
-                }}
-                className="w-5 h-5 rounded border-2 items-center justify-center mr-3"
-              >
-                {dontShowAgain && (
-                  <View
-                    style={{
-                      width: s(8),
-                      height: s(13),
-                      borderRightWidth: 2.5,
-                      borderBottomWidth: 2.5,
-                      borderColor: colors.text,
-                      transform: [{ rotate: '45deg' }],
-                      marginTop: s(-2),
-                    }}
-                  />
-                )}
+              <View className="mr-3">
+                <AnimatedCheckbox checked={dontShowAgain} size={20} />
               </View>
               <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular}`}>
                 Don't show this again

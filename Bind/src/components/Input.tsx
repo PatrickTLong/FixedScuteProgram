@@ -22,7 +22,7 @@ export default function Input({
         </Text>
       )}
       <TextInput
-        placeholderTextColor={colors.textMuted}
+        placeholderTextColor={colors.textSecondary}
         style={{ backgroundColor: colors.bg, borderColor: colors.border, color: colors.text }}
         className={`border ${radius.full} px-5 py-4 ${textSize.base} ${fontFamily.regular}`}
         {...textInputProps}

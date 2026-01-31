@@ -235,7 +235,7 @@ function SelectAppsScreen({
               <SearchIcon color={colors.textSecondary} />
               <TextInput
                 placeholder="Search apps..."
-                placeholderTextColor={colors.textMuted}
+                placeholderTextColor={colors.textSecondary}
                 value={searchQuery}
                 onChangeText={setSearchQuery}
                 style={{ color: colors.text }}
@@ -297,7 +297,7 @@ function SelectAppsScreen({
             <View style={{ backgroundColor: colors.card, borderColor: colors.yellow, ...shadow.card }} className={`flex-row items-center border ${radius.full} px-4 py-3`}>
               <TextInput
                 placeholder="e.g. instagram.com"
-                placeholderTextColor={colors.textMuted}
+                placeholderTextColor={colors.textSecondary}
                 value={websiteInput}
                 onChangeText={setWebsiteInput}
                 autoCapitalize="none"

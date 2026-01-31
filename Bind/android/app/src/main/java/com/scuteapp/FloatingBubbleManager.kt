@@ -17,6 +17,7 @@ import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
+import android.view.Choreographer
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.OvershootInterpolator
 import android.view.animation.DecelerateInterpolator
@@ -77,6 +78,23 @@ class FloatingBubbleManager(private val context: Context) {
     private var initialTouchY = 0f
     private var isDragging = false
     private val DRAG_THRESHOLD = 10f  // Pixels moved before considered a drag
+
+    // Frame-synced drag updates to prevent jitter
+    private var pendingDragX = 0
+    private var pendingDragY = 0
+    private var hasPendingDragUpdate = false
+    private val dragFrameCallback = Choreographer.FrameCallback {
+        if (hasPendingDragUpdate) {
+            hasPendingDragUpdate = false
+            layoutParams?.x = pendingDragX
+            layoutParams?.y = pendingDragY
+            try {
+                windowManager?.updateViewLayout(bubbleView, layoutParams)
+            } catch (e: Exception) {
+                Log.e(TAG, "Error updating bubble position", e)
+            }
+        }
+    }
 
     // Long press detection
     private var longPressTriggered = false
@@ -387,19 +405,20 @@ class FloatingBubbleManager(private val context: Context) {
                     }
 
                     if (isDragging && !longPressTriggered) {
-                        // Update bubble position
-                        layoutParams?.x = (initialX + deltaX).toInt()
-                        layoutParams?.y = (initialY + deltaY).toInt()
-                        try {
-                            windowManager?.updateViewLayout(bubbleView, layoutParams)
-                        } catch (e: Exception) {
-                            Log.e(TAG, "Error updating bubble position", e)
+                        // Batch position update to next vsync frame to prevent jitter
+                        pendingDragX = (initialX + deltaX).toInt()
+                        pendingDragY = (initialY + deltaY).toInt()
+                        if (!hasPendingDragUpdate) {
+                            hasPendingDragUpdate = true
+                            Choreographer.getInstance().postFrameCallback(dragFrameCallback)
                         }
                     }
                     true
                 }
                 MotionEvent.ACTION_UP -> {
                     handler.removeCallbacks(longPressRunnable)
+                    Choreographer.getInstance().removeFrameCallback(dragFrameCallback)
+                    hasPendingDragUpdate = false
                     if (!isDragging && !longPressTriggered) {
                         // Regular tap - toggle expand/collapse
                         performTapHaptic()
@@ -413,6 +432,8 @@ class FloatingBubbleManager(private val context: Context) {
                 }
                 MotionEvent.ACTION_CANCEL -> {
                     handler.removeCallbacks(longPressRunnable)
+                    Choreographer.getInstance().removeFrameCallback(dragFrameCallback)
+                    hasPendingDragUpdate = false
                     isDragging = false
                     // Reschedule auto-collapse if still expanded
                     if (isExpanded) {

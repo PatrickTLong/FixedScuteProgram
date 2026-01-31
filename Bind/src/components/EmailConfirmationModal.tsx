@@ -77,7 +77,7 @@ function EmailConfirmationModal({ visible, userEmail, onConfirm, onCancel }: Ema
               value={inputEmail}
               onChangeText={setInputEmail}
               placeholder="Enter your email"
-              placeholderTextColor={colors.textMuted}
+              placeholderTextColor={colors.textSecondary}
               autoCapitalize="none"
               autoCorrect={false}
               keyboardType="email-address"

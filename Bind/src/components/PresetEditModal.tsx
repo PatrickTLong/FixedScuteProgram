@@ -494,6 +494,39 @@ const SendIcon = ({ size = 24, color = '#FFFFFF' }: { size?: number; color?: str
   </Svg>
 );
 
+// Search icon (Feather)
+const SearchIcon = ({ size = 24, color = '#FFFFFF' }: { size?: number; color?: string }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.35-4.35"
+      stroke={color}
+      strokeWidth={2.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+// Edit icon (Feather)
+const EditIcon = ({ size = 24, color = '#FFFFFF' }: { size?: number; color?: string }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
+      stroke={color}
+      strokeWidth={2.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
+      stroke={color}
+      strokeWidth={2.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
 // Repeat/Recurrence icon
 const RotateCwIcon = ({ size = 24, color = '#FFFFFF' }: { size?: number; color?: string }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
@@ -1366,11 +1399,11 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               )}
 
               {/* Selected Date/Time Display */}
-              <View style={{ borderTopWidth: 1, borderTopColor: colors.dividerLight, marginHorizontal: s(-24), paddingHorizontal: s(24) }} className="mt-6 py-4">
+              <View style={{ borderTopWidth: 1, borderTopColor: colors.dividerLight, marginHorizontal: s(-24), paddingHorizontal: s(24), paddingVertical: s(20) }} className="mt-6">
                 <View className="flex-row justify-between items-center">
                   <View>
                     <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.regular} mb-1`}>Selected</Text>
-                    <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.semibold}`}>{dpSelectedDateTimeText}</Text>
+                    <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.semibold}`}>{dpSelectedDateTimeText}</Text>
                   </View>
                   {dpTempSelectedDate && (
                     <TouchableOpacity
@@ -1391,9 +1424,9 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
 
               {/* Recurring Schedule - only when picking end date and start date is already set */}
               {datePickerTarget === 'scheduleEnd' && scheduleStartDate && (
-                <View style={{ borderTopWidth: 1, borderTopColor: colors.dividerLight, marginHorizontal: s(-24), paddingHorizontal: s(24) }} className="mt-2 pt-4">
+                <View style={{ borderTopWidth: 1, borderTopColor: colors.dividerLight, marginHorizontal: s(-24), paddingHorizontal: s(24) }}>
                   <View style={{ marginHorizontal: s(-24) }}>
-                    <View style={{ paddingVertical: s(16) }} className="flex-row items-center justify-between px-6">
+                    <View style={{ paddingVertical: s(20) }} className="flex-row items-center justify-between px-6">
                       <TouchableOpacity onPress={() => toggleInfo('recurring')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
                         <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Recurring Schedule</Text>
                         <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>Repeat this block automatically</Text>
@@ -1459,7 +1492,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                             keyboardType="number-pad"
                             maxLength={3}
                             placeholder="1"
-                            placeholderTextColor={colors.textMuted}
+                            placeholderTextColor={colors.textSecondary}
                           />
                         </View>
 
@@ -1535,6 +1568,13 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                           const isSameDay = nextStart.toDateString() === nextEnd.toDateString();
 
                           return (
+                            <View>
+                              <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular} mb-1`}>
+                                {`Start: ${scheduleStartDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} ${scheduleStartDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`}
+                              </Text>
+                              <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular} mb-3`}>
+                                {`End: ${pendingEndDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} ${pendingEndDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`}
+                              </Text>
                             <View style={{ backgroundColor: colors.card, paddingVertical: s(14), borderWidth: 1, borderColor: colors.border, ...shadow.card }} className={`flex-row items-center px-4 ${radius.xl}`}>
                               <View className={`w-10 h-10 ${radius.lg} items-center justify-center mr-3`}>
                                 <SendIcon size={s(26)} />
@@ -1561,6 +1601,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                                   })}`}
                                 </Text>
                               </View>
+                            </View>
                             </View>
                           );
                         })()}
@@ -1612,12 +1653,13 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                       style={{
                         backgroundColor: recurringUnit === unit ? colors.green : colors.cardLight,
                         borderWidth: 1, borderColor: colors.border,
+                        transform: [{ scale: recurringUnit === unit ? 1.05 : 1 }],
                         ...shadow.card,
                       }}
                       className={`items-center justify-center py-4 px-4 ${radius.xl} mb-2`}
                     >
                       <Text
-                        style={{ color: recurringUnit === unit ? colors.text : colors.textSecondary }}
+                        style={{ color: colors.text }}
                         className={`${textSize.small} ${fontFamily.semibold} capitalize`}
                       >
                         {unit}
@@ -2093,12 +2135,13 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                       style={{
                         backgroundColor: recurringUnit === unit ? colors.green : colors.cardLight,
                         borderWidth: 1, borderColor: colors.border,
+                        transform: [{ scale: recurringUnit === unit ? 1.05 : 1 }],
                         ...shadow.card,
                       }}
                       className={`items-center justify-center py-4 px-4 ${radius.xl} mb-2`}
                     >
                       <Text
-                        style={{ color: recurringUnit === unit ? colors.text : colors.textSecondary }}
+                        style={{ color: colors.text }}
                         className={`${textSize.small} ${fontFamily.semibold} capitalize`}
                       >
                         {unit}
@@ -2217,15 +2260,21 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
           >
           {/* Preset Name Input */}
           <View className="px-6 py-4">
-            <TextInput
-              placeholder="Preset Name"
-              placeholderTextColor={colors.textMuted}
-              value={name}
-              onChangeText={setName}
-              maxLength={20}
-              style={{ backgroundColor: colors.card, color: colors.text, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
-              className={`${radius.xl} px-4 py-3 ${textSize.small} ${fontFamily.semibold}`}
-            />
+            <View
+              style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
+              className={`${radius.xl} px-4 h-12 flex-row items-center`}
+            >
+              <EditIcon size={s(18)} color={colors.textSecondary} />
+              <TextInput
+                placeholder="Preset Name"
+                placeholderTextColor={colors.textSecondary}
+                value={name}
+                onChangeText={setName}
+                maxLength={20}
+                style={{ color: colors.text, flex: 1, marginLeft: s(8), paddingVertical: 0, includeFontPadding: false, textAlignVertical: 'center' }}
+                className={`${textSize.small} ${fontFamily.semibold}`}
+              />
+            </View>
           </View>
 
           {/* Tabs */}
@@ -2288,15 +2337,21 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               // Android: Show searchable list of apps
               <>
                 {/* Search */}
-                <View className="px-6  mb-4">
-                  <TextInput
-                    placeholder="Search apps..."
-                    placeholderTextColor={colors.textMuted}
-                    value={searchQuery}
-                    onChangeText={setSearchQuery}
-                    style={{ backgroundColor: colors.card, color: colors.text, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
-                    className={`${radius.xl} px-4 py-3 ${textSize.small} ${fontFamily.semibold}`}
-                  />
+                <View className="px-6 mb-4">
+                  <View
+                    style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
+                    className={`${radius.xl} px-4 h-12 flex-row items-center`}
+                  >
+                    <SearchIcon size={s(18)} color={colors.textSecondary} />
+                    <TextInput
+                      placeholder="Search apps..."
+                      placeholderTextColor={colors.textSecondary}
+                      value={searchQuery}
+                      onChangeText={setSearchQuery}
+                      style={{ color: colors.text, flex: 1, marginLeft: s(8), paddingVertical: 0, includeFontPadding: false, textAlignVertical: 'center' }}
+                      className={`${textSize.small} ${fontFamily.semibold}`}
+                    />
+                  </View>
                 </View>
 
                 {/* Select All / Deselect All Buttons */}
@@ -2317,7 +2372,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                         });
                       }}
                       style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
-                      className={`flex-1 py-2 ${radius.xl} items-center mr-2`}
+                      className={`flex-1 py-2 ${radius.full} items-center justify-center mr-2`}
                     >
                       <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
                         Select All
@@ -2334,7 +2389,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                         setSelectedApps(prev => prev.filter(id => !filteredIds.has(id)));
                       }}
                       style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
-                      className={`flex-1 py-2 ${radius.xl} items-center`}
+                      className={`flex-1 py-2 ${radius.full} items-center justify-center`}
                     >
                       <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.semibold}`}>
                         Deselect All
@@ -2373,24 +2428,22 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               <ScrollView className="flex-1 px-6">
                 {/* Website Input */}
                 <View className="flex-row items-center mb-4">
-                  <TextInput
-                    placeholder="e.g. instagram.com"
-                    placeholderTextColor={colors.textMuted}
-                    value={websiteInput}
-                    onChangeText={setWebsiteInput}
-                    autoCapitalize="none"
-                    keyboardType="url"
-                    style={{
-                      backgroundColor: colors.card,
-                      color: colors.text,
-                      textAlignVertical: 'center',
-                      includeFontPadding: false,
-                      paddingVertical: 0,
-                      borderWidth: 1, borderColor: colors.border,
-                      ...shadow.card,
-                    }}
-                    className={`flex-1 ${radius.xl} px-4 h-12 ${textSize.small}  ${fontFamily.semibold} mr-2`}
-                  />
+                  <View
+                    style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
+                    className={`flex-1 ${radius.xl} px-4 h-12 flex-row items-center mr-2`}
+                  >
+                    <GlobeIcon size={s(22)} color={colors.textSecondary} />
+                    <TextInput
+                      placeholder="e.g. instagram.com"
+                      placeholderTextColor={colors.textSecondary}
+                      value={websiteInput}
+                      onChangeText={setWebsiteInput}
+                      autoCapitalize="none"
+                      keyboardType="url"
+                      style={{ color: colors.text, flex: 1, marginLeft: s(8), paddingVertical: 0, includeFontPadding: false, textAlignVertical: 'center' }}
+                      className={`${textSize.small} ${fontFamily.semibold}`}
+                    />
+                  </View>
                   <TouchableOpacity
                     onPress={addWebsite}
                     style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}

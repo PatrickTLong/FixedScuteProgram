@@ -344,7 +344,7 @@ function PermissionsChecklistScreen({ onComplete }: Props) {
                 style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
                 className={`flex-row items-center py-3 px-4 ${radius.xl} mb-2`}
               >
-                <AndroidIcon size={28} color={colors.text} />
+                <AndroidIcon size={28} color={colors.green} />
                 <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular} ml-3`}>
                   {permission.title}
                 </Text>

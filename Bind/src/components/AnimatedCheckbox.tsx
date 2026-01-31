@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, memo } from 'react';
 import { Animated, View, Easing } from 'react-native';
+import Svg, { Path } from 'react-native-svg';
 import { useTheme } from '../context/ThemeContext';
 
 interface AnimatedCheckboxProps {
@@ -48,9 +49,6 @@ function AnimatedCheckbox({
     outputRange: [0, 0.8, 1],
   });
 
-  const checkmarkWidth = size * 0.4;
-  const checkmarkHeight = size * 0.65;
-
   return (
     <View style={{ width: size, height: size, opacity: disabled ? 0.5 : 1 }}>
       {/* Checked background (green, fades in) */}
@@ -90,17 +88,9 @@ function AnimatedCheckbox({
           transform: [{ scale: checkmarkScale }],
         }}
       >
-        <View
-          style={{
-            width: checkmarkWidth,
-            height: checkmarkHeight,
-            borderRightWidth: 2.5,
-            borderBottomWidth: 2.5,
-            borderColor: '#FFFFFF',
-            transform: [{ rotate: '45deg' }],
-            marginTop: -size * 0.1,
-          }}
-        />
+        <Svg width={size * 0.85} height={size * 0.85} viewBox="0 0 24 24" fill="none">
+          <Path d="M20 6L9 17l-5-5" stroke="#FFFFFF" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
+        </Svg>
       </Animated.View>
     </View>
   );

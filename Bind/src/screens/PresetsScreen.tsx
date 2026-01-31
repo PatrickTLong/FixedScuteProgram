@@ -69,6 +69,7 @@ function PresetsScreen({ userEmail }: Props) {
   const [isSaving, setIsSaving] = useState(false);
   const [overlapModalVisible, setOverlapModalVisible] = useState(false);
   const [overlapPresetName, setOverlapPresetName] = useState<string>('');
+  const [overlapIsTimedVsScheduled, setOverlapIsTimedVsScheduled] = useState(false);
 
   // Verification modal for enabling scheduled presets
   const [scheduleVerifyModalVisible, setScheduleVerifyModalVisible] = useState(false);
@@ -266,6 +267,7 @@ function PresetsScreen({ userEmail }: Props) {
           )) {
             // Show error - dates overlap
             setOverlapPresetName(other.name);
+            setOverlapIsTimedVsScheduled(false);
             setOverlapModalVisible(true);
             return; // Don't activate
           }
@@ -309,6 +311,7 @@ function PresetsScreen({ userEmail }: Props) {
               )) {
                 // Show overlap modal
                 setOverlapPresetName(scheduled.name);
+                setOverlapIsTimedVsScheduled(true);
                 setOverlapModalVisible(true);
                 return; // Don't activate
               }
@@ -738,8 +741,10 @@ function PresetsScreen({ userEmail }: Props) {
       {/* Schedule Overlap Modal */}
       <ConfirmationModal
         visible={overlapModalVisible}
-        title="Schedule Overlap"
-        message={`This schedule overlaps with "${overlapPresetName}". Please choose different dates or disable the other scheduled preset first.`}
+        title={overlapIsTimedVsScheduled ? "Preset Overlap" : "Schedule Overlap"}
+        message={overlapIsTimedVsScheduled
+          ? `This preset's duration overlaps with the scheduled preset "${overlapPresetName}". Please disable the scheduled preset first or wait until it ends.`
+          : `This schedule overlaps with "${overlapPresetName}". Please choose different dates or disable the other scheduled preset first.`}
         confirmText="OK"
         onConfirm={() => setOverlapModalVisible(false)}
         onCancel={() => setOverlapModalVisible(false)}
