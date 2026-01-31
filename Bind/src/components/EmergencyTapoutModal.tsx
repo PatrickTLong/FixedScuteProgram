@@ -137,7 +137,19 @@ function EmergencyTapoutModal({
                   : getUnavailableReason()}
               </Text>
 
-              <View style={{ borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6 }}>
+              <View
+                style={{
+                  backgroundColor: colors.card,
+                  shadowColor: '#000000',
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.3,
+                  shadowRadius: 6,
+                  elevation: 6,
+                  borderRadius: 9999,
+                  overflow: 'hidden',
+                }}
+                className="w-full"
+              >
               <TouchableOpacity
                 onPress={() => {
                   mediumTap();
@@ -146,12 +158,14 @@ function EmergencyTapoutModal({
                 disabled={!canUseTapout || isLoading}
                 activeOpacity={0.7}
                 style={{
-                  backgroundColor: canUseTapout ? '#f59e0b' : `${colors.textMuted}50`,
+                  backgroundColor: canUseTapout ? '#f59e0b' : colors.cardLight,
                   paddingVertical: s(14),
-                  width: '100%',
-                  elevation: 6,
+                  borderWidth: 1,
+                  borderColor: colors.border,
+                  borderRadius: 9999,
+                  opacity: canUseTapout ? 1 : 0.5,
                 }}
-                className={`${radius['2xl']} items-center`}
+                className="w-full items-center"
               >
                 <Text
                   style={{ color: canUseTapout ? '#FFFFFF' : colors.textSecondary, opacity: isLoading ? 0 : 1 }}

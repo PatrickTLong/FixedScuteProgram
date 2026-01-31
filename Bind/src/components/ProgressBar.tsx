@@ -32,7 +32,7 @@ function AnimatedDot({ isActive }: { isActive: boolean }) {
     const floatAnimation = Animated.loop(
       Animated.sequence([
         Animated.timing(floatAnim, {
-          toValue: -2,
+          toValue: -1.5,
           duration: 1500,
           useNativeDriver: true,
         }),
@@ -51,15 +51,13 @@ function AnimatedDot({ isActive }: { isActive: boolean }) {
 
   useEffect(() => {
     if (isActive) {
-      // Raise the active dot
       Animated.spring(translateYAnim, {
-        toValue: -8,
+        toValue: -10,
         useNativeDriver: true,
         friction: 5,
         tension: 100,
       }).start();
     } else {
-      // Reset to normal position
       Animated.spring(translateYAnim, {
         toValue: 0,
         useNativeDriver: true,

@@ -80,6 +80,11 @@ function OTPInput({ value, onChange, length = 6, disabled = false, autoFocus = f
                   borderRadius: s(8),
                   justifyContent: 'center',
                   alignItems: 'center',
+                  shadowColor: '#000000',
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.3,
+                  shadowRadius: 6,
+                  elevation: 6,
                 }}
               >
                 <TextInput

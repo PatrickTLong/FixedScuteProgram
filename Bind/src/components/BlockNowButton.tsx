@@ -213,18 +213,10 @@ function BlockNowButton({
   // When locked with active timer AND strict mode is ON, show tappable "Locked" button with static glow and dimmed background
   if (isLocked && hasActiveTimer && strictMode) {
     return (
-      <TouchableOpacity
-        onPress={() => {
-          lightTap();
-          onUnlockPress?.();
-        }}
-        activeOpacity={0.7}
+      <View
         className={`h-14 ${radius.full} overflow-hidden`}
         style={{
-          backgroundColor: colors.card,
-          borderWidth: 1,
-          borderColor: colors.border,
-          opacity: 0.6,
+          backgroundColor: colors.bg,
           shadowColor: '#000000',
           shadowOffset: { width: 0, height: 4 },
           shadowOpacity: 0.3,
@@ -232,10 +224,26 @@ function BlockNowButton({
           elevation: 6,
         }}
       >
-        <View className="flex-1 flex-row items-center justify-center">
-          <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>Locked</Text>
-        </View>
-      </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => {
+            lightTap();
+            onUnlockPress?.();
+          }}
+          activeOpacity={0.7}
+          className="flex-1"
+          style={{
+            backgroundColor: colors.cardLight,
+            borderWidth: 1,
+            borderColor: colors.border,
+            borderRadius: 9999,
+            opacity: 0.5,
+          }}
+        >
+          <View className="flex-1 flex-row items-center justify-center">
+            <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>Locked</Text>
+          </View>
+        </TouchableOpacity>
+      </View>
     );
   }
 

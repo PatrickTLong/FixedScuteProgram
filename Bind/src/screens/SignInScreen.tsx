@@ -225,8 +225,8 @@ function SignInScreen({ onBack, onSuccess, onForgotPassword }: Props) {
                 </Text>
 
                 {/* Email Input */}
-                <View className="mb-4 mt-6">
-                  <Text style={{ color: colors.text, position: 'absolute', top: s(-22), left: s(8) }} className={`${textSize.small} ${fontFamily.regular}`}>
+                <View className="mb-4 mt-8">
+                  <Text style={{ color: colors.text, position: 'absolute', top: s(-25), left: s(8) }} className={`${textSize.small} ${fontFamily.regular}`}>
                     Email
                   </Text>
                   <TextInput
@@ -236,14 +236,14 @@ function SignInScreen({ onBack, onSuccess, onForgotPassword }: Props) {
                     autoCapitalize="none"
                     autoCorrect={false}
                     editable={!loading}
-                    style={{ backgroundColor: colors.card, color: colors.text, height: s(52), paddingVertical: s(16), borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
+                    style={{ backgroundColor: colors.card, color: colors.text, height: s(52), borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
                     className={`${radius.full} px-5 ${textSize.small} ${fontFamily.regular}`}
                   />
                 </View>
 
                 {/* Password Input */}
-                <View className="mb-8 mt-6">
-                  <Text style={{ color: colors.text, position: 'absolute', top: s(-22), left: s(8) }} className={`${textSize.small} ${fontFamily.regular}`}>
+                <View className="mb-8 mt-8">
+                  <Text style={{ color: colors.text, position: 'absolute', top: s(-25), left: s(8) }} className={`${textSize.small} ${fontFamily.regular}`}>
                     Password
                   </Text>
                   <View style={{ position: 'relative' }}>
@@ -254,7 +254,7 @@ function SignInScreen({ onBack, onSuccess, onForgotPassword }: Props) {
                       autoCapitalize="none"
                       autoCorrect={false}
                       editable={!loading}
-                      style={{ backgroundColor: colors.card, color: colors.text, paddingRight: s(50), height: s(52), paddingVertical: s(16), borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
+                      style={{ backgroundColor: colors.card, color: colors.text, paddingRight: s(50), height: s(52), borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
                       className={`${radius.full} px-5 ${textSize.small} ${fontFamily.regular}`}
                     />
                     <TouchableOpacity
