@@ -1046,7 +1046,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
           style={{ position: 'absolute', top: s(-32), left: s(-8), zIndex: 10 }}
         >
           {/* Unlocked logo - fades out when actively locked */}
-          <Animated.View renderToHardwareTextureAndroid={true} style={{ opacity: unlockedOpacity, position: 'absolute' }}>
+          <Animated.View style={{ opacity: unlockedOpacity, position: 'absolute' }}>
             <Image
               source={scuteLogo}
               style={{
@@ -1058,7 +1058,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
             />
           </Animated.View>
           {/* Locked logo - fades in when actively locked */}
-          <Animated.View renderToHardwareTextureAndroid={true} style={{ opacity: lockedOpacity }}>
+          <Animated.View style={{ opacity: lockedOpacity }}>
             <Image
               source={scuteLogo}
               style={{
@@ -1227,7 +1227,6 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
       >
         <View className="flex-1 bg-black/70 justify-center items-center px-6">
           <View
-            renderToHardwareTextureAndroid={true}
             style={{
               backgroundColor: colors.card,
               borderWidth: 1, borderColor: colors.border, shadowColor: '#000000',

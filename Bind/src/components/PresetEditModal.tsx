@@ -1678,7 +1678,6 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
 
                         {/* Number Input */}
                         <View
-                          renderToHardwareTextureAndroid={true}
                           style={{ backgroundColor: colors.card, paddingVertical: s(14), borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
                           className={`flex-row items-center px-4 ${radius.xl} mb-3`}
                         >
@@ -1735,7 +1734,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                           const isSameDay = nextOccurrence.start.toDateString() === nextOccurrence.end.toDateString();
 
                           return (
-                            <View renderToHardwareTextureAndroid={true} style={{ backgroundColor: colors.card, paddingVertical: s(14), borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }} className={`flex-row items-center px-4 ${radius.xl}`}>
+                            <View style={{ backgroundColor: colors.card, paddingVertical: s(14), borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }} className={`flex-row items-center px-4 ${radius.xl}`}>
                               <View className={`w-10 h-10 ${radius.lg} items-center justify-center mr-3`}>
                                 <SendIcon size={s(26)} />
                               </View>
@@ -2005,7 +2004,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               onPress={() => setRecurringUnitModalVisible(false)}
               className="flex-1 bg-black/70 justify-center items-center px-6"
             >
-              <View renderToHardwareTextureAndroid={true} style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 10, elevation: 10 }} className={`w-full ${radius['2xl']} overflow-hidden`}>
+              <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 10, elevation: 10 }} className={`w-full ${radius['2xl']} overflow-hidden`}>
                 <View className="p-4">
                   <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.bold} text-center mb-4`}>
                     Select Unit
@@ -2343,7 +2342,6 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                 {blockedWebsites.map((site) => (
                   <View
                     key={site}
-                    renderToHardwareTextureAndroid={true}
                     style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
                     className={`flex-row items-center py-3 px-4 ${radius.xl} mb-2`}
                   >

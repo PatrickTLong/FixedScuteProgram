@@ -112,7 +112,6 @@ export default function GoogleSignInBtn({ onSuccess, onError, disabled }: Props)
       onPress={handleGoogleSignIn}
       disabled={disabled || loading}
       activeOpacity={0.8}
-      renderToHardwareTextureAndroid={true}
       style={{
         backgroundColor: colors.card,
         position: 'relative',

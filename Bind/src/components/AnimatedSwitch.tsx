@@ -112,7 +112,6 @@ export default function AnimatedSwitch({
   return (
     <TouchableWithoutFeedback onPress={handlePress} disabled={disabled}>
       <Animated.View
-        renderToHardwareTextureAndroid={true}
         style={{
           width: trackWidth,
           height: trackHeight,

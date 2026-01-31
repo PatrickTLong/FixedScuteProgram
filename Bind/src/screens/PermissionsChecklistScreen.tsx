@@ -341,7 +341,6 @@ function PermissionsChecklistScreen({ onComplete }: Props) {
             {permissions.filter(p => p.isGranted).map((permission) => (
               <View
                 key={permission.id}
-                renderToHardwareTextureAndroid={true}
                 style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }}
                 className={`flex-row items-center py-3 px-4 ${radius.xl} mb-2`}
               >

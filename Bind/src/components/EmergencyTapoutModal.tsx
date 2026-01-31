@@ -90,7 +90,6 @@ function EmergencyTapoutModal({
     >
       <View className="flex-1 bg-black/70 justify-center items-center px-6">
         <View
-          renderToHardwareTextureAndroid={true}
           style={{
             backgroundColor: colors.card,
             borderWidth: 1, borderColor: colors.border, shadowColor: '#000000',
@@ -138,7 +137,7 @@ function EmergencyTapoutModal({
                   : getUnavailableReason()}
               </Text>
 
-              <View renderToHardwareTextureAndroid={true} style={{ borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6 }}>
+              <View style={{ borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6 }}>
               <TouchableOpacity
                 onPress={() => {
                   mediumTap();

@@ -115,7 +115,6 @@ function BottomTabBar({ activeTab, onTabPress }: BottomTabBarProps) {
 
   return (
     <View
-      renderToHardwareTextureAndroid={true}
       style={{
         backgroundColor: colors.bg,
         borderTopColor: colors.divider,

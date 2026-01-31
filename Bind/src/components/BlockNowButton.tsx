@@ -252,7 +252,6 @@ function BlockNowButton({
       <View
         onLayout={(e) => { buttonWidthRef.current = e.nativeEvent.layout.width; }}
         {...slidePanResponder.panHandlers}
-        renderToHardwareTextureAndroid={true}
         className={`h-14 ${radius.full} overflow-hidden`}
         style={{
           backgroundColor: colors.card,
@@ -293,7 +292,6 @@ function BlockNowButton({
   return (
     <View
       {...(canActivate ? holdPanResponder.panHandlers : {})}
-      renderToHardwareTextureAndroid={true}
       className={`h-14 ${radius.full} overflow-hidden`}
       style={{
         backgroundColor: colors.card,

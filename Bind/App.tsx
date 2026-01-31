@@ -16,7 +16,7 @@ import TermsAcceptScreen from './src/screens/TermsAcceptScreen';
 import BottomTabBar from './src/components/BottomTabBar';
 import InfoModal from './src/components/InfoModal';
 import EmergencyTapoutModal from './src/components/EmergencyTapoutModal';
-import { deleteAccount, updateLockStatus, getLockStatus, getPresets, resetPresets, deactivateAllPresets, getEmergencyTapoutStatus, useEmergencyTapout, savePreset, Preset, EmergencyTapoutStatus, invalidateUserCaches, saveUserTheme, clearAuthToken, getMembershipStatus } from './src/services/cardApi';
+import { deleteAccount, updateLockStatus, getLockStatus, getPresets, resetPresets, deactivateAllPresets, getEmergencyTapoutStatus, useEmergencyTapout, savePreset, Preset, EmergencyTapoutStatus, invalidateUserCaches, clearAuthToken, getMembershipStatus } from './src/services/cardApi';
 import MembershipScreen from './src/screens/MembershipScreen';
 
 const { BlockingModule, PermissionsModule, ScheduleModule } = NativeModules;
@@ -28,7 +28,7 @@ type Screen = 'landing' | 'signin' | 'getstarted' | 'forgotpassword' | 'terms' |
 type TabName = 'home' | 'presets' | 'settings';
 
 function App() {
-  const { colors, setTheme } = useTheme();
+  const { colors } = useTheme();
   const [currentScreen, setCurrentScreen] = useState<Screen>('landing');
   const [activeTab, setActiveTab] = useState<TabName>('home');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -536,15 +536,11 @@ function App() {
         return { success: false, error: result.error || 'Failed to reset presets' };
       }
 
-      // Reset theme to dark (default)
-      await saveUserTheme(userEmail, 'dark');
-      setTheme('dark');
-
       return { success: true };
     } catch (error) {
       return { success: false, error: 'Failed to reset account' };
     }
-  }, [userEmail, setTheme]);
+  }, [userEmail]);
 
   const handleDeleteAccount = useCallback(async (): Promise<{ success: boolean; error?: string }> => {
     // Delete account from Supabase and clear everything locally

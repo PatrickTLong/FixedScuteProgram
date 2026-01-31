@@ -68,7 +68,6 @@ function ShieldIconsInfoModal({ visible, onClose }: ShieldIconsInfoModalProps) {
     >
       <View className="flex-1 bg-black/70 justify-center items-center px-6">
         <View
-          renderToHardwareTextureAndroid={true}
           style={{
             backgroundColor: colors.card,
             borderWidth: 1, borderColor: colors.border, shadowColor: '#000000',

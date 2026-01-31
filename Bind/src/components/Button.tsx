@@ -70,7 +70,6 @@ function Button({
       onPress={handlePress}
       disabled={disabled || loading}
       activeOpacity={0.8}
-      renderToHardwareTextureAndroid={true}
       style={[getButtonStyle(), {
         borderWidth: 1, borderColor: colors.border, shadowColor: '#000000',
         shadowOffset: { width: 0, height: 4 },

@@ -231,7 +231,7 @@ function SelectAppsScreen({
         <>
           {/* Search Input */}
           <View className="px-4 mb-4">
-            <View renderToHardwareTextureAndroid={true} style={{ backgroundColor: colors.card, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }} className={`flex-row items-center border ${radius.xl} px-4 py-3`}>
+            <View style={{ backgroundColor: colors.card, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }} className={`flex-row items-center border ${radius.xl} px-4 py-3`}>
               <SearchIcon color={colors.textSecondary} />
               <TextInput
                 placeholder="Search apps..."
@@ -294,7 +294,7 @@ function SelectAppsScreen({
         <View className="flex-1 px-4">
           {/* Website Input */}
           <View className="mb-4">
-            <View renderToHardwareTextureAndroid={true} style={{ backgroundColor: colors.card, borderColor: colors.yellow, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }} className={`flex-row items-center border ${radius.full} px-4 py-3`}>
+            <View style={{ backgroundColor: colors.card, borderColor: colors.yellow, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }} className={`flex-row items-center border ${radius.full} px-4 py-3`}>
               <TextInput
                 placeholder="e.g. instagram.com"
                 placeholderTextColor={colors.textMuted}
@@ -322,7 +322,7 @@ function SelectAppsScreen({
             data={blockedWebsites}
             keyExtractor={(item) => item}
             renderItem={({ item }) => (
-              <View renderToHardwareTextureAndroid={true} style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }} className={`flex-row items-center py-3 px-4 ${radius.xl} mb-2`}>
+              <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6 }} className={`flex-row items-center py-3 px-4 ${radius.xl} mb-2`}>
                 <View className="w-10 h-10 items-center justify-center mr-3">
                   <GlobeIcon color={colors.textSecondary} size={32} />
                 </View>
