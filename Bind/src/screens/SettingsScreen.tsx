@@ -746,11 +746,13 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
       >
         <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
           {/* Header */}
-          <View style={{ borderBottomWidth: 1, borderBottomColor: colors.divider }} className="flex-row items-center justify-between px-4 py-3">
-            <View className="w-16" />
-            <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.semibold}`}>Privacy Policy</Text>
-            <TouchableOpacity onPress={() => { lightTap(); setPrivacyModalVisible(false); }} className="w-16 items-end">
-              <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.regular}`}>Done</Text>
+          <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }} className="flex-row items-center justify-between px-4 py-3.5">
+            <View style={{ width: s(40) }} />
+            <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Privacy Policy</Text>
+            <TouchableOpacity onPress={() => { lightTap(); setPrivacyModalVisible(false); }} style={{ width: s(40) }} className="px-2 items-end">
+              <Svg width={s(iconSize.headerNav)} height={s(iconSize.headerNav)} viewBox="0 0 24 24" fill="none">
+                <Path d="M20 6L9 17l-5-5" stroke="#FFFFFF" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
+              </Svg>
             </TouchableOpacity>
           </View>
 
@@ -864,11 +866,13 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
       >
         <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
           {/* Header */}
-          <View style={{ borderBottomWidth: 1, borderBottomColor: colors.divider }} className="flex-row items-center justify-between px-4 py-3">
-            <View className="w-16" />
-            <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.semibold}`}>Terms of Service</Text>
-            <TouchableOpacity onPress={() => { lightTap(); setTermsModalVisible(false); }} className="w-16 items-end">
-              <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.regular}`}>Done</Text>
+          <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }} className="flex-row items-center justify-between px-4 py-3.5">
+            <View style={{ width: s(40) }} />
+            <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Terms of Service</Text>
+            <TouchableOpacity onPress={() => { lightTap(); setTermsModalVisible(false); }} style={{ width: s(40) }} className="px-2 items-end">
+              <Svg width={s(iconSize.headerNav)} height={s(iconSize.headerNav)} viewBox="0 0 24 24" fill="none">
+                <Path d="M20 6L9 17l-5-5" stroke="#FFFFFF" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
+              </Svg>
             </TouchableOpacity>
           </View>
 
@@ -997,14 +1001,14 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
       >
         <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
           {/* Header */}
-          <View style={{ borderBottomWidth: 1, borderBottomColor: colors.divider }} className="flex-row items-center justify-between px-4 py-3">
+          <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }} className="flex-row items-center justify-between px-4 py-3.5">
             {/* Only show back button if trial hasn't expired */}
             {!membershipStatus?.trialExpired ? (
-              <TouchableOpacity onPress={() => { lightTap(); setMembershipModalVisible(false); }} className="w-16">
-                <Svg width={iconSize.lg} height={iconSize.lg} viewBox="0 0 24 24" fill="none">
+              <TouchableOpacity onPress={() => { lightTap(); setMembershipModalVisible(false); }} style={{ width: s(40) }} className="px-2">
+                <Svg width={s(iconSize.headerNav)} height={s(iconSize.headerNav)} viewBox="0 0 24 24" fill="none">
                   <Path
-                    d="M19 12H5M12 19l-7-7 7-7"
-                    stroke={colors.text}
+                    d="M15 18l-6-6 6-6"
+                    stroke="#FFFFFF"
                     strokeWidth={2.5}
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -1012,10 +1016,10 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
                 </Svg>
               </TouchableOpacity>
             ) : (
-              <View className="w-16" />
+              <View style={{ width: s(40) }} />
             )}
-            <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.semibold}`}>Membership</Text>
-            <View className="w-16" />
+            <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Membership</Text>
+            <View style={{ width: s(40) }} />
           </View>
 
           <ScrollView className="flex-1 px-5 py-6" showsVerticalScrollIndicator={false}>

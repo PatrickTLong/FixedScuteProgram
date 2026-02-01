@@ -24,12 +24,12 @@ function BackButton({ onPress }: BackButtonProps) {
       hitSlop={{ top: s(10), bottom: s(10), left: s(10), right: s(10) }}
       style={{ padding: s(buttonPadding.standard) }}
     >
-      {/* Minimalistic straight left arrow */}
-      <Svg width={iconSize.lg} height={iconSize.lg} viewBox="0 0 24 24" fill="none">
+      {/* Chevron left - matches PresetEditModal header nav */}
+      <Svg width={s(iconSize.headerNav)} height={s(iconSize.headerNav)} viewBox="0 0 24 24" fill="none">
         <Path
-          d="M19 12H5M12 19l-7-7 7-7"
+          d="M15 18l-6-6 6-6"
           stroke={colors.text}
-          strokeWidth={2}
+          strokeWidth={2.5}
           strokeLinecap="round"
           strokeLinejoin="round"
         />

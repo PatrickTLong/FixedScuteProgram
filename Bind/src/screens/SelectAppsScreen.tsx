@@ -47,13 +47,13 @@ const SearchIcon = ({ color }: { color: string }) => (
   </Svg>
 );
 
-// Back Arrow Icon
-const BackIcon = ({ color }: { color: string }) => (
-  <Svg width={iconSize.lg} height={iconSize.lg} viewBox="0 0 24 24" fill="none">
+// Chevron left icon - matches PresetEditModal header nav
+const BackIcon = ({ color, size = iconSize.headerNav }: { color: string; size?: number }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Path
-      d="M19 12H5M12 19l-7-7 7-7"
+      d="M15 18l-6-6 6-6"
       stroke={color}
-      strokeWidth={2}
+      strokeWidth={2.5}
       strokeLinecap="round"
       strokeLinejoin="round"
     />
@@ -186,14 +186,14 @@ function SelectAppsScreen({
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
       {/* Header */}
-      <View style={{ borderBottomWidth: 1, borderBottomColor: colors.divider }} className="flex-row items-center justify-between px-4 py-3">
+      <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }} className="flex-row items-center justify-between px-4 py-3.5">
         <TouchableOpacity
           onPress={() => { lightTap(); onClose(); }}
-          className="p-2"
+          className="px-2"
         >
-          <BackIcon color={colors.text} />
+          <BackIcon color="#FFFFFF" size={s(iconSize.headerNav)} />
         </TouchableOpacity>
-        <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.semibold} flex-1 text-center`}>
+        <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold} flex-1 text-center`}>
           Block List
         </Text>
         <TouchableOpacity
