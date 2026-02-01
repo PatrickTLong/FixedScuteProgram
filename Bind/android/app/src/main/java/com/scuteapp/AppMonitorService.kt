@@ -19,7 +19,7 @@ class AppMonitorService(private val context: Context) {
 
     companion object {
         private const val TAG = "AppMonitorService"
-        private const val POLL_INTERVAL_MS = 5L // Poll every 5ms for faster detection (especially for Settings)
+        private const val POLL_INTERVAL_MS = 25L // Poll every 25ms for faster detection (especially for Settings)
 
         @Volatile
         var instance: AppMonitorService? = null

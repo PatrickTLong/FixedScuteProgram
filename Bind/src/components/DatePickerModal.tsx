@@ -567,7 +567,7 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
 
           {/* Time Picker */}
           {tempSelectedDate && (
-            <View style={{ borderTopWidth: 1, borderTopColor: colors.divider, marginHorizontal: s(-24), paddingHorizontal: s(24), paddingVertical: s(buttonPadding.toggleRow) }}>
+            <View style={{ borderTopWidth: 1, borderTopColor: colors.divider, marginHorizontal: s(-24), paddingHorizontal: s(24), paddingVertical: s(buttonPadding.standard) }}>
               <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} tracking-wider mb-3`}>
                 Time
               </Text>
@@ -611,7 +611,7 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
           )}
 
           {/* Selected Date/Time Display */}
-          <View style={{ borderTopWidth: 1, borderTopColor: colors.divider, marginHorizontal: s(-24), paddingHorizontal: s(24), paddingVertical: s(buttonPadding.toggleRow) }}>
+          <View style={{ borderTopWidth: 1, borderTopColor: colors.divider, marginHorizontal: s(-24), paddingHorizontal: s(24), paddingVertical: s(buttonPadding.standard) }}>
             <View className="flex-row justify-between items-center">
               <View>
                 <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.regular} mb-1`}>Selected</Text>

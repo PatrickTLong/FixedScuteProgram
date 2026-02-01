@@ -152,7 +152,7 @@ function EmergencyTapoutModal({
                 activeOpacity={0.7}
                 style={{
                   backgroundColor: canUseTapout ? '#f59e0b' : colors.cardLight,
-                  paddingVertical: s(buttonPadding.iconRow),
+                  paddingVertical: s(buttonPadding.standard),
                   borderWidth: 1,
                   borderColor: colors.border,
                   borderRadius: 9999,

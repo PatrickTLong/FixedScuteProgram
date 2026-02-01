@@ -22,7 +22,7 @@ function BackButton({ onPress }: BackButtonProps) {
       onPress={handlePress}
       activeOpacity={0.7}
       hitSlop={{ top: s(10), bottom: s(10), left: s(10), right: s(10) }}
-      style={{ padding: s(buttonPadding.settingsRow) }}
+      style={{ padding: s(buttonPadding.standard) }}
     >
       {/* Minimalistic straight left arrow */}
       <Svg width={iconSize.lg} height={iconSize.lg} viewBox="0 0 24 24" fill="none">

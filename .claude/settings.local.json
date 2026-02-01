@@ -48,7 +48,8 @@
       "Bash(git stash:*)",
       "Bash(git add:*)",
       "WebFetch(domain:raw.githubusercontent.com)",
-      "Bash(del \"c:\\\\Users\\\\Shado\\\\OneDrive\\\\Desktop\\\\ScuteProgram\\\\Bind\\\\src\\\\components\\\\PresetGuideModal.tsx\")"
+      "Bash(del \"c:\\\\Users\\\\Shado\\\\OneDrive\\\\Desktop\\\\ScuteProgram\\\\Bind\\\\src\\\\components\\\\PresetGuideModal.tsx\")",
+      "Bash(cd \"c:\\\\Users\\\\Shado\\\\OneDrive\\\\Desktop\\\\ScuteProgram\\\\Bind\\\\src\"\" && grep -r \"TouchableOpacity\" --include=\"*.tsx \")"
     ]
   }
 }

@@ -56,7 +56,7 @@ interface Permission {
   descriptionStyle?: string;
 }
 
-// Android permissions (6 total - Device Admin and Alarms removed)
+// Android permissions (7 total)
 const ANDROID_PERMISSIONS: Permission[] = [
   {
     id: 'notification',
@@ -99,6 +99,13 @@ const ANDROID_PERMISSIONS: Permission[] = [
     description: 'Ensure scheduled presets work reliably even when the app is closed.',
     isGranted: false,
     androidIntent: 'battery_optimization_request',
+  },
+  {
+    id: 'deviceAdmin',
+    title: 'Device Admin',
+    description: 'Prevent Scute from being uninstalled during active blocking sessions.',
+    isGranted: false,
+    androidIntent: 'device_admin_request',
   },
 ];
 
@@ -264,6 +271,44 @@ function PermissionsChecklistScreen({ onComplete }: Props) {
         return;
       }
 
+      // Handle device admin specially - use native method
+      if (permission.id === 'deviceAdmin') {
+        try {
+          await PermissionsModule.requestDeviceAdmin();
+        } catch {
+          Linking.openSettings();
+        }
+        return;
+      }
+
+      // Handle usage access specially - pass package URI to highlight our app
+      if (permission.id === 'usageAccess') {
+        if (PermissionsModule?.openUsageAccessSettings) {
+          PermissionsModule.openUsageAccessSettings().catch(() => {
+            Linking.openSettings();
+          });
+        } else {
+          Linking.sendIntent(permission.androidIntent).catch(() => {
+            Linking.openSettings();
+          });
+        }
+        return;
+      }
+
+      // Handle display overlay specially - pass package URI to open directly to our app
+      if (permission.id === 'displayOverlay') {
+        if (PermissionsModule?.openOverlaySettings) {
+          PermissionsModule.openOverlaySettings().catch(() => {
+            Linking.openSettings();
+          });
+        } else {
+          Linking.sendIntent(permission.androidIntent).catch(() => {
+            Linking.openSettings();
+          });
+        }
+        return;
+      }
+
       Linking.sendIntent(permission.androidIntent).catch(() => {
         Linking.openSettings();
       });
@@ -328,7 +373,7 @@ function PermissionsChecklistScreen({ onComplete }: Props) {
               </Text>
             </View>
 
-            <ChevronRightIcon size={24} color={colors.text} />
+            <ChevronRightIcon size={s(iconSize.xs)} color={colors.text} />
           </TouchableOpacity>
         ))}
 

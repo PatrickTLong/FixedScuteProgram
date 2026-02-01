@@ -285,7 +285,7 @@ const SettingsRow = ({
     onPress={() => { if (onPress) { lightTap(); onPress(); } }}
     disabled={!onPress}
     activeOpacity={onPress ? 0.7 : 1}
-    style={!isLast ? { borderBottomWidth: 1, borderBottomColor: borderColor, paddingVertical: s(buttonPadding.settingsRow) } : { paddingVertical: s(buttonPadding.settingsRow) }}
+    style={!isLast ? { borderBottomWidth: 1, borderBottomColor: borderColor, paddingVertical: s(buttonPadding.standard) } : { paddingVertical: s(buttonPadding.standard) }}
     className="flex-row items-center px-4"
   >
     <View className="mr-4">{icon}</View>
@@ -542,7 +542,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
           {/* Membership Row with Trial Countdown */}
           <TouchableOpacity
             onPress={() => { lightTap(); setMembershipModalVisible(true); }}
-            style={{ borderBottomWidth: 1, borderBottomColor: colors.divider, paddingVertical: s(buttonPadding.settingsRow) }}
+            style={{ borderBottomWidth: 1, borderBottomColor: colors.divider, paddingVertical: s(buttonPadding.standard) }}
             className="px-4"
           >
             <View className="flex-row items-center">
@@ -585,7 +585,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
         <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }} className={`${radius['2xl']} mb-6`}>
           {/* Header Row */}
           <View
-            style={getTimeUntilRefill() ? { borderBottomWidth: 1, borderBottomColor: colors.divider, paddingVertical: s(buttonPadding.settingsRow) } : { paddingVertical: s(buttonPadding.settingsRow) }}
+            style={getTimeUntilRefill() ? { borderBottomWidth: 1, borderBottomColor: colors.divider, paddingVertical: s(buttonPadding.standard) } : { paddingVertical: s(buttonPadding.standard) }}
             className="flex-row items-center px-4"
           >
             <View className="mr-4">
@@ -604,7 +604,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
 
           {/* Refill Timer Row - shows when below 3 tapouts */}
           {tapoutStatus && getTimeUntilRefill() && (
-            <View style={{ paddingVertical: s(buttonPadding.settingsRow) }} className="flex-row items-center justify-between px-4">
+            <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-4">
               <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular}`}>Next Refill</Text>
               <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
                 {getTimeUntilRefill()}
@@ -1037,7 +1037,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
                 backgroundColor: colors.card,
                 borderWidth: 2,
                 borderColor: selectedPlan === 'monthly' ? colors.text : 'transparent',
-                padding: s(buttonPadding.settingsRow),
+                padding: s(buttonPadding.standard),
                 ...shadow.card,
               }}
               className={`${radius['2xl']} mb-3`}
@@ -1066,7 +1066,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
                 backgroundColor: colors.card,
                 borderWidth: 2,
                 borderColor: selectedPlan === 'yearly' ? colors.text : 'transparent',
-                padding: s(buttonPadding.settingsRow),
+                padding: s(buttonPadding.standard),
                 ...shadow.card,
               }}
               className={`${radius['2xl']} mb-3`}
@@ -1075,7 +1075,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
                 <View className="flex-1">
                   <View className="flex-row items-center">
                     <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.bold}`}>Yearly</Text>
-                    <View style={{ backgroundColor: colors.border }} className={`ml-2 px-2 py-0.5 ${radius.full}`}>
+                    <View style={{ backgroundColor: colors.border, ...shadow.card }} className={`ml-2 px-2 py-0.5 ${radius.full}`}>
                       <Text className={`${textSize.extraSmall} ${fontFamily.bold} text-white`}>Save 29%</Text>
                     </View>
                   </View>
@@ -1100,7 +1100,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
                 backgroundColor: colors.card,
                 borderWidth: 2,
                 borderColor: selectedPlan === 'lifetime' ? colors.text : 'transparent',
-                padding: s(buttonPadding.settingsRow),
+                padding: s(buttonPadding.standard),
                 ...shadow.card,
               }}
               className={`${radius['2xl']} mb-6`}
@@ -1109,7 +1109,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
                 <View className="flex-1">
                   <View className="flex-row items-center">
                     <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.bold}`}>Lifetime</Text>
-                    <View style={{ backgroundColor: colors.border }} className={`ml-2 px-2 py-0.5 ${radius.full}`}>
+                    <View style={{ backgroundColor: colors.border, ...shadow.card }} className={`ml-2 px-2 py-0.5 ${radius.full}`}>
                       <Text className={`${textSize.extraSmall} ${fontFamily.bold} text-white`}>Best Value</Text>
                     </View>
                   </View>

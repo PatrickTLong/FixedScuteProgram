@@ -1219,7 +1219,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
       <TouchableOpacity
         onPress={() => toggleApp(item.id)}
         activeOpacity={0.7}
-        style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, paddingVertical: s(buttonPadding.appListItem), ...shadow.card }}
+        style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, paddingVertical: s(buttonPadding.standard), ...shadow.card }}
         className={`flex-row items-center px-4 ${radius.xl} mb-2`}
       >
         {/* App Icon - native already provides squircle shape */}
@@ -1241,7 +1241,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
         <Text style={{ color: colors.text }} className={`flex-1 ${textSize.base} ${fontFamily.regular}`}>{item.name}</Text>
 
         {/* Animated Checkbox */}
-        <AnimatedCheckbox checked={isSelected} size={s(24)} skipAnimation={skipCheckboxAnimation} />
+        <AnimatedCheckbox checked={isSelected} size={s(iconSize.lg)} skipAnimation={skipCheckboxAnimation} />
       </TouchableOpacity>
     );
   }, [selectedApps, toggleApp, colors, skipCheckboxAnimation]);
@@ -1296,7 +1296,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                   disabled={!dpCanGoPrev}
                   className="w-10 h-10 items-center justify-center"
                 >
-                  <ChevronLeftIcon size={s(16)} color={dpCanGoPrev ? colors.text : colors.textMuted} />
+                  <ChevronLeftIcon size={s(iconSize.xs)} color={dpCanGoPrev ? colors.text : colors.textMuted} />
                 </TouchableOpacity>
 
                 <Text style={{ color: colors.text }} className={`${textSize.xLarge} ${fontFamily.semibold}`}>
@@ -1308,7 +1308,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                   disabled={!dpCanGoNext}
                   className="w-10 h-10 items-center justify-center"
                 >
-                  <ChevronRightIcon size={s(16)} color={dpCanGoNext ? colors.text : colors.textMuted} />
+                  <ChevronRightIcon size={s(iconSize.xs)} color={dpCanGoNext ? colors.text : colors.textMuted} />
                 </TouchableOpacity>
               </View>
 
@@ -1399,7 +1399,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               )}
 
               {/* Selected Date/Time Display */}
-              <View style={{ borderTopWidth: 1, borderTopColor: colors.dividerLight, marginHorizontal: s(-24), paddingHorizontal: s(24), paddingVertical: s(buttonPadding.toggleRow) }} className="mt-6">
+              <View style={{ borderTopWidth: 1, borderTopColor: colors.dividerLight, marginHorizontal: s(-24), paddingHorizontal: s(24), paddingVertical: s(buttonPadding.standard) }} className="mt-6">
                 <View className="flex-row justify-between items-center">
                   <View>
                     <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.regular} mb-1`}>Selected</Text>
@@ -1426,7 +1426,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               {datePickerTarget === 'scheduleEnd' && scheduleStartDate && (
                 <View style={{ borderTopWidth: 1, borderTopColor: colors.dividerLight, marginHorizontal: s(-24), paddingHorizontal: s(24) }}>
                   <View style={{ marginHorizontal: s(-24) }}>
-                    <View style={{ paddingVertical: s(buttonPadding.toggleRow) }} className="flex-row items-center justify-between px-6">
+                    <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
                       <TouchableOpacity onPress={() => toggleInfo('recurring')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
                         <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Recurring Schedule</Text>
                         <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>Repeat this block automatically</Text>
@@ -1470,11 +1470,11 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
 
                         {/* Number Input */}
                         <View
-                          style={{ backgroundColor: colors.card, paddingVertical: s(buttonPadding.iconRow), borderWidth: 1, borderColor: colors.border, ...shadow.card }}
+                          style={{ backgroundColor: colors.card, paddingVertical: s(buttonPadding.standard), borderWidth: 1, borderColor: colors.border, ...shadow.card }}
                           className={`flex-row items-center px-4 ${radius.xl} mb-3`}
                         >
                           <View className={`w-10 h-10 ${radius.lg} items-center justify-center mr-3`}>
-                            <RotateCwIcon size={s(26)} />
+                            <RotateCwIcon size={s(iconSize.lg)} />
                           </View>
                           <View className="flex-1">
                             <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
@@ -1503,18 +1503,18 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                             setRecurringUnitModalVisible(true);
                           }}
                           activeOpacity={0.7}
-                          style={{ backgroundColor: colors.card, paddingVertical: s(buttonPadding.iconRow), borderWidth: 1, borderColor: colors.border, ...shadow.card }}
+                          style={{ backgroundColor: colors.card, paddingVertical: s(buttonPadding.standard), borderWidth: 1, borderColor: colors.border, ...shadow.card }}
                           className={`flex-row items-center px-4 ${radius.xl} mb-3`}
                         >
                           <View className={`w-10 h-10 ${radius.lg} items-center justify-center mr-3`}>
-                            <ClockIcon size={s(26)} />
+                            <ClockIcon size={s(iconSize.lg)} />
                           </View>
                           <View className="flex-1">
                             <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold} capitalize`}>
                               {recurringUnit}
                             </Text>
                           </View>
-                          <ChevronRightIcon size={s(20)} color={colors.text} />
+                          <ChevronRightIcon size={s(iconSize.md)} color={colors.text} />
                         </TouchableOpacity>
 
                         {/* Next Occurrence Preview - uses pending datepicker end date */}
@@ -1575,9 +1575,9 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                               <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular} mb-3`}>
                                 {`End: ${pendingEndDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} ${pendingEndDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`}
                               </Text>
-                            <View style={{ backgroundColor: colors.card, paddingVertical: s(buttonPadding.iconRow), borderWidth: 1, borderColor: colors.border, ...shadow.card }} className={`flex-row items-center px-4 ${radius.xl}`}>
+                            <View style={{ backgroundColor: colors.card, paddingVertical: s(buttonPadding.standard), borderWidth: 1, borderColor: colors.border, ...shadow.card }} className={`flex-row items-center px-4 ${radius.xl}`}>
                               <View className={`w-10 h-10 ${radius.lg} items-center justify-center mr-3`}>
-                                <SendIcon size={s(26)} />
+                                <SendIcon size={s(iconSize.lg)} />
                               </View>
                               <View className="flex-1">
                                 <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
@@ -1716,7 +1716,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
 
             {/* No Time Limit Toggle */}
             <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}>
-              <View style={{ paddingVertical: s(buttonPadding.toggleRow) }} className="flex-row items-center justify-between px-6">
+              <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
                 <TouchableOpacity onPress={() => toggleInfo('noTimeLimit')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
                   <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>No Time Limit</Text>
                   <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>Block until manually unlocked</Text>
@@ -1748,7 +1748,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
             {/* Schedule for Later Toggle */}
             <ExpandableInfo expanded={!noTimeLimit} lazy>
             <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}>
-              <View style={{ paddingVertical: s(buttonPadding.toggleRow) }} className="flex-row items-center justify-between px-6">
+              <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
                 <TouchableOpacity onPress={() => toggleInfo('schedule')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
                   <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Schedule for Later</Text>
                   <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>Set a future start and end time, with optional recurrence</Text>
@@ -1801,11 +1801,11 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                 <TouchableOpacity
                   onPress={() => openDatePicker('scheduleStart')}
                   activeOpacity={0.7}
-                  style={{ backgroundColor: colors.card, paddingVertical: s(buttonPadding.iconRow), borderWidth: 1, borderColor: colors.border, ...shadow.card }}
+                  style={{ backgroundColor: colors.card, paddingVertical: s(buttonPadding.standard), borderWidth: 1, borderColor: colors.border, ...shadow.card }}
                   className={`flex-row items-center px-4 ${radius.xl} mb-3`}
                 >
                   <View  className={`w-10 h-10 ${radius.lg} items-center justify-center mr-3`}>
-                    <CalendarIcon size={s(26)} />
+                    <CalendarIcon size={s(iconSize.lg)} />
                   </View>
                   <View className="flex-1">
                     <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
@@ -1830,10 +1830,10 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                       onPress={() => { lightTap(); setScheduleStartDate(null); }}
                       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     >
-                      <Text style={{ color: colors.text }} className={`${textSize.large}`}>✕</Text>
+                      <Text style={{ color: colors.text, fontSize: s(iconSize.md) }}>✕</Text>
                     </TouchableOpacity>
                   ) : (
-                    <ChevronRightIcon size={s(20)} color={colors.text} />
+                    <ChevronRightIcon size={s(iconSize.md)} color={colors.text} />
                   )}
                 </TouchableOpacity>
 
@@ -1841,11 +1841,11 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                 <TouchableOpacity
                   onPress={() => openDatePicker('scheduleEnd')}
                   activeOpacity={0.7}
-                  style={{ backgroundColor: colors.card, paddingVertical: s(buttonPadding.iconRow), borderWidth: 1, borderColor: colors.border, ...shadow.card }}
+                  style={{ backgroundColor: colors.card, paddingVertical: s(buttonPadding.standard), borderWidth: 1, borderColor: colors.border, ...shadow.card }}
                   className={`flex-row items-center px-4 ${radius.xl}`}
                 >
                   <View  className={`w-10 h-10 ${radius.lg} items-center justify-center mr-3`}>
-                    <FlagIcon size={s(26)} />
+                    <FlagIcon size={s(iconSize.lg)} />
                   </View>
                   <View className="flex-1">
                     <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
@@ -1870,10 +1870,10 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                       onPress={() => { lightTap(); setScheduleEndDate(null); }}
                       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     >
-                      <Text style={{ color: colors.text }} className={`${textSize.large}`}>✕</Text>
+                      <Text style={{ color: colors.text, fontSize: s(iconSize.md) }}>✕</Text>
                     </TouchableOpacity>
                   ) : (
-                    <ChevronRightIcon size={s(20)} color={colors.text} />
+                    <ChevronRightIcon size={s(iconSize.md)} color={colors.text} />
                   )}
                 </TouchableOpacity>
 
@@ -1938,11 +1938,11 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                     openDatePicker('targetDate');
                   }}
                   activeOpacity={0.7}
-                  style={{ backgroundColor: colors.card, paddingVertical: s(buttonPadding.iconRow), borderWidth: 1, borderColor: colors.border, ...shadow.card }}
+                  style={{ backgroundColor: colors.card, paddingVertical: s(buttonPadding.standard), borderWidth: 1, borderColor: colors.border, ...shadow.card }}
                   className={`flex-row items-center px-4 ${radius.xl}`}
                 >
                   <View className={`w-10 h-10 ${radius.lg} items-center justify-center mr-3`}>
-                    <CalendarIcon size={s(26)} />
+                    <CalendarIcon size={s(iconSize.lg)} />
                   </View>
                   <View className="flex-1">
                     <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
@@ -1967,10 +1967,10 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                       onPress={() => { lightTap(); setTargetDate(null); }}
                       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     >
-                      <Text style={{ color: colors.text }} className={`${textSize.large}`}>✕</Text>
+                      <Text style={{ color: colors.text, fontSize: s(iconSize.md) }}>✕</Text>
                     </TouchableOpacity>
                   ) : (
-                    <ChevronRightIcon size={s(20)} color={colors.text} />
+                    <ChevronRightIcon size={s(iconSize.md)} color={colors.text} />
                   )}
                 </TouchableOpacity>
               </View>
@@ -1981,7 +1981,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
 
             {/* Block Settings Toggle */}
             <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}>
-              <View style={{ paddingVertical: s(buttonPadding.toggleRow) }} className="flex-row items-center justify-between px-6">
+              <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
                 <TouchableOpacity onPress={() => toggleInfo('blockSettings')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
                   <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Block Settings App</Text>
                   <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>Essential settings remain accessible</Text>
@@ -2014,7 +2014,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
 
             {/* Strict Mode Toggle */}
             <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}>
-              <View style={{ paddingVertical: s(buttonPadding.toggleRow) }} className="flex-row items-center justify-between px-6">
+              <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
                 <TouchableOpacity onPress={() => toggleInfo('strictMode')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
                   <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Strict Mode</Text>
                   <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>
@@ -2062,7 +2062,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
             {/* Emergency Tapout Toggle */}
             <ExpandableInfo expanded={strictMode && !noTimeLimit} lazy>
               <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}>
-                <View style={{ paddingVertical: s(buttonPadding.toggleRow) }} className="flex-row items-center justify-between px-6">
+                <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
                   <TouchableOpacity onPress={() => toggleInfo('emergencyTapout')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
                     <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Allow Emergency Tapout</Text>
                     <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>Use your emergency tapouts for this preset</Text>
@@ -2264,7 +2264,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
               className={`${radius.xl} px-4 h-12 flex-row items-center`}
             >
-              <EditIcon size={s(18)} color={colors.textSecondary} />
+              <EditIcon size={s(iconSize.sm)} color={colors.textSecondary} />
               <TextInput
                 placeholder="Preset Name"
                 placeholderTextColor={colors.textSecondary}
@@ -2281,10 +2281,10 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
           <View className="flex-row mx-6 mb-4">
             <TouchableOpacity
               onPress={() => { lightTap(); switchTab('apps'); }}
-              style={{ backgroundColor: activeTab === 'apps' ? colors.text : colors.card, borderWidth: 1, borderColor: colors.border, paddingVertical: s(buttonPadding.tabSwitcher), ...shadow.card }}
+              style={{ backgroundColor: activeTab === 'apps' ? colors.text : colors.card, borderWidth: 1, borderColor: colors.border, paddingVertical: s(buttonPadding.standard), ...shadow.card }}
               className={`flex-1 ${radius.full} items-center justify-center flex-row`}
             >
-              <AndroidIcon size={s(26)} color={activeTab === 'apps' ? colors.bg : colors.text} />
+              <AndroidIcon size={s(iconSize.lg)} color={activeTab === 'apps' ? colors.bg : colors.text} />
               <Text style={{ color: activeTab === 'apps' ? colors.bg : colors.text, marginLeft: 6 }} className={`${textSize.small} ${fontFamily.semibold}`}>
                 Apps
               </Text>
@@ -2292,10 +2292,10 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
             <View className="w-2" />
             <TouchableOpacity
               onPress={() => { lightTap(); switchTab('websites'); }}
-              style={{ backgroundColor: activeTab === 'websites' ? colors.text : colors.card, borderWidth: 1, borderColor: colors.border, paddingVertical: s(buttonPadding.tabSwitcher), ...shadow.card }}
+              style={{ backgroundColor: activeTab === 'websites' ? colors.text : colors.card, borderWidth: 1, borderColor: colors.border, paddingVertical: s(buttonPadding.standard), ...shadow.card }}
               className={`flex-1 ${radius.full} items-center justify-center flex-row`}
             >
-              <GlobeIcon size={s(26)} color={activeTab === 'websites' ? colors.bg : colors.text} />
+              <GlobeIcon size={s(iconSize.lg)} color={activeTab === 'websites' ? colors.bg : colors.text} />
               <Text style={{ color: activeTab === 'websites' ? colors.bg : colors.text, marginLeft: 6 }} className={`${textSize.small} ${fontFamily.semibold}`}>
                 Websites
               </Text>
@@ -2310,11 +2310,11 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                   <TouchableOpacity
                     onPress={openIOSAppPicker}
                     activeOpacity={0.7}
-                    style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, paddingVertical: s(buttonPadding.lgButton), ...shadow.card }}
+                    style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, paddingVertical: s(buttonPadding.standard), ...shadow.card }}
                     className={`flex-row items-center px-4 ${radius.xl} mb-4`}
                   >
                     <View className={`w-12 h-12 ${radius.xl} items-center justify-center mr-4`}>
-                      <AppsIcon size={s(26)} color={colors.text} />
+                      <AppsIcon size={s(iconSize.lg)} color={colors.text} />
                     </View>
                     <View className="flex-1">
                       <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>
@@ -2326,7 +2326,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                           : 'Tap to choose apps'}
                       </Text>
                     </View>
-                    <ChevronRightIcon size={s(24)} color={colors.textSecondary} />
+                    <ChevronRightIcon size={s(iconSize.lg)} color={colors.textSecondary} />
                   </TouchableOpacity>
 
                   <Text style={{ color: colors.textMuted }} className={`${textSize.small} ${fontFamily.regular} text-center px-4`}>
@@ -2342,7 +2342,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                     style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
                     className={`${radius.xl} px-4 h-12 flex-row items-center`}
                   >
-                    <SearchIcon size={s(18)} color={colors.textSecondary} />
+                    <SearchIcon size={s(iconSize.sm)} color={colors.textSecondary} />
                     <TextInput
                       placeholder="Search apps..."
                       placeholderTextColor={colors.textSecondary}
@@ -2371,8 +2371,8 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                           return Array.from(newSet);
                         });
                       }}
-                      style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
-                      className={`flex-1 py-2 ${radius.full} items-center justify-center mr-2`}
+                      style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, paddingVertical: s(buttonPadding.smallStandard), ...shadow.card }}
+                      className={`flex-1 ${radius.full} items-center justify-center mr-2`}
                     >
                       <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
                         Select All
@@ -2388,8 +2388,8 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                         const filteredIds = new Set(filteredApps.map(app => app.id));
                         setSelectedApps(prev => prev.filter(id => !filteredIds.has(id)));
                       }}
-                      style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
-                      className={`flex-1 py-2 ${radius.full} items-center justify-center`}
+                      style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, paddingVertical: s(buttonPadding.smallStandard), ...shadow.card }}
+                      className={`flex-1 ${radius.full} items-center justify-center`}
                     >
                       <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.semibold}`}>
                         Deselect All
@@ -2432,7 +2432,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                     style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
                     className={`flex-1 ${radius.xl} px-4 h-12 flex-row items-center mr-2`}
                   >
-                    <GlobeIcon size={s(22)} color={colors.textSecondary} />
+                    <GlobeIcon size={s(iconSize.md)} color={colors.textSecondary} />
                     <TextInput
                       placeholder="e.g. instagram.com"
                       placeholderTextColor={colors.textSecondary}
@@ -2465,14 +2465,14 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                     className={`flex-row items-center py-3 px-4 ${radius.xl} mb-2`}
                   >
                     <View className="w-10 h-10 items-center justify-center mr-3">
-                      <GlobeIcon size={s(32)} color={colors.textSecondary} />
+                      <GlobeIcon size={s(iconSize.xl)} color={colors.textSecondary} />
                     </View>
                     <Text style={{ color: colors.text }} className={`flex-1 ${textSize.base} ${fontFamily.regular}`}>{site}</Text>
                     <TouchableOpacity
                       onPress={() => removeWebsite(site)}
                       className="p-2"
                     >
-                      <Text style={{ color: colors.text }} className={`${textSize.large}`}>✕</Text>
+                      <Text style={{ color: colors.text, fontSize: s(iconSize.md) }}>✕</Text>
                     </TouchableOpacity>
                   </View>
                 ))}

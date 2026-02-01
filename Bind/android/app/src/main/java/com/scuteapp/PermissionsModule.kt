@@ -177,6 +177,75 @@ class PermissionsModule(reactContext: ReactApplicationContext) :
     }
 
     /**
+     * Request device admin activation
+     */
+    @ReactMethod
+    fun requestDeviceAdmin(promise: Promise) {
+        try {
+            val activity = reactApplicationContext.currentActivity
+            if (activity == null) {
+                promise.reject("ERROR", "No current activity")
+                return
+            }
+            val adminComponent = ComponentName(reactApplicationContext, BindDeviceAdminReceiver::class.java)
+            val intent = Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN).apply {
+                putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, adminComponent)
+                putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION, "Scute needs device admin to prevent uninstallation during blocking sessions.")
+            }
+            activity.startActivity(intent)
+            promise.resolve(true)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error requesting device admin", e)
+            promise.reject("ERROR", "Failed to request device admin: ${e.message}")
+        }
+    }
+
+    /**
+     * Open usage access settings, highlighting this app
+     */
+    @ReactMethod
+    fun openUsageAccessSettings(promise: Promise) {
+        try {
+            val intent = Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS).apply {
+                data = Uri.parse("package:${reactApplicationContext.packageName}")
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            reactApplicationContext.startActivity(intent)
+            promise.resolve(true)
+        } catch (e: Exception) {
+            // Some devices don't support the package URI, fall back without it
+            try {
+                val fallbackIntent = Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                reactApplicationContext.startActivity(fallbackIntent)
+                promise.resolve(true)
+            } catch (e2: Exception) {
+                Log.e(TAG, "Error opening usage access settings", e2)
+                promise.reject("ERROR", "Failed to open usage access settings: ${e2.message}")
+            }
+        }
+    }
+
+    /**
+     * Open overlay permission settings, highlighting this app
+     */
+    @ReactMethod
+    fun openOverlaySettings(promise: Promise) {
+        try {
+            val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION).apply {
+                data = Uri.parse("package:${reactApplicationContext.packageName}")
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            reactApplicationContext.startActivity(intent)
+            promise.resolve(true)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error opening overlay settings", e)
+            promise.reject("ERROR", "Failed to open overlay settings: ${e.message}")
+        }
+    }
+
+    /**
      * Open the alarms & reminders permission settings screen
      */
     @ReactMethod

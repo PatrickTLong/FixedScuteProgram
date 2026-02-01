@@ -51,7 +51,7 @@ function MembershipScreen({ onPurchaseComplete }: Props) {
             backgroundColor: colors.card,
             borderWidth: 2,
             borderColor: selectedPlan === 'monthly' ? colors.text : 'transparent',
-            padding: s(buttonPadding.settingsRow),
+            padding: s(buttonPadding.standard),
             ...shadow.card,
           }}
           className={`${radius['2xl']} mb-3`}
@@ -80,7 +80,7 @@ function MembershipScreen({ onPurchaseComplete }: Props) {
             backgroundColor: colors.card,
             borderWidth: 2,
             borderColor: selectedPlan === 'yearly' ? colors.text : 'transparent',
-            padding: s(buttonPadding.settingsRow),
+            padding: s(buttonPadding.standard),
             ...shadow.card,
           }}
           className={`${radius['2xl']} mb-3`}
@@ -89,7 +89,7 @@ function MembershipScreen({ onPurchaseComplete }: Props) {
             <View className="flex-1">
               <View className="flex-row items-center">
                 <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.bold}`}>Yearly</Text>
-                <View style={{ backgroundColor: colors.border }} className={`ml-2 px-2 py-0.5 ${radius.full}`}>
+                <View style={{ backgroundColor: colors.border, ...shadow.card }} className={`ml-2 px-2 py-0.5 ${radius.full}`}>
                   <Text className={`${textSize.extraSmall} ${fontFamily.bold} text-white`}>Save 29%</Text>
                 </View>
               </View>
@@ -114,7 +114,7 @@ function MembershipScreen({ onPurchaseComplete }: Props) {
             backgroundColor: colors.card,
             borderWidth: 2,
             borderColor: selectedPlan === 'lifetime' ? colors.text : 'transparent',
-            padding: s(buttonPadding.settingsRow),
+            padding: s(buttonPadding.standard),
             ...shadow.card,
           }}
           className={`${radius['2xl']} mb-6`}
@@ -123,7 +123,7 @@ function MembershipScreen({ onPurchaseComplete }: Props) {
             <View className="flex-1">
               <View className="flex-row items-center">
                 <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.bold}`}>Lifetime</Text>
-                <View style={{ backgroundColor: colors.border }} className={`ml-2 px-2 py-0.5 ${radius.full}`}>
+                <View style={{ backgroundColor: colors.border, ...shadow.card }} className={`ml-2 px-2 py-0.5 ${radius.full}`}>
                   <Text className={`${textSize.extraSmall} ${fontFamily.bold} text-white`}>Best Value</Text>
                 </View>
               </View>

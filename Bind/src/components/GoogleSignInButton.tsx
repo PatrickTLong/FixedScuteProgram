@@ -116,7 +116,7 @@ export default function GoogleSignInBtn({ onSuccess, onError, disabled }: Props)
         backgroundColor: colors.card,
         position: 'relative',
         borderWidth: 1, borderColor: colors.border,
-        paddingVertical: s(buttonPadding.lgButton),
+        paddingVertical: s(buttonPadding.standard),
         ...shadow.card,
       }}
       className={`${radius.full} items-center justify-center`}

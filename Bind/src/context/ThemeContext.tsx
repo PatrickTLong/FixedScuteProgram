@@ -43,19 +43,15 @@ export const iconSize = {
 
 // Button padding sizes (use inside s() for responsive scaling)
 export const buttonPadding = {
-  iconRow: 14,         // Icon row buttons (calendar, flag, clock, repeat, send, etc.)
-  settingsRow: 16,     // Settings screen row buttons
-  toggleRow: 20,       // Toggle section rows (no time limit, schedule, strict mode, etc.)
+  standard: 16,        // All buttons, rows, toggles, icon buttons, list items, etc.
+  smallStandard: 10,    // Compact buttons (select all, deselect all, etc.)
   tabItem: 8,          // Bottom tab bar items
-  tabSwitcher: 12,     // Tab switcher buttons (apps/websites tabs)
-  appListItem: 12,     // Android app list row items in PresetEditModal
-  lgButton: 16,        // Large buttons (google sign-in, iOS app picker, etc.)
 } as const;
 
 // Border radius classes
 export const radius = {
-  lg: 'rounded-lg',
-  xl: 'rounded-xl',
+  lg: 'rounded-2xl',
+  xl: 'rounded-2xl',
   '2xl': 'rounded-2xl',
   full: 'rounded-full',
 } as const;
