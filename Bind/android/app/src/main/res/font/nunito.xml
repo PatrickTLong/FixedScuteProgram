@@ -29,13 +29,4 @@
         app:fontStyle="normal"
         app:fontWeight="600" />
 
-    <!-- Bold -->
-    <font
-        android:font="@font/nunito_bold"
-        android:fontStyle="normal"
-        android:fontWeight="700"
-        app:font="@font/nunito_bold"
-        app:fontStyle="normal"
-        app:fontWeight="700" />
-
 </font-family>

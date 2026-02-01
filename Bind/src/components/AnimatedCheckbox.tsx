@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, memo } from 'react';
 import { Animated, View, Easing } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import { useTheme, iconSize } from '../context/ThemeContext';
+import { iconSize } from '../context/ThemeContext';
 
 interface AnimatedCheckboxProps {
   checked: boolean;
@@ -18,7 +18,7 @@ function AnimatedCheckbox({
   disabled = false,
   skipAnimation = false,
 }: AnimatedCheckboxProps) {
-  const { colors } = useTheme();
+  const borderBump = '#434346';
   const animatedValue = useRef(new Animated.Value(checked ? 1 : 0)).current;
 
   useEffect(() => {
@@ -71,7 +71,7 @@ function AnimatedCheckbox({
           height: size,
           borderRadius: size * 0.17,
           borderWidth: 2,
-          borderColor: colors.border,
+          borderColor: borderBump,
           opacity: uncheckedOpacity,
         }}
       />

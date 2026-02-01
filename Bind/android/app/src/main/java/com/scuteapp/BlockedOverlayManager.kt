@@ -106,14 +106,10 @@ class BlockedOverlayManager(private val context: Context) {
                 }
 
                 // Flags for instant appearance and full coverage
-                // FLAG_NOT_FOCUSABLE is NOT set - this makes the overlay focusable and able to receive input
-                // FLAG_NOT_TOUCH_MODAL prevents touches from passing through to underlying windows
+                // FLAG_NOT_FOCUSABLE is NOT set - this makes the overlay focusable and captures all touches
                 // FLAG_FULLSCREEN hides the Android navigation bar (back/home/recents buttons)
                 // FLAG_ALT_FOCUSABLE_IM prevents keyboard from pushing/adjusting the overlay
-                // This combination ensures the overlay captures ALL touch events and blocks interaction
-                // with the underlying screen until dismissed
-                flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
-                        WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+                flags = WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
                         WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
                         WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
                         WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON or

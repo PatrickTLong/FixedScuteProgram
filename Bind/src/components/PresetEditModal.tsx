@@ -507,18 +507,11 @@ const SearchIcon = ({ size = iconSize.lg, color = '#FFFFFF' }: { size?: number; 
   </Svg>
 );
 
-// Edit icon (Feather)
+// Edit icon (Feather edit-2)
 const EditIcon = ({ size = iconSize.lg, color = '#FFFFFF' }: { size?: number; color?: string }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Path
-      d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
-      stroke={color}
-      strokeWidth={2.5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <Path
-      d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
+      d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"
       stroke={color}
       strokeWidth={2.5}
       strokeLinecap="round"
@@ -2281,7 +2274,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
           <View className="flex-row mx-6 mb-4">
             <TouchableOpacity
               onPress={() => { lightTap(); switchTab('apps'); }}
-              style={{ backgroundColor: activeTab === 'apps' ? colors.text : colors.card, borderWidth: 1, borderColor: colors.border, paddingVertical: s(buttonPadding.standard), ...shadow.card }}
+              style={{ backgroundColor: activeTab === 'apps' ? colors.text : colors.card, borderWidth: 1, borderColor: colors.border, paddingVertical: s(buttonPadding.smallStandard), ...shadow.card }}
               className={`flex-1 ${radius.full} items-center justify-center flex-row`}
             >
               <AndroidIcon size={s(iconSize.lg)} color={activeTab === 'apps' ? colors.bg : colors.text} />
@@ -2292,7 +2285,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
             <View className="w-2" />
             <TouchableOpacity
               onPress={() => { lightTap(); switchTab('websites'); }}
-              style={{ backgroundColor: activeTab === 'websites' ? colors.text : colors.card, borderWidth: 1, borderColor: colors.border, paddingVertical: s(buttonPadding.standard), ...shadow.card }}
+              style={{ backgroundColor: activeTab === 'websites' ? colors.text : colors.card, borderWidth: 1, borderColor: colors.border, paddingVertical: s(buttonPadding.smallStandard), ...shadow.card }}
               className={`flex-1 ${radius.full} items-center justify-center flex-row`}
             >
               <GlobeIcon size={s(iconSize.lg)} color={activeTab === 'websites' ? colors.bg : colors.text} />
