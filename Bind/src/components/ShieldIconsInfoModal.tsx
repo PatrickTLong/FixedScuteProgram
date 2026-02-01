@@ -6,7 +6,7 @@ import {
   Modal,
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius, shadow, iconSize } from '../context/ThemeContext';
 import { lightTap } from '../utils/haptics';
 import { useResponsive } from '../utils/responsive';
 
@@ -16,7 +16,7 @@ interface ShieldIconsInfoModalProps {
 }
 
 // Bookmark icon (Feather Icons) for scheduled presets
-const BookmarkIcon = ({ color, size = 24 }: { color: string; size?: number }) => (
+const BookmarkIcon = ({ color, size = iconSize.lg }: { color: string; size?: number }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Path
       d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"
@@ -29,7 +29,7 @@ const BookmarkIcon = ({ color, size = 24 }: { color: string; size?: number }) =>
 );
 
 // Rotate CW icon (Feather Icons) for recurring presets
-const RotateCwIcon = ({ color, size = 24 }: { color: string; size?: number }) => (
+const RotateCwIcon = ({ color, size = iconSize.lg }: { color: string; size?: number }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Path
       d="M23 4v6h-6"

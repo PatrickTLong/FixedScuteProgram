@@ -15,7 +15,7 @@ import Svg, { Path } from 'react-native-svg';
 import ConfirmationModal from '../components/ConfirmationModal';
 import EmailConfirmationModal from '../components/EmailConfirmationModal';
 import { getLockStatus, getEmergencyTapoutStatus, EmergencyTapoutStatus, getCachedLockStatus, getCachedTapoutStatus, getMembershipStatus, MembershipStatus, getCachedMembershipStatus } from '../services/cardApi';
-import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius, shadow, iconSize, buttonPadding } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { lightTap } from '../utils/haptics';
 
@@ -27,7 +27,7 @@ interface Props {
 }
 
 // Icons - white with thicker strokes
-const PlayStoreIcon = ({ size = 24 }: { size?: number }) => (
+const PlayStoreIcon = ({ size = iconSize.lg }: { size?: number }) => (
   <Svg width={size} height={size} viewBox="0 0 466 511.98">
     <Path fill="#EA4335" fillRule="nonzero" d="M199.9 237.8l-198.5 232.37c7.22,24.57 30.16,41.81 55.8,41.81 11.16,0 20.93,-2.79 29.3,-8.37l0 0 244.16 -139.46 -130.76 -126.35z"/>
     <Path fill="#FBBC04" fillRule="nonzero" d="M433.91 205.1l0 0 -104.65 -60 -111.61 110.22 113.01 108.83 104.64 -58.6c18.14,-9.77 30.7,-29.3 30.7,-50.23 -1.4,-20.93 -13.95,-40.46 -32.09,-50.22z"/>
@@ -37,7 +37,7 @@ const PlayStoreIcon = ({ size = 24 }: { size?: number }) => (
 );
 
 const MailIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
-  <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+  <Svg width={iconSize.md} height={iconSize.md} viewBox="0 0 24 24" fill="none">
     <Path
       d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
       stroke={color}
@@ -56,7 +56,7 @@ const MailIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
 );
 
 const MembershipIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
-  <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+  <Svg width={iconSize.md} height={iconSize.md} viewBox="0 0 24 24" fill="none">
     <Path
       d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"
       stroke={color}
@@ -89,7 +89,7 @@ const MembershipIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
 );
 
 const LogoutIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
-  <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+  <Svg width={iconSize.md} height={iconSize.md} viewBox="0 0 24 24" fill="none">
     <Path
       d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"
       stroke={color}
@@ -101,7 +101,7 @@ const LogoutIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
 );
 
 const RefreshIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
-  <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+  <Svg width={iconSize.md} height={iconSize.md} viewBox="0 0 24 24" fill="none">
     <Path
       d="M23 4v6h-6M1 20v-6h6"
       stroke={color}
@@ -120,7 +120,7 @@ const RefreshIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
 );
 
 const CardIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
-  <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+  <Svg width={iconSize.md} height={iconSize.md} viewBox="0 0 24 24" fill="none">
     <Path
       d="M20 4H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V6a2 2 0 00-2-2zM2 10h20"
       stroke={color}
@@ -132,7 +132,7 @@ const CardIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
 );
 
 const TrashIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
-  <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+  <Svg width={iconSize.md} height={iconSize.md} viewBox="0 0 24 24" fill="none">
     <Path
       d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"
       stroke={color}
@@ -144,7 +144,7 @@ const TrashIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
 );
 
 const MessageIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
-  <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+  <Svg width={iconSize.md} height={iconSize.md} viewBox="0 0 24 24" fill="none">
     <Path
       d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2v10z"
       stroke={color}
@@ -156,7 +156,7 @@ const MessageIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
 );
 
 const BugIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
-  <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+  <Svg width={iconSize.md} height={iconSize.md} viewBox="0 0 24 24" fill="none">
     <Path
       d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0zM12 9v4M12 17h.01"
       stroke={color}
@@ -168,7 +168,7 @@ const BugIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
 );
 
 const SunIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
-  <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+  <Svg width={iconSize.md} height={iconSize.md} viewBox="0 0 24 24" fill="none">
     <Path
       d="M12 17a5 5 0 100-10 5 5 0 000 10zM12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"
       stroke={color}
@@ -180,7 +180,7 @@ const SunIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
 );
 
 const UnlockIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
-  <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+  <Svg width={iconSize.md} height={iconSize.md} viewBox="0 0 24 24" fill="none">
     <Path
       d="M19 11H5a2 2 0 00-2 2v7a2 2 0 002 2h14a2 2 0 002-2v-7a2 2 0 00-2-2z"
       stroke={color}
@@ -199,7 +199,7 @@ const UnlockIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
 );
 
 const ShieldIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
-  <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+  <Svg width={iconSize.md} height={iconSize.md} viewBox="0 0 24 24" fill="none">
     <Path
       d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"
       stroke={color}
@@ -211,7 +211,7 @@ const ShieldIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
 );
 
 const FileTextIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
-  <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+  <Svg width={iconSize.md} height={iconSize.md} viewBox="0 0 24 24" fill="none">
     <Path
       d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"
       stroke={color}
@@ -230,7 +230,7 @@ const FileTextIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
 );
 
 // Chevron right icon - matches PresetEditModal
-const ChevronRightIcon = ({ size = 24, color = "#FFFFFF" }: { size?: number; color?: string }) => (
+const ChevronRightIcon = ({ size = iconSize.lg, color = "#FFFFFF" }: { size?: number; color?: string }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Path
       d="M9 18l6-6-6-6"
@@ -243,7 +243,7 @@ const ChevronRightIcon = ({ size = 24, color = "#FFFFFF" }: { size?: number; col
 );
 
 const TapoutIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
-  <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+  <Svg width={iconSize.md} height={iconSize.md} viewBox="0 0 24 24" fill="none">
     <Path
       d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0zM12 9v4M12 17h.01"
       stroke={color}
@@ -285,7 +285,7 @@ const SettingsRow = ({
     onPress={() => { if (onPress) { lightTap(); onPress(); } }}
     disabled={!onPress}
     activeOpacity={onPress ? 0.7 : 1}
-    style={!isLast ? { borderBottomWidth: 1, borderBottomColor: borderColor, paddingVertical: s(16) } : { paddingVertical: s(16) }}
+    style={!isLast ? { borderBottomWidth: 1, borderBottomColor: borderColor, paddingVertical: s(buttonPadding.settingsRow) } : { paddingVertical: s(buttonPadding.settingsRow) }}
     className="flex-row items-center px-4"
   >
     <View className="mr-4">{icon}</View>
@@ -542,7 +542,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
           {/* Membership Row with Trial Countdown */}
           <TouchableOpacity
             onPress={() => { lightTap(); setMembershipModalVisible(true); }}
-            style={{ borderBottomWidth: 1, borderBottomColor: colors.divider, paddingVertical: s(16) }}
+            style={{ borderBottomWidth: 1, borderBottomColor: colors.divider, paddingVertical: s(buttonPadding.settingsRow) }}
             className="px-4"
           >
             <View className="flex-row items-center">
@@ -585,7 +585,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
         <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }} className={`${radius['2xl']} mb-6`}>
           {/* Header Row */}
           <View
-            style={getTimeUntilRefill() ? { borderBottomWidth: 1, borderBottomColor: colors.divider, paddingVertical: s(16) } : { paddingVertical: s(16) }}
+            style={getTimeUntilRefill() ? { borderBottomWidth: 1, borderBottomColor: colors.divider, paddingVertical: s(buttonPadding.settingsRow) } : { paddingVertical: s(buttonPadding.settingsRow) }}
             className="flex-row items-center px-4"
           >
             <View className="mr-4">
@@ -604,7 +604,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
 
           {/* Refill Timer Row - shows when below 3 tapouts */}
           {tapoutStatus && getTimeUntilRefill() && (
-            <View style={{ paddingVertical: s(16) }} className="flex-row items-center justify-between px-4">
+            <View style={{ paddingVertical: s(buttonPadding.settingsRow) }} className="flex-row items-center justify-between px-4">
               <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular}`}>Next Refill</Text>
               <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
                 {getTimeUntilRefill()}
@@ -1001,7 +1001,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
             {/* Only show back button if trial hasn't expired */}
             {!membershipStatus?.trialExpired ? (
               <TouchableOpacity onPress={() => { lightTap(); setMembershipModalVisible(false); }} className="w-16">
-                <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
+                <Svg width={iconSize.lg} height={iconSize.lg} viewBox="0 0 24 24" fill="none">
                   <Path
                     d="M19 12H5M12 19l-7-7 7-7"
                     stroke={colors.text}
@@ -1037,7 +1037,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
                 backgroundColor: colors.card,
                 borderWidth: 2,
                 borderColor: selectedPlan === 'monthly' ? colors.text : 'transparent',
-                padding: s(16),
+                padding: s(buttonPadding.settingsRow),
                 ...shadow.card,
               }}
               className={`${radius['2xl']} mb-3`}
@@ -1066,7 +1066,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
                 backgroundColor: colors.card,
                 borderWidth: 2,
                 borderColor: selectedPlan === 'yearly' ? colors.text : 'transparent',
-                padding: s(16),
+                padding: s(buttonPadding.settingsRow),
                 ...shadow.card,
               }}
               className={`${radius['2xl']} mb-3`}
@@ -1100,7 +1100,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
                 backgroundColor: colors.card,
                 borderWidth: 2,
                 borderColor: selectedPlan === 'lifetime' ? colors.text : 'transparent',
-                padding: s(16),
+                padding: s(buttonPadding.settingsRow),
                 ...shadow.card,
               }}
               className={`${radius['2xl']} mb-6`}

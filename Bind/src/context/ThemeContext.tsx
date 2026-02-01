@@ -32,6 +32,26 @@ export const fontForSize = {
   '4xLarge': fontFamily.semibold,      // text-4xl → semibold
 } as const;
 
+// Icon sizes (use inside s() for responsive scaling)
+export const iconSize = {
+  xs: 16,      // Small badge icons (preset card badges, settings row arrows)
+  sm: 18,      // Tab icons in PresetEditModal (apps, globe, android)
+  md: 20,      // Settings row icons, search icons, eye icons, alert icons
+  lg: 24,      // Navigation arrows, chevrons, action icons, tab bar icons
+  xl: 28,      // Info modal display icons
+} as const;
+
+// Button padding sizes (use inside s() for responsive scaling)
+export const buttonPadding = {
+  iconRow: 14,         // Icon row buttons (calendar, flag, clock, repeat, send, etc.)
+  settingsRow: 16,     // Settings screen row buttons
+  toggleRow: 20,       // Toggle section rows (no time limit, schedule, strict mode, etc.)
+  tabItem: 8,          // Bottom tab bar items
+  tabSwitcher: 12,     // Tab switcher buttons (apps/websites tabs)
+  appListItem: 12,     // Android app list row items in PresetEditModal
+  lgButton: 16,        // Large buttons (google sign-in, iOS app picker, etc.)
+} as const;
+
 // Border radius classes
 export const radius = {
   lg: 'rounded-lg',

@@ -11,7 +11,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { setAuthToken } from '../services/cardApi';
 import { API_URL } from '../config/api';
 import { lightTap } from '../utils/haptics';
-import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius, shadow, buttonPadding, iconSize } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 
 interface Props {
@@ -21,7 +21,7 @@ interface Props {
 }
 
 // Google "G" Logo SVG
-const GoogleLogo = ({ size = 20 }: { size?: number }) => (
+const GoogleLogo = ({ size = iconSize.md }: { size?: number }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24">
     <Path
       d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -116,9 +116,10 @@ export default function GoogleSignInBtn({ onSuccess, onError, disabled }: Props)
         backgroundColor: colors.card,
         position: 'relative',
         borderWidth: 1, borderColor: colors.border,
+        paddingVertical: s(buttonPadding.lgButton),
         ...shadow.card,
       }}
-      className={`${radius.full} py-4 items-center justify-center`}
+      className={`${radius.full} items-center justify-center`}
     >
       <View style={{ opacity: loading ? 0 : 1 }} className="flex-row items-center justify-center">
         <View className="mr-3">

@@ -10,11 +10,11 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { lightTap } from '../utils/haptics';
-import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius, shadow, iconSize, buttonPadding } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import Svg, { Path } from 'react-native-svg';
 
-const ChevronRightIcon = ({ size = 24, color = "#FFFFFF" }: { size?: number; color?: string }) => (
+const ChevronRightIcon = ({ size = iconSize.lg, color = "#FFFFFF" }: { size?: number; color?: string }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Path
       d="M9 18l6-6-6-6"
@@ -26,7 +26,7 @@ const ChevronRightIcon = ({ size = 24, color = "#FFFFFF" }: { size?: number; col
   </Svg>
 );
 
-const ChevronLeftIcon = ({ size = 24, color = "#FFFFFF" }: { size?: number; color?: string }) => (
+const ChevronLeftIcon = ({ size = iconSize.lg, color = "#FFFFFF" }: { size?: number; color?: string }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Path
       d="M15 18l-6-6 6-6"
@@ -567,7 +567,7 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
 
           {/* Time Picker */}
           {tempSelectedDate && (
-            <View style={{ borderTopWidth: 1, borderTopColor: colors.divider, marginHorizontal: s(-24), paddingHorizontal: s(24), paddingVertical: s(20) }}>
+            <View style={{ borderTopWidth: 1, borderTopColor: colors.divider, marginHorizontal: s(-24), paddingHorizontal: s(24), paddingVertical: s(buttonPadding.toggleRow) }}>
               <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} tracking-wider mb-3`}>
                 Time
               </Text>
@@ -611,7 +611,7 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
           )}
 
           {/* Selected Date/Time Display */}
-          <View style={{ borderTopWidth: 1, borderTopColor: colors.divider, marginHorizontal: s(-24), paddingHorizontal: s(24), paddingVertical: s(20) }}>
+          <View style={{ borderTopWidth: 1, borderTopColor: colors.divider, marginHorizontal: s(-24), paddingHorizontal: s(24), paddingVertical: s(buttonPadding.toggleRow) }}>
             <View className="flex-row justify-between items-center">
               <View>
                 <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.regular} mb-1`}>Selected</Text>

@@ -15,7 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 // Eye icons for password visibility
 const EyeIcon = ({ color }: { color: string }) => (
-  <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+  <Svg width={iconSize.md} height={iconSize.md} viewBox="0 0 24 24" fill="none">
     <Path
       d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
       stroke={color}
@@ -34,7 +34,7 @@ const EyeIcon = ({ color }: { color: string }) => (
 );
 
 const EyeOffIcon = ({ color }: { color: string }) => (
-  <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+  <Svg width={iconSize.md} height={iconSize.md} viewBox="0 0 24 24" fill="none">
     <Path
       d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"
       stroke={color}
@@ -55,7 +55,7 @@ import ProgressBar from '../components/ProgressBar';
 import BackButton from '../components/BackButton';
 import InfoModal from '../components/InfoModal';
 import OTPInput from '../components/OTPInput';
-import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius, shadow, iconSize } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { API_URL } from '../config/api';
 import { lightTap } from '../utils/haptics';

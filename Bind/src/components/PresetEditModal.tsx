@@ -35,7 +35,7 @@ import StrictModeWarningModal from './StrictModeWarningModal';
 import { Preset } from './PresetCard';
 import { getEmergencyTapoutStatus, setEmergencyTapoutEnabled } from '../services/cardApi';
 import { lightTap, mediumTap } from '../utils/haptics';
-import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius, shadow, iconSize, buttonPadding } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 
 const SCHEDULE_INFO_DISMISSED_KEY = 'schedule_info_dismissed';
@@ -48,7 +48,7 @@ const STRICT_MODE_WARNING_DISMISSED_KEY = 'strict_mode_warning_dismissed';
 // Recurring schedule unit types
 type RecurringUnit = 'minutes' | 'hours' | 'days' | 'weeks' | 'months';
 
-const ChevronLeftIcon = ({ size = 24, color = "#FFFFFF" }: { size?: number; color?: string }) => (
+const ChevronLeftIcon = ({ size = iconSize.lg, color = "#FFFFFF" }: { size?: number; color?: string }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Path
       d="M15 18l-6-6 6-6"
@@ -383,7 +383,7 @@ async function loadInstalledAppsOnce(): Promise<InstalledApp[]> {
 }
 
 // Calendar icon
-const CalendarIcon = ({ size = 24, color = '#FFFFFF' }: { size?: number; color?: string }) => (
+const CalendarIcon = ({ size = iconSize.lg, color = '#FFFFFF' }: { size?: number; color?: string }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Rect
       x="3"
@@ -407,7 +407,7 @@ const CalendarIcon = ({ size = 24, color = '#FFFFFF' }: { size?: number; color?:
 );
 
 // Flag icon (for end date)
-const FlagIcon = ({ size = 24, color = '#FFFFFF' }: { size?: number; color?: string }) => (
+const FlagIcon = ({ size = iconSize.lg, color = '#FFFFFF' }: { size?: number; color?: string }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Path
       d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1zM4 22v-7"
@@ -420,7 +420,7 @@ const FlagIcon = ({ size = 24, color = '#FFFFFF' }: { size?: number; color?: str
 );
 
 // Chevron right icon
-const ChevronRightIcon = ({ size = 24, color = "#9CA3AF" }: { size?: number; color?: string }) => (
+const ChevronRightIcon = ({ size = iconSize.lg, color = "#9CA3AF" }: { size?: number; color?: string }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Path
       d="M9 18l6-6-6-6"
@@ -449,7 +449,7 @@ const ExpandableInfo = ({ expanded, children, lazy = false }: { expanded: boolea
 
 
 // Apps/Grid icon for Apps tab
-const AppsIcon = ({ size = 18, color = "#FFFFFF" }: { size?: number; color?: string }) => (
+const AppsIcon = ({ size = iconSize.sm, color = "#FFFFFF" }: { size?: number; color?: string }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Rect x="3" y="3" width="7" height="7" rx="1.5" stroke={color} strokeWidth={2} />
     <Rect x="14" y="3" width="7" height="7" rx="1.5" stroke={color} strokeWidth={2} />
@@ -459,7 +459,7 @@ const AppsIcon = ({ size = 18, color = "#FFFFFF" }: { size?: number; color?: str
 );
 
 // Globe icon for Websites tab
-const GlobeIcon = ({ size = 18, color = "#FFFFFF" }: { size?: number; color?: string }) => (
+const GlobeIcon = ({ size = iconSize.sm, color = "#FFFFFF" }: { size?: number; color?: string }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Path
       d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0 1 12 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 0 1 3 12c0-1.605.42-3.113 1.157-4.418"
@@ -472,7 +472,7 @@ const GlobeIcon = ({ size = 18, color = "#FFFFFF" }: { size?: number; color?: st
 );
 
 // Android icon for Apps tab
-const AndroidIcon = ({ size = 18, color = "#FFFFFF" }: { size?: number; color?: string }) => (
+const AndroidIcon = ({ size = iconSize.sm, color = "#FFFFFF" }: { size?: number; color?: string }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Path
       d="M17.6 9.48l1.84-3.18c.16-.31.04-.69-.26-.85a.637.637 0 0 0-.83.22l-1.88 3.24a11.46 11.46 0 0 0-8.94 0L5.65 5.67a.643.643 0 0 0-.87-.2c-.28.18-.37.54-.22.83L6.4 9.48C3.3 11.25 1.28 14.44 1 18h22c-.28-3.56-2.3-6.75-5.4-8.52M7 15.25a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5m10 0a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5"
@@ -482,7 +482,7 @@ const AndroidIcon = ({ size = 18, color = "#FFFFFF" }: { size?: number; color?: 
 );
 
 // Send icon (Feather send) - for next occurrence
-const SendIcon = ({ size = 24, color = '#FFFFFF' }: { size?: number; color?: string }) => (
+const SendIcon = ({ size = iconSize.lg, color = '#FFFFFF' }: { size?: number; color?: string }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Path
       d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"
@@ -495,7 +495,7 @@ const SendIcon = ({ size = 24, color = '#FFFFFF' }: { size?: number; color?: str
 );
 
 // Search icon (Feather)
-const SearchIcon = ({ size = 24, color = '#FFFFFF' }: { size?: number; color?: string }) => (
+const SearchIcon = ({ size = iconSize.lg, color = '#FFFFFF' }: { size?: number; color?: string }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Path
       d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.35-4.35"
@@ -508,7 +508,7 @@ const SearchIcon = ({ size = 24, color = '#FFFFFF' }: { size?: number; color?: s
 );
 
 // Edit icon (Feather)
-const EditIcon = ({ size = 24, color = '#FFFFFF' }: { size?: number; color?: string }) => (
+const EditIcon = ({ size = iconSize.lg, color = '#FFFFFF' }: { size?: number; color?: string }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Path
       d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
@@ -528,7 +528,7 @@ const EditIcon = ({ size = 24, color = '#FFFFFF' }: { size?: number; color?: str
 );
 
 // Repeat/Recurrence icon
-const RotateCwIcon = ({ size = 24, color = '#FFFFFF' }: { size?: number; color?: string }) => (
+const RotateCwIcon = ({ size = iconSize.lg, color = '#FFFFFF' }: { size?: number; color?: string }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Path
       d="M23 4v6h-6"
@@ -548,7 +548,7 @@ const RotateCwIcon = ({ size = 24, color = '#FFFFFF' }: { size?: number; color?:
 );
 
 // Clock icon for recurring unit selector
-const ClockIcon = ({ size = 24, color = '#FFFFFF' }: { size?: number; color?: string }) => (
+const ClockIcon = ({ size = iconSize.lg, color = '#FFFFFF' }: { size?: number; color?: string }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Path
       d="M12 2a10 10 0 100 20 10 10 0 000-20z"
@@ -1219,8 +1219,8 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
       <TouchableOpacity
         onPress={() => toggleApp(item.id)}
         activeOpacity={0.7}
-        style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
-        className={`flex-row items-center py-3 px-4 ${radius.xl} mb-2`}
+        style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, paddingVertical: s(buttonPadding.appListItem), ...shadow.card }}
+        className={`flex-row items-center px-4 ${radius.xl} mb-2`}
       >
         {/* App Icon - native already provides squircle shape */}
         {item.icon ? (
@@ -1399,7 +1399,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               )}
 
               {/* Selected Date/Time Display */}
-              <View style={{ borderTopWidth: 1, borderTopColor: colors.dividerLight, marginHorizontal: s(-24), paddingHorizontal: s(24), paddingVertical: s(20) }} className="mt-6">
+              <View style={{ borderTopWidth: 1, borderTopColor: colors.dividerLight, marginHorizontal: s(-24), paddingHorizontal: s(24), paddingVertical: s(buttonPadding.toggleRow) }} className="mt-6">
                 <View className="flex-row justify-between items-center">
                   <View>
                     <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.regular} mb-1`}>Selected</Text>
@@ -1426,7 +1426,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               {datePickerTarget === 'scheduleEnd' && scheduleStartDate && (
                 <View style={{ borderTopWidth: 1, borderTopColor: colors.dividerLight, marginHorizontal: s(-24), paddingHorizontal: s(24) }}>
                   <View style={{ marginHorizontal: s(-24) }}>
-                    <View style={{ paddingVertical: s(20) }} className="flex-row items-center justify-between px-6">
+                    <View style={{ paddingVertical: s(buttonPadding.toggleRow) }} className="flex-row items-center justify-between px-6">
                       <TouchableOpacity onPress={() => toggleInfo('recurring')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
                         <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Recurring Schedule</Text>
                         <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>Repeat this block automatically</Text>
@@ -1470,7 +1470,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
 
                         {/* Number Input */}
                         <View
-                          style={{ backgroundColor: colors.card, paddingVertical: s(14), borderWidth: 1, borderColor: colors.border, ...shadow.card }}
+                          style={{ backgroundColor: colors.card, paddingVertical: s(buttonPadding.iconRow), borderWidth: 1, borderColor: colors.border, ...shadow.card }}
                           className={`flex-row items-center px-4 ${radius.xl} mb-3`}
                         >
                           <View className={`w-10 h-10 ${radius.lg} items-center justify-center mr-3`}>
@@ -1503,7 +1503,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                             setRecurringUnitModalVisible(true);
                           }}
                           activeOpacity={0.7}
-                          style={{ backgroundColor: colors.card, paddingVertical: s(14), borderWidth: 1, borderColor: colors.border, ...shadow.card }}
+                          style={{ backgroundColor: colors.card, paddingVertical: s(buttonPadding.iconRow), borderWidth: 1, borderColor: colors.border, ...shadow.card }}
                           className={`flex-row items-center px-4 ${radius.xl} mb-3`}
                         >
                           <View className={`w-10 h-10 ${radius.lg} items-center justify-center mr-3`}>
@@ -1575,7 +1575,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                               <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular} mb-3`}>
                                 {`End: ${pendingEndDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} ${pendingEndDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`}
                               </Text>
-                            <View style={{ backgroundColor: colors.card, paddingVertical: s(14), borderWidth: 1, borderColor: colors.border, ...shadow.card }} className={`flex-row items-center px-4 ${radius.xl}`}>
+                            <View style={{ backgroundColor: colors.card, paddingVertical: s(buttonPadding.iconRow), borderWidth: 1, borderColor: colors.border, ...shadow.card }} className={`flex-row items-center px-4 ${radius.xl}`}>
                               <View className={`w-10 h-10 ${radius.lg} items-center justify-center mr-3`}>
                                 <SendIcon size={s(26)} />
                               </View>
@@ -1716,7 +1716,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
 
             {/* No Time Limit Toggle */}
             <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}>
-              <View style={{ paddingVertical: s(20) }} className="flex-row items-center justify-between px-6">
+              <View style={{ paddingVertical: s(buttonPadding.toggleRow) }} className="flex-row items-center justify-between px-6">
                 <TouchableOpacity onPress={() => toggleInfo('noTimeLimit')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
                   <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>No Time Limit</Text>
                   <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>Block until manually unlocked</Text>
@@ -1748,7 +1748,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
             {/* Schedule for Later Toggle */}
             <ExpandableInfo expanded={!noTimeLimit} lazy>
             <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}>
-              <View style={{ paddingVertical: s(20) }} className="flex-row items-center justify-between px-6">
+              <View style={{ paddingVertical: s(buttonPadding.toggleRow) }} className="flex-row items-center justify-between px-6">
                 <TouchableOpacity onPress={() => toggleInfo('schedule')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
                   <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Schedule for Later</Text>
                   <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>Set a future start and end time, with optional recurrence</Text>
@@ -1801,7 +1801,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                 <TouchableOpacity
                   onPress={() => openDatePicker('scheduleStart')}
                   activeOpacity={0.7}
-                  style={{ backgroundColor: colors.card, paddingVertical: s(14), borderWidth: 1, borderColor: colors.border, ...shadow.card }}
+                  style={{ backgroundColor: colors.card, paddingVertical: s(buttonPadding.iconRow), borderWidth: 1, borderColor: colors.border, ...shadow.card }}
                   className={`flex-row items-center px-4 ${radius.xl} mb-3`}
                 >
                   <View  className={`w-10 h-10 ${radius.lg} items-center justify-center mr-3`}>
@@ -1841,7 +1841,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                 <TouchableOpacity
                   onPress={() => openDatePicker('scheduleEnd')}
                   activeOpacity={0.7}
-                  style={{ backgroundColor: colors.card, paddingVertical: s(14), borderWidth: 1, borderColor: colors.border, ...shadow.card }}
+                  style={{ backgroundColor: colors.card, paddingVertical: s(buttonPadding.iconRow), borderWidth: 1, borderColor: colors.border, ...shadow.card }}
                   className={`flex-row items-center px-4 ${radius.xl}`}
                 >
                   <View  className={`w-10 h-10 ${radius.lg} items-center justify-center mr-3`}>
@@ -1938,7 +1938,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                     openDatePicker('targetDate');
                   }}
                   activeOpacity={0.7}
-                  style={{ backgroundColor: colors.card, paddingVertical: s(14), borderWidth: 1, borderColor: colors.border, ...shadow.card }}
+                  style={{ backgroundColor: colors.card, paddingVertical: s(buttonPadding.iconRow), borderWidth: 1, borderColor: colors.border, ...shadow.card }}
                   className={`flex-row items-center px-4 ${radius.xl}`}
                 >
                   <View className={`w-10 h-10 ${radius.lg} items-center justify-center mr-3`}>
@@ -1981,7 +1981,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
 
             {/* Block Settings Toggle */}
             <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}>
-              <View style={{ paddingVertical: s(20) }} className="flex-row items-center justify-between px-6">
+              <View style={{ paddingVertical: s(buttonPadding.toggleRow) }} className="flex-row items-center justify-between px-6">
                 <TouchableOpacity onPress={() => toggleInfo('blockSettings')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
                   <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Block Settings App</Text>
                   <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>Essential settings remain accessible</Text>
@@ -2014,7 +2014,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
 
             {/* Strict Mode Toggle */}
             <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}>
-              <View style={{ paddingVertical: s(20) }} className="flex-row items-center justify-between px-6">
+              <View style={{ paddingVertical: s(buttonPadding.toggleRow) }} className="flex-row items-center justify-between px-6">
                 <TouchableOpacity onPress={() => toggleInfo('strictMode')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
                   <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Strict Mode</Text>
                   <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>
@@ -2062,7 +2062,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
             {/* Emergency Tapout Toggle */}
             <ExpandableInfo expanded={strictMode && !noTimeLimit} lazy>
               <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}>
-                <View style={{ paddingVertical: s(20) }} className="flex-row items-center justify-between px-6">
+                <View style={{ paddingVertical: s(buttonPadding.toggleRow) }} className="flex-row items-center justify-between px-6">
                   <TouchableOpacity onPress={() => toggleInfo('emergencyTapout')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
                     <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Allow Emergency Tapout</Text>
                     <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>Use your emergency tapouts for this preset</Text>
@@ -2281,8 +2281,8 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
           <View className="flex-row mx-6 mb-4">
             <TouchableOpacity
               onPress={() => { lightTap(); switchTab('apps'); }}
-              style={{ backgroundColor: activeTab === 'apps' ? colors.text : colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
-              className={`flex-1 py-2 ${radius.full} items-center justify-center flex-row`}
+              style={{ backgroundColor: activeTab === 'apps' ? colors.text : colors.card, borderWidth: 1, borderColor: colors.border, paddingVertical: s(buttonPadding.tabSwitcher), ...shadow.card }}
+              className={`flex-1 ${radius.full} items-center justify-center flex-row`}
             >
               <AndroidIcon size={s(26)} color={activeTab === 'apps' ? colors.bg : colors.text} />
               <Text style={{ color: activeTab === 'apps' ? colors.bg : colors.text, marginLeft: 6 }} className={`${textSize.small} ${fontFamily.semibold}`}>
@@ -2292,8 +2292,8 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
             <View className="w-2" />
             <TouchableOpacity
               onPress={() => { lightTap(); switchTab('websites'); }}
-              style={{ backgroundColor: activeTab === 'websites' ? colors.text : colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
-              className={`flex-1 py-3 ${radius.full} items-center justify-center flex-row`}
+              style={{ backgroundColor: activeTab === 'websites' ? colors.text : colors.card, borderWidth: 1, borderColor: colors.border, paddingVertical: s(buttonPadding.tabSwitcher), ...shadow.card }}
+              className={`flex-1 ${radius.full} items-center justify-center flex-row`}
             >
               <GlobeIcon size={s(26)} color={activeTab === 'websites' ? colors.bg : colors.text} />
               <Text style={{ color: activeTab === 'websites' ? colors.bg : colors.text, marginLeft: 6 }} className={`${textSize.small} ${fontFamily.semibold}`}>
@@ -2310,8 +2310,8 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                   <TouchableOpacity
                     onPress={openIOSAppPicker}
                     activeOpacity={0.7}
-                    style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
-                    className={`flex-row items-center py-4 px-4 ${radius.xl} mb-4`}
+                    style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, paddingVertical: s(buttonPadding.lgButton), ...shadow.card }}
+                    className={`flex-row items-center px-4 ${radius.xl} mb-4`}
                   >
                     <View className={`w-12 h-12 ${radius.xl} items-center justify-center mr-4`}>
                       <AppsIcon size={s(26)} color={colors.text} />

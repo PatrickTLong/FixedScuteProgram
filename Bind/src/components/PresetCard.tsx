@@ -6,11 +6,11 @@ import {
 } from 'react-native';
 import Svg, { Path, Circle } from 'react-native-svg';
 import { lightTap, mediumTap } from '../utils/haptics';
-import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius, shadow, iconSize } from '../context/ThemeContext';
 import AnimatedSwitch from './AnimatedSwitch';
 
 // Bookmark icon (Feather Icons) for scheduled presets
-const BookmarkIcon = ({ color, size = 16 }: { color: string; size?: number }) => (
+const BookmarkIcon = ({ color, size = iconSize.xs }: { color: string; size?: number }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Path
       d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"
@@ -23,7 +23,7 @@ const BookmarkIcon = ({ color, size = 16 }: { color: string; size?: number }) =>
 );
 
 // Rotate CW icon (Feather Icons) for recurring presets
-const RotateCwIcon = ({ color, size = 16 }: { color: string; size?: number }) => (
+const RotateCwIcon = ({ color, size = iconSize.xs }: { color: string; size?: number }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Path
       d="M23 4v6h-6"

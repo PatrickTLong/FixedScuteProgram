@@ -3,7 +3,7 @@ import { View, TouchableOpacity, Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import { lightTap } from '../utils/haptics';
-import { useTheme , textSize, fontFamily, shadow } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, shadow, iconSize, buttonPadding } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 
 type TabName = 'home' | 'presets' | 'settings';
@@ -24,7 +24,7 @@ interface TabItemProps {
 }
 
 const HomeIcon = ({ color }: { color: string }) => (
-  <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
+  <Svg width={iconSize.lg} height={iconSize.lg} viewBox="0 0 24 24" fill="none">
     <Path
       d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
       stroke={color}
@@ -43,7 +43,7 @@ const HomeIcon = ({ color }: { color: string }) => (
 );
 
 const PresetsIcon = ({ color }: { color: string }) => (
-  <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
+  <Svg width={iconSize.lg} height={iconSize.lg} viewBox="0 0 24 24" fill="none">
     <Path
       d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2z"
       stroke={color}
@@ -62,7 +62,7 @@ const PresetsIcon = ({ color }: { color: string }) => (
 );
 
 const SettingsIcon = ({ color }: { color: string }) => (
-  <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
+  <Svg width={iconSize.lg} height={iconSize.lg} viewBox="0 0 24 24" fill="none">
     <Path
       d="M12 15a3 3 0 100-6 3 3 0 000 6z"
       stroke={color}
@@ -90,7 +90,8 @@ const TabItem = memo(({ name, label, isActive, onPress, icon, activeColor, inact
     <TouchableOpacity
       onPress={handlePress}
       activeOpacity={0.7}
-      className="flex-1 items-center justify-center py-2"
+      style={{ paddingVertical: buttonPadding.tabItem }}
+      className="flex-1 items-center justify-center"
     >
       {icon}
       <Text

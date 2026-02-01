@@ -7,12 +7,12 @@ import {
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius, shadow, buttonPadding, iconSize } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { lightTap } from '../utils/haptics';
 
 // Google Play Store Icon (colored)
-const PlayStoreIcon = ({ size = 24 }: { size?: number }) => (
+const PlayStoreIcon = ({ size = iconSize.lg }: { size?: number }) => (
   <Svg width={size} height={size} viewBox="0 0 466 511.98">
     <Path fill="#EA4335" fillRule="nonzero" d="M199.9 237.8l-198.5 232.37c7.22,24.57 30.16,41.81 55.8,41.81 11.16,0 20.93,-2.79 29.3,-8.37l0 0 244.16 -139.46 -130.76 -126.35z"/>
     <Path fill="#FBBC04" fillRule="nonzero" d="M433.91 205.1l0 0 -104.65 -60 -111.61 110.22 113.01 108.83 104.64 -58.6c18.14,-9.77 30.7,-29.3 30.7,-50.23 -1.4,-20.93 -13.95,-40.46 -32.09,-50.22z"/>
@@ -51,7 +51,7 @@ function MembershipScreen({ onPurchaseComplete }: Props) {
             backgroundColor: colors.card,
             borderWidth: 2,
             borderColor: selectedPlan === 'monthly' ? colors.text : 'transparent',
-            padding: s(16),
+            padding: s(buttonPadding.settingsRow),
             ...shadow.card,
           }}
           className={`${radius['2xl']} mb-3`}
@@ -80,7 +80,7 @@ function MembershipScreen({ onPurchaseComplete }: Props) {
             backgroundColor: colors.card,
             borderWidth: 2,
             borderColor: selectedPlan === 'yearly' ? colors.text : 'transparent',
-            padding: s(16),
+            padding: s(buttonPadding.settingsRow),
             ...shadow.card,
           }}
           className={`${radius['2xl']} mb-3`}
@@ -114,7 +114,7 @@ function MembershipScreen({ onPurchaseComplete }: Props) {
             backgroundColor: colors.card,
             borderWidth: 2,
             borderColor: selectedPlan === 'lifetime' ? colors.text : 'transparent',
-            padding: s(16),
+            padding: s(buttonPadding.settingsRow),
             ...shadow.card,
           }}
           className={`${radius['2xl']} mb-6`}

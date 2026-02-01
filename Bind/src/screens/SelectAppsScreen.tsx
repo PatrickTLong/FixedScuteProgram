@@ -11,7 +11,7 @@ import LottieView from 'lottie-react-native';
 const Lottie = LottieView as any;
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
-import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius, shadow, iconSize } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { lightTap } from '../utils/haptics';
 
@@ -36,7 +36,7 @@ interface Props {
 
 // Search Icon
 const SearchIcon = ({ color }: { color: string }) => (
-  <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+  <Svg width={iconSize.md} height={iconSize.md} viewBox="0 0 24 24" fill="none">
     <Path
       d="M11 19a8 8 0 100-16 8 8 0 000 16zM21 21l-4.35-4.35"
       stroke={color}
@@ -49,7 +49,7 @@ const SearchIcon = ({ color }: { color: string }) => (
 
 // Back Arrow Icon
 const BackIcon = ({ color }: { color: string }) => (
-  <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
+  <Svg width={iconSize.lg} height={iconSize.lg} viewBox="0 0 24 24" fill="none">
     <Path
       d="M19 12H5M12 19l-7-7 7-7"
       stroke={color}
@@ -61,7 +61,7 @@ const BackIcon = ({ color }: { color: string }) => (
 );
 
 // Globe Icon for websites
-const GlobeIcon = ({ color, size = 24 }: { color: string; size?: number }) => (
+const GlobeIcon = ({ color, size = iconSize.lg }: { color: string; size?: number }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Path
       d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0 1 12 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 0 1 3 12c0-1.605.42-3.113 1.157-4.418"
