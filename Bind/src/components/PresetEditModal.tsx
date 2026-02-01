@@ -2496,4 +2496,5 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
   );
 }
 
+export { loadInstalledAppsOnce as preloadInstalledApps };
 export default memo(PresetEditModal);

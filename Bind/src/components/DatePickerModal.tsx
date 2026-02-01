@@ -493,15 +493,15 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
           {/* Header */}
           <View style={{ borderBottomWidth: 1, borderBottomColor: colors.divider }} className="flex-row items-center justify-between px-4 py-3">
             <TouchableOpacity onPress={() => { lightTap(); handleClose(); }} className="px-2">
-              <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.regular}`}>Cancel</Text>
+              <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular}`}>Cancel</Text>
             </TouchableOpacity>
-            <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.semibold}`}>Pick Date and Time</Text>
+            <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Pick Date and Time</Text>
             <TouchableOpacity
               onPress={() => { lightTap(); handleConfirm(); }}
               disabled={!isFutureDateTime}
               className="px-2"
             >
-              <Text style={{ color: isFutureDateTime ? colors.text : colors.textMuted }} className={`${textSize.base} ${fontFamily.semibold}`}>
+              <Text style={{ color: isFutureDateTime ? colors.text : colors.textMuted }} className={`${textSize.small} ${fontFamily.semibold}`}>
                 Done
               </Text>
             </TouchableOpacity>
@@ -521,7 +521,7 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
               <ChevronLeftIcon size={s(16)} color={canGoPrev ? colors.text : colors.textMuted} />
             </TouchableOpacity>
 
-            <Text style={{ color: colors.text }} className={`${textSize.xLarge} ${fontFamily.semibold}`}>
+            <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>
               {MONTHS[viewMonth]} {viewYear}
             </Text>
 

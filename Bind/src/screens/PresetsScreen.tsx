@@ -13,7 +13,7 @@ const Lottie = LottieView as any;
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import PresetCard, { Preset } from '../components/PresetCard';
-import PresetEditModal from '../components/PresetEditModal';
+import PresetEditModal, { preloadInstalledApps } from '../components/PresetEditModal';
 import ConfirmationModal from '../components/ConfirmationModal';
 import ShieldIconsInfoModal from '../components/ShieldIconsInfoModal';
 import {
@@ -157,6 +157,9 @@ function PresetsScreen({ userEmail }: Props) {
       setLoading(true);
       // Only show spinner if loading takes more than 50ms (avoids flash)
       spinnerTimeout = setTimeout(() => setShowSpinner(true), 50);
+
+      // Preload installed apps in the background so the edit modal opens instantly
+      preloadInstalledApps();
 
       // Load presets with cache on first render - HomeScreen handles cache invalidation on app restart
       await Promise.all([checkLockStatus(), loadPresets(false)]);
