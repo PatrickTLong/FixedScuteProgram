@@ -11,7 +11,9 @@ import {
   Modal,
   Image,
   Platform,
+  Linking,
 } from 'react-native';
+import Svg, { Path } from 'react-native-svg';
 import LottieView from 'lottie-react-native';
 const Lottie = LottieView as any;
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -839,6 +841,15 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
       settings.push(`${activePreset.blockedWebsites.length} Website${activePreset.blockedWebsites.length !== 1 ? 's' : ''}`);
     }
 
+    if (activePreset.isScheduled) {
+      settings.push('Scheduled');
+    }
+
+    if (activePreset.repeat_enabled && activePreset.repeat_interval && activePreset.repeat_unit) {
+      const unit = activePreset.repeat_interval === 1 ? activePreset.repeat_unit.replace(/s$/, '') : activePreset.repeat_unit;
+      settings.push(`Recurs every ${activePreset.repeat_interval} ${unit}`);
+    }
+
     if (activePreset.blockSettings) {
       settings.push('Blocking Settings');
     }
@@ -936,6 +947,43 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
               resizeMode="contain"
             />
           </Animated.View>
+        </View>
+
+        {/* Top right icons row */}
+        <View style={{ position: 'absolute', top: s(20), right: s(18), zIndex: 10, flexDirection: 'row', alignItems: 'center', gap: s(8) }}>
+          {/* WiFi Settings */}
+          <TouchableOpacity
+            onPress={() => { lightTap(); Linking.sendIntent('android.settings.WIFI_SETTINGS').catch(() => {}); }}
+            activeOpacity={0.7}
+            style={{
+              backgroundColor: colors.card,
+              borderWidth: 1, borderColor: colors.border, ...shadow.card,
+            }}
+            className={`w-11 h-11 ${radius.full} items-center justify-center`}
+          >
+            <Svg width={s(18)} height={s(18)} viewBox="0 0 24 24" fill="none">
+              <Path d="M5 12.55a11 11 0 0 1 14.08 0" stroke="#FFFFFF" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+              <Path d="M1.42 9a16 16 0 0 1 21.16 0" stroke="#FFFFFF" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+              <Path d="M8.53 16.11a6 6 0 0 1 6.95 0" stroke="#FFFFFF" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+              <Path d="M12 20h.01" stroke="#FFFFFF" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+            </Svg>
+          </TouchableOpacity>
+
+          {/* Support @ icon */}
+          <TouchableOpacity
+            onPress={() => { lightTap(); Linking.openURL('mailto:support@scuteapp.com?subject=Scute%20Support%20Request'); }}
+            activeOpacity={0.7}
+            style={{
+              backgroundColor: colors.card,
+              borderWidth: 1, borderColor: colors.border, ...shadow.card,
+            }}
+            className={`w-11 h-11 ${radius.full} items-center justify-center`}
+          >
+            <Svg width={s(18)} height={s(18)} viewBox="0 0 24 24" fill="none">
+              <Path d="M12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" stroke="#FFFFFF" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+              <Path d="M16 8v5a3 3 0 0 0 6 0V12a10 10 0 1 0-3.92 7.94" stroke="#FFFFFF" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+            </Svg>
+          </TouchableOpacity>
         </View>
 
         {/* Status + Preset + Scheduled - centered in full screen */}

@@ -373,7 +373,7 @@ function PermissionsChecklistScreen({ onComplete }: Props) {
               </Text>
             </View>
 
-            <ChevronRightIcon size={s(iconSize.xs)} color={colors.text} />
+            <ChevronRightIcon size={s(iconSize.md)} color={colors.text} />
           </TouchableOpacity>
         ))}
 

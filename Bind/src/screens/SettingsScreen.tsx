@@ -294,7 +294,7 @@ const SettingsRow = ({
       <Text style={{ color: valueColor }} className={`${textSize.small} ${fontFamily.regular} mr-2`}>{value}</Text>
     )}
     {showArrow && onPress && (
-      <ChevronRightIcon size={s(16)} />
+      <ChevronRightIcon size={s(iconSize.md)} />
     )}
   </TouchableOpacity>
 );
@@ -563,7 +563,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
                   </Text>
                 )}
               </View>
-              <ChevronRightIcon size={s(16)} />
+              <ChevronRightIcon size={s(iconSize.md)} />
             </View>
           </TouchableOpacity>
           <SettingsRow

@@ -60,6 +60,21 @@ const ChevronLeftIcon = ({ size = iconSize.lg, color = "#FFFFFF" }: { size?: num
   </Svg>
 );
 
+// Feather X icon (close)
+const XIcon = ({ size = iconSize.headerNav, color = "#FFFFFF" }: { size?: number; color?: string }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path d="M18 6L6 18" stroke={color} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
+    <Path d="M6 6l12 12" stroke={color} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
+  </Svg>
+);
+
+// Feather check icon (save/confirm)
+const CheckIcon = ({ size = iconSize.headerNav, color = "#FFFFFF" }: { size?: number; color?: string }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path d="M20 6L9 17l-5-5" stroke={color} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
+  </Svg>
+);
+
 // ============ Date Picker Constants & Components ============
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -274,18 +289,18 @@ const AmPmSelector = memo(({ value, onChange, cardColor }: AmPmSelectorProps) =>
     <TouchableOpacity
       onPress={() => { lightTap(); onChange('AM'); }}
       style={{ backgroundColor: value === 'AM' ? colors.green : cardColor, borderWidth: 1, borderColor: value === 'AM' ? colors.green : colors.border, ...shadow.card }}
-      className={`px-3 py-2 ${radius.lg}`}
+      className={`px-3 py-2 ${radius.AMPM}`}
     >
-      <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>
+      <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
         AM
       </Text>
     </TouchableOpacity>
     <TouchableOpacity
       onPress={() => { lightTap(); onChange('PM'); }}
       style={{ backgroundColor: value === 'PM' ? colors.green : cardColor, borderWidth: 1, borderColor: value === 'PM' ? colors.green : colors.border, ...shadow.card }}
-      className={`px-3 py-2 ${radius.lg} mt-1`}
+      className={`px-3 py-2 ${radius.AMPM} mt-1`}
     >
-      <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>
+      <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
         PM
       </Text>
     </TouchableOpacity>
@@ -576,6 +591,64 @@ interface PresetEditModalProps {
 }
 
 type TabType = 'apps' | 'websites';
+
+const AppItemRow = memo(({ item, isSelected, onToggle, colors, s, skipCheckboxAnimation }: {
+  item: InstalledApp;
+  isSelected: boolean;
+  onToggle: (id: string) => void;
+  colors: any;
+  s: (v: number) => number;
+  skipCheckboxAnimation: boolean;
+}) => {
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  const onPressIn = useCallback(() => {
+    Animated.spring(scaleAnim, {
+      toValue: 1.05,
+      useNativeDriver: true,
+      speed: 50,
+      bounciness: 4,
+    }).start();
+  }, [scaleAnim]);
+
+  const onPressOut = useCallback(() => {
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      useNativeDriver: true,
+      speed: 50,
+      bounciness: 4,
+    }).start();
+  }, [scaleAnim]);
+
+  return (
+    <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+      <TouchableOpacity
+        onPress={() => onToggle(item.id)}
+        onPressIn={onPressIn}
+        onPressOut={onPressOut}
+        activeOpacity={0.7}
+        style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, paddingVertical: s(buttonPadding.standard), ...shadow.card }}
+        className={`flex-row items-center px-4 ${radius.xl} mb-2`}
+      >
+        {item.icon ? (
+          <Image
+            source={{ uri: item.icon }}
+            style={{ width: s(48), height: s(48), marginRight: s(12) }}
+            resizeMode="contain"
+          />
+        ) : (
+          <View style={{ width: s(48), height: s(48), marginRight: s(12), backgroundColor: colors.cardLight, borderRadius: s(12), alignItems: 'center', justifyContent: 'center' }}>
+            <Text style={{ color: colors.textSecondary, fontSize: s(18), fontWeight: 'bold' }}>
+              {item.name.charAt(0)}
+            </Text>
+          </View>
+        )}
+        <Text style={{ color: colors.text }} className={`flex-1 ${textSize.base} ${fontFamily.regular}`}>{item.name}</Text>
+        <AnimatedCheckbox checked={isSelected} size={s(iconSize.lg)} skipAnimation={skipCheckboxAnimation} />
+      </TouchableOpacity>
+    </Animated.View>
+  );
+});
 
 function PresetEditModal({ visible, preset, onClose, onSave, email, existingPresets = [] }: PresetEditModalProps) {
   const { colors } = useTheme();
@@ -1209,33 +1282,14 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
     const isSelected = selectedApps.includes(item.id);
 
     return (
-      <TouchableOpacity
-        onPress={() => toggleApp(item.id)}
-        activeOpacity={0.7}
-        style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, paddingVertical: s(buttonPadding.standard), ...shadow.card }}
-        className={`flex-row items-center px-4 ${radius.xl} mb-2`}
-      >
-        {/* App Icon - native already provides squircle shape */}
-        {item.icon ? (
-          <Image
-            source={{ uri: item.icon }}
-            style={{ width: s(48), height: s(48), marginRight: s(12) }}
-            resizeMode="contain"
-          />
-        ) : (
-          <View style={{ width: s(48), height: s(48), marginRight: s(12), backgroundColor: colors.cardLight, borderRadius: s(12), alignItems: 'center', justifyContent: 'center' }}>
-            <Text style={{ color: colors.textSecondary, fontSize: s(18), fontWeight: 'bold' }}>
-              {item.name.charAt(0)}
-            </Text>
-          </View>
-        )}
-
-        {/* App Name */}
-        <Text style={{ color: colors.text }} className={`flex-1 ${textSize.base} ${fontFamily.regular}`}>{item.name}</Text>
-
-        {/* Animated Checkbox */}
-        <AnimatedCheckbox checked={isSelected} size={s(iconSize.lg)} skipAnimation={skipCheckboxAnimation} />
-      </TouchableOpacity>
+      <AppItemRow
+        item={item}
+        isSelected={isSelected}
+        onToggle={toggleApp}
+        colors={colors}
+        s={s}
+        skipCheckboxAnimation={skipCheckboxAnimation}
+      />
     );
   }, [selectedApps, toggleApp, colors, skipCheckboxAnimation]);
 
@@ -1261,19 +1315,19 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
         <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
           <Animated.View renderToHardwareTextureAndroid={true} style={{ flex: 1, opacity: stepFadeAnim }}>
             {/* Header */}
-            <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }} className="flex-row items-center justify-between px-4 py-3">
-              <TouchableOpacity onPress={dpHandleCancel} className="px-2">
-                <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.regular}`}>Cancel</Text>
+            <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }} className="flex-row items-center justify-between px-4 py-3.5">
+              <TouchableOpacity onPress={dpHandleCancel} style={{ width: s(40) }} className="px-2">
+                <XIcon size={s(iconSize.headerNav)} color="#FFFFFF" />
               </TouchableOpacity>
-              <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.semibold}`}>Pick Date and Time</Text>
+              <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>{datePickerTarget === 'scheduleStart' ? 'Start Date' : datePickerTarget === 'scheduleEnd' ? 'End Date' : 'Date and Time'}</Text>
+
               <TouchableOpacity
                 onPress={dpHandleConfirm}
                 disabled={!dpIsFutureDateTime}
-                className="px-2"
+                style={{ width: s(40) }}
+                className="px-2 items-end"
               >
-                <Text style={{ color: dpIsFutureDateTime ? colors.text : colors.textMuted }} className={`${textSize.base} ${fontFamily.semibold}`}>
-                  Done
-                </Text>
+                <CheckIcon size={s(iconSize.headerNav)} color={dpIsFutureDateTime ? '#FFFFFF' : colors.textMuted} />
               </TouchableOpacity>
             </View>
 
@@ -1289,10 +1343,10 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                   disabled={!dpCanGoPrev}
                   className="w-10 h-10 items-center justify-center"
                 >
-                  <ChevronLeftIcon size={s(iconSize.xs)} color={dpCanGoPrev ? colors.text : colors.textMuted} />
+                  <ChevronLeftIcon size={s(iconSize.md)} color={dpCanGoPrev ? colors.text : colors.textMuted} />
                 </TouchableOpacity>
 
-                <Text style={{ color: colors.text }} className={`${textSize.xLarge} ${fontFamily.semibold}`}>
+                <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>
                   {MONTHS[dpViewMonth]} {dpViewYear}
                 </Text>
 
@@ -1301,7 +1355,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                   disabled={!dpCanGoNext}
                   className="w-10 h-10 items-center justify-center"
                 >
-                  <ChevronRightIcon size={s(iconSize.xs)} color={dpCanGoNext ? colors.text : colors.textMuted} />
+                  <ChevronRightIcon size={s(iconSize.md)} color={dpCanGoNext ? colors.text : colors.textMuted} />
                 </TouchableOpacity>
               </View>
 
@@ -1678,13 +1732,15 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
         <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
           <Animated.View renderToHardwareTextureAndroid={true} style={{ flex: 1, opacity: stepFadeAnim }}>
             {/* Header */}
-            <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }} className="flex-row items-center justify-between px-4 py-3">
-              <TouchableOpacity onPress={() => { lightTap(); goToStep('first'); }} disabled={isSaving} className="px-2">
-                <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.regular}`}>Back</Text>
+            <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }} className="flex-row items-center justify-between px-4 py-3.5">
+              <TouchableOpacity onPress={() => { lightTap(); goToStep('first'); }} disabled={isSaving} style={{ width: s(40) }} className="px-2">
+                <ChevronLeftIcon size={s(iconSize.headerNav)} color="#FFFFFF" />
               </TouchableOpacity>
-              <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.semibold}`}>Final Settings</Text>
-              <TouchableOpacity onPress={handleSave} disabled={isSaving || !canSave} className="px-2 min-w-[50px] items-end justify-center" style={{ height: s(24), overflow: 'visible' }}>
-                <Text style={{ color: canSave ? colors.text : colors.textMuted, opacity: isSaving ? 0 : 1 }} className={`${textSize.base} ${fontFamily.semibold}`}>Save</Text>
+              <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Final Settings</Text>
+              <TouchableOpacity onPress={handleSave} disabled={isSaving || !canSave} style={{ width: s(40), height: s(24), overflow: 'visible' }} className="px-2 items-end justify-center">
+                <View style={{ opacity: isSaving ? 0 : 1 }}>
+                  <CheckIcon size={s(iconSize.headerNav)} color={canSave ? '#FFFFFF' : colors.textMuted} />
+                </View>
                 {isSaving && (
                   <View style={{ position: 'absolute', top: s(-63), right: s(-50), width: s(150), height: s(150), justifyContent: 'center', alignItems: 'center' }}>
                     <Lottie
@@ -1823,7 +1879,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                       onPress={() => { lightTap(); setScheduleStartDate(null); }}
                       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     >
-                      <Text style={{ color: colors.text, fontSize: s(iconSize.md) }}>✕</Text>
+                      <XIcon size={s(iconSize.sm)} color={colors.text} />
                     </TouchableOpacity>
                   ) : (
                     <ChevronRightIcon size={s(iconSize.md)} color={colors.text} />
@@ -1863,7 +1919,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                       onPress={() => { lightTap(); setScheduleEndDate(null); }}
                       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     >
-                      <Text style={{ color: colors.text, fontSize: s(iconSize.md) }}>✕</Text>
+                      <XIcon size={s(iconSize.sm)} color={colors.text} />
                     </TouchableOpacity>
                   ) : (
                     <ChevronRightIcon size={s(iconSize.md)} color={colors.text} />
@@ -1960,7 +2016,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                       onPress={() => { lightTap(); setTargetDate(null); }}
                       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     >
-                      <Text style={{ color: colors.text, fontSize: s(iconSize.md) }}>✕</Text>
+                      <XIcon size={s(iconSize.sm)} color={colors.text} />
                     </TouchableOpacity>
                   ) : (
                     <ChevronRightIcon size={s(iconSize.md)} color={colors.text} />
@@ -2046,7 +2102,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               <ExpandableInfo expanded={!!expandedInfo.strictMode}>
                 <TouchableOpacity onPress={() => toggleInfo('strictMode')} activeOpacity={0.7} className="px-6 pb-4">
                   <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular} leading-5`}>
-                    Removes the ability to unlock in any way and to dismiss blocked apps or sites. ONLY EXITS: timer expiring or Emergency Tapout (if enabled). Pair with the block settings toggle for maximum strictness.
+                    UNTIMED PRESETS: Disables tap to continue button on block overlay. TIMED PRESETS: Removes the ability to unlock in any way and to dismiss blocked apps or sites. ONLY EXITS: timer expiring or Emergency Tapout (if enabled). Pair with the block settings toggle for maximum strictness.
                   </Text>
                 </TouchableOpacity>
               </ExpandableInfo>
@@ -2229,11 +2285,11 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
         <Animated.View renderToHardwareTextureAndroid={true} style={{ flex: 1, opacity: stepFadeAnim }}>
           {/* Header */}
-          <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }} className="flex-row items-center justify-between px-4 py-3">
+          <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }} className="flex-row items-center justify-between px-4 py-3.5">
             <TouchableOpacity onPress={() => { lightTap(); onClose(); }} className="px-2">
-              <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.regular}`}>Cancel</Text>
+              <XIcon size={s(iconSize.headerNav)} color="#FFFFFF" />
             </TouchableOpacity>
-            <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.semibold}`}>
+            <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>
               {preset ? 'Edit Preset' : 'New Preset'}
             </Text>
             <TouchableOpacity
@@ -2241,9 +2297,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
               disabled={!canContinue}
               className="px-2"
             >
-              <Text style={{ color: canContinue ? colors.text : colors.textMuted }} className={`${textSize.base} ${fontFamily.semibold}`}>
-                Next
-              </Text>
+              <ChevronRightIcon size={s(iconSize.headerNav)} color={canContinue ? '#FFFFFF' : colors.textMuted} />
             </TouchableOpacity>
           </View>
 
@@ -2465,7 +2519,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                       onPress={() => removeWebsite(site)}
                       className="p-2"
                     >
-                      <Text style={{ color: colors.text, fontSize: s(iconSize.md) }}>✕</Text>
+                      <XIcon size={s(iconSize.sm)} color={colors.text} />
                     </TouchableOpacity>
                   </View>
                 ))}

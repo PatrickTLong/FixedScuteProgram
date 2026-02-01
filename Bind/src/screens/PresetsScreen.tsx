@@ -11,11 +11,9 @@ import {
 import LottieView from 'lottie-react-native';
 const Lottie = LottieView as any;
 import { SafeAreaView } from 'react-native-safe-area-context';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import PresetCard, { Preset } from '../components/PresetCard';
 import PresetEditModal, { preloadInstalledApps } from '../components/PresetEditModal';
 import ConfirmationModal from '../components/ConfirmationModal';
-import ShieldIconsInfoModal from '../components/ShieldIconsInfoModal';
 import {
   getPresets,
   savePreset,
@@ -74,9 +72,6 @@ function PresetsScreen({ userEmail }: Props) {
   // Verification modal for enabling scheduled presets
   const [scheduleVerifyModalVisible, setScheduleVerifyModalVisible] = useState(false);
   const [pendingScheduledPreset, setPendingScheduledPreset] = useState<Preset | null>(null);
-
-  // Shield icons info modal (shown after saving a scheduled preset)
-  const [shieldIconsModalVisible, setShieldIconsModalVisible] = useState(false);
 
 
 
@@ -538,11 +533,6 @@ function PresetsScreen({ userEmail }: Props) {
       if (presetToSave.isScheduled) {
         await syncScheduledPresetsToNative(updatedPresets);
 
-        // Show shield icons info modal if user hasn't dismissed it before
-        const dontShowAgain = await AsyncStorage.getItem('hideShieldIconsModal');
-        if (dontShowAgain !== 'true') {
-          setShieldIconsModalVisible(true);
-        }
       }
 
     }
@@ -557,12 +547,6 @@ function PresetsScreen({ userEmail }: Props) {
     setEditingPreset(null);
   }, []);
 
-  const handleCloseShieldIconsModal = useCallback(async (dontShowAgain: boolean) => {
-    setShieldIconsModalVisible(false);
-    if (dontShowAgain) {
-      await AsyncStorage.setItem('hideShieldIconsModal', 'true');
-    }
-  }, []);
 
   const handleCloseDeleteModal = useCallback(() => {
     setDeleteModalVisible(false);
@@ -756,19 +740,16 @@ function PresetsScreen({ userEmail }: Props) {
       {/* Schedule Verification Modal */}
       <ConfirmationModal
         visible={scheduleVerifyModalVisible}
-        title="Enable Schedule?"
-        message={`Do you want to enable the scheduled preset "${pendingScheduledPreset?.name}"? It will automatically activate during its scheduled time.`}
+        title={pendingScheduledPreset?.repeat_enabled ? "Enable Recurring Schedule?" : "Enable Schedule?"}
+        message={pendingScheduledPreset?.repeat_enabled
+          ? `Do you want to enable the recurring preset "${pendingScheduledPreset?.name}"? It will automatically repeat on its set interval during its scheduled time.`
+          : `Do you want to enable the scheduled preset "${pendingScheduledPreset?.name}"? It will automatically activate during its scheduled time.`}
         confirmText="Enable"
         cancelText="Cancel"
         onConfirm={handleScheduleVerifyConfirm}
         onCancel={handleScheduleVerifyCancel}
       />
 
-      {/* Shield Icons Info Modal */}
-      <ShieldIconsInfoModal
-        visible={shieldIconsModalVisible}
-        onClose={handleCloseShieldIconsModal}
-      />
 
     </SafeAreaView>
   );

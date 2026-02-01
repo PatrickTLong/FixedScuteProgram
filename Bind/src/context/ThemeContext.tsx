@@ -39,17 +39,20 @@ export const iconSize = {
   md: 20,      // Settings row icons, search icons, eye icons, alert icons
   lg: 24,      // Navigation arrows, chevrons, action icons, tab bar icons
   xl: 28,      // Info modal display icons
+  headerNav: 24, // Header navigation icons (close X, chevron next/back)
 } as const;
 
 // Button padding sizes (use inside s() for responsive scaling)
 export const buttonPadding = {
-  standard: 16,        // All buttons, rows, toggles, icon buttons, list items, etc.
+  standard: 16,   
+     // All buttons, rows, toggles, icon buttons, list items, etc.
   smallStandard: 10,    // Compact buttons (select all, deselect all, etc.)
   tabItem: 8,          // Bottom tab bar items
 } as const;
 
 // Border radius classes
 export const radius = {
+  AMPM : 'rounded-lg',
   lg: 'rounded-2xl',
   xl: 'rounded-2xl',
   '2xl': 'rounded-2xl',

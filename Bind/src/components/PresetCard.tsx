@@ -4,43 +4,11 @@ import {
   Text,
   Pressable,
 } from 'react-native';
-import Svg, { Path, Circle } from 'react-native-svg';
 import { lightTap, mediumTap } from '../utils/haptics';
-import { useTheme , textSize, fontFamily, radius, shadow, iconSize } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius, shadow, buttonPadding } from '../context/ThemeContext';
+import { useResponsive } from '../utils/responsive';
 import AnimatedSwitch from './AnimatedSwitch';
 
-// Bookmark icon (Feather Icons) for scheduled presets
-const BookmarkIcon = ({ color, size = iconSize.xs }: { color: string; size?: number }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"
-      stroke={color}
-      strokeWidth={2.5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </Svg>
-);
-
-// Rotate CW icon (Feather Icons) for recurring presets
-const RotateCwIcon = ({ color, size = iconSize.xs }: { color: string; size?: number }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M23 4v6h-6"
-      stroke={color}
-      strokeWidth={2.5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <Path
-      d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"
-      stroke={color}
-      strokeWidth={2.5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </Svg>
-);
 
 export interface Preset {
   id: string;
@@ -84,6 +52,7 @@ interface PresetCardProps {
 
 function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, disabled = false, onExpired }: PresetCardProps) {
   const { colors } = useTheme();
+  const { s } = useResponsive();
   // Only force re-render when we're close to expiration
   const [, setTick] = useState(0);
 
@@ -218,6 +187,15 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, disabled
   const getDetailsDescription = () => {
     const parts = [];
 
+    if (preset.isScheduled) {
+      parts.push('Scheduled');
+    }
+
+    if (preset.repeat_enabled && preset.repeat_interval && preset.repeat_unit) {
+      const unit = preset.repeat_interval === 1 ? preset.repeat_unit.replace(/s$/, '') : preset.repeat_unit;
+      parts.push(`Recurs every ${preset.repeat_interval} ${unit}`);
+    }
+
     // Add strict mode info
     if (preset.strictMode) {
       parts.push('Strict mode');
@@ -277,9 +255,11 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, disabled
         backgroundColor: colors.card,
         borderWidth: 1,
         borderColor: colors.border,
+        paddingVertical: s(buttonPadding.standard),
+        paddingHorizontal: s(buttonPadding.standard),
         ...shadow.card,
       }}
-      className={`${radius['2xl']} p-4 mb-3`}
+      className={`${radius['2xl']} mb-3`}
     >
       <View className="flex-row items-center">
         <View className="flex-1">
@@ -296,20 +276,7 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, disabled
                   </Text>
                 </View>
               </View>
-            ) : (
-              <>
-                {preset.isScheduled && (
-                  <View className="ml-2">
-                    <BookmarkIcon color={colors.text} size={18} />
-                  </View>
-                )}
-                {preset.repeat_enabled && (
-                  <View className="ml-2">
-                    <RotateCwIcon color={colors.text} size={18} />
-                  </View>
-                )}
-              </>
-            )}
+            ) : null}
           </View>
 
           {/* Settings Description */}
