@@ -1700,7 +1700,6 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                       style={{
                         backgroundColor: recurringUnit === unit ? colors.green : colors.cardLight,
                         borderWidth: 1, borderColor: colors.border,
-                        transform: [{ scale: recurringUnit === unit ? 1.05 : 1 }],
                         ...shadow.card,
                       }}
                       className={`items-center justify-center py-4 px-4 ${radius.xl} mb-2`}
@@ -2184,7 +2183,6 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
                       style={{
                         backgroundColor: recurringUnit === unit ? colors.green : colors.cardLight,
                         borderWidth: 1, borderColor: colors.border,
-                        transform: [{ scale: recurringUnit === unit ? 1.05 : 1 }],
                         ...shadow.card,
                       }}
                       className={`items-center justify-center py-4 px-4 ${radius.xl} mb-2`}
