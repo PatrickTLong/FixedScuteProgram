@@ -35,7 +35,7 @@ import StrictModeWarningModal from './StrictModeWarningModal';
 import { Preset } from './PresetCard';
 import { getEmergencyTapoutStatus, setEmergencyTapoutEnabled } from '../services/cardApi';
 import { lightTap, mediumTap } from '../utils/haptics';
-import { useTheme , textSize, fontFamily, radius, shadow, iconSize, buttonPadding } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius, shadow, iconSize, buttonPadding, animSpeed } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 
 const SCHEDULE_INFO_DISMISSED_KEY = 'schedule_info_dismissed';
@@ -705,7 +705,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
     // Fade out
     Animated.timing(stepFadeAnim, {
       toValue: 0,
-      duration: 120,
+      duration: animSpeed.screenTransition,
       useNativeDriver: true,
     }).start(() => {
       // Swap step while invisible
@@ -715,7 +715,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
         // Fade in
         Animated.timing(stepFadeAnim, {
           toValue: 1,
-          duration: 120,
+          duration: animSpeed.screenTransition,
           useNativeDriver: true,
         }).start(() => {
           isStepTransitioning.current = false;

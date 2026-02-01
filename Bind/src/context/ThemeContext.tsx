@@ -59,6 +59,11 @@ export const radius = {
   full: 'rounded-full',
 } as const;
 
+// Animation speeds (ms)
+export const animSpeed = {
+  screenTransition: 100,
+} as const;
+
 // Shadow style objects
 export const shadow = {
   card: {
