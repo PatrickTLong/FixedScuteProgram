@@ -33,10 +33,18 @@ import BlockSettingsWarningModal from './BlockSettingsWarningModal';
 import RecurrenceInfoModal from './RecurrenceInfoModal';
 import StrictModeWarningModal from './StrictModeWarningModal';
 import { Preset } from './PresetCard';
-import { getEmergencyTapoutStatus, setEmergencyTapoutEnabled } from '../services/cardApi';
+import { getEmergencyTapoutStatus } from '../services/cardApi';
 import { lightTap, mediumTap } from '../utils/haptics';
 import { useTheme , textSize, fontFamily, radius, shadow, iconSize, buttonPadding, animSpeed } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
+
+// Pure date helpers - no component state dependency
+function getDaysInMonth(month: number, year: number): number {
+  return new Date(year, month + 1, 0).getDate();
+}
+function getFirstDayOfMonth(month: number, year: number): number {
+  return new Date(year, month, 1).getDay();
+}
 
 const SCHEDULE_INFO_DISMISSED_KEY = 'schedule_info_dismissed';
 const EXCLUDED_APPS_INFO_DISMISSED_KEY = 'excluded_apps_info_dismissed';
@@ -820,14 +828,6 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
     return dpToday;
   }, [datePickerTarget, scheduleStartDate, dpToday]);
 
-  const getDaysInMonth = useCallback((month: number, year: number) => {
-    return new Date(year, month + 1, 0).getDate();
-  }, []);
-
-  const getFirstDayOfMonth = useCallback((month: number, year: number) => {
-    return new Date(year, month, 1).getDay();
-  }, []);
-
   const dpHandlePrevMonth = useCallback(() => {
     lightTap();
     if (dpViewMonth === 0) {
@@ -972,8 +972,8 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
     setDpTempSelectedDate(null);
   }, []);
 
-  const dpDaysInMonth = getDaysInMonth(dpViewMonth, dpViewYear);
-  const dpFirstDay = getFirstDayOfMonth(dpViewMonth, dpViewYear);
+  const dpDaysInMonth = useMemo(() => getDaysInMonth(dpViewMonth, dpViewYear), [dpViewMonth, dpViewYear]);
+  const dpFirstDay = useMemo(() => getFirstDayOfMonth(dpViewMonth, dpViewYear), [dpViewMonth, dpViewYear]);
 
   // Build calendar grid
   const dpCalendarDays = useMemo(() => {

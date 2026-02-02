@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, memo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, memo } from 'react';
 import {
   Text,
   View,
@@ -137,7 +137,7 @@ function PermissionsChecklistScreen({ onComplete }: Props) {
   const [permissions, setPermissions] = useState<Permission[]>(DEFAULT_PERMISSIONS);
   const [isLoading, setIsLoading] = useState(true);
 
-  const grantedCount = permissions.filter(p => p.isGranted).length;
+  const grantedCount = useMemo(() => permissions.filter(p => p.isGranted).length, [permissions]);
   const totalCount = permissions.length;
   const allGranted = grantedCount === totalCount;
   const missingCount = totalCount - grantedCount;

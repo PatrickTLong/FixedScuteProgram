@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { memo, useState } from 'react';
 import {
   Text,
   View,
@@ -25,7 +25,7 @@ interface Props {
   onPurchaseComplete?: () => void;
 }
 
-function MembershipScreen({ onPurchaseComplete }: Props) {
+function MembershipScreen(_props: Props) {
   const { colors } = useTheme();
   const { s } = useResponsive();
   const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'yearly' | 'lifetime' | null>(null);
@@ -166,4 +166,4 @@ function MembershipScreen({ onPurchaseComplete }: Props) {
   );
 }
 
-export default MembershipScreen;
+export default memo(MembershipScreen);

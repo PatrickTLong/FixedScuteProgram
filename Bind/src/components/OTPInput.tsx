@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { memo, useRef, useEffect, useMemo } from 'react';
 import { View, TextInput, Pressable } from 'react-native';
 import { useTheme, shadow } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
@@ -64,7 +64,7 @@ function OTPInput({ value, onChange, length = 6, disabled = false, autoFocus = f
       {/* Visual digit boxes */}
       <Pressable onPress={handlePress}>
         <View className="flex-row justify-center" style={{ gap: s(6) }}>
-          {Array.from({ length }).map((_, index) => {
+          {useMemo(() => Array.from({ length }), [length]).map((_, index) => {
             const isFilled = index < digits.length;
             const isCurrentPosition = index === digits.length;
 
@@ -106,4 +106,4 @@ function OTPInput({ value, onChange, length = 6, disabled = false, autoFocus = f
   );
 }
 
-export default OTPInput;
+export default memo(OTPInput);

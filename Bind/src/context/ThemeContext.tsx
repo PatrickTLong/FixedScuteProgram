@@ -116,9 +116,12 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
+// Stable reference - colors is a static constant so this never changes
+const themeValue: ThemeContextType = { colors };
+
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   return (
-    <ThemeContext.Provider value={{ colors }}>
+    <ThemeContext.Provider value={themeValue}>
       {children}
     </ThemeContext.Provider>
   );

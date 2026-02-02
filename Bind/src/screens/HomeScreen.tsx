@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef, memo } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo, memo } from 'react';
 import {
   Text,
   View,
@@ -586,6 +586,24 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
     });
   }, []);
 
+  // Memoize scheduled presets status dot color
+  const scheduledDotColor = useMemo(() => {
+    if (scheduledPresets.length === 0) return colors.textSecondary;
+    const now = new Date();
+    const hasActive = scheduledPresets.some(p => {
+      const start = new Date(p.scheduleStartDate!);
+      const end = new Date(p.scheduleEndDate!);
+      return now >= start && now < end;
+    });
+    if (hasActive) return '#22c55e';
+    const hasPending = scheduledPresets.some(p => {
+      const start = new Date(p.scheduleStartDate!);
+      return now < start;
+    });
+    if (hasPending) return '#f59e0b';
+    return colors.textSecondary;
+  }, [scheduledPresets, colors.textSecondary]);
+
   // Memoize unlock press handler for timed presets (shows emergency tapout modal)
   const handleUnlockPress = useCallback(() => {
     // Timed preset - show emergency tapout modal
@@ -1033,21 +1051,27 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
             </View>
 
             {/* Active settings display */}
-            {activePreset && getActiveSettingsDisplay().length > 0 && (
-              <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular} mt-2 text-center px-4`}>
-                Blocking {getActiveSettingsDisplay().join(', ')}
-              </Text>
-            )}
+            {(() => {
+              const settings = getActiveSettingsDisplay();
+              return activePreset && settings.length > 0 ? (
+                <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular} mt-2 text-center px-4`}>
+                  Blocking {settings.join(', ')}
+                </Text>
+              ) : null;
+            })()}
 
             {/* Preset timing subtext (for timed/dated presets) */}
-            {getPresetTimingSubtext() && (
-              <Text
-                style={{ color: colors.textMuted }}
-                className={`${textSize.small} ${fontFamily.regular} mt-1 text-center`}
-              >
-                {getPresetTimingSubtext()}
-              </Text>
-            )}
+            {(() => {
+              const subtext = getPresetTimingSubtext();
+              return subtext ? (
+                <Text
+                  style={{ color: colors.textMuted }}
+                  className={`${textSize.small} ${fontFamily.regular} mt-1 text-center`}
+                >
+                  {subtext}
+                </Text>
+              ) : null;
+            })()}
 
             {/* Scheduled Presets Button - absolutely positioned under preset text */}
             {scheduledPresets.length > 0 && (
@@ -1070,21 +1094,7 @@ function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
                     height: s(8),
                     borderRadius: s(4),
                     marginRight: s(8),
-                    backgroundColor: (() => {
-                      const now = new Date();
-                      const hasActive = scheduledPresets.some(p => {
-                        const start = new Date(p.scheduleStartDate!);
-                        const end = new Date(p.scheduleEndDate!);
-                        return now >= start && now < end;
-                      });
-                      if (hasActive) return "#22c55e";
-                      const hasPending = scheduledPresets.some(p => {
-                        const start = new Date(p.scheduleStartDate!);
-                        return now < start;
-                      });
-                      if (hasPending) return '#f59e0b';
-                      return colors.textSecondary;
-                    })(),
+                    backgroundColor: scheduledDotColor,
                   }}
                 />
                 <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>

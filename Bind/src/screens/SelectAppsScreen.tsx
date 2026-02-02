@@ -99,7 +99,7 @@ const AppItem = memo(({ item, isSelected, onToggle, cardColor, cardLightColor, t
     <TouchableOpacity
       onPress={handlePress}
       activeOpacity={0.7}
-      style={{ backgroundColor: cardColor, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
+      style={{ backgroundColor: cardColor, borderWidth: 1, borderColor: borderColor, ...shadow.card }}
       className={`flex-row items-center py-3 px-4 ${radius.xl} mb-2`}
     >
       {/* App Icon - native already provides squircle shape */}

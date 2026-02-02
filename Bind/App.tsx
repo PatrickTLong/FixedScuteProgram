@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { View, Vibration, NativeModules, AppState, Animated, DeviceEventEmitter } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { ThemeProvider, useTheme, shadow, animSpeed } from './src/context/ThemeContext';
+import { ThemeProvider, useTheme, animSpeed } from './src/context/ThemeContext';
 import LandingScreen from './src/screens/LandingScreen';
 import SignInScreen from './src/screens/SignInScreen';
 import GetStartedScreen from './src/screens/GetStartedScreen';
@@ -16,7 +16,7 @@ import TermsAcceptScreen from './src/screens/TermsAcceptScreen';
 import BottomTabBar from './src/components/BottomTabBar';
 import InfoModal from './src/components/InfoModal';
 import EmergencyTapoutModal from './src/components/EmergencyTapoutModal';
-import { deleteAccount, updateLockStatus, getLockStatus, getPresets, resetPresets, deactivateAllPresets, getEmergencyTapoutStatus, useEmergencyTapout, savePreset, Preset, EmergencyTapoutStatus, invalidateUserCaches, clearAuthToken, getMembershipStatus } from './src/services/cardApi';
+import { deleteAccount, updateLockStatus, getPresets, resetPresets, deactivateAllPresets, useEmergencyTapout, savePreset, Preset, EmergencyTapoutStatus, invalidateUserCaches, clearAuthToken, getMembershipStatus } from './src/services/cardApi';
 import MembershipScreen from './src/screens/MembershipScreen';
 
 const { BlockingModule, PermissionsModule, ScheduleModule } = NativeModules;
@@ -27,11 +27,14 @@ let lastNavigatedScheduledPresetId: string | null = null;
 type Screen = 'landing' | 'signin' | 'getstarted' | 'forgotpassword' | 'terms' | 'permissions' | 'membership' | 'main';
 type TabName = 'home' | 'presets' | 'settings';
 
+// Static set of auth screens for transition checks - avoids recreating on every render
+const AUTH_SCREENS: ReadonlySet<Screen> = new Set(['landing', 'signin', 'getstarted', 'forgotpassword']);
+
 function App() {
   const { colors } = useTheme();
   const [currentScreen, setCurrentScreen] = useState<Screen>('landing');
   const [activeTab, setActiveTab] = useState<TabName>('home');
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [, setIsLoggedIn] = useState(false);
   const [userEmail, setUserEmail] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
   const [modalTitle, setModalTitle] = useState('');
@@ -67,9 +70,7 @@ function App() {
 
   // Animated screen transition for auth screens
   const changeScreen = useCallback((newScreen: Screen) => {
-    // Auth screens that should animate
-    const authScreens: Screen[] = ['landing', 'signin', 'getstarted', 'forgotpassword'];
-    const isAuthTransition = authScreens.includes(currentScreen) && authScreens.includes(newScreen);
+    const isAuthTransition = AUTH_SCREENS.has(currentScreen) && AUTH_SCREENS.has(newScreen);
 
     if (isAuthTransition && !isTransitioning.current) {
       isTransitioning.current = true;
@@ -575,15 +576,13 @@ function App() {
     }
 
     // Auth screens use animated transitions
-    const authScreens: Screen[] = ['landing', 'signin', 'getstarted', 'forgotpassword'];
-    const isAuthScreen = authScreens.includes(displayedScreen);
+    const isAuthScreen = AUTH_SCREENS.has(displayedScreen);
 
     const screenContent = (() => {
       switch (displayedScreen) {
         case 'landing':
           return (
             <LandingScreen
-              onSignIn={() => changeScreen('signin')}
               onGetStarted={() => changeScreen('getstarted')}
             />
           );
@@ -660,7 +659,7 @@ function App() {
             </View>
           );
         default:
-          return <LandingScreen onSignIn={() => {}} onGetStarted={() => {}} />;
+          return <LandingScreen onGetStarted={() => {}} />;
       }
     })();
 

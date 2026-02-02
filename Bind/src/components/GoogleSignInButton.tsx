@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { memo, useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import {
   GoogleSignin,
@@ -48,7 +48,7 @@ GoogleSignin.configure({
   offlineAccess: true,
 });
 
-export default function GoogleSignInBtn({ onSuccess, onError, disabled }: Props) {
+function GoogleSignInBtn({ onSuccess, onError, disabled }: Props) {
   const { colors } = useTheme();
   const { s } = useResponsive();
   const [loading, setLoading] = useState(false);
@@ -143,3 +143,5 @@ export default function GoogleSignInBtn({ onSuccess, onError, disabled }: Props)
     </TouchableOpacity>
   );
 }
+
+export default memo(GoogleSignInBtn);

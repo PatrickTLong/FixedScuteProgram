@@ -1,7 +1,7 @@
-import React, { useEffect, useRef } from 'react';
+import React, { memo, useCallback, useEffect, useRef } from 'react';
 import { Animated, TouchableWithoutFeedback } from 'react-native';
 import { useResponsive } from '../utils/responsive';
-import { useTheme, shadow } from '../context/ThemeContext';
+import { shadow } from '../context/ThemeContext';
 
 interface AnimatedSwitchProps {
   value: boolean;
@@ -12,33 +12,17 @@ interface AnimatedSwitchProps {
   size?: 'default' | 'small' | 'medium' | 'large';
 }
 
-// Base sizes (will be scaled) - longer and more round track
-const BASE_TRACK_WIDTH = 52;
-const BASE_TRACK_HEIGHT = 28;
-const BASE_THUMB_SIZE = 20;
-const BASE_THUMB_OFFSET = 4;
-
-// Small size bases
-const BASE_TRACK_WIDTH_SMALL = 44;
-const BASE_TRACK_HEIGHT_SMALL = 24;
-const BASE_THUMB_SIZE_SMALL = 16;
-const BASE_THUMB_OFFSET_SMALL = 4;
-
-// Medium size bases
-const BASE_TRACK_WIDTH_MEDIUM = 56;
-const BASE_TRACK_HEIGHT_MEDIUM = 30;
-const BASE_THUMB_SIZE_MEDIUM = 22;
-const BASE_THUMB_OFFSET_MEDIUM = 4;
-
-// Large size bases
-const BASE_TRACK_WIDTH_LARGE = 62;
-const BASE_TRACK_HEIGHT_LARGE = 34;
-const BASE_THUMB_SIZE_LARGE = 26;
-const BASE_THUMB_OFFSET_LARGE = 4;
+// Size dimensions lookup - avoids recreating functions on every render
+const SIZE_DIMENSIONS = {
+  small:   { trackWidth: 44, trackHeight: 24, thumbSize: 16, thumbOffset: 4 },
+  medium:  { trackWidth: 56, trackHeight: 30, thumbSize: 22, thumbOffset: 4 },
+  large:   { trackWidth: 62, trackHeight: 34, thumbSize: 26, thumbOffset: 4 },
+  default: { trackWidth: 52, trackHeight: 28, thumbSize: 20, thumbOffset: 4 },
+} as const;
 
 const ANIMATION_DURATION = 120;
 
-export default function AnimatedSwitch({
+function AnimatedSwitch({
   value,
   onValueChange,
   disabled = false,
@@ -47,41 +31,14 @@ export default function AnimatedSwitch({
   size = 'medium',
 }: AnimatedSwitchProps) {
   const { s } = useResponsive();
-  const { colors } = useTheme();
 
-  // Use a slightly lighter color than colors.card (#363639) for subtle contrast
   const effectiveTrackColorFalse = trackColorFalse || '#48484a';
 
-  // Select dimensions based on size, then scale
-  const getBaseTrackWidth = () => {
-    if (size === 'small') return BASE_TRACK_WIDTH_SMALL;
-    if (size === 'medium') return BASE_TRACK_WIDTH_MEDIUM;
-    if (size === 'large') return BASE_TRACK_WIDTH_LARGE;
-    return BASE_TRACK_WIDTH;
-  };
-  const getBaseTrackHeight = () => {
-    if (size === 'small') return BASE_TRACK_HEIGHT_SMALL;
-    if (size === 'medium') return BASE_TRACK_HEIGHT_MEDIUM;
-    if (size === 'large') return BASE_TRACK_HEIGHT_LARGE;
-    return BASE_TRACK_HEIGHT;
-  };
-  const getBaseThumbSize = () => {
-    if (size === 'small') return BASE_THUMB_SIZE_SMALL;
-    if (size === 'medium') return BASE_THUMB_SIZE_MEDIUM;
-    if (size === 'large') return BASE_THUMB_SIZE_LARGE;
-    return BASE_THUMB_SIZE;
-  };
-  const getBaseThumbOffset = () => {
-    if (size === 'small') return BASE_THUMB_OFFSET_SMALL;
-    if (size === 'medium') return BASE_THUMB_OFFSET_MEDIUM;
-    if (size === 'large') return BASE_THUMB_OFFSET_LARGE;
-    return BASE_THUMB_OFFSET;
-  };
-
-  const trackWidth = s(getBaseTrackWidth());
-  const trackHeight = s(getBaseTrackHeight());
-  const thumbSize = s(getBaseThumbSize());
-  const thumbOffset = s(getBaseThumbOffset());
+  const dims = SIZE_DIMENSIONS[size] || SIZE_DIMENSIONS.default;
+  const trackWidth = s(dims.trackWidth);
+  const trackHeight = s(dims.trackHeight);
+  const thumbSize = s(dims.thumbSize);
+  const thumbOffset = s(dims.thumbOffset);
 
   const animatedValue = useRef(new Animated.Value(value ? 1 : 0)).current;
 
@@ -93,11 +50,11 @@ export default function AnimatedSwitch({
     }).start();
   }, [value, animatedValue]);
 
-  const handlePress = () => {
+  const handlePress = useCallback(() => {
     if (!disabled) {
       onValueChange(!value);
     }
-  };
+  }, [disabled, onValueChange, value]);
 
   const thumbTranslateX = animatedValue.interpolate({
     inputRange: [0, 1],
@@ -140,3 +97,5 @@ export default function AnimatedSwitch({
     </TouchableWithoutFeedback>
   );
 }
+
+export default memo(AnimatedSwitch);

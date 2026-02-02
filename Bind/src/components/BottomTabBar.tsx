@@ -14,7 +14,6 @@ interface BottomTabBarProps {
 }
 
 interface TabItemProps {
-  name: TabName;
   label: string;
   isActive: boolean;
   onPress: () => void;
@@ -80,7 +79,7 @@ const SettingsIcon = ({ color }: { color: string }) => (
   </Svg>
 );
 
-const TabItem = memo(({ name, label, isActive, onPress, icon, activeColor, inactiveColor }: TabItemProps) => {
+const TabItem = memo(({ label, isActive, onPress, icon, activeColor, inactiveColor }: TabItemProps) => {
   const handlePress = useCallback(() => {
     lightTap();
     onPress();
@@ -111,6 +110,11 @@ function BottomTabBar({ activeTab, onTabPress }: BottomTabBarProps) {
   const getIconColor = (tab: TabName) =>
     activeTab === tab ? colors.text : colors.textMuted;
 
+  // Stable callbacks so TabItem's React.memo isn't defeated
+  const handleHomePress = useCallback(() => onTabPress('home'), [onTabPress]);
+  const handlePresetsPress = useCallback(() => onTabPress('presets'), [onTabPress]);
+  const handleSettingsPress = useCallback(() => onTabPress('settings'), [onTabPress]);
+
   // Use safe area bottom inset with a minimum of 24px for devices without navigation buttons
   const bottomPadding = Math.max(insets.bottom, s(24));
 
@@ -125,28 +129,25 @@ function BottomTabBar({ activeTab, onTabPress }: BottomTabBarProps) {
       className="flex-row pt-2"
     >
       <TabItem
-        name="home"
         label="Home"
         isActive={activeTab === 'home'}
-        onPress={() => onTabPress('home')}
+        onPress={handleHomePress}
         icon={<HomeIcon color={getIconColor('home')} />}
         activeColor={colors.text}
         inactiveColor={colors.textMuted}
       />
       <TabItem
-        name="presets"
         label="Presets"
         isActive={activeTab === 'presets'}
-        onPress={() => onTabPress('presets')}
+        onPress={handlePresetsPress}
         icon={<PresetsIcon color={getIconColor('presets')} />}
         activeColor={colors.text}
         inactiveColor={colors.textMuted}
       />
       <TabItem
-        name="settings"
         label="Settings"
         isActive={activeTab === 'settings'}
-        onPress={() => onTabPress('settings')}
+        onPress={handleSettingsPress}
         icon={<SettingsIcon color={getIconColor('settings')} />}
         activeColor={colors.text}
         inactiveColor={colors.textMuted}

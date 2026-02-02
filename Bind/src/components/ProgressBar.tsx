@@ -23,7 +23,7 @@ function ProgressBar({ currentStep, totalSteps }: ProgressBarProps) {
   );
 }
 
-function AnimatedDot({ isActive }: { isActive: boolean }) {
+const AnimatedDot = memo(function AnimatedDot({ isActive }: { isActive: boolean }) {
   const { s } = useResponsive();
   const translateYAnim = useRef(new Animated.Value(0)).current;
   const floatAnim = useRef(new Animated.Value(0)).current;
@@ -81,6 +81,6 @@ function AnimatedDot({ isActive }: { isActive: boolean }) {
       }}
     />
   );
-}
+});
 
 export default memo(ProgressBar);

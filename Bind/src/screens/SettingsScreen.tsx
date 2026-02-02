@@ -119,18 +119,6 @@ const RefreshIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
   </Svg>
 );
 
-const CardIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
-  <Svg width={iconSize.md} height={iconSize.md} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M20 4H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V6a2 2 0 00-2-2zM2 10h20"
-      stroke={color}
-      strokeWidth={2.5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </Svg>
-);
-
 const TrashIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
   <Svg width={iconSize.md} height={iconSize.md} viewBox="0 0 24 24" fill="none">
     <Path
@@ -159,37 +147,6 @@ const BugIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
   <Svg width={iconSize.md} height={iconSize.md} viewBox="0 0 24 24" fill="none">
     <Path
       d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0zM12 9v4M12 17h.01"
-      stroke={color}
-      strokeWidth={2.5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </Svg>
-);
-
-const SunIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
-  <Svg width={iconSize.md} height={iconSize.md} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M12 17a5 5 0 100-10 5 5 0 000 10zM12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"
-      stroke={color}
-      strokeWidth={2.5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </Svg>
-);
-
-const UnlockIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
-  <Svg width={iconSize.md} height={iconSize.md} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M19 11H5a2 2 0 00-2 2v7a2 2 0 002 2h14a2 2 0 002-2v-7a2 2 0 00-2-2z"
-      stroke={color}
-      strokeWidth={2.5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <Path
-      d="M7 11V7a5 5 0 019.9-1"
       stroke={color}
       strokeWidth={2.5}
       strokeLinecap="round"
@@ -264,11 +221,10 @@ interface SettingsRowProps {
   isLast?: boolean;
   borderColor?: string;
   valueColor?: string;
-  arrowColor?: string;
   s: (size: number) => number;
 }
 
-const SettingsRow = ({
+const SettingsRow = memo(({
   icon,
   label,
   value,
@@ -278,7 +234,6 @@ const SettingsRow = ({
   isLast = false,
   borderColor,
   valueColor,
-  arrowColor,
   s,
 }: SettingsRowProps) => (
   <TouchableOpacity
@@ -297,7 +252,7 @@ const SettingsRow = ({
       <ChevronRightIcon size={s(iconSize.md)} />
     )}
   </TouchableOpacity>
-);
+));
 
 function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Props) {
   const { s } = useResponsive();
@@ -572,7 +527,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
             onPress={isDisabled ? undefined : () => setLogoutModalVisible(true)}
             labelColor={colors.text}
             borderColor={colors.divider}
-            arrowColor={colors.textSecondary}
+
             isLast
             s={s}
           />
@@ -624,7 +579,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
             onPress={isDisabled ? undefined : handleContactSupport}
             labelColor={colors.text}
             borderColor={colors.divider}
-            arrowColor={colors.textSecondary}
+
             s={s}
           />
           <SettingsRow
@@ -633,7 +588,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
             onPress={isDisabled ? undefined : handleBugReport}
             labelColor={colors.text}
             borderColor={colors.divider}
-            arrowColor={colors.textSecondary}
+
             s={s}
           />
           <SettingsRow
@@ -642,7 +597,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
             onPress={() => setPrivacyModalVisible(true)}
             labelColor={colors.text}
             borderColor={colors.divider}
-            arrowColor={colors.textSecondary}
+
             s={s}
           />
           <SettingsRow
@@ -651,7 +606,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
             onPress={() => setTermsModalVisible(true)}
             labelColor={colors.text}
             borderColor={colors.divider}
-            arrowColor={colors.textSecondary}
+
             isLast
             s={s}
           />
@@ -678,7 +633,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
             onPress={isDisabled ? undefined : () => setResetModalVisible(true)}
             labelColor={colors.text}
             borderColor={colors.divider}
-            arrowColor={colors.textSecondary}
+
             s={s}
           />
           <SettingsRow
@@ -687,7 +642,7 @@ function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Pr
             onPress={isDisabled ? undefined : () => setDeleteAccountModalVisible(true)}
             labelColor={colors.red}
             borderColor={colors.divider}
-            arrowColor={colors.textSecondary}
+
             isLast
             s={s}
           />

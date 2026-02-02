@@ -11,7 +11,6 @@ import { useResponsive } from '../utils/responsive';
 import { lightTap } from '../utils/haptics';
 
 interface Props {
-  onSignIn: () => void;
   onGetStarted: () => void;
 }
 

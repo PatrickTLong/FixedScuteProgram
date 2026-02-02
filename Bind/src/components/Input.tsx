@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { View, TextInput, Text, TextInputProps } from 'react-native';
 import { useTheme , textSize, fontFamily, radius } from '../context/ThemeContext';
 
@@ -7,7 +7,7 @@ interface InputProps extends TextInputProps {
   error?: string;
 }
 
-export default function Input({
+function Input({
   label,
   error,
   ...textInputProps
@@ -35,3 +35,5 @@ export default function Input({
     </View>
   );
 }
+
+export default memo(Input);

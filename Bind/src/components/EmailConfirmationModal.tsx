@@ -1,4 +1,4 @@
-import React, { memo, useState } from 'react';
+import React, { memo, useCallback, useState } from 'react';
 import {
   View,
   Text,
@@ -20,19 +20,19 @@ function EmailConfirmationModal({ visible, userEmail, onConfirm, onCancel }: Ema
   const { colors } = useTheme();
   const [inputEmail, setInputEmail] = useState('');
 
-  const handleConfirm = () => {
+  const handleConfirm = useCallback(() => {
     if (inputEmail.trim().toLowerCase() === userEmail.toLowerCase()) {
       lightTap();
       setInputEmail('');
       onConfirm();
     }
-  };
+  }, [inputEmail, userEmail, onConfirm]);
 
-  const handleCancel = () => {
+  const handleCancel = useCallback(() => {
     lightTap();
     setInputEmail('');
     onCancel();
-  };
+  }, [onCancel]);
 
   const isEmailMatch = inputEmail.trim().toLowerCase() === userEmail.toLowerCase();
 

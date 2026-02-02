@@ -9,6 +9,18 @@ import { useTheme , textSize, fontFamily, radius, shadow, buttonPadding } from '
 import { useResponsive } from '../utils/responsive';
 import AnimatedSwitch from './AnimatedSwitch';
 
+// Pure date formatting helper - no component state dependency
+function formatScheduleDate(dateStr: string): string {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+  }) + ' ' + date.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  });
+}
 
 export interface Preset {
   id: string;
@@ -86,7 +98,7 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, disabled
       return new Date(preset.targetDate) < now;
     }
     return false;
-  }, [preset.isScheduled, preset.scheduleStartDate, preset.scheduleEndDate, preset.targetDate, preset.noTimeLimit, isActive, preset.repeat_enabled, preset.isActive, preset.name, preset.id]);
+  }, [preset.isScheduled, preset.scheduleStartDate, preset.scheduleEndDate, preset.targetDate, preset.noTimeLimit, isActive, preset.repeat_enabled, preset.isActive]);
 
   // Timer to check expiration - only runs when close to expiration (within 2 minutes)
   useEffect(() => {
@@ -133,18 +145,6 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, disabled
       onExpired();
     }
   }, [isExpired, isActive, onExpired]);
-
-  const formatScheduleDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-    }) + ' ' + date.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-    });
-  };
 
   const getTimeDescription = () => {
     // Handle scheduled presets
@@ -290,11 +290,14 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, disabled
           </Text>
 
           {/* Details (strict mode, emergency tapout, settings blocked) */}
-          {getDetailsDescription() && (
-            <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-0.5`}>
-              {getDetailsDescription()}
-            </Text>
-          )}
+          {(() => {
+            const details = getDetailsDescription();
+            return details ? (
+              <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-0.5`}>
+                {details}
+              </Text>
+            ) : null;
+          })()}
         </View>
 
         {/* Toggle Switch */}

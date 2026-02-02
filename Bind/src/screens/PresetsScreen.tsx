@@ -28,6 +28,21 @@ import { lightTap } from '../utils/haptics';
 
 const { InstalledAppsModule, ScheduleModule } = NativeModules;
 
+// Pure function - check if two date ranges overlap
+function dateRangesOverlap(
+  start1: string | null | undefined,
+  end1: string | null | undefined,
+  start2: string | null | undefined,
+  end2: string | null | undefined
+): boolean {
+  if (!start1 || !end1 || !start2 || !end2) return false;
+  const s1 = new Date(start1).getTime();
+  const e1 = new Date(end1).getTime();
+  const s2 = new Date(start2).getTime();
+  const e2 = new Date(end2).getTime();
+  return s1 < e2 && s2 < e1;
+}
+
 // Cache installed apps for the session (apps don't change often)
 // Note: iOS doesn't provide app list, only Android
 let cachedInstalledApps: { id: string }[] | null = null;
@@ -187,22 +202,6 @@ function PresetsScreen({ userEmail }: Props) {
     }
   }, []);
 
-  // Check if two date ranges overlap
-  const dateRangesOverlap = useCallback((
-    start1: string | null | undefined,
-    end1: string | null | undefined,
-    start2: string | null | undefined,
-    end2: string | null | undefined
-  ): boolean => {
-    if (!start1 || !end1 || !start2 || !end2) return false;
-    const s1 = new Date(start1).getTime();
-    const e1 = new Date(end1).getTime();
-    const s2 = new Date(start2).getTime();
-    const e2 = new Date(end2).getTime();
-    // Two ranges overlap if one starts before the other ends
-    return s1 < e2 && s2 < e1;
-  }, []);
-
   // Actually enable a scheduled preset (called after verification)
   const enableScheduledPreset = useCallback(async (preset: Preset) => {
     // OPTIMISTIC UPDATE - update UI immediately
@@ -247,9 +246,7 @@ function PresetsScreen({ userEmail }: Props) {
 
 
   const handleTogglePreset = useCallback(async (preset: Preset, value: boolean) => {
-    console.log(`[PresetsScreen] handleTogglePreset called - preset: ${preset.name}, value: ${value}, isScheduled: ${preset.isScheduled}`);
     if (value) {
-      console.log(`[PresetsScreen] Activating preset: ${preset.name}`);
       if (preset.isScheduled) {
         // Scheduled preset - check for overlaps with other active scheduled presets
         const otherScheduledPresets = presets.filter(
@@ -341,9 +338,7 @@ function PresetsScreen({ userEmail }: Props) {
       }
     } else {
       // Deactivate
-      console.log(`[PresetsScreen] Deactivating preset: ${preset.name}`);
       if (preset.isScheduled) {
-        console.log(`[PresetsScreen] Deactivating SCHEDULED preset: ${preset.name}`);
         // OPTIMISTIC UPDATE - update UI immediately
         setPresets(prev => prev.map(p =>
           p.id === preset.id ? { ...p, isActive: false } : p
@@ -369,7 +364,6 @@ function PresetsScreen({ userEmail }: Props) {
         });
       } else {
         // Non-scheduled preset
-        console.log(`[PresetsScreen] Deactivating NON-SCHEDULED preset: ${preset.name}`);
         // OPTIMISTIC UPDATE - update UI immediately
         setActivePresetId(null);
         setPresets(prev => prev.map(p => ({
@@ -379,7 +373,6 @@ function PresetsScreen({ userEmail }: Props) {
 
         // Save in background
         activatePreset(userEmail, null).then(result => {
-          console.log(`[PresetsScreen] activatePreset(null) result:`, result);
           if (result.success) {
             // Invalidate cache so other screens get fresh data
             invalidateUserCaches(userEmail);
@@ -394,7 +387,7 @@ function PresetsScreen({ userEmail }: Props) {
         });
       }
     }
-  }, [userEmail, syncScheduledPresetsToNative, presets, dateRangesOverlap]);
+  }, [userEmail, syncScheduledPresetsToNative, presets]);
 
   const handleAddPreset = useCallback(() => {
     setEditingPreset(null);
@@ -540,7 +533,7 @@ function PresetsScreen({ userEmail }: Props) {
     setEditModalVisible(false);
     setEditingPreset(null);
     setIsSaving(false);
-  }, [isSaving, editingPreset, userEmail, syncScheduledPresetsToNative, presets, dateRangesOverlap]);
+  }, [isSaving, editingPreset, userEmail, syncScheduledPresetsToNative, presets]);
 
   const handleCloseEditModal = useCallback(() => {
     setEditModalVisible(false);

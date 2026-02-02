@@ -1,10 +1,9 @@
-import React, { useState, memo } from 'react';
+import React, { useState, useCallback, useMemo, memo } from 'react';
 import {
   Text,
   View,
   TouchableOpacity,
   KeyboardAvoidingView,
-  Platform,
   ScrollView,
   TextInput,
 } from 'react-native';
@@ -182,13 +181,12 @@ function ForgotPasswordScreen({ onBack, onSuccess }: Props) {
     }
   }
 
-  const getCurrentStep = () => {
+  const currentStep = useMemo(() => {
     if (step === 'email') return 2;
-    if (step === 'code') return 3;
     return 3;
-  };
+  }, [step]);
 
-  const handleBack = () => {
+  const handleBack = useCallback(() => {
     if (step === 'email') {
       onBack();
     } else if (step === 'code') {
@@ -196,7 +194,7 @@ function ForgotPasswordScreen({ onBack, onSuccess }: Props) {
     } else {
       setStep('code');
     }
-  };
+  }, [step, onBack]);
 
   if (loading) {
     return (
@@ -220,7 +218,7 @@ function ForgotPasswordScreen({ onBack, onSuccess }: Props) {
       </View>
 
       {/* Progress Bar */}
-      <ProgressBar currentStep={getCurrentStep()} totalSteps={3} />
+      <ProgressBar currentStep={currentStep} totalSteps={3} />
 
       <KeyboardAvoidingView
         enabled={false}
