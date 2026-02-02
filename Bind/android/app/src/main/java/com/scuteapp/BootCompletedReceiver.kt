@@ -49,20 +49,7 @@ class BootCompletedReceiver : BroadcastReceiver() {
                     context.startService(serviceIntent)
                 }
 
-                // Restore the floating bubble
-                try {
-                    if (noTimeLimit) {
-                        // No time limit - show bubble with elapsed time (counting up)
-                        FloatingBubbleManager.getInstance(context).showNoTimeLimit(sessionStartTime)
-                        Log.d(TAG, "Floating bubble restored for no-time-limit session")
-                    } else {
-                        // Timed session - show bubble with remaining time (counting down)
-                        FloatingBubbleManager.getInstance(context).show(sessionEndTime)
-                        Log.d(TAG, "Floating bubble restored for timed session")
-                    }
-                } catch (e: Exception) {
-                    Log.e(TAG, "Failed to restore floating bubble after boot", e)
-                }
+                // Floating bubble is shown by UninstallBlockerService.onStartCommand
 
                 Log.d(TAG, "Blocking service started successfully after boot")
             } else if (isSessionActive && now >= sessionEndTime) {

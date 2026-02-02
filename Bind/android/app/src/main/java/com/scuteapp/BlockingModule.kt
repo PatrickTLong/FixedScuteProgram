@@ -137,25 +137,11 @@ class BlockingModule(reactContext: ReactApplicationContext) :
             if (hasTimeLimit && !isScheduled) {
                 TimerAlarmManager.scheduleTimerEnd(reactApplicationContext, endTime, presetId, presetName ?: "Timer")
                 Log.d(TAG, "Scheduled timer end alarm for ${java.util.Date(endTime)}")
-
-                // Show floating bubble with countdown timer
-                try {
-                    FloatingBubbleManager.getInstance(reactApplicationContext).show(endTime)
-                    Log.d(TAG, "Showing floating bubble for timer preset")
-                } catch (e: Exception) {
-                    Log.e(TAG, "Failed to show floating bubble", e)
-                }
-            } else if (noTimeLimit && !isScheduled) {
-                // Show floating bubble for no-time-limit presets (counts up elapsed time)
-                try {
-                    FloatingBubbleManager.getInstance(reactApplicationContext).showNoTimeLimit(sessionStartTime)
-                    Log.d(TAG, "Showing floating bubble for no-time-limit preset")
-                } catch (e: Exception) {
-                    Log.e(TAG, "Failed to show floating bubble for no-time-limit", e)
-                }
             } else {
                 Log.d(TAG, "Skipping timer alarm: hasTimeLimit=$hasTimeLimit, isScheduled=$isScheduled")
             }
+
+            // Floating bubble is shown by UninstallBlockerService.onStartCommand
 
             Log.d(TAG, "Blocking started: ${appSet.size} apps, ${websiteSet.size} websites, noTimeLimit: $noTimeLimit")
             Log.d(TAG, "DEBUG - Blocked apps list: $appSet")

@@ -638,16 +638,18 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
             }
 
             // Save to session prefs (reusing sessionPrefs from earlier check)
+            // Use commit() instead of apply() to ensure prefs are written before service reads them
             sessionPrefs.edit()
                 .putStringSet(UninstallBlockerService.KEY_BLOCKED_APPS, selectedApps)
                 .putStringSet("blocked_websites", blockedWebsites)
                 .putBoolean(UninstallBlockerService.KEY_SESSION_ACTIVE, true)
                 .putLong(UninstallBlockerService.KEY_SESSION_END_TIME, endTime)
+                .putLong("session_start_time", System.currentTimeMillis())
                 .putBoolean("no_time_limit", noTimeLimit)
                 .putString("active_preset_id", presetId)
                 .putString("active_preset_name", targetPreset.optString("name", "Scheduled Preset"))
                 .putBoolean("is_scheduled_preset", true) // Mark as scheduled so TimerPresetReceiver knows to skip
-                .apply()
+                .commit()
 
             // Start the foreground service
             val serviceIntent = Intent(context, UninstallBlockerService::class.java)
@@ -666,13 +668,7 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
                 presetId
             )
 
-            // Show floating bubble with countdown
-            try {
-                Log.d(TAG, "Showing floating bubble for preset activation: ${targetPreset.optString("name")}")
-                FloatingBubbleManager.getInstance(context).show(endTime)
-            } catch (e: Exception) {
-                Log.e(TAG, "Failed to show floating bubble", e)
-            }
+            // Floating bubble is shown by UninstallBlockerService.onStartCommand
 
             // Notify React Native that a session started
             SessionEventHelper.emitSessionEvent(context, "session_started")

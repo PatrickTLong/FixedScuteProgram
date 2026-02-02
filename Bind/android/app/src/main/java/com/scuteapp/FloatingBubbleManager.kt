@@ -743,6 +743,16 @@ class FloatingBubbleManager(private val context: Context) {
      */
     fun isShowing(): Boolean = isShowing
 
+    /**
+     * Reset the isHidden flag so the bubble can be re-shown.
+     * Called when user enters the Scute app - if they X'd the bubble,
+     * it will reappear next time show() is called.
+     */
+    fun resetHidden() {
+        isHidden = false
+        Log.d(TAG, "isHidden reset")
+    }
+
 
     /**
      * Perform light haptic feedback for tap

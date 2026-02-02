@@ -166,6 +166,27 @@ class UninstallBlockerService : Service() {
         val notification = createNotification()
         startForeground(NOTIFICATION_ID, notification)
 
+        // Show floating bubble for all active sessions (if not already showing)
+        val bubbleManager = FloatingBubbleManager.getInstance(this)
+        if (!bubbleManager.isShowing()) {
+            try {
+                val noTimeLimit = prefs.getBoolean("no_time_limit", false)
+                if (noTimeLimit) {
+                    val sessionStartTime = prefs.getLong("session_start_time", System.currentTimeMillis())
+                    bubbleManager.showNoTimeLimit(sessionStartTime)
+                    Log.d(TAG, "Showing floating bubble for no-time-limit session")
+                } else {
+                    val sessionEndTime = prefs.getLong(KEY_SESSION_END_TIME, 0)
+                    if (sessionEndTime > System.currentTimeMillis()) {
+                        bubbleManager.show(sessionEndTime)
+                        Log.d(TAG, "Showing floating bubble for timed session")
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to show floating bubble", e)
+            }
+        }
+
         return START_STICKY
     }
 
