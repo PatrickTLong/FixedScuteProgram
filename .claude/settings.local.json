@@ -49,7 +49,12 @@
       "Bash(git add:*)",
       "WebFetch(domain:raw.githubusercontent.com)",
       "Bash(del \"c:\\\\Users\\\\Shado\\\\OneDrive\\\\Desktop\\\\ScuteProgram\\\\Bind\\\\src\\\\components\\\\PresetGuideModal.tsx\")",
-      "Bash(cd \"c:\\\\Users\\\\Shado\\\\OneDrive\\\\Desktop\\\\ScuteProgram\\\\Bind\\\\src\"\" && grep -r \"TouchableOpacity\" --include=\"*.tsx \")"
+      "Bash(cd \"c:\\\\Users\\\\Shado\\\\OneDrive\\\\Desktop\\\\ScuteProgram\\\\Bind\\\\src\"\" && grep -r \"TouchableOpacity\" --include=\"*.tsx \")",
+      "Bash(gradlew.bat:*)",
+      "Bash(cmd /c \"cd /d c:\\\\Users\\\\Shado\\\\OneDrive\\\\Desktop\\\\ScuteProgram\\\\Bind\\\\android && gradlew.bat clean\")",
+      "Bash(cmd /c \"cd /d c:\\\\Users\\\\Shado\\\\OneDrive\\\\Desktop\\\\ScuteProgram\\\\Bind\\\\android && .\\\\gradlew.bat clean\")",
+      "Bash(cmd /c \"cd /d c:\\\\Users\\\\Shado\\\\OneDrive\\\\Desktop\\\\ScuteProgram\\\\Bind\\\\android && call gradlew.bat clean 2>&1\")",
+      "Bash(cmd /c \"rmdir /s /q \"\"c:\\\\Users\\\\Shado\\\\OneDrive\\\\Desktop\\\\ScuteProgram\\\\Bind\\\\android\\\\app\\\\.cxx\"\" 2>&1 & echo DONE\")"
     ]
   }
 }
