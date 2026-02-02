@@ -51,13 +51,15 @@ function App() {
   // Force re-render trigger for child components
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  // Screen transition animation
+  // Screen transition animation (scale up + fade in)
   const fadeAnim = useRef(new Animated.Value(1)).current;
+  const scaleAnim = useRef(new Animated.Value(1)).current;
   const [displayedScreen, setDisplayedScreen] = useState<Screen>('landing');
   const isTransitioning = useRef(false);
 
-  // Tab transition animation
+  // Tab transition animation (scale up + fade in)
   const tabFadeAnim = useRef(new Animated.Value(1)).current;
+  const tabScaleAnim = useRef(new Animated.Value(1)).current;
   const [displayedTab, setDisplayedTab] = useState<TabName>('home');
   const isTabTransitioning = useRef(false);
 
@@ -68,63 +70,72 @@ function App() {
   }, []);
 
 
-  // Animated screen transition for auth screens
+  // Animated screen transition for auth screens (scale up + fade in, no fade-out)
   const changeScreen = useCallback((newScreen: Screen) => {
     const isAuthTransition = AUTH_SCREENS.has(currentScreen) && AUTH_SCREENS.has(newScreen);
 
     if (isAuthTransition && !isTransitioning.current) {
       isTransitioning.current = true;
-      // Fade out, swap screen while invisible, then fade in
-      Animated.timing(fadeAnim, {
-        toValue: 0,
-        duration: animSpeed.screenTransition,
-        useNativeDriver: true,
-      }).start(() => {
-        // Update both states synchronously while fully transparent
-        setDisplayedScreen(newScreen);
-        setCurrentScreen(newScreen);
-        // Small delay to ensure render completes before fading in
-        requestAnimationFrame(() => {
+
+      // Instantly swap content, start new screen at scale 0.95 + opacity 0
+      fadeAnim.setValue(0);
+      scaleAnim.setValue(0.95);
+      setDisplayedScreen(newScreen);
+      setCurrentScreen(newScreen);
+
+      // Animate new screen in: scale 0.95→1 + opacity 0→1
+      requestAnimationFrame(() => {
+        Animated.parallel([
           Animated.timing(fadeAnim, {
             toValue: 1,
-            duration: animSpeed.screenTransition,
+            duration: animSpeed.tabTransition,
             useNativeDriver: true,
-          }).start(() => {
-            isTransitioning.current = false;
-          });
+          }),
+          Animated.timing(scaleAnim, {
+            toValue: 1,
+            duration: animSpeed.tabTransition,
+            useNativeDriver: true,
+          }),
+        ]).start(() => {
+          isTransitioning.current = false;
         });
       });
     } else {
       setDisplayedScreen(newScreen);
       setCurrentScreen(newScreen);
     }
-  }, [currentScreen, fadeAnim]);
+  }, [currentScreen, fadeAnim, scaleAnim]);
 
-  // Animated tab transition for main tabs
+  // Animated tab transition for main tabs (scale up + fade in, no fade-out)
   const changeTab = useCallback((newTab: TabName) => {
     if (newTab === activeTab || isTabTransitioning.current) return;
 
     isTabTransitioning.current = true;
-    setActiveTab(newTab);
 
-    // Fade out, swap tab while invisible, then fade in (same as auth screens)
-    Animated.timing(tabFadeAnim, {
-      toValue: 0,
-      duration: animSpeed.screenTransition,
-      useNativeDriver: true,
-    }).start(() => {
-      setDisplayedTab(newTab);
-      requestAnimationFrame(() => {
+    // Instantly swap content, start new tab at scale 0.95 + opacity 0
+    tabFadeAnim.setValue(0);
+    tabScaleAnim.setValue(0.95);
+    setActiveTab(newTab);
+    setDisplayedTab(newTab);
+
+    // Animate new tab in: scale 0.95→1 + opacity 0→1
+    requestAnimationFrame(() => {
+      Animated.parallel([
         Animated.timing(tabFadeAnim, {
           toValue: 1,
-          duration: animSpeed.screenTransition,
+          duration: animSpeed.tabTransition,
           useNativeDriver: true,
-        }).start(() => {
-          isTabTransitioning.current = false;
-        });
+        }),
+        Animated.timing(tabScaleAnim, {
+          toValue: 1,
+          duration: animSpeed.tabTransition,
+          useNativeDriver: true,
+        }),
+      ]).start(() => {
+        isTabTransitioning.current = false;
       });
     });
-  }, [activeTab, tabFadeAnim]);
+  }, [activeTab, tabFadeAnim, tabScaleAnim]);
 
   // Handle using emergency tapout from NFC modal
   const handleUseEmergencyTapout = useCallback(async () => {
@@ -630,7 +641,7 @@ function App() {
         case 'main':
           return (
             <View style={{ flex: 1, backgroundColor: colors.bg }}>
-              <Animated.View renderToHardwareTextureAndroid={true} style={{ flex: 1, backgroundColor: colors.bg, opacity: tabFadeAnim }}>
+              <Animated.View renderToHardwareTextureAndroid={true} style={{ flex: 1, backgroundColor: colors.bg, opacity: tabFadeAnim, transform: [{ scale: tabScaleAnim }] }}>
                 {displayedTab === 'home' && (
                   <HomeScreen
                     email={userEmail}
@@ -668,7 +679,7 @@ function App() {
     if (isAuthScreen) {
       return (
         <View style={{ flex: 1, backgroundColor: colors.bg }}>
-          <Animated.View renderToHardwareTextureAndroid={true} style={{ flex: 1, opacity: fadeAnim }}>
+          <Animated.View renderToHardwareTextureAndroid={true} style={{ flex: 1, opacity: fadeAnim, transform: [{ scale: scaleAnim }] }}>
             {screenContent}
           </Animated.View>
         </View>

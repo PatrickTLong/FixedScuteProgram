@@ -701,8 +701,9 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
   // Ref for datepicker ScrollView to disable scrolling over time wheels
   const dpScrollRef = useRef<ScrollView>(null);
 
-  // Step transition animation (same pattern as App.tsx tab transitions)
+  // Step transition animation (scale up + fade in, no fade-out)
   const stepFadeAnim = useRef(new Animated.Value(1)).current;
+  const stepScaleAnim = useRef(new Animated.Value(1)).current;
   const isStepTransitioning = useRef(false);
 
   // Step transition (first step <-> final step <-> datePicker)
@@ -710,27 +711,29 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
     if (isStepTransitioning.current) return;
     isStepTransitioning.current = true;
 
-    // Fade out
-    Animated.timing(stepFadeAnim, {
-      toValue: 0,
-      duration: animSpeed.screenTransition,
-      useNativeDriver: true,
-    }).start(() => {
-      // Swap step while invisible
-      setDisplayedStep(step);
-      // Small delay to ensure render completes before fading in
-      requestAnimationFrame(() => {
-        // Fade in
+    // Instantly swap content, start new step at scale 0.95 + opacity 0
+    stepFadeAnim.setValue(0);
+    stepScaleAnim.setValue(0.95);
+    setDisplayedStep(step);
+
+    // Animate new step in: scale 0.95→1 + opacity 0→1
+    requestAnimationFrame(() => {
+      Animated.parallel([
         Animated.timing(stepFadeAnim, {
           toValue: 1,
-          duration: animSpeed.screenTransition,
+          duration: animSpeed.tabTransition,
           useNativeDriver: true,
-        }).start(() => {
-          isStepTransitioning.current = false;
-        });
+        }),
+        Animated.timing(stepScaleAnim, {
+          toValue: 1,
+          duration: animSpeed.tabTransition,
+          useNativeDriver: true,
+        }),
+      ]).start(() => {
+        isStepTransitioning.current = false;
       });
     });
-  }, [stepFadeAnim]);
+  }, [stepFadeAnim, stepScaleAnim]);
 
   // Tab switch (apps <-> websites)
   const switchTab = useCallback((newTab: TabType) => {
@@ -1313,7 +1316,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
         presentationStyle="pageSheet"
       >
         <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
-          <Animated.View renderToHardwareTextureAndroid={true} style={{ flex: 1, opacity: stepFadeAnim }}>
+          <Animated.View renderToHardwareTextureAndroid={true} style={{ flex: 1, opacity: stepFadeAnim, transform: [{ scale: stepScaleAnim }] }}>
             {/* Header */}
             <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }} className="flex-row items-center justify-between px-4 py-3.5">
               <TouchableOpacity onPress={dpHandleCancel} style={{ width: s(40) }} className="px-2">
@@ -1729,7 +1732,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
         presentationStyle="pageSheet"
       >
         <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
-          <Animated.View renderToHardwareTextureAndroid={true} style={{ flex: 1, opacity: stepFadeAnim }}>
+          <Animated.View renderToHardwareTextureAndroid={true} style={{ flex: 1, opacity: stepFadeAnim, transform: [{ scale: stepScaleAnim }] }}>
             {/* Header */}
             <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }} className="flex-row items-center justify-between px-4 py-3.5">
               <TouchableOpacity onPress={() => { lightTap(); goToStep('first'); }} disabled={isSaving} style={{ width: s(40) }} className="px-2">
@@ -2281,7 +2284,7 @@ function PresetEditModal({ visible, preset, onClose, onSave, email, existingPres
       presentationStyle="pageSheet"
     >
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
-        <Animated.View renderToHardwareTextureAndroid={true} style={{ flex: 1, opacity: stepFadeAnim }}>
+        <Animated.View renderToHardwareTextureAndroid={true} style={{ flex: 1, opacity: stepFadeAnim, transform: [{ scale: stepScaleAnim }] }}>
           {/* Header */}
           <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }} className="flex-row items-center justify-between px-4 py-3.5">
             <TouchableOpacity onPress={() => { lightTap(); onClose(); }} className="px-2">

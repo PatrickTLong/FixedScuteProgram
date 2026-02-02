@@ -62,6 +62,7 @@ export const radius = {
 // Animation speeds (ms)
 export const animSpeed = {
   screenTransition: 100,
+  tabTransition: 150,
 } as const;
 
 // Shadow style objects
