@@ -743,31 +743,6 @@ class FloatingBubbleManager(private val context: Context) {
      */
     fun isShowing(): Boolean = isShowing
 
-    /**
-     * Temporarily hide the bubble (e.g. when user is in Scute app)
-     * Also resets isHidden so bubble will reappear when leaving the app
-     */
-    fun temporaryHide() {
-        // Reset isHidden when entering Scute app - user can see bubble again after leaving
-        isHidden = false
-
-        if (!isShowing) return
-        bubbleView?.post {
-            bubbleView?.visibility = View.GONE
-        }
-        Log.d(TAG, "Bubble temporarily hidden (isHidden reset)")
-    }
-
-    /**
-     * Re-show the bubble after a temporary hide
-     */
-    fun temporaryShow() {
-        if (!isShowing) return
-        bubbleView?.post {
-            bubbleView?.visibility = View.VISIBLE
-        }
-        Log.d(TAG, "Bubble re-shown")
-    }
 
     /**
      * Perform light haptic feedback for tap

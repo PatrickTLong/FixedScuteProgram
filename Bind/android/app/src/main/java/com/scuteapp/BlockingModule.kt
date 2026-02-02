@@ -138,11 +138,10 @@ class BlockingModule(reactContext: ReactApplicationContext) :
                 TimerAlarmManager.scheduleTimerEnd(reactApplicationContext, endTime, presetId, presetName ?: "Timer")
                 Log.d(TAG, "Scheduled timer end alarm for ${java.util.Date(endTime)}")
 
-                // Show floating bubble with countdown timer (start hidden since user is in Scute app)
+                // Show floating bubble with countdown timer
                 try {
                     FloatingBubbleManager.getInstance(reactApplicationContext).show(endTime)
-                    FloatingBubbleManager.getInstance(reactApplicationContext).temporaryHide()
-                    Log.d(TAG, "Showing floating bubble for timer preset (hidden until user leaves app)")
+                    Log.d(TAG, "Showing floating bubble for timer preset")
                 } catch (e: Exception) {
                     Log.e(TAG, "Failed to show floating bubble", e)
                 }
@@ -150,8 +149,7 @@ class BlockingModule(reactContext: ReactApplicationContext) :
                 // Show floating bubble for no-time-limit presets (counts up elapsed time)
                 try {
                     FloatingBubbleManager.getInstance(reactApplicationContext).showNoTimeLimit(sessionStartTime)
-                    FloatingBubbleManager.getInstance(reactApplicationContext).temporaryHide()
-                    Log.d(TAG, "Showing floating bubble for no-time-limit preset (hidden until user leaves app)")
+                    Log.d(TAG, "Showing floating bubble for no-time-limit preset")
                 } catch (e: Exception) {
                     Log.e(TAG, "Failed to show floating bubble for no-time-limit", e)
                 }
