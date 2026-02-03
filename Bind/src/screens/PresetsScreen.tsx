@@ -70,10 +70,19 @@ function PresetsScreen() {
   const { colors } = useTheme();
   const { s } = useResponsive();
   const navigation = useNavigation<NativeStackNavigationProp<PresetsStackParamList>>();
-  const { userEmail } = useAuth();
+  const { userEmail, setSharedPresets, setSharedPresetsLoaded } = useAuth();
   const userEmail_safe = userEmail || '';
   const { setOnSave, setEditingPreset: setContextEditingPreset, setExistingPresets, setEmail } = usePresetSave();
-  const [presets, setPresets] = useState<Preset[]>([]);
+  const [presets, setPresetsLocal] = useState<Preset[]>([]);
+
+  // Sync local presets to shared state whenever they change
+  useEffect(() => {
+    setSharedPresets(presets);
+  }, [presets, setSharedPresets]);
+
+  // Wrapper that updates local state (shared state syncs automatically via useEffect above)
+  const setPresets = setPresetsLocal;
+
   const [activePresetId, setActivePresetId] = useState<string | null>(null);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [presetToDelete, setPresetToDelete] = useState<Preset | null>(null);
@@ -142,6 +151,7 @@ function PresetsScreen() {
 
       // Show presets immediately - don't wait for orphan cleanup
       setPresets(fetchedPresets);
+      setSharedPresetsLoaded(true);
 
       // Find active NON-SCHEDULED preset
       const activeNonScheduled = fetchedPresets.find(p => p.isActive && !p.isScheduled);

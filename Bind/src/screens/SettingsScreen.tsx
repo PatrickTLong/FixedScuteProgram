@@ -304,6 +304,13 @@ function SettingsScreen() {
     init();
   }, [email, hasCache]);
 
+  // Force re-render every 60s so countdown strings (tapout refill, trial remaining) stay fresh
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const interval = setInterval(() => setTick(t => t + 1), 60000);
+    return () => clearInterval(interval);
+  }, []);
+
   // Note: Scheduled preset navigation is handled centrally by App.tsx
   // which polls every 5 seconds and navigates to home when a preset becomes active.
   // The onNavigateToHome prop is kept for future use but no longer used here

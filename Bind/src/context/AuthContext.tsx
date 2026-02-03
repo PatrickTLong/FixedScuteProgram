@@ -61,6 +61,11 @@ interface AuthContextValue {
   handleUseEmergencyTapout: () => Promise<void>;
   // Navigation ref for programmatic navigation
   navigationRef: ReturnType<typeof createNavigationContainerRef<RootStackParamList>>;
+  // Shared presets state across all mounted screens
+  sharedPresets: Preset[];
+  setSharedPresets: React.Dispatch<React.SetStateAction<Preset[]>>;
+  sharedPresetsLoaded: boolean;
+  setSharedPresetsLoaded: (v: boolean) => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -78,6 +83,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [userEmail, setUserEmail] = useState('');
   const [isInitializing, setIsInitializing] = useState(true);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  // Shared presets state - single source of truth across all mounted screens
+  const [sharedPresets, setSharedPresets] = useState<Preset[]>([]);
+  const [sharedPresetsLoaded, setSharedPresetsLoaded] = useState(false);
 
   // Info modal
   const [modalState, setModalState] = useState<ModalState>({ visible: false, title: '', message: '' });
@@ -140,6 +149,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         await updateLockStatus(userEmail, false, null);
         invalidateUserCaches(userEmail);
+        // Update shared presets to reflect deactivation
+        if (activePresetForTapout) {
+          setSharedPresets(prev => prev.map(p =>
+            p.id === activePresetForTapout.id ? { ...p, isActive: false } : p
+          ));
+        }
         Vibration.vibrate(100);
         showModal('Unlocked', `Phone unlocked. You have ${result.remaining} emergency tapout${result.remaining !== 1 ? 's' : ''} remaining.`);
         setRefreshTrigger(prev => prev + 1);
@@ -292,7 +307,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (userEmail) {
       await deactivateAllPresets(userEmail);
       await ScheduleModule?.saveScheduledPresets('[]');
+      invalidateUserCaches(userEmail);
     }
+    setSharedPresets([]);
+    setSharedPresetsLoaded(false);
     await AsyncStorage.removeItem('user_email');
     await clearAuthToken();
     setUserEmail('');
@@ -306,6 +324,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!result.success) {
         return { success: false, error: result.error || 'Failed to reset presets' };
       }
+      // Clear shared state so Home and Presets screens update immediately
+      invalidateUserCaches(userEmail);
+      setSharedPresets([]);
+      setSharedPresetsLoaded(false);
       return { success: true };
     } catch (error) {
       return { success: false, error: 'Failed to reset account' };
@@ -319,7 +341,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!result.success) {
         return { success: false, error: result.error || 'Failed to delete account' };
       }
+      // Clear all shared state and caches
+      invalidateUserCaches(userEmail);
+      setSharedPresets([]);
+      setSharedPresetsLoaded(false);
       await AsyncStorage.clear();
+      await clearAuthToken();
       setUserEmail('');
       setAuthState('auth');
       return { success: true };
@@ -334,6 +361,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     try {
       const presets = await getPresets(userEmail);
+      // Update shared state so all screens see fresh preset data
+      setSharedPresets(presets);
+      setSharedPresetsLoaded(true);
+
       const now = Date.now();
 
       for (const preset of presets) {
@@ -450,8 +481,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     checkActiveScheduledPreset();
 
-    const subscription = DeviceEventEmitter.addListener('onSessionChanged', () => {
+    const subscription = DeviceEventEmitter.addListener('onSessionChanged', async () => {
       invalidateUserCaches(userEmail);
+
+      // Fetch fresh presets and update shared state immediately
+      try {
+        const freshPresets = await getPresets(userEmail, true);
+        setSharedPresets(freshPresets);
+        setSharedPresetsLoaded(true);
+      } catch (e) {
+        // Will be refreshed by loadStats via refreshTrigger below
+      }
 
       if (navigationRef.isReady()) {
         navigationRef.navigate('Main', { screen: 'Home' });
@@ -489,6 +529,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setLockEndsAtForTapout,
     handleUseEmergencyTapout,
     navigationRef,
+    sharedPresets,
+    setSharedPresets,
+    sharedPresetsLoaded,
+    setSharedPresetsLoaded,
   };
 
   return (

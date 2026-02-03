@@ -24,7 +24,7 @@ function TermsAcceptScreen() {
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
       {/* Header */}
       <View style={{ borderBottomWidth: 1, borderBottomColor: colors.divider }} className="flex-row items-center justify-center px-4 py-3">
-        <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.semibold}`}>Terms of Service</Text>
+        <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Terms of Service</Text>
       </View>
 
       <ScrollView className="flex-1 px-6 py-4">

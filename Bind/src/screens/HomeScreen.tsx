@@ -33,7 +33,7 @@ const { BlockingModule, PermissionsModule } = NativeModules;
 
 
 function HomeScreen() {
-  const { userEmail: email, refreshTrigger } = useAuth();
+  const { userEmail: email, refreshTrigger, sharedPresets, setSharedPresets, sharedPresetsLoaded, setSharedPresetsLoaded } = useAuth();
   const { colors } = useTheme();
   const { s } = useResponsive();
   const [currentPreset, setCurrentPreset] = useState<string | null>(null);
@@ -175,12 +175,18 @@ function HomeScreen() {
       if (showLoading) setTimeout(() => setLoading(false), 100);
     };
     try {
-      // Fetch presets, lock status, and tapout status in parallel
+      // Always fetch presets, lock status, and tapout status in parallel
+      // loadStats needs consistent presets+lock data to determine correct state
       const [presets, lockStatus, tapout] = await Promise.all([
         getPresets(email, skipCache),
         getLockStatus(email, skipCache),
         getEmergencyTapoutStatus(email, skipCache),
       ]);
+
+      // Update shared state immediately so other screens see fresh data
+      // This must happen before any early returns below
+      setSharedPresets(presets);
+      setSharedPresetsLoaded(true);
 
       // Find active scheduled presets (sorted by start date) - only non-expired ones for the list
       const activeScheduled = presets
@@ -300,7 +306,7 @@ function HomeScreen() {
     } finally {
       loadStatsInProgressRef.current = false;
     }
-  }, [email, checkScheduledPresets, activateScheduledPreset]);
+  }, [email, checkScheduledPresets, activateScheduledPreset, setSharedPresets, setSharedPresetsLoaded]);
 
   // Handle using emergency tapout
   const handleUseEmergencyTapout = useCallback(async () => {
@@ -348,6 +354,12 @@ function HomeScreen() {
           await activatePreset(email, null);
           setCurrentPreset(null);
           setActivePreset(null);
+          // Optimistically update shared state so PresetsScreen sees deactivation immediately
+          if (presetIdToKeep) {
+            setSharedPresets(prev => prev.map(p =>
+              p.id === presetIdToKeep ? { ...p, isActive: false } : p
+            ));
+          }
         } else if (presetIdToKeep) {
           await activatePreset(email, presetIdToKeep);
         }
@@ -411,6 +423,30 @@ function HomeScreen() {
       loadStats(true, true); // skipCache=true, showLoading=true
     }
   }, [refreshTrigger, loadStats, email]);
+
+  // React to shared preset changes from other screens (e.g., PresetsScreen toggling)
+  // This updates derived state without a full loadStats call
+  useEffect(() => {
+    if (!sharedPresetsLoaded || loading) return;
+
+    // Update active non-scheduled preset
+    const active = sharedPresets.find(p => p.isActive && !p.isScheduled);
+    if (active) {
+      setCurrentPreset(active.name);
+      setActivePreset(active);
+    } else if (!isLocked) {
+      // Only clear if not locked (if locked, loadStats sets the correct preset)
+      setCurrentPreset(null);
+      setActivePreset(null);
+    }
+
+    // Update scheduled presets list
+    const activeScheduled = sharedPresets
+      .filter(p => p.isScheduled && p.isActive && p.scheduleEndDate)
+      .filter(p => new Date(p.scheduleEndDate!) > new Date())
+      .sort((a, b) => new Date(a.scheduleStartDate!).getTime() - new Date(b.scheduleStartDate!).getTime());
+    setScheduledPresets(activeScheduled);
+  }, [sharedPresets, sharedPresetsLoaded]);
 
   // Auto-unlock when timer expires (called from countdown effect)
   const handleTimerExpired = useCallback(async () => {
@@ -634,6 +670,12 @@ function HomeScreen() {
           }
           setCurrentPreset(null);
           setActivePreset(null);
+          // Optimistically update shared state so PresetsScreen sees deactivation immediately
+          if (presetIdToKeep) {
+            setSharedPresets(prev => prev.map(p =>
+              p.id === presetIdToKeep ? { ...p, isActive: false } : p
+            ));
+          }
         } else {
           throw new Error('Backend unlock failed');
         }

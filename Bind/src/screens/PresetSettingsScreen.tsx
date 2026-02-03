@@ -838,14 +838,14 @@ function PresetSettingsScreen() {
     }
   }, [name, isSaving, canSave, editingPreset, installedSelectedApps, blockedWebsites, blockSettings, noTimeLimit, timerDays, timerHours, timerMinutes, timerSeconds, targetDate, onSave, allowEmergencyTapout, strictMode, isScheduled, scheduleStartDate, scheduleEndDate, existingPresets, isRecurring, recurringValue, recurringUnit, navigation]);
 
-  // ============ Inline Date Picker Render ============
-  const renderInlineDatePicker = () => {
+  // ============ Full-Screen Date Picker Overlay ============
+  const renderDatePickerOverlay = () => {
     if (!showDatePicker) return null;
 
     return (
-      <View style={{ borderTopWidth: 1, borderTopColor: colors.dividerLight, borderBottomWidth: 1, borderBottomColor: colors.dividerLight, marginHorizontal: s(-24), paddingHorizontal: s(24) }} className="mt-4 pb-4">
+      <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: colors.bg, zIndex: 10 }}>
         {/* Date Picker Header */}
-        <View className="flex-row items-center justify-between py-3">
+        <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }} className="flex-row items-center justify-between px-4 py-3.5">
           <TouchableOpacity onPress={dpHandleCancel} style={{ width: s(40) }} className="px-2">
             <XIcon size={s(iconSize.headerNav)} color={colors.text} />
           </TouchableOpacity>
@@ -861,6 +861,8 @@ function PresetSettingsScreen() {
             <CheckIcon size={s(iconSize.headerNav)} color={dpIsFutureDateTime ? colors.green : colors.textMuted} />
           </TouchableOpacity>
         </View>
+
+        <ScrollView className="flex-1 px-6" contentContainerStyle={{ paddingBottom: s(100) }}>
 
         {/* Month/Year Navigation */}
         <View className="flex-row items-center justify-between mb-4">
@@ -1182,6 +1184,7 @@ function PresetSettingsScreen() {
             </View>
           </View>
         )}
+        </ScrollView>
       </View>
     );
   };
@@ -1346,8 +1349,7 @@ function PresetSettingsScreen() {
               )}
             </TouchableOpacity>
 
-            {/* Inline date picker for schedule start */}
-            {showDatePicker && datePickerTarget === 'scheduleStart' && renderInlineDatePicker()}
+            {/* Date picker rendered as full-screen overlay */}
 
             {/* End Date */}
             <TouchableOpacity
@@ -1389,8 +1391,7 @@ function PresetSettingsScreen() {
               )}
             </TouchableOpacity>
 
-            {/* Inline date picker for schedule end */}
-            {showDatePicker && datePickerTarget === 'scheduleEnd' && renderInlineDatePicker()}
+            {/* Date picker rendered as full-screen overlay */}
 
             {/* Schedule Validation Message */}
             {scheduleStartDate && scheduleEndDate && scheduleEndDate <= scheduleStartDate && (
@@ -1488,8 +1489,7 @@ function PresetSettingsScreen() {
               )}
             </TouchableOpacity>
 
-            {/* Inline date picker for target date */}
-            {showDatePicker && datePickerTarget === 'targetDate' && renderInlineDatePicker()}
+            {/* Date picker rendered as full-screen overlay */}
 
           </View>
           <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight, marginTop: s(16) }} />
@@ -1601,6 +1601,9 @@ function PresetSettingsScreen() {
         </ExpandableInfo>
 
       </ScrollView>
+
+      {/* Full-screen date picker overlay */}
+      {renderDatePickerOverlay()}
 
       {/* ============ Modals ============ */}
 
