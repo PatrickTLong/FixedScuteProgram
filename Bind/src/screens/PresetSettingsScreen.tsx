@@ -814,11 +814,11 @@ function PresetSettingsScreen() {
       blockedWebsites,
       blockSettings,
       noTimeLimit,
-      timerDays,
-      timerHours,
-      timerMinutes,
-      timerSeconds,
-      targetDate: isScheduled ? null : (targetDate ? targetDate.toISOString() : null),
+      timerDays: noTimeLimit || isScheduled ? 0 : timerDays,
+      timerHours: noTimeLimit || isScheduled ? 0 : timerHours,
+      timerMinutes: noTimeLimit || isScheduled ? 0 : timerMinutes,
+      timerSeconds: noTimeLimit || isScheduled ? 0 : timerSeconds,
+      targetDate: noTimeLimit || isScheduled ? null : (targetDate ? targetDate.toISOString() : null),
       isDefault: editingPreset?.isDefault ?? false,
       isActive: editingPreset?.isActive ?? false,
       allowEmergencyTapout,
@@ -841,10 +841,14 @@ function PresetSettingsScreen() {
 
   // ============ Full-Screen Date Picker Overlay ============
   const renderDatePickerOverlay = () => {
-    if (!showDatePicker) return null;
-
     return (
-      <SafeAreaView style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: colors.bg, zIndex: 10 }}>
+      <Modal
+        visible={showDatePicker}
+        animationType="none"
+        presentationStyle="fullScreen"
+        onRequestClose={dpHandleCancel}
+      >
+      <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
         {/* Date Picker Header */}
         <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }} className="flex-row items-center justify-between px-4 py-3.5">
           <TouchableOpacity onPress={dpHandleCancel} style={{ width: s(40) }} className="px-2">
@@ -1190,6 +1194,7 @@ function PresetSettingsScreen() {
           )}
         </ScrollView>
       </SafeAreaView>
+      </Modal>
     );
   };
 
@@ -1241,6 +1246,11 @@ function PresetSettingsScreen() {
                 setNoTimeLimit(value);
                 requestAnimationFrame(() => {
                   if (value) {
+                    setTimerDays(0);
+                    setTimerHours(0);
+                    setTimerMinutes(0);
+                    setTimerSeconds(0);
+                    setTargetDate(null);
                     setIsScheduled(false);
                     setScheduleStartDate(null);
                     setScheduleEndDate(null);

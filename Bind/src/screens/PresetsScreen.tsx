@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, memo } from 'react';
+import React, { useState, useEffect, useCallback, useRef, memo } from 'react';
 import {
   Text,
   View,
@@ -70,15 +70,28 @@ function PresetsScreen() {
   const { colors } = useTheme();
   const { s } = useResponsive();
   const navigation = useNavigation<NativeStackNavigationProp<MainStackParamList>>();
-  const { userEmail, setSharedPresets, setSharedPresetsLoaded } = useAuth();
+  const { userEmail, sharedPresets, setSharedPresets, setSharedPresetsLoaded, sharedIsLocked, setSharedIsLocked } = useAuth();
   const userEmail_safe = userEmail || '';
   const { setOnSave, setEditingPreset: setContextEditingPreset, setExistingPresets, setEmail } = usePresetSave();
-  const [presets, setPresetsLocal] = useState<Preset[]>([]);
+  const [presets, setPresetsLocal] = useState<Preset[]>(sharedPresets);
+
+  // Track whether local code is updating to prevent circular sync
+  const localUpdateRef = useRef(false);
 
   // Sync local presets to shared state whenever they change
   useEffect(() => {
+    localUpdateRef.current = true;
     setSharedPresets(presets);
   }, [presets, setSharedPresets]);
+
+  // Sync local state from shared state when it changes externally (e.g. after reset)
+  useEffect(() => {
+    if (localUpdateRef.current) {
+      localUpdateRef.current = false;
+      return;
+    }
+    setPresetsLocal(sharedPresets);
+  }, [sharedPresets]);
 
   // Wrapper that updates local state (shared state syncs automatically via useEffect above)
   const setPresets = setPresetsLocal;
@@ -88,7 +101,6 @@ function PresetsScreen() {
   const [presetToDelete, setPresetToDelete] = useState<Preset | null>(null);
   const [loading, setLoading] = useState(true); // Start true to prevent flash of content
   const [showSpinner, setShowSpinner] = useState(false); // Only show spinner after delay
-  const [isLocked, setIsLocked] = useState<boolean | null>(null); // null = loading
   const [lockChecked, setLockChecked] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [overlapModalVisible, setOverlapModalVisible] = useState(false);
@@ -103,9 +115,9 @@ function PresetsScreen() {
 
   const checkLockStatus = useCallback(async () => {
     const status = await getLockStatus(userEmail_safe);
-    setIsLocked(status.isLocked);
+    setSharedIsLocked(status.isLocked);
     setLockChecked(true);
-  }, [userEmail_safe]);
+  }, [userEmail_safe, setSharedIsLocked]);
 
   // Background orphan cleanup - doesn't block UI
   const runOrphanCleanup = useCallback(async (fetchedPresets: Preset[]) => {
@@ -204,7 +216,7 @@ function PresetsScreen() {
   );
 
   // Disable interactions until lock status is checked, or if locked
-  const isDisabled = !lockChecked || isLocked === true;
+  const isDisabled = !lockChecked || sharedIsLocked === true;
 
 
   // Sync all scheduled presets to native module for background activation
@@ -660,7 +672,7 @@ function PresetsScreen() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }} edges={['top']}>
       {/* Locked Overlay */}
-      {isLocked === true && (
+      {sharedIsLocked === true && (
         <View style={{ backgroundColor: colors.bg + 'F2' }} className="absolute inset-0 z-50 items-center justify-center">
           <View className="items-center" style={{ marginTop: '-20%' }}>
             <Image

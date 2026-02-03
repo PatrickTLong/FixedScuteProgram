@@ -66,6 +66,9 @@ interface AuthContextValue {
   setSharedPresets: React.Dispatch<React.SetStateAction<Preset[]>>;
   sharedPresetsLoaded: boolean;
   setSharedPresetsLoaded: (v: boolean) => void;
+  // Shared lock status across all mounted screens
+  sharedIsLocked: boolean;
+  setSharedIsLocked: (v: boolean) => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -87,6 +90,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Shared presets state - single source of truth across all mounted screens
   const [sharedPresets, setSharedPresets] = useState<Preset[]>([]);
   const [sharedPresetsLoaded, setSharedPresetsLoaded] = useState(false);
+
+  // Shared lock status - single source of truth across all mounted screens
+  const [sharedIsLocked, setSharedIsLocked] = useState(false);
 
   // Info modal
   const [modalState, setModalState] = useState<ModalState>({ visible: false, title: '', message: '' });
@@ -324,10 +330,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!result.success) {
         return { success: false, error: result.error || 'Failed to reset presets' };
       }
-      // Clear shared state so Home and Presets screens update immediately
+      // Clear caches, then re-fetch so shared state has fresh data before spinner dismisses
       invalidateUserCaches(userEmail);
-      setSharedPresets([]);
-      setSharedPresetsLoaded(false);
+      const freshPresets = await getPresets(userEmail, true);
+      setSharedPresets(freshPresets);
+      setSharedPresetsLoaded(true);
       return { success: true };
     } catch (error) {
       return { success: false, error: 'Failed to reset account' };
@@ -533,6 +540,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setSharedPresets,
     sharedPresetsLoaded,
     setSharedPresetsLoaded,
+    sharedIsLocked,
+    setSharedIsLocked,
   };
 
   return (

@@ -33,7 +33,7 @@ const { BlockingModule, PermissionsModule } = NativeModules;
 
 
 function HomeScreen() {
-  const { userEmail: email, refreshTrigger, sharedPresets, setSharedPresets, sharedPresetsLoaded, setSharedPresetsLoaded } = useAuth();
+  const { userEmail: email, refreshTrigger, sharedPresets, setSharedPresets, sharedPresetsLoaded, setSharedPresetsLoaded, setSharedIsLocked } = useAuth();
   const { colors } = useTheme();
   const { s } = useResponsive();
   const [currentPreset, setCurrentPreset] = useState<string | null>(null);
@@ -131,6 +131,7 @@ function HomeScreen() {
       await updateLockStatus(email, true, lockEndsAtDate);
 
       setIsLocked(true);
+      setSharedIsLocked(true);
       setLockEndsAt(lockEndsAtDate ?? null);
       setCurrentPreset(preset.name);
       setActivePreset(preset);
@@ -244,6 +245,7 @@ function HomeScreen() {
 
             // Set unlocked state but keep the preset showing
             setIsLocked(false);
+            setSharedIsLocked(false);
             setLockEndsAt(null);
             setLockStartedAt(null);
             // Keep preset active - set it from the active preset found
@@ -297,6 +299,7 @@ function HomeScreen() {
       }
 
       setIsLocked(lockStatus.isLocked);
+      setSharedIsLocked(lockStatus.isLocked);
       setLockEndsAt(lockStatus.lockEndsAt);
       setLockStartedAt(lockStatus.lockStartedAt);
       setTapoutStatus(tapout);
@@ -336,6 +339,7 @@ function HomeScreen() {
         // Unlock was successful - close modal immediately
         setEmergencyTapoutModalVisible(false);
         setIsLocked(false);
+        setSharedIsLocked(false);
         setLockEndsAt(null);
         setLockStartedAt(null);
 
@@ -655,6 +659,7 @@ function HomeScreen() {
 
       // Update local state immediately
       setIsLocked(false);
+      setSharedIsLocked(false);
       setLockEndsAt(null);
       setLockStartedAt(null);
 
@@ -835,6 +840,7 @@ function HomeScreen() {
       // Set local state immediately for instant UI update
       const nowISO = new Date().toISOString();
       setIsLocked(true);
+      setSharedIsLocked(true);
       setLockEndsAt(calculatedLockEndsAt);
       setLockStartedAt(nowISO);
 

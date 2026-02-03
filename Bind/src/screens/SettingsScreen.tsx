@@ -249,7 +249,7 @@ const SettingsRow = memo(({
 ));
 
 function SettingsScreen() {
-  const { userEmail: email, handleLogout: onLogout, handleResetAccount: onResetAccount, handleDeleteAccount: onDeleteAccount } = useAuth();
+  const { userEmail: email, handleLogout: onLogout, handleResetAccount: onResetAccount, handleDeleteAccount: onDeleteAccount, sharedIsLocked, setSharedIsLocked } = useAuth();
   const { s } = useResponsive();
 
   // Check cache synchronously for initial render - avoids flash if cache exists
@@ -264,7 +264,6 @@ function SettingsScreen() {
   const [deleteEmailConfirmModalVisible, setDeleteEmailConfirmModalVisible] = useState(false);
   const [membershipModalVisible, setMembershipModalVisible] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'yearly' | 'lifetime' | null>(null);
-  const [isLocked, setIsLocked] = useState<boolean | null>(hasCache ? cachedLockStatus.isLocked : null);
   const [lockChecked, setLockChecked] = useState(hasCache);
   const [privacyModalVisible, setPrivacyModalVisible] = useState(false);
   const [termsModalVisible, setTermsModalVisible] = useState(false);
@@ -283,10 +282,13 @@ function SettingsScreen() {
   // Membership state - initialize from cache if available
   const [membershipStatus, setMembershipStatus] = useState<MembershipStatus | null>(cachedMembership);
 
-  // Load data on mount - only fetch if cache miss
+  // Load data on mount - seed shared lock from cache or fetch if cache miss
   useEffect(() => {
-    // If we already have cached data, no need to fetch
-    if (hasCache) return;
+    if (hasCache) {
+      // Seed shared lock status from cache in case HomeScreen hasn't set it yet
+      setSharedIsLocked(cachedLockStatus.isLocked);
+      return;
+    }
 
     async function init() {
       const [status, tapout, membership] = await Promise.all([
@@ -295,7 +297,7 @@ function SettingsScreen() {
         getMembershipStatus(email, false),
       ]);
 
-      setIsLocked(status.isLocked);
+      setSharedIsLocked(status.isLocked);
       setTapoutStatus(tapout);
       setMembershipStatus(membership);
       setLockChecked(true);
@@ -370,12 +372,12 @@ function SettingsScreen() {
   // The modal here is for users to view/change their membership during trial or as members
 
   const handleContactSupport = () => {
-    if (isLocked) return;
+    if (sharedIsLocked) return;
     Linking.openURL('mailto:support@scuteapp.com?subject=Scute%20Support%20Request');
   };
 
   const handleBugReport = () => {
-    if (isLocked) return;
+    if (sharedIsLocked) return;
     Linking.openURL('mailto:info@scuteapp.com?subject=Scute%20Bug%20Report');
   };
 
@@ -423,7 +425,7 @@ function SettingsScreen() {
   };
 
   // Don't allow any actions until lock status is checked, or if locked
-  const isDisabled = !lockChecked || isLocked === true;
+  const isDisabled = !lockChecked || sharedIsLocked === true;
 
   // Show full-screen loading only for destructive actions (reset/delete/logout)
   // Initial load uses cache so it's instant - no spinner needed
@@ -462,7 +464,7 @@ function SettingsScreen() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }} edges={['top']}>
       {/* Locked Overlay */}
-      {isLocked && (
+      {sharedIsLocked && (
         <View style={{ backgroundColor: colors.bg + 'F2' }} className="absolute inset-0 z-50 items-center justify-center">
           <View className="items-center" style={{ marginTop: '-20%' }}>
             <Image
