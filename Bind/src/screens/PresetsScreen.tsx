@@ -26,7 +26,7 @@ import { useResponsive } from '../utils/responsive';
 import { lightTap } from '../utils/haptics';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { PresetsStackParamList } from '../navigation/types';
+import type { MainStackParamList } from '../navigation/types';
 import { usePresetSave } from '../navigation/PresetsStack';
 import { useAuth } from '../context/AuthContext';
 
@@ -69,7 +69,7 @@ async function getInstalledAppsCached(): Promise<{ id: string }[]> {
 function PresetsScreen() {
   const { colors } = useTheme();
   const { s } = useResponsive();
-  const navigation = useNavigation<NativeStackNavigationProp<PresetsStackParamList>>();
+  const navigation = useNavigation<NativeStackNavigationProp<MainStackParamList>>();
   const { userEmail, setSharedPresets, setSharedPresetsLoaded } = useAuth();
   const userEmail_safe = userEmail || '';
   const { setOnSave, setEditingPreset: setContextEditingPreset, setExistingPresets, setEmail } = usePresetSave();

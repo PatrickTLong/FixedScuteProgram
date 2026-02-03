@@ -125,15 +125,6 @@ function BottomTabBar({ state, navigation }: RNBottomTabBarProps) {
 
   const bottomPadding = Math.max(insets.bottom, s(24));
 
-  // Hide tab bar when inside nested preset screens (EditPresetApps, PresetSettings)
-  if (activeTab === 'presets') {
-    const presetsRoute = state.routes[state.index];
-    const nestedState = presetsRoute?.state;
-    if (nestedState && nestedState.index !== undefined && nestedState.index > 0) {
-      return null;
-    }
-  }
-
   return (
     <View
       style={{

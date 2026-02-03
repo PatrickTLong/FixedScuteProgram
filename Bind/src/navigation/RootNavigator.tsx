@@ -1,10 +1,34 @@
 import React from 'react';
 import { View } from 'react-native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import AuthStack from './AuthStack';
 import OnboardingStack from './OnboardingStack';
 import MainTabNavigator from './MainTabNavigator';
+import EditPresetAppsScreen from '../screens/EditPresetAppsScreen';
+import PresetSettingsScreen from '../screens/PresetSettingsScreen';
+import { PresetSaveProvider } from './PresetsStack';
+import type { MainStackParamList } from './types';
+
+const MainStack = createNativeStackNavigator<MainStackParamList>();
+
+function MainNavigator() {
+  return (
+    <PresetSaveProvider>
+      <MainStack.Navigator
+        screenOptions={{
+          headerShown: false,
+          animation: 'none',
+        }}
+      >
+        <MainStack.Screen name="MainTabs" component={MainTabNavigator} />
+        <MainStack.Screen name="EditPresetApps" component={EditPresetAppsScreen} />
+        <MainStack.Screen name="PresetSettings" component={PresetSettingsScreen} />
+      </MainStack.Navigator>
+    </PresetSaveProvider>
+  );
+}
 
 export default function RootNavigator() {
   const { authState, isInitializing } = useAuth();
@@ -24,7 +48,7 @@ export default function RootNavigator() {
     case 'membership':
       return <OnboardingStack initialScreen="Membership" />;
     case 'main':
-      return <MainTabNavigator />;
+      return <MainNavigator />;
     default:
       return <AuthStack />;
   }

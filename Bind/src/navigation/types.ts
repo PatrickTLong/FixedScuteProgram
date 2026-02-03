@@ -16,9 +16,21 @@ export type OnboardingStackParamList = {
   Membership: undefined;
 };
 
-// Preset edit flow
+// Presets tab (only PresetsMain now)
 export type PresetsStackParamList = {
   PresetsMain: undefined;
+};
+
+// Main tab navigator
+export type MainTabParamList = {
+  Home: undefined;
+  Presets: NavigatorScreenParams<PresetsStackParamList>;
+  Settings: undefined;
+};
+
+// Main stack wraps tabs + full-screen preset edit screens
+export type MainStackParamList = {
+  MainTabs: NavigatorScreenParams<MainTabParamList>;
   EditPresetApps: undefined;
   PresetSettings: {
     name: string;
@@ -29,16 +41,9 @@ export type PresetsStackParamList = {
   };
 };
 
-// Main tab navigator
-export type MainTabParamList = {
-  Home: undefined;
-  Presets: NavigatorScreenParams<PresetsStackParamList>;
-  Settings: undefined;
-};
-
 // Root navigator
 export type RootStackParamList = {
   Auth: NavigatorScreenParams<AuthStackParamList>;
   Onboarding: { screen: keyof OnboardingStackParamList };
-  Main: NavigatorScreenParams<MainTabParamList>;
+  Main: NavigatorScreenParams<MainStackParamList>;
 };

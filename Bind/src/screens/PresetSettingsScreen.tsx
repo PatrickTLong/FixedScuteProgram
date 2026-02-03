@@ -32,7 +32,7 @@ import { usePresetSave } from '../navigation/PresetsStack';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RouteProp } from '@react-navigation/native';
-import type { PresetsStackParamList } from '../navigation/types';
+import type { MainStackParamList } from '../navigation/types';
 
 // ============ Pure date helpers ============
 function getDaysInMonth(month: number, year: number): number {
@@ -419,8 +419,8 @@ const ExpandableInfo = ({ expanded, children, lazy = false }: { expanded: boolea
 };
 
 // ============ Navigation Types ============
-type PresetSettingsNavigationProp = NativeStackNavigationProp<PresetsStackParamList, 'PresetSettings'>;
-type PresetSettingsRouteProp = RouteProp<PresetsStackParamList, 'PresetSettings'>;
+type PresetSettingsNavigationProp = NativeStackNavigationProp<MainStackParamList, 'PresetSettings'>;
+type PresetSettingsRouteProp = RouteProp<MainStackParamList, 'PresetSettings'>;
 
 // ============ Main Screen Component ============
 function PresetSettingsScreen() {
@@ -843,7 +843,7 @@ function PresetSettingsScreen() {
     if (!showDatePicker) return null;
 
     return (
-      <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: colors.bg, zIndex: 10 }}>
+      <SafeAreaView style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: colors.bg, zIndex: 10 }}>
         {/* Date Picker Header */}
         <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }} className="flex-row items-center justify-between px-4 py-3.5">
           <TouchableOpacity onPress={dpHandleCancel} style={{ width: s(40) }} className="px-2">
@@ -1185,7 +1185,7 @@ function PresetSettingsScreen() {
           </View>
         )}
         </ScrollView>
-      </View>
+      </SafeAreaView>
     );
   };
 

@@ -1,8 +1,6 @@
 import React, { createContext, useContext, useRef, useCallback } from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import PresetsScreen from '../screens/PresetsScreen';
-import EditPresetAppsScreen from '../screens/EditPresetAppsScreen';
-import PresetSettingsScreen from '../screens/PresetSettingsScreen';
 import type { PresetsStackParamList } from './types';
 import type { Preset } from '../components/PresetCard';
 
@@ -24,18 +22,17 @@ const PresetSaveContext = createContext<PresetSaveContextValue | null>(null);
 
 export function usePresetSave(): PresetSaveContextValue {
   const ctx = useContext(PresetSaveContext);
-  if (!ctx) throw new Error('usePresetSave must be used within PresetsStack');
+  if (!ctx) throw new Error('usePresetSave must be used within PresetSaveProvider');
   return ctx;
 }
 
-export default function PresetsStack() {
-  // Use refs for callbacks to avoid re-renders when they change
+// Provider extracted so it can wrap the MainStack (above tab navigator)
+export function PresetSaveProvider({ children }: { children: React.ReactNode }) {
   const onSaveRef = useRef<(preset: Preset) => Promise<void>>(async () => {});
   const editingPresetRef = useRef<Preset | null>(null);
   const existingPresetsRef = useRef<Preset[]>([]);
   const emailRef = useRef<string>('');
 
-  // Force update mechanism for when refs change
   const [, forceUpdate] = React.useState(0);
 
   const setOnSave = useCallback((fn: (preset: Preset) => Promise<void>) => {
@@ -68,16 +65,20 @@ export default function PresetsStack() {
 
   return (
     <PresetSaveContext.Provider value={contextValue}>
-      <Stack.Navigator
-        screenOptions={{
-          headerShown: false,
-          animation: 'none',
-        }}
-      >
-        <Stack.Screen name="PresetsMain" component={PresetsScreen} />
-        <Stack.Screen name="EditPresetApps" component={EditPresetAppsScreen} />
-        <Stack.Screen name="PresetSettings" component={PresetSettingsScreen} />
-      </Stack.Navigator>
+      {children}
     </PresetSaveContext.Provider>
+  );
+}
+
+export default function PresetsStack() {
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        animation: 'none',
+      }}
+    >
+      <Stack.Screen name="PresetsMain" component={PresetsScreen} />
+    </Stack.Navigator>
   );
 }

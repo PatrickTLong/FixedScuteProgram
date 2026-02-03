@@ -25,7 +25,7 @@ import { useTheme, textSize, fontFamily, radius, shadow, iconSize, buttonPadding
 import { useResponsive } from '../utils/responsive';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { PresetsStackParamList } from '../navigation/types';
+import { MainStackParamList } from '../navigation/types';
 import { usePresetSave } from '../navigation/PresetsStack';
 
 const EXCLUDED_APPS_INFO_DISMISSED_KEY = 'excluded_apps_info_dismissed';
@@ -241,7 +241,7 @@ const AppItemRow = memo(({ item, isSelected, onToggle, colors, s, skipCheckboxAn
 function EditPresetAppsScreen() {
   const { colors } = useTheme();
   const { s } = useResponsive();
-  const navigation = useNavigation<NativeStackNavigationProp<PresetsStackParamList, 'EditPresetApps'>>();
+  const navigation = useNavigation<NativeStackNavigationProp<MainStackParamList, 'EditPresetApps'>>();
   const { editingPreset, email, existingPresets } = usePresetSave();
   const preset = editingPreset;
 
