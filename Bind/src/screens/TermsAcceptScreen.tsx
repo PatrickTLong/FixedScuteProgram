@@ -9,17 +9,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
 import { lightTap } from '../utils/haptics';
+import { useAuth } from '../context/AuthContext';
 
-interface Props {
-  onAccept: () => void;
-}
-
-function TermsAcceptScreen({ onAccept }: Props) {
+function TermsAcceptScreen() {
   const { colors } = useTheme();
+  const { handleTermsAccepted } = useAuth();
 
   async function handleAcceptTerms() {
     await AsyncStorage.setItem('tos_accepted', 'true');
-    onAccept();
+    handleTermsAccepted();
   }
 
   return (

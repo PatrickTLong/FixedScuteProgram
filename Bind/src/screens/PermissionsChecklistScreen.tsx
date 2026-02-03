@@ -13,6 +13,7 @@ import LottieView from 'lottie-react-native';
 const Lottie = LottieView as any;
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
+import { useAuth } from '../context/AuthContext';
 import { useTheme , textSize, fontFamily, radius, shadow, iconSize } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { lightTap } from '../utils/haptics';
@@ -41,10 +42,6 @@ const ChevronRightIcon = ({ size = iconSize.lg, color = "#FFFFFF" }: { size?: nu
     />
   </Svg>
 );
-
-interface Props {
-  onComplete: () => void;
-}
 
 interface Permission {
   id: string;
@@ -131,7 +128,8 @@ const IOS_PERMISSIONS: Permission[] = [
 const DEFAULT_PERMISSIONS = Platform.OS === 'ios' ? IOS_PERMISSIONS : ANDROID_PERMISSIONS;
 
 
-function PermissionsChecklistScreen({ onComplete }: Props) {
+function PermissionsChecklistScreen() {
+  const { handlePermissionsComplete: onComplete } = useAuth();
   const { colors } = useTheme();
   const { s } = useResponsive();
   const [permissions, setPermissions] = useState<Permission[]>(DEFAULT_PERMISSIONS);

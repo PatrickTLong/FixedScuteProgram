@@ -25,21 +25,15 @@ import { getPresets, getLockStatus, updateLockStatus, Preset, getEmergencyTapout
 import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { lightTap } from '../utils/haptics';
+import { useAuth } from '../context/AuthContext';
 
 const scuteLogo = require('../frontassets/TrueScute-Photoroom.png');
 
 const { BlockingModule, PermissionsModule } = NativeModules;
 
 
-
-interface Props {
-  email: string;
-  onNavigateToPresets?: () => void;
-  refreshTrigger?: number; // Incremented by parent to trigger refresh
-}
-
-
-function HomeScreen({ email, onNavigateToPresets, refreshTrigger }: Props) {
+function HomeScreen() {
+  const { userEmail: email, refreshTrigger } = useAuth();
   const { colors } = useTheme();
   const { s } = useResponsive();
   const [currentPreset, setCurrentPreset] = useState<string | null>(null);

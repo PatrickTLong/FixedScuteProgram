@@ -58,17 +58,20 @@ import OTPInput from '../components/OTPInput';
 import GoogleSignInBtn from '../components/GoogleSignInButton';
 import { useTheme , textSize, fontFamily, radius, shadow, iconSize } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { setAuthToken } from '../services/cardApi';
 import { API_URL } from '../config/api';
 import { lightTap } from '../utils/haptics';
+import { useAuth } from '../context/AuthContext';
+import type { AuthStackParamList } from '../navigation/types';
 
-interface Props {
-  onBack: () => void;
-  onSuccess: (email: string) => void;
-  onSignIn: () => void;
-}
-
-function GetStartedScreen({ onBack, onSuccess, onSignIn }: Props) {
+function GetStartedScreen() {
+  const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
+  const { handleLogin } = useAuth();
+  const onBack = () => navigation.goBack();
+  const onSuccess = (email: string) => handleLogin(email);
+  const onSignIn = () => navigation.navigate('SignIn');
   const { colors } = useTheme();
   const { s } = useResponsive();
   const [email, setEmail] = useState('');

@@ -1,0 +1,25 @@
+import React from 'react';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import HomeScreen from '../screens/HomeScreen';
+import PresetsStack from './PresetsStack';
+import SettingsScreen from '../screens/SettingsScreen';
+import BottomTabBar from '../components/BottomTabBar';
+import type { MainTabParamList } from './types';
+
+const Tab = createBottomTabNavigator<MainTabParamList>();
+
+export default function MainTabNavigator() {
+  return (
+    <Tab.Navigator
+      tabBar={(props) => <BottomTabBar {...props} />}
+      screenOptions={{
+        headerShown: false,
+        animation: 'none',
+      }}
+    >
+      <Tab.Screen name="Home" component={HomeScreen} />
+      <Tab.Screen name="Presets" component={PresetsStack} />
+      <Tab.Screen name="Settings" component={SettingsScreen} />
+    </Tab.Navigator>
+  );
+}

@@ -58,13 +58,14 @@ import { useTheme , textSize, fontFamily, radius, shadow, iconSize } from '../co
 import { useResponsive } from '../utils/responsive';
 import { API_URL } from '../config/api';
 import { lightTap } from '../utils/haptics';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { AuthStackParamList } from '../navigation/types';
 
-interface Props {
-  onBack: () => void;
-  onSuccess: () => void;
-}
-
-function ForgotPasswordScreen({ onBack, onSuccess }: Props) {
+function ForgotPasswordScreen() {
+  const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
+  const onBack = () => navigation.goBack();
+  const onSuccess = () => navigation.goBack();
   const { colors } = useTheme();
   const { s } = useResponsive();
   const [email, setEmail] = useState('');

@@ -12,7 +12,6 @@ import LottieView from 'lottie-react-native';
 const Lottie = LottieView as any;
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PresetCard, { Preset } from '../components/PresetCard';
-import PresetEditModal, { preloadInstalledApps } from '../components/PresetEditModal';
 import ConfirmationModal from '../components/ConfirmationModal';
 import {
   getPresets,
@@ -25,6 +24,11 @@ import {
 import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { lightTap } from '../utils/haptics';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { PresetsStackParamList } from '../navigation/types';
+import { usePresetSave } from '../navigation/PresetsStack';
+import { useAuth } from '../context/AuthContext';
 
 const { InstalledAppsModule, ScheduleModule } = NativeModules;
 
@@ -62,17 +66,15 @@ async function getInstalledAppsCached(): Promise<{ id: string }[]> {
   }
 }
 
-interface Props {
-  userEmail: string;
-}
-
-function PresetsScreen({ userEmail }: Props) {
+function PresetsScreen() {
   const { colors } = useTheme();
   const { s } = useResponsive();
+  const navigation = useNavigation<NativeStackNavigationProp<PresetsStackParamList>>();
+  const { userEmail } = useAuth();
+  const userEmail_safe = userEmail || '';
+  const { setOnSave, setEditingPreset: setContextEditingPreset, setExistingPresets, setEmail } = usePresetSave();
   const [presets, setPresets] = useState<Preset[]>([]);
   const [activePresetId, setActivePresetId] = useState<string | null>(null);
-  const [editModalVisible, setEditModalVisible] = useState(false);
-  const [editingPreset, setEditingPreset] = useState<Preset | null>(null);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [presetToDelete, setPresetToDelete] = useState<Preset | null>(null);
   const [loading, setLoading] = useState(true); // Start true to prevent flash of content
@@ -91,10 +93,10 @@ function PresetsScreen({ userEmail }: Props) {
 
 
   const checkLockStatus = useCallback(async () => {
-    const status = await getLockStatus(userEmail);
+    const status = await getLockStatus(userEmail_safe);
     setIsLocked(status.isLocked);
     setLockChecked(true);
-  }, [userEmail]);
+  }, [userEmail_safe]);
 
   // Background orphan cleanup - doesn't block UI
   const runOrphanCleanup = useCallback(async (fetchedPresets: Preset[]) => {
@@ -123,7 +125,7 @@ function PresetsScreen({ userEmail }: Props) {
       // If orphans found, delete them and update UI
       if (presetsToDelete.length > 0) {
         for (const presetId of presetsToDelete) {
-          await deletePresetApi(userEmail, presetId);
+          await deletePresetApi(userEmail_safe, presetId);
         }
         // Update UI after cleanup
         setPresets(validPresets);
@@ -131,12 +133,12 @@ function PresetsScreen({ userEmail }: Props) {
     } catch (e) {
       // Could not run orphan cleanup
     }
-  }, [userEmail]);
+  }, [userEmail_safe]);
 
   const loadPresets = useCallback(async (forceRefresh = false) => {
     try {
       // Fetch presets from Supabase - use cache unless force refresh
-      const fetchedPresets = await getPresets(userEmail, forceRefresh);
+      const fetchedPresets = await getPresets(userEmail_safe, forceRefresh);
 
       // Show presets immediately - don't wait for orphan cleanup
       setPresets(fetchedPresets);
@@ -157,7 +159,7 @@ function PresetsScreen({ userEmail }: Props) {
     } catch (error) {
       // Failed to load presets
     }
-  }, [userEmail, runOrphanCleanup]);
+  }, [userEmail_safe, runOrphanCleanup]);
 
   // Check lock status and load presets in parallel on initial mount
   useEffect(() => {
@@ -167,9 +169,6 @@ function PresetsScreen({ userEmail }: Props) {
       setLoading(true);
       // Only show spinner if loading takes more than 50ms (avoids flash)
       spinnerTimeout = setTimeout(() => setShowSpinner(true), 50);
-
-      // Preload installed apps in the background so the edit modal opens instantly
-      preloadInstalledApps();
 
       // Load presets with cache on first render - HomeScreen handles cache invalidation on app restart
       await Promise.all([checkLockStatus(), loadPresets(false)]);
@@ -183,8 +182,16 @@ function PresetsScreen({ userEmail }: Props) {
     return () => {
       clearTimeout(spinnerTimeout);
     };
-  }, [checkLockStatus, loadPresets, userEmail]);
+  }, [checkLockStatus, loadPresets, userEmail_safe]);
 
+  // Refresh presets when screen gains focus (e.g., returning from edit flow)
+  useFocusEffect(
+    useCallback(() => {
+      if (!loading) {
+        loadPresets(true);
+      }
+    }, [loadPresets, loading])
+  );
 
   // Disable interactions until lock status is checked, or if locked
   const isDisabled = !lockChecked || isLocked === true;
@@ -211,10 +218,10 @@ function PresetsScreen({ userEmail }: Props) {
 
     // Save in background - revert on error
     const presetToSave = { ...preset, isActive: true };
-    savePreset(userEmail, presetToSave).then(async result => {
+    savePreset(userEmail_safe, presetToSave).then(async result => {
       if (result.success) {
         // Invalidate cache so other screens get fresh data
-        invalidateUserCaches(userEmail);
+        invalidateUserCaches(userEmail_safe);
         // Sync all scheduled presets to native for background activation
         const updatedPresets = presets.map(p =>
           p.id === preset.id ? { ...p, isActive: true } : p
@@ -227,7 +234,7 @@ function PresetsScreen({ userEmail }: Props) {
         ));
       }
     });
-  }, [userEmail, presets, syncScheduledPresetsToNative]);
+  }, [userEmail_safe, presets, syncScheduledPresetsToNative]);
 
   // Handle verification modal confirm for scheduled presets
   const handleScheduleVerifyConfirm = useCallback(() => {
@@ -322,10 +329,10 @@ function PresetsScreen({ userEmail }: Props) {
         })));
 
         // Save in background
-        activatePreset(userEmail, preset.id).then(async result => {
+        activatePreset(userEmail_safe, preset.id).then(async result => {
           if (result.success) {
             // Invalidate cache so other screens get fresh data
-            invalidateUserCaches(userEmail);
+            invalidateUserCaches(userEmail_safe);
           } else {
             // Revert on error
             setActivePresetId(null);
@@ -346,10 +353,10 @@ function PresetsScreen({ userEmail }: Props) {
 
         // Save in background - revert on error
         const presetToSave = { ...preset, isActive: false };
-        savePreset(userEmail, presetToSave).then(async result => {
+        savePreset(userEmail_safe, presetToSave).then(async result => {
           if (result.success) {
             // Invalidate cache so other screens get fresh data
-            invalidateUserCaches(userEmail);
+            invalidateUserCaches(userEmail_safe);
             // Sync all scheduled presets to native (with this one now deactivated)
             const updatedPresets = presets.map(p =>
               p.id === preset.id ? { ...p, isActive: false } : p
@@ -372,10 +379,10 @@ function PresetsScreen({ userEmail }: Props) {
         })));
 
         // Save in background
-        activatePreset(userEmail, null).then(result => {
+        activatePreset(userEmail_safe, null).then(result => {
           if (result.success) {
             // Invalidate cache so other screens get fresh data
-            invalidateUserCaches(userEmail);
+            invalidateUserCaches(userEmail_safe);
           } else {
             // Revert on error - re-activate this preset
             setActivePresetId(preset.id);
@@ -387,17 +394,21 @@ function PresetsScreen({ userEmail }: Props) {
         });
       }
     }
-  }, [userEmail, syncScheduledPresetsToNative, presets]);
+  }, [userEmail_safe, syncScheduledPresetsToNative, presets]);
 
   const handleAddPreset = useCallback(() => {
-    setEditingPreset(null);
-    setEditModalVisible(true);
-  }, []);
+    setContextEditingPreset(null);
+    setExistingPresets(presets);
+    setEmail(userEmail_safe);
+    navigation.navigate('EditPresetApps');
+  }, [presets, userEmail_safe, navigation, setContextEditingPreset, setExistingPresets, setEmail]);
 
   const handleEditPreset = useCallback((preset: Preset) => {
-    setEditingPreset(preset);
-    setEditModalVisible(true);
-  }, []);
+    setContextEditingPreset(preset);
+    setExistingPresets(presets);
+    setEmail(userEmail_safe);
+    navigation.navigate('EditPresetApps');
+  }, [presets, userEmail_safe, navigation, setContextEditingPreset, setExistingPresets, setEmail]);
 
   const handleLongPressPreset = useCallback((preset: Preset) => {
     setPresetToDelete(preset);
@@ -424,11 +435,11 @@ function PresetsScreen({ userEmail }: Props) {
     setPresetToDelete(null);
 
     // Delete in background - revert on error
-    deletePresetApi(userEmail, presetId).then(async result => {
+    deletePresetApi(userEmail_safe, presetId).then(async result => {
       if (result.success) {
         // If deleting an active non-scheduled preset, clear active
         if (wasActiveNonScheduled) {
-          await activatePreset(userEmail, null);
+          await activatePreset(userEmail_safe, null);
         }
 
         // If deleting a scheduled preset, sync to native
@@ -443,7 +454,7 @@ function PresetsScreen({ userEmail }: Props) {
         }
       }
     });
-  }, [presetToDelete, userEmail, activePresetId, presets, syncScheduledPresetsToNative]);
+  }, [presetToDelete, userEmail_safe, activePresetId, presets, syncScheduledPresetsToNative]);
 
   const handleSavePreset = useCallback(async (preset: Preset) => {
     // Prevent duplicate saves
@@ -451,9 +462,13 @@ function PresetsScreen({ userEmail }: Props) {
 
     setIsSaving(true);
 
+    // editingPreset comes from the PresetSaveContext (set before navigating)
+    const editingPreset = presets.find(p => p.id === preset.id) || null;
+    const isEditing = !!editingPreset;
+
     let presetToSave: Preset;
 
-    if (editingPreset) {
+    if (isEditing && editingPreset) {
       // Editing existing preset - keep the same id and isActive status
       presetToSave = {
         ...preset,
@@ -463,7 +478,6 @@ function PresetsScreen({ userEmail }: Props) {
       };
 
       // If editing a scheduled preset, FIRST cancel existing alarms to prevent race conditions
-      // This ensures old schedule times don't fire while we're updating to new times
       if (editingPreset.isScheduled) {
         try {
           await ScheduleModule?.cancelPresetAlarm(editingPreset.id);
@@ -485,7 +499,6 @@ function PresetsScreen({ userEmail }: Props) {
             other.scheduleStartDate,
             other.scheduleEndDate
           )) {
-            // New times overlap with another active scheduled preset - auto-disable this one
             presetToSave = { ...presetToSave, isActive: false };
             break;
           }
@@ -501,45 +514,36 @@ function PresetsScreen({ userEmail }: Props) {
       };
     }
 
-    const result = await savePreset(userEmail, presetToSave);
+    const result = await savePreset(userEmail_safe, presetToSave);
 
     if (result.success) {
-      // Invalidate cache so other screens get fresh data
-      invalidateUserCaches(userEmail);
+      invalidateUserCaches(userEmail_safe);
 
       let updatedPresets: Preset[];
-      if (editingPreset) {
+      if (isEditing) {
         updatedPresets = presets.map(p => (p.id === presetToSave.id ? presetToSave : p));
         setPresets(updatedPresets);
 
-        // If this is the active non-scheduled preset, also update user_cards settings
         if (presetToSave.isActive && !presetToSave.isScheduled) {
-          await activatePreset(userEmail, presetToSave.id);
+          await activatePreset(userEmail_safe, presetToSave.id);
         }
       } else {
         updatedPresets = [...presets, presetToSave];
         setPresets(updatedPresets);
       }
 
-      // Sync scheduled presets to native for background activation
-      // This will reschedule with the NEW times now that old alarms are cancelled
       if (presetToSave.isScheduled) {
         await syncScheduledPresetsToNative(updatedPresets);
-
       }
-
     }
 
-    setEditModalVisible(false);
-    setEditingPreset(null);
     setIsSaving(false);
-  }, [isSaving, editingPreset, userEmail, syncScheduledPresetsToNative, presets]);
+  }, [isSaving, userEmail_safe, syncScheduledPresetsToNative, presets]);
 
-  const handleCloseEditModal = useCallback(() => {
-    setEditModalVisible(false);
-    setEditingPreset(null);
-  }, []);
-
+  // Wire handleSavePreset into PresetSaveContext so child screens can call it
+  useEffect(() => {
+    setOnSave(handleSavePreset);
+  }, [handleSavePreset, setOnSave]);
 
   const handleCloseDeleteModal = useCallback(() => {
     setDeleteModalVisible(false);
@@ -556,7 +560,7 @@ function PresetsScreen({ userEmail }: Props) {
       setPresets(updatedPresets);
       // Save to backend
       const presetToSave = { ...preset, isActive: false };
-      savePreset(userEmail, presetToSave).then(async () => {
+      savePreset(userEmail_safe, presetToSave).then(async () => {
         // Sync to native to cancel the alarm
         await syncScheduledPresetsToNative(updatedPresets);
       }).catch(() => {
@@ -564,7 +568,7 @@ function PresetsScreen({ userEmail }: Props) {
       });
     } else if (activePresetId === preset.id) {
       // Non-scheduled preset expired
-      const result = await activatePreset(userEmail, null);
+      const result = await activatePreset(userEmail_safe, null);
       if (result.success) {
         setActivePresetId(null);
         // Only set non-scheduled presets to inactive, preserve scheduled preset states
@@ -574,7 +578,7 @@ function PresetsScreen({ userEmail }: Props) {
         })));
       }
     }
-  }, [activePresetId, userEmail, presets, syncScheduledPresetsToNative]);
+  }, [activePresetId, userEmail_safe, presets, syncScheduledPresetsToNative]);
 
   const renderPresetItem = useCallback(({ item: preset }: { item: Preset }) => {
     // For scheduled presets, use preset.isActive directly
@@ -694,16 +698,6 @@ function PresetsScreen({ userEmail }: Props) {
         removeClippedSubviews={true}
         maxToRenderPerBatch={10}
         windowSize={5}
-      />
-
-      {/* Edit/Create Modal */}
-      <PresetEditModal
-        visible={editModalVisible}
-        preset={editingPreset}
-        onClose={handleCloseEditModal}
-        onSave={handleSavePreset}
-        email={userEmail}
-        existingPresets={presets}
       />
 
       {/* Delete Confirmation Modal */}

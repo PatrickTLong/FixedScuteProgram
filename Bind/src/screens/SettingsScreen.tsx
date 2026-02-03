@@ -18,13 +18,7 @@ import { getLockStatus, getEmergencyTapoutStatus, EmergencyTapoutStatus, getCach
 import { useTheme , textSize, fontFamily, radius, shadow, iconSize, buttonPadding } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { lightTap } from '../utils/haptics';
-
-interface Props {
-  email: string;
-  onLogout: () => void;
-  onResetAccount: () => Promise<{ success: boolean; error?: string }>;
-  onDeleteAccount: () => Promise<{ success: boolean; error?: string }>;
-}
+import { useAuth } from '../context/AuthContext';
 
 // Icons - white with thicker strokes
 const PlayStoreIcon = ({ size = iconSize.lg }: { size?: number }) => (
@@ -254,7 +248,8 @@ const SettingsRow = memo(({
   </TouchableOpacity>
 ));
 
-function SettingsScreen({ email, onLogout, onResetAccount, onDeleteAccount }: Props) {
+function SettingsScreen() {
+  const { userEmail: email, handleLogout: onLogout, handleResetAccount: onResetAccount, handleDeleteAccount: onDeleteAccount } = useAuth();
   const { s } = useResponsive();
 
   // Check cache synchronously for initial render - avoids flash if cache exists

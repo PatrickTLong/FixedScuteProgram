@@ -5,13 +5,11 @@ import Svg, { Path } from 'react-native-svg';
 import { lightTap } from '../utils/haptics';
 import { useTheme , textSize, fontFamily, shadow, iconSize, buttonPadding } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
+import type { BottomTabBarProps as RNBottomTabBarProps } from '@react-navigation/bottom-tabs';
 
 type TabName = 'home' | 'presets' | 'settings';
 
-interface BottomTabBarProps {
-  activeTab: TabName;
-  onTabPress: (tab: TabName) => void;
-}
+const TAB_NAMES: TabName[] = ['home', 'presets', 'settings'];
 
 interface TabItemProps {
   label: string;
@@ -103,19 +101,28 @@ const TabItem = memo(({ label, isActive, onPress, icon, activeColor, inactiveCol
   );
 });
 
-function BottomTabBar({ activeTab, onTabPress }: BottomTabBarProps) {
+function BottomTabBar({ state, navigation }: RNBottomTabBarProps) {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const { s } = useResponsive();
+
+  const activeTab = TAB_NAMES[state.index] || 'home';
+
   const getIconColor = (tab: TabName) =>
     activeTab === tab ? colors.text : colors.textMuted;
 
-  // Stable callbacks so TabItem's React.memo isn't defeated
-  const handleHomePress = useCallback(() => onTabPress('home'), [onTabPress]);
-  const handlePresetsPress = useCallback(() => onTabPress('presets'), [onTabPress]);
-  const handleSettingsPress = useCallback(() => onTabPress('settings'), [onTabPress]);
+  const handleTabPress = useCallback((tab: TabName) => {
+    const index = TAB_NAMES.indexOf(tab);
+    const route = state.routes[index];
+    if (route) {
+      navigation.navigate(route.name);
+    }
+  }, [state.routes, navigation]);
 
-  // Use safe area bottom inset with a minimum of 24px for devices without navigation buttons
+  const handleHomePress = useCallback(() => handleTabPress('home'), [handleTabPress]);
+  const handlePresetsPress = useCallback(() => handleTabPress('presets'), [handleTabPress]);
+  const handleSettingsPress = useCallback(() => handleTabPress('settings'), [handleTabPress]);
+
   const bottomPadding = Math.max(insets.bottom, s(24));
 
   return (

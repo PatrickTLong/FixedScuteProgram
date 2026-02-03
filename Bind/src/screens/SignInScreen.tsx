@@ -51,6 +51,8 @@ const EyeOffIcon = ({ color }: { color: string }) => (
   </Svg>
 );
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import ProgressBar from '../components/ProgressBar';
 import BackButton from '../components/BackButton';
 import InfoModal from '../components/InfoModal';
@@ -58,17 +60,18 @@ import OTPInput from '../components/OTPInput';
 import GoogleSignInBtn from '../components/GoogleSignInButton';
 import { useTheme , textSize, fontFamily, radius, shadow, iconSize } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
+import { useAuth } from '../context/AuthContext';
+import type { AuthStackParamList } from '../navigation/types';
 import { setAuthToken } from '../services/cardApi';
 import { API_URL } from '../config/api';
 import { lightTap } from '../utils/haptics';
 
-interface Props {
-  onBack: () => void;
-  onSuccess: (email: string) => void;
-  onForgotPassword: () => void;
-}
-
-function SignInScreen({ onBack, onSuccess, onForgotPassword }: Props) {
+function SignInScreen() {
+  const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
+  const { handleLogin } = useAuth();
+  const onBack = () => navigation.goBack();
+  const onSuccess = (email: string) => handleLogin(email);
+  const onForgotPassword = () => navigation.navigate('ForgotPassword');
   const { colors } = useTheme();
   const { s } = useResponsive();
   const [email, setEmail] = useState('');

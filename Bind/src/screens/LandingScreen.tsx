@@ -6,15 +6,15 @@ import {
   Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTheme , textSize, fontFamily } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { lightTap } from '../utils/haptics';
+import type { AuthStackParamList } from '../navigation/types';
 
-interface Props {
-  onGetStarted: () => void;
-}
-
-function LandingScreen({ onGetStarted }: Props) {
+function LandingScreen() {
+  const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
   const { colors } = useTheme();
   const { s } = useResponsive();
 
@@ -41,7 +41,7 @@ function LandingScreen({ onGetStarted }: Props) {
   const handleTap = () => {
     if (showTapText) {
       lightTap();
-      onGetStarted();
+      navigation.navigate('GetStarted');
     }
   };
 

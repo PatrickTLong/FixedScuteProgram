@@ -21,11 +21,7 @@ const PlayStoreIcon = ({ size = iconSize.lg }: { size?: number }) => (
   </Svg>
 );
 
-interface Props {
-  onPurchaseComplete?: () => void;
-}
-
-function MembershipScreen(_props: Props) {
+function MembershipScreen() {
   const { colors } = useTheme();
   const { s } = useResponsive();
   const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'yearly' | 'lifetime' | null>(null);
