@@ -6,6 +6,15 @@ import type { Preset } from '../components/PresetCard';
 
 const Stack = createNativeStackNavigator<PresetsStackParamList>();
 
+// Params that PresetSettingsScreen needs (moved from route params to context)
+export interface PresetSettingsParams {
+  name: string;
+  selectedApps: string[];
+  blockedWebsites: string[];
+  installedApps: Array<{ id: string; name: string; icon?: string }>;
+  iosSelectedAppsCount: number;
+}
+
 // Context for sharing save callback and edit state between preset screens
 interface PresetSaveContextValue {
   onSave: (preset: Preset) => Promise<void>;
@@ -16,6 +25,8 @@ interface PresetSaveContextValue {
   setExistingPresets: (p: Preset[]) => void;
   email: string;
   setEmail: (e: string) => void;
+  presetSettingsParams: PresetSettingsParams | null;
+  setPresetSettingsParams: (p: PresetSettingsParams | null) => void;
 }
 
 const PresetSaveContext = createContext<PresetSaveContextValue | null>(null);
@@ -32,6 +43,7 @@ export function PresetSaveProvider({ children }: { children: React.ReactNode }) 
   const editingPresetRef = useRef<Preset | null>(null);
   const existingPresetsRef = useRef<Preset[]>([]);
   const emailRef = useRef<string>('');
+  const presetSettingsParamsRef = useRef<PresetSettingsParams | null>(null);
 
   const [, forceUpdate] = React.useState(0);
 
@@ -52,6 +64,11 @@ export function PresetSaveProvider({ children }: { children: React.ReactNode }) 
     emailRef.current = e;
   }, []);
 
+  const setPresetSettingsParams = useCallback((p: PresetSettingsParams | null) => {
+    presetSettingsParamsRef.current = p;
+    forceUpdate(n => n + 1);
+  }, []);
+
   const contextValue: PresetSaveContextValue = {
     onSave: async (preset: Preset) => onSaveRef.current(preset),
     setOnSave,
@@ -61,6 +78,8 @@ export function PresetSaveProvider({ children }: { children: React.ReactNode }) 
     setExistingPresets,
     email: emailRef.current,
     setEmail,
+    presetSettingsParams: presetSettingsParamsRef.current,
+    setPresetSettingsParams,
   };
 
   return (

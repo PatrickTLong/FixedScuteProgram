@@ -1,4 +1,4 @@
-import React, { useState, useEffect, memo, useCallback, useMemo } from 'react';
+import React, { useState, memo, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -23,9 +23,9 @@ import { Preset } from '../components/PresetCard';
 import { lightTap } from '../utils/haptics';
 import { useTheme, textSize, fontFamily, radius, shadow, iconSize, buttonPadding } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
-import { useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { MainStackParamList } from '../navigation/types';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import type { MainTabParamList } from '../navigation/types';
 import { usePresetSave } from '../navigation/PresetsStack';
 
 const EXCLUDED_APPS_INFO_DISMISSED_KEY = 'excluded_apps_info_dismissed';
@@ -241,8 +241,8 @@ const AppItemRow = memo(({ item, isSelected, onToggle, colors, s, skipCheckboxAn
 function EditPresetAppsScreen() {
   const { colors } = useTheme();
   const { s } = useResponsive();
-  const navigation = useNavigation<NativeStackNavigationProp<MainStackParamList, 'EditPresetApps'>>();
-  const { editingPreset, email, existingPresets } = usePresetSave();
+  const navigation = useNavigation<BottomTabNavigationProp<MainTabParamList, 'EditPresetApps'>>();
+  const { editingPreset, email, existingPresets, setPresetSettingsParams } = usePresetSave();
   const preset = editingPreset;
 
   // State
@@ -315,32 +315,36 @@ function EditPresetAppsScreen() {
     }
   }, []);
 
-  // Initialize from preset on mount
-  useEffect(() => {
-    if (preset) {
-      setName(preset.name);
-      setBlockedWebsites(preset.blockedWebsites);
-      if (preset.mode === 'all') {
-        setSelectedApps([]);
+  // Reinitialize from preset each time screen gains focus (screen stays mounted)
+  useFocusEffect(
+    useCallback(() => {
+      if (preset) {
+        setName(preset.name);
+        setBlockedWebsites(preset.blockedWebsites);
+        if (preset.mode === 'all') {
+          setSelectedApps([]);
+        } else {
+          setSelectedApps(preset.selectedApps);
+        }
       } else {
-        setSelectedApps(preset.selectedApps);
+        // New preset defaults
+        setName('');
+        setSelectedApps([]);
+        setBlockedWebsites([]);
       }
-    } else {
-      // New preset defaults
-      setName('');
-      setSelectedApps([]);
-      setBlockedWebsites([]);
-    }
-    setActiveTab('apps');
-    setDisplayedTab('apps');
-    loadInstalledApps(preset?.mode);
-    // Check if we should show excluded apps info modal
-    AsyncStorage.getItem(EXCLUDED_APPS_INFO_DISMISSED_KEY).then((dismissed) => {
-      if (dismissed !== 'true') {
-        setExcludedAppsInfoVisible(true);
-      }
-    });
-  }, [preset, loadInstalledApps]);
+      setActiveTab('apps');
+      setDisplayedTab('apps');
+      setSearchQuery('');
+      setSkipCheckboxAnimation(true);
+      loadInstalledApps(preset?.mode);
+      // Check if we should show excluded apps info modal
+      AsyncStorage.getItem(EXCLUDED_APPS_INFO_DISMISSED_KEY).then((dismissed) => {
+        if (dismissed !== 'true') {
+          setExcludedAppsInfoVisible(true);
+        }
+      });
+    }, [preset, loadInstalledApps])
+  );
 
   const toggleApp = useCallback((appId: string) => {
     lightTap();
@@ -400,19 +404,20 @@ function EditPresetAppsScreen() {
   const handleContinue = useCallback(() => {
     if (!canContinue) return;
     lightTap();
-    navigation.navigate('PresetSettings', {
+    setPresetSettingsParams({
       name,
       selectedApps,
       blockedWebsites,
       installedApps,
       iosSelectedAppsCount,
     });
-  }, [canContinue, navigation, name, selectedApps, blockedWebsites, installedApps, iosSelectedAppsCount]);
+    navigation.navigate('PresetSettings');
+  }, [canContinue, navigation, name, selectedApps, blockedWebsites, installedApps, iosSelectedAppsCount, setPresetSettingsParams]);
 
   // Close handler
   const handleClose = useCallback(() => {
     lightTap();
-    navigation.goBack();
+    navigation.navigate('Presets');
   }, [navigation]);
 
   // Render app item

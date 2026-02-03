@@ -422,14 +422,14 @@ function PresetsScreen() {
     setContextEditingPreset(null);
     setExistingPresets(presets);
     setEmail(userEmail_safe);
-    navigation.navigate('EditPresetApps');
+    navigation.getParent()?.navigate('EditPresetApps');
   }, [presets, userEmail_safe, navigation, setContextEditingPreset, setExistingPresets, setEmail]);
 
   const handleEditPreset = useCallback((preset: Preset) => {
     setContextEditingPreset(preset);
     setExistingPresets(presets);
     setEmail(userEmail_safe);
-    navigation.navigate('EditPresetApps');
+    navigation.getParent()?.navigate('EditPresetApps');
   }, [presets, userEmail_safe, navigation, setContextEditingPreset, setExistingPresets, setEmail]);
 
   const handleLongPressPreset = useCallback((preset: Preset) => {

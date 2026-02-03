@@ -9,8 +9,6 @@ import type { BottomTabBarProps as RNBottomTabBarProps } from '@react-navigation
 
 type TabName = 'home' | 'presets' | 'settings';
 
-const TAB_NAMES: TabName[] = ['home', 'presets', 'settings'];
-
 interface TabItemProps {
   label: string;
   isActive: boolean;
@@ -101,23 +99,38 @@ const TabItem = memo(({ label, isActive, onPress, icon, activeColor, inactiveCol
   );
 });
 
+// Route names for hidden preset editing tabs
+const HIDDEN_ROUTES = ['EditPresetApps', 'PresetSettings'];
+
 function BottomTabBar({ state, navigation }: RNBottomTabBarProps) {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const { s } = useResponsive();
 
-  const activeTab = TAB_NAMES[state.index] || 'home';
+  const currentRouteName = state.routes[state.index]?.name || 'Home';
+
+  // Hide tab bar on preset editing screens
+  if (HIDDEN_ROUTES.includes(currentRouteName)) {
+    return null;
+  }
+
+  // Map current route to which visible tab is active
+  const activeTab: TabName = (currentRouteName.toLowerCase() as TabName) || 'home';
 
   const getIconColor = (tab: TabName) =>
     activeTab === tab ? colors.text : colors.textMuted;
 
   const handleTabPress = useCallback((tab: TabName) => {
-    const index = TAB_NAMES.indexOf(tab);
-    const route = state.routes[index];
-    if (route) {
-      navigation.navigate(route.name);
+    const routeNameMap: Record<TabName, string> = {
+      home: 'Home',
+      presets: 'Presets',
+      settings: 'Settings',
+    };
+    const routeName = routeNameMap[tab];
+    if (routeName) {
+      navigation.navigate(routeName);
     }
-  }, [state.routes, navigation]);
+  }, [navigation]);
 
   const handleHomePress = useCallback(() => handleTabPress('home'), [handleTabPress]);
   const handlePresetsPress = useCallback(() => handleTabPress('presets'), [handleTabPress]);

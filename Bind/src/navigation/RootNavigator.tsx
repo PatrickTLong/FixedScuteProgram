@@ -6,8 +6,6 @@ import { useTheme } from '../context/ThemeContext';
 import AuthStack from './AuthStack';
 import OnboardingStack from './OnboardingStack';
 import MainTabNavigator from './MainTabNavigator';
-import EditPresetAppsScreen from '../screens/EditPresetAppsScreen';
-import PresetSettingsScreen from '../screens/PresetSettingsScreen';
 import { PresetSaveProvider } from './PresetsStack';
 import type { MainStackParamList } from './types';
 
@@ -23,8 +21,6 @@ function MainNavigator() {
         }}
       >
         <MainStack.Screen name="MainTabs" component={MainTabNavigator} />
-        <MainStack.Screen name="EditPresetApps" component={EditPresetAppsScreen} />
-        <MainStack.Screen name="PresetSettings" component={PresetSettingsScreen} />
       </MainStack.Navigator>
     </PresetSaveProvider>
   );

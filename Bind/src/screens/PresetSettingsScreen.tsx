@@ -29,10 +29,9 @@ import { useTheme, textSize, fontFamily, radius, shadow, iconSize, buttonPadding
 import { useResponsive } from '../utils/responsive';
 import { lightTap, mediumTap } from '../utils/haptics';
 import { usePresetSave } from '../navigation/PresetsStack';
-import { useNavigation, useRoute } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { RouteProp } from '@react-navigation/native';
-import type { MainStackParamList } from '../navigation/types';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import type { MainTabParamList } from '../navigation/types';
 
 // ============ Pure date helpers ============
 function getDaysInMonth(month: number, year: number): number {
@@ -419,15 +418,17 @@ const ExpandableInfo = ({ expanded, children, lazy = false }: { expanded: boolea
 };
 
 // ============ Navigation Types ============
-type PresetSettingsNavigationProp = NativeStackNavigationProp<MainStackParamList, 'PresetSettings'>;
-type PresetSettingsRouteProp = RouteProp<MainStackParamList, 'PresetSettings'>;
+type PresetSettingsNavigationProp = BottomTabNavigationProp<MainTabParamList, 'PresetSettings'>;
 
 // ============ Main Screen Component ============
 function PresetSettingsScreen() {
   const navigation = useNavigation<PresetSettingsNavigationProp>();
-  const route = useRoute<PresetSettingsRouteProp>();
-  const { name, selectedApps, blockedWebsites, installedApps, iosSelectedAppsCount } = route.params;
-  const { onSave, editingPreset, existingPresets, email } = usePresetSave();
+  const { onSave, editingPreset, existingPresets, email, presetSettingsParams } = usePresetSave();
+  const name = presetSettingsParams?.name ?? '';
+  const selectedApps = presetSettingsParams?.selectedApps ?? [];
+  const blockedWebsites = presetSettingsParams?.blockedWebsites ?? [];
+  const installedApps = presetSettingsParams?.installedApps ?? [];
+  const iosSelectedAppsCount = presetSettingsParams?.iosSelectedAppsCount ?? 0;
   const { tapoutStatus } = useAuth();
   const { colors } = useTheme();
   const { s } = useResponsive();
@@ -499,43 +500,50 @@ function PresetSettingsScreen() {
   const mainScrollRef = useRef<ScrollView>(null);
   const dpScrollRef = useRef<ScrollView>(null);
 
-  // ============ Initialize from editingPreset on mount ============
-  useEffect(() => {
-    if (editingPreset) {
-      setBlockSettings(editingPreset.blockSettings);
-      setNoTimeLimit(editingPreset.noTimeLimit);
-      setTimerDays(editingPreset.timerDays);
-      setTimerHours(editingPreset.timerHours);
-      setTimerMinutes(editingPreset.timerMinutes);
-      setTimerSeconds(editingPreset.timerSeconds ?? 0);
-      setTargetDate(editingPreset.targetDate ? new Date(editingPreset.targetDate) : null);
-      setAllowEmergencyTapout(editingPreset.allowEmergencyTapout ?? false);
-      setStrictMode(editingPreset.strictMode ?? false);
-      setIsScheduled(editingPreset.isScheduled ?? false);
-      setScheduleStartDate(editingPreset.scheduleStartDate ? new Date(editingPreset.scheduleStartDate) : null);
-      setScheduleEndDate(editingPreset.scheduleEndDate ? new Date(editingPreset.scheduleEndDate) : null);
-      setIsRecurring(editingPreset.repeat_enabled ?? false);
-      setRecurringValue(editingPreset.repeat_interval?.toString() ?? '1');
-      setRecurringUnit(editingPreset.repeat_unit ?? 'hours');
-    } else {
-      // New preset defaults
-      setBlockSettings(false);
-      setNoTimeLimit(false);
-      setTimerDays(0);
-      setTimerHours(0);
-      setTimerMinutes(0);
-      setTimerSeconds(0);
-      setTargetDate(null);
-      setAllowEmergencyTapout(true); // Enabled by default for safety
-      setStrictMode(false);
-      setIsScheduled(false);
-      setScheduleStartDate(null);
-      setScheduleEndDate(null);
-      setIsRecurring(false);
-      setRecurringValue('1');
-      setRecurringUnit('hours');
-    }
-  }, [editingPreset]);
+  // ============ Reinitialize from editingPreset each time screen gains focus ============
+  useFocusEffect(
+    useCallback(() => {
+      if (editingPreset) {
+        setBlockSettings(editingPreset.blockSettings);
+        setNoTimeLimit(editingPreset.noTimeLimit);
+        setTimerDays(editingPreset.timerDays);
+        setTimerHours(editingPreset.timerHours);
+        setTimerMinutes(editingPreset.timerMinutes);
+        setTimerSeconds(editingPreset.timerSeconds ?? 0);
+        setTargetDate(editingPreset.targetDate ? new Date(editingPreset.targetDate) : null);
+        setAllowEmergencyTapout(editingPreset.allowEmergencyTapout ?? false);
+        setStrictMode(editingPreset.strictMode ?? false);
+        setIsScheduled(editingPreset.isScheduled ?? false);
+        setScheduleStartDate(editingPreset.scheduleStartDate ? new Date(editingPreset.scheduleStartDate) : null);
+        setScheduleEndDate(editingPreset.scheduleEndDate ? new Date(editingPreset.scheduleEndDate) : null);
+        setIsRecurring(editingPreset.repeat_enabled ?? false);
+        setRecurringValue(editingPreset.repeat_interval?.toString() ?? '1');
+        setRecurringUnit(editingPreset.repeat_unit ?? 'hours');
+      } else {
+        // New preset defaults
+        setBlockSettings(false);
+        setNoTimeLimit(false);
+        setTimerDays(0);
+        setTimerHours(0);
+        setTimerMinutes(0);
+        setTimerSeconds(0);
+        setTargetDate(null);
+        setAllowEmergencyTapout(true); // Enabled by default for safety
+        setStrictMode(false);
+        setIsScheduled(false);
+        setScheduleStartDate(null);
+        setScheduleEndDate(null);
+        setIsRecurring(false);
+        setRecurringValue('1');
+        setRecurringUnit('hours');
+      }
+      // Reset UI state
+      setIsSaving(false);
+      setShowDatePicker(false);
+      setDatePickerTarget(null);
+      setExpandedInfo({});
+    }, [editingPreset])
+  );
 
   // ============ Emergency Tapout Handler ============
   const handleEmergencyTapoutToggle = useCallback(async (value: boolean) => {
@@ -827,7 +835,7 @@ function PresetSettingsScreen() {
 
     try {
       await onSave(newPreset);
-      navigation.popToTop();
+      navigation.navigate('Presets');
     } finally {
       setIsSaving(false);
     }
@@ -1197,7 +1205,7 @@ function PresetSettingsScreen() {
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
       {/* Header */}
       <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }} className="flex-row items-center justify-between px-4 py-3.5">
-        <TouchableOpacity onPress={() => { lightTap(); navigation.goBack(); }} disabled={isSaving} style={{ width: s(40) }} className="px-2">
+        <TouchableOpacity onPress={() => { lightTap(); navigation.navigate('EditPresetApps'); }} disabled={isSaving} style={{ width: s(40) }} className="px-2">
           <ChevronLeftIcon size={s(iconSize.headerNav)} color="#FFFFFF" />
         </TouchableOpacity>
         <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Final Settings</Text>

@@ -26,19 +26,13 @@ export type MainTabParamList = {
   Home: undefined;
   Presets: NavigatorScreenParams<PresetsStackParamList>;
   Settings: undefined;
+  EditPresetApps: undefined;
+  PresetSettings: undefined;
 };
 
-// Main stack wraps tabs + full-screen preset edit screens
+// Main stack wraps tabs
 export type MainStackParamList = {
   MainTabs: NavigatorScreenParams<MainTabParamList>;
-  EditPresetApps: undefined;
-  PresetSettings: {
-    name: string;
-    selectedApps: string[];
-    blockedWebsites: string[];
-    installedApps: Array<{ id: string; name: string; icon?: string }>;
-    iosSelectedAppsCount: number;
-  };
 };
 
 // Root navigator
