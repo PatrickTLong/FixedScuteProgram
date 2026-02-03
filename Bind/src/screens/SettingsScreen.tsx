@@ -947,7 +947,7 @@ function SettingsScreen() {
       {/* Membership Modal */}
       <Modal
         visible={membershipModalVisible}
-        animationType="fade"
+        animationType="none"
         presentationStyle="pageSheet"
         onRequestClose={() => {
           // Only allow dismissal if trial hasn't expired
