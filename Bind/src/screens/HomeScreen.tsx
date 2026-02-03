@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef, useMemo, memo } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useCallback, useRef, useMemo, memo } from 'react';
 import {
   Text,
   View,
@@ -21,11 +21,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import BlockNowButton from '../components/BlockNowButton';
 import InfoModal from '../components/InfoModal';
 import EmergencyTapoutModal from '../components/EmergencyTapoutModal';
-import { getPresets, getLockStatus, updateLockStatus, Preset, getEmergencyTapoutStatus, useEmergencyTapout, EmergencyTapoutStatus, activatePreset, invalidateUserCaches, isFirstLoad, markInitialLoadComplete, clearAllCaches } from '../services/cardApi';
+import { getPresets, getLockStatus, updateLockStatus, Preset, getEmergencyTapoutStatus, useEmergencyTapout, activatePreset, invalidateUserCaches, isFirstLoad, markInitialLoadComplete, clearAllCaches } from '../services/cardApi';
 import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { lightTap } from '../utils/haptics';
 import { useAuth } from '../context/AuthContext';
+import { useNavigation } from '@react-navigation/native';
 
 const scuteLogo = require('../frontassets/TrueScute-Photoroom.png');
 
@@ -33,7 +34,8 @@ const { BlockingModule, PermissionsModule } = NativeModules;
 
 
 function HomeScreen() {
-  const { userEmail: email, refreshTrigger, sharedPresets, setSharedPresets, sharedPresetsLoaded, setSharedPresetsLoaded, setSharedIsLocked } = useAuth();
+  const { userEmail: email, refreshTrigger, sharedPresets, setSharedPresets, sharedPresetsLoaded, setSharedPresetsLoaded, setSharedIsLocked, tapoutStatus, setTapoutStatus } = useAuth();
+  const navigation = useNavigation();
   const { colors } = useTheme();
   const { s } = useResponsive();
   const [currentPreset, setCurrentPreset] = useState<string | null>(null);
@@ -49,9 +51,15 @@ function HomeScreen() {
   const [modalMessage, setModalMessage] = useState('');
   const [loading, setLoading] = useState(true);
 
+  // Hide tab bar while loading
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      tabBarStyle: loading ? { display: 'none' } : undefined,
+    });
+  }, [navigation, loading]);
+
   // Emergency tapout state
   const [emergencyTapoutModalVisible, setEmergencyTapoutModalVisible] = useState(false);
-  const [tapoutStatus, setTapoutStatus] = useState<EmergencyTapoutStatus | null>(null);
   const [tapoutLoading, setTapoutLoading] = useState(false);
 
   // Scheduled presets expandable modal
@@ -368,8 +376,8 @@ function HomeScreen() {
           await activatePreset(email, presetIdToKeep);
         }
 
-        // Update tapout status locally
-        setTapoutStatus(prev => prev ? { ...prev, remaining: result.remaining } : null);
+        // Update tapout status in shared state
+        setTapoutStatus(tapoutStatus ? { ...tapoutStatus, remaining: result.remaining } : null);
 
         Vibration.vibrate(100);
         // No modal - just unlock silently

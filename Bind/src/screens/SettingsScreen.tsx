@@ -14,7 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import ConfirmationModal from '../components/ConfirmationModal';
 import EmailConfirmationModal from '../components/EmailConfirmationModal';
-import { getLockStatus, getEmergencyTapoutStatus, EmergencyTapoutStatus, getCachedLockStatus, getCachedTapoutStatus, getMembershipStatus, MembershipStatus, getCachedMembershipStatus } from '../services/cardApi';
+import { getLockStatus, getEmergencyTapoutStatus, getCachedLockStatus, getCachedTapoutStatus, getMembershipStatus, MembershipStatus, getCachedMembershipStatus } from '../services/cardApi';
 import { useTheme , textSize, fontFamily, radius, shadow, iconSize, buttonPadding } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { lightTap } from '../utils/haptics';
@@ -249,7 +249,7 @@ const SettingsRow = memo(({
 ));
 
 function SettingsScreen() {
-  const { userEmail: email, handleLogout: onLogout, handleResetAccount: onResetAccount, handleDeleteAccount: onDeleteAccount, sharedIsLocked, setSharedIsLocked } = useAuth();
+  const { userEmail: email, handleLogout: onLogout, handleResetAccount: onResetAccount, handleDeleteAccount: onDeleteAccount, sharedIsLocked, setSharedIsLocked, tapoutStatus, setTapoutStatus } = useAuth();
   const { s } = useResponsive();
 
   // Check cache synchronously for initial render - avoids flash if cache exists
@@ -275,18 +275,16 @@ function SettingsScreen() {
 
   const { colors } = useTheme();
 
-  // Emergency Tapout state - initialize from cache if available
-  const [tapoutStatus, setTapoutStatus] = useState<EmergencyTapoutStatus | null>(cachedTapoutStatus);
   const [loading, setLoading] = useState(!hasCache);
 
   // Membership state - initialize from cache if available
   const [membershipStatus, setMembershipStatus] = useState<MembershipStatus | null>(cachedMembership);
 
-  // Load data on mount - seed shared lock from cache or fetch if cache miss
+  // Load data on mount - seed shared state from cache or fetch if cache miss
   useEffect(() => {
     if (hasCache) {
-      // Seed shared lock status from cache in case HomeScreen hasn't set it yet
       setSharedIsLocked(cachedLockStatus.isLocked);
+      if (cachedTapoutStatus) setTapoutStatus(cachedTapoutStatus);
       return;
     }
 

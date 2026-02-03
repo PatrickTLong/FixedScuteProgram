@@ -24,7 +24,7 @@ import BlockSettingsWarningModal from '../components/BlockSettingsWarningModal';
 import RecurrenceInfoModal from '../components/RecurrenceInfoModal';
 import StrictModeWarningModal from '../components/StrictModeWarningModal';
 import { Preset } from '../components/PresetCard';
-import { getEmergencyTapoutStatus } from '../services/cardApi';
+import { useAuth } from '../context/AuthContext';
 import { useTheme, textSize, fontFamily, radius, shadow, iconSize, buttonPadding } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { lightTap, mediumTap } from '../utils/haptics';
@@ -428,6 +428,7 @@ function PresetSettingsScreen() {
   const route = useRoute<PresetSettingsRouteProp>();
   const { name, selectedApps, blockedWebsites, installedApps, iosSelectedAppsCount } = route.params;
   const { onSave, editingPreset, existingPresets, email } = usePresetSave();
+  const { tapoutStatus } = useAuth();
   const { colors } = useTheme();
   const { s } = useResponsive();
 
@@ -541,17 +542,10 @@ function PresetSettingsScreen() {
     mediumTap();
 
     if (value) {
-      setAllowEmergencyTapout(true);
-      if (email) {
-        try {
-          const status = await getEmergencyTapoutStatus(email);
-          if (status.remaining <= 0) {
-            setAllowEmergencyTapout(false);
-            setNoTapoutsModalVisible(true);
-          }
-        } catch (error) {
-          // Failed to check emergency tapout status
-        }
+      if ((tapoutStatus?.remaining ?? 0) <= 0) {
+        setNoTapoutsModalVisible(true);
+      } else {
+        setAllowEmergencyTapout(true);
       }
     } else {
       const dismissed = await AsyncStorage.getItem(DISABLE_TAPOUT_WARNING_DISMISSED_KEY);
@@ -561,7 +555,7 @@ function PresetSettingsScreen() {
         setAllowEmergencyTapout(false);
       }
     }
-  }, [email]);
+  }, [tapoutStatus]);
 
   // ============ Date Picker Logic ============
   const dpToday = useMemo(() => new Date(), []);
@@ -1563,17 +1557,7 @@ function PresetSettingsScreen() {
                     setStrictModeWarningVisible(true);
                   } else {
                     setStrictMode(true);
-                    setAllowEmergencyTapout(false);
-                    if (email) {
-                      try {
-                        const status = await getEmergencyTapoutStatus(email);
-                        if (status.remaining > 0) {
-                          setAllowEmergencyTapout(true);
-                        }
-                      } catch (error) {
-                        // Failed to check - keep off
-                      }
-                    }
+                    setAllowEmergencyTapout((tapoutStatus?.remaining ?? 0) > 0);
                   }
                 } else {
                   setStrictMode(false);
@@ -1737,17 +1721,7 @@ function PresetSettingsScreen() {
         onConfirm={async (dontShowAgain) => {
           setStrictModeWarningVisible(false);
           setStrictMode(true);
-          setAllowEmergencyTapout(false);
-          if (email) {
-            try {
-              const status = await getEmergencyTapoutStatus(email);
-              if (status.remaining > 0) {
-                setAllowEmergencyTapout(true);
-              }
-            } catch (error) {
-              // Failed to check - keep off
-            }
-          }
+          setAllowEmergencyTapout((tapoutStatus?.remaining ?? 0) > 0);
           if (dontShowAgain) {
             await AsyncStorage.setItem(STRICT_MODE_WARNING_DISMISSED_KEY, 'true');
           }

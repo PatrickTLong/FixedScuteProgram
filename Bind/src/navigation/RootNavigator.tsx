@@ -42,11 +42,11 @@ export default function RootNavigator() {
     case 'auth':
       return <AuthStack />;
     case 'terms':
-      return <OnboardingStack initialScreen="Terms" />;
+      return <OnboardingStack key="terms" initialScreen="Terms" />;
     case 'permissions':
-      return <OnboardingStack initialScreen="Permissions" />;
+      return <OnboardingStack key="permissions" initialScreen="Permissions" />;
     case 'membership':
-      return <OnboardingStack initialScreen="Membership" />;
+      return <OnboardingStack key="membership" initialScreen="Membership" />;
     case 'main':
       return <MainNavigator />;
     default:
