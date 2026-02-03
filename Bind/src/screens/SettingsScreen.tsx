@@ -697,7 +697,7 @@ function SettingsScreen() {
       {/* Privacy Policy Modal */}
       <Modal
         visible={privacyModalVisible}
-        animationType="fade"
+        animationType="none"
         presentationStyle="pageSheet"
         onRequestClose={() => setPrivacyModalVisible(false)}
       >
@@ -817,7 +817,7 @@ function SettingsScreen() {
       {/* Terms of Service Modal */}
       <Modal
         visible={termsModalVisible}
-        animationType="fade"
+        animationType="none"
         presentationStyle="pageSheet"
         onRequestClose={() => setTermsModalVisible(false)}
       >

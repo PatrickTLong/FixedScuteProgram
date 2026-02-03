@@ -388,7 +388,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
             // Navigate to home tab
             if (navigationRef.isReady()) {
-              navigationRef.navigate('Main', { screen: 'Home' });
+              (navigationRef as any).navigate('MainTabs', { screen: 'Home' });
             }
             setRefreshTrigger(prev => prev + 1);
           }
@@ -414,7 +414,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
         if (authState === 'main') {
           if (navigationRef.isReady()) {
-            navigationRef.navigate('Main', { screen: 'Home' });
+            (navigationRef as any).navigate('MainTabs', { screen: 'Home' });
           }
           setRefreshTrigger(prev => prev + 1);
         }
@@ -432,7 +432,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (launchData?.fromBlockedOverlay) {
         if (authState === 'main') {
           if (navigationRef.isReady()) {
-            navigationRef.navigate('Main', { screen: 'Home' });
+            (navigationRef as any).navigate('MainTabs', { screen: 'Home' });
           }
           setRefreshTrigger(prev => prev + 1);
         }
@@ -501,7 +501,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (navigationRef.isReady()) {
-        navigationRef.navigate('Main', { screen: 'Home' });
+        (navigationRef as any).navigate('MainTabs', { screen: 'Home' });
       }
       setRefreshTrigger(prev => prev + 1);
     });

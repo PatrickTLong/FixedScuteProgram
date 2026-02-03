@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useLayoutEffect, useCallback, useRef, useMemo, memo } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo, memo } from 'react';
 import {
   Text,
   View,
@@ -26,7 +26,6 @@ import { useTheme , textSize, fontFamily, radius, shadow } from '../context/Them
 import { useResponsive } from '../utils/responsive';
 import { lightTap } from '../utils/haptics';
 import { useAuth } from '../context/AuthContext';
-import { useNavigation } from '@react-navigation/native';
 
 const scuteLogo = require('../frontassets/TrueScute-Photoroom.png');
 
@@ -35,7 +34,6 @@ const { BlockingModule, PermissionsModule } = NativeModules;
 
 function HomeScreen() {
   const { userEmail: email, refreshTrigger, sharedPresets, setSharedPresets, sharedPresetsLoaded, setSharedPresetsLoaded, setSharedIsLocked, tapoutStatus, setTapoutStatus } = useAuth();
-  const navigation = useNavigation();
   const { colors } = useTheme();
   const { s } = useResponsive();
   const [currentPreset, setCurrentPreset] = useState<string | null>(null);
@@ -50,13 +48,6 @@ function HomeScreen() {
   const [modalTitle, setModalTitle] = useState('');
   const [modalMessage, setModalMessage] = useState('');
   const [loading, setLoading] = useState(true);
-
-  // Hide tab bar while loading
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      tabBarStyle: loading ? { display: 'none' } : undefined,
-    });
-  }, [navigation, loading]);
 
   // Emergency tapout state
   const [emergencyTapoutModalVisible, setEmergencyTapoutModalVisible] = useState(false);
@@ -879,11 +870,6 @@ function HomeScreen() {
         Vibration.vibrate(50);
       } else {
         Vibration.vibrate(50);
-      }
-
-      // For no time limit presets, show spinner for 1 extra second after locking
-      if (activePreset.noTimeLimit && !activePreset.isScheduled) {
-        await new Promise<void>(resolve => setTimeout(resolve, 500));
       }
 
       // Local state already set above - no need to call loadStats which would cause a delay
