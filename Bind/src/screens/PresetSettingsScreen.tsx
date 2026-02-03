@@ -423,7 +423,7 @@ type PresetSettingsNavigationProp = BottomTabNavigationProp<MainTabParamList, 'P
 // ============ Main Screen Component ============
 function PresetSettingsScreen() {
   const navigation = useNavigation<PresetSettingsNavigationProp>();
-  const { onSave, editingPreset, existingPresets, email, presetSettingsParams } = usePresetSave();
+  const { onSave, editingPreset, existingPresets, email, presetSettingsParams, setPresetSettingsParams } = usePresetSave();
   const name = presetSettingsParams?.name ?? '';
   const selectedApps = presetSettingsParams?.selectedApps ?? [];
   const blockedWebsites = presetSettingsParams?.blockedWebsites ?? [];
@@ -835,6 +835,7 @@ function PresetSettingsScreen() {
 
     try {
       await onSave(newPreset);
+      setPresetSettingsParams(null);
       navigation.navigate('Presets');
     } finally {
       setIsSaving(false);

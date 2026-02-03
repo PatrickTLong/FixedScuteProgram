@@ -242,7 +242,7 @@ function EditPresetAppsScreen() {
   const { colors } = useTheme();
   const { s } = useResponsive();
   const navigation = useNavigation<BottomTabNavigationProp<MainTabParamList, 'EditPresetApps'>>();
-  const { editingPreset, email, existingPresets, setPresetSettingsParams } = usePresetSave();
+  const { editingPreset, email, existingPresets, presetSettingsParams, setPresetSettingsParams } = usePresetSave();
   const preset = editingPreset;
 
   // State
@@ -258,6 +258,7 @@ function EditPresetAppsScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [iosSelectedAppsCount, setIosSelectedAppsCount] = useState(0);
   const [excludedAppsInfoVisible, setExcludedAppsInfoVisible] = useState(false);
+  const [svgKey, setSvgKey] = useState(0);
 
   // Load installed apps
   const loadInstalledApps = useCallback(async (presetMode?: 'all' | 'specific') => {
@@ -316,8 +317,16 @@ function EditPresetAppsScreen() {
   }, []);
 
   // Reinitialize from preset each time screen gains focus (screen stays mounted)
+  // Skip reset when returning from PresetSettings (presetSettingsParams is still set)
   useFocusEffect(
     useCallback(() => {
+      setSvgKey(k => k + 1);
+
+      if (presetSettingsParams) {
+        // Returning from PresetSettings — keep current state
+        return;
+      }
+
       if (preset) {
         setName(preset.name);
         setBlockedWebsites(preset.blockedWebsites);
@@ -343,7 +352,7 @@ function EditPresetAppsScreen() {
           setExcludedAppsInfoVisible(true);
         }
       });
-    }, [preset, loadInstalledApps])
+    }, [preset, presetSettingsParams, loadInstalledApps])
   );
 
   const toggleApp = useCallback((appId: string) => {
@@ -417,8 +426,9 @@ function EditPresetAppsScreen() {
   // Close handler
   const handleClose = useCallback(() => {
     lightTap();
+    setPresetSettingsParams(null);
     navigation.navigate('Presets');
-  }, [navigation]);
+  }, [navigation, setPresetSettingsParams]);
 
   // Render app item
   const renderAppItem = useCallback(({ item }: { item: InstalledApp }) => {
@@ -448,8 +458,8 @@ function EditPresetAppsScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
-      {/* Header */}
-      <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }} className="flex-row items-center justify-between px-4 py-3.5">
+      {/* Header — key forces SVG remount on focus to fix react-freeze stroke color bug */}
+      <View key={svgKey} style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }} className="flex-row items-center justify-between px-4 py-3.5">
         <TouchableOpacity onPress={handleClose} className="px-2">
           <XIcon size={s(iconSize.headerNav)} color="#FFFFFF" />
         </TouchableOpacity>

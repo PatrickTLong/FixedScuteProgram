@@ -1,5 +1,6 @@
-import React, { memo, useEffect, useRef } from 'react';
+import React, { memo, useEffect, useRef, useCallback } from 'react';
 import { View, Animated } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { useResponsive } from '../utils/responsive';
 
 interface ProgressBarProps {
@@ -66,6 +67,21 @@ const AnimatedDot = memo(function AnimatedDot({ isActive }: { isActive: boolean 
       }).start();
     }
   }, [isActive, translateYAnim]);
+
+  // Re-trigger bounce when screen regains focus (e.g. navigating back)
+  useFocusEffect(
+    useCallback(() => {
+      if (isActive) {
+        translateYAnim.setValue(0);
+        Animated.spring(translateYAnim, {
+          toValue: -10,
+          useNativeDriver: true,
+          friction: 5,
+          tension: 100,
+        }).start();
+      }
+    }, [isActive, translateYAnim])
+  );
 
   return (
     <Animated.View

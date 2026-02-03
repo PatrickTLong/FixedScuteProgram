@@ -109,11 +109,6 @@ function BottomTabBar({ state, navigation }: RNBottomTabBarProps) {
 
   const currentRouteName = state.routes[state.index]?.name || 'Home';
 
-  // Hide tab bar on preset editing screens
-  if (HIDDEN_ROUTES.includes(currentRouteName)) {
-    return null;
-  }
-
   // Map current route to which visible tab is active
   const activeTab: TabName = (currentRouteName.toLowerCase() as TabName) || 'home';
 
@@ -137,6 +132,11 @@ function BottomTabBar({ state, navigation }: RNBottomTabBarProps) {
   const handleSettingsPress = useCallback(() => handleTabPress('settings'), [handleTabPress]);
 
   const bottomPadding = Math.max(insets.bottom, s(24));
+
+  // Hide tab bar on preset editing screens (after all hooks)
+  if (HIDDEN_ROUTES.includes(currentRouteName)) {
+    return null;
+  }
 
   return (
     <View
