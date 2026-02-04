@@ -244,8 +244,7 @@ function EditPresetAppsScreen() {
   const { colors } = useTheme();
   const { s } = useResponsive();
   const navigation = useNavigation<BottomTabNavigationProp<MainTabParamList, 'EditPresetApps'>>();
-  const { editingPreset, email, existingPresets, presetSettingsParams, setPresetSettingsParams } = usePresetSave();
-  const preset = editingPreset;
+  const { getEditingPreset, getEmail, getExistingPresets, getPresetSettingsParams, setPresetSettingsParams } = usePresetSave();
 
   // State
   const [name, setName] = useState('');
@@ -321,11 +320,13 @@ function EditPresetAppsScreen() {
     useCallback(() => {
       setSvgKey(k => k + 1);
 
-      if (presetSettingsParams) {
+      const currentParams = getPresetSettingsParams();
+      if (currentParams) {
         // Returning from PresetSettings — keep current state
         return;
       }
 
+      const preset = getEditingPreset();
       if (preset) {
         setName(preset.name);
         setBlockedWebsites(preset.blockedWebsites);
@@ -352,7 +353,7 @@ function EditPresetAppsScreen() {
           setExcludedAppsInfoVisible(true);
         }
       });
-    }, [preset, presetSettingsParams, installedApps])
+    }, [getEditingPreset, getPresetSettingsParams, installedApps])
   );
 
   const toggleApp = useCallback((appId: string) => {
@@ -460,7 +461,7 @@ function EditPresetAppsScreen() {
           <XIcon size={s(iconSize.headerNav)} color="#FFFFFF" />
         </TouchableOpacity>
         <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>
-          {preset ? 'Edit Preset' : 'New Preset'}
+          {getEditingPreset() ? 'Edit Preset' : 'New Preset'}
         </Text>
         <TouchableOpacity
           onPressIn={lightTap}

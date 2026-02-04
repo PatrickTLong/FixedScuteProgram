@@ -426,12 +426,13 @@ type PresetSettingsNavigationProp = BottomTabNavigationProp<MainTabParamList, 'P
 // ============ Main Screen Component ============
 function PresetSettingsScreen() {
   const navigation = useNavigation<PresetSettingsNavigationProp>();
-  const { onSave, editingPreset, existingPresets, email, presetSettingsParams, setPresetSettingsParams } = usePresetSave();
-  const name = presetSettingsParams?.name ?? '';
-  const selectedApps = presetSettingsParams?.selectedApps ?? [];
-  const blockedWebsites = presetSettingsParams?.blockedWebsites ?? [];
-  const installedApps = presetSettingsParams?.installedApps ?? [];
-  const iosSelectedAppsCount = presetSettingsParams?.iosSelectedAppsCount ?? 0;
+  const { onSave, getEditingPreset, getExistingPresets, getEmail, getPresetSettingsParams, setPresetSettingsParams } = usePresetSave();
+  const paramsSnapshot = getPresetSettingsParams();
+  const name = paramsSnapshot?.name ?? '';
+  const selectedApps = paramsSnapshot?.selectedApps ?? [];
+  const blockedWebsites = paramsSnapshot?.blockedWebsites ?? [];
+  const installedApps = paramsSnapshot?.installedApps ?? [];
+  const iosSelectedAppsCount = paramsSnapshot?.iosSelectedAppsCount ?? 0;
   const { tapoutStatus } = useAuth();
   const { colors } = useTheme();
   const { s } = useResponsive();
@@ -505,6 +506,7 @@ function PresetSettingsScreen() {
   // ============ Reinitialize from editingPreset each time screen gains focus ============
   useFocusEffect(
     useCallback(() => {
+      const editingPreset = getEditingPreset();
       if (editingPreset) {
         setBlockSettings(editingPreset.blockSettings);
         setNoTimeLimit(editingPreset.noTimeLimit);
@@ -544,7 +546,7 @@ function PresetSettingsScreen() {
       setShowDatePicker(false);
       setDatePickerTarget(null);
       setExpandedInfo({});
-    }, [editingPreset])
+    }, [getEditingPreset])
   );
 
   // ============ Emergency Tapout Handler ============
@@ -787,6 +789,9 @@ function PresetSettingsScreen() {
   const handleSave = useCallback(async () => {
     if (!name.trim() || isSaving || !canSave) return;
 
+    const editingPreset = getEditingPreset();
+    const existingPresets = getExistingPresets();
+
     const trimmedName = name.trim().toLowerCase();
     const duplicateExists = existingPresets.some(
       (p: Preset) => p.name.toLowerCase() === trimmedName && p.id !== editingPreset?.id
@@ -834,7 +839,7 @@ function PresetSettingsScreen() {
     } finally {
       setIsSaving(false);
     }
-  }, [name, isSaving, canSave, editingPreset, installedSelectedApps, blockedWebsites, blockSettings, noTimeLimit, timerDays, timerHours, timerMinutes, timerSeconds, targetDate, onSave, allowEmergencyTapout, strictMode, isScheduled, scheduleStartDate, scheduleEndDate, existingPresets, isRecurring, recurringValue, recurringUnit, navigation]);
+  }, [name, isSaving, canSave, getEditingPreset, getExistingPresets, installedSelectedApps, blockedWebsites, blockSettings, noTimeLimit, timerDays, timerHours, timerMinutes, timerSeconds, targetDate, onSave, allowEmergencyTapout, strictMode, isScheduled, scheduleStartDate, scheduleEndDate, isRecurring, recurringValue, recurringUnit, navigation]);
 
   // ============ Full-Screen Date Picker Overlay ============
   const renderDatePickerOverlay = () => {

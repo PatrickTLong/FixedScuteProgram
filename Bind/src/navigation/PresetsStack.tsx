@@ -19,13 +19,13 @@ export interface PresetSettingsParams {
 interface PresetSaveContextValue {
   onSave: (preset: Preset) => Promise<void>;
   setOnSave: (fn: (preset: Preset) => Promise<void>) => void;
-  editingPreset: Preset | null;
+  getEditingPreset: () => Preset | null;
   setEditingPreset: (p: Preset | null) => void;
-  existingPresets: Preset[];
+  getExistingPresets: () => Preset[];
   setExistingPresets: (p: Preset[]) => void;
-  email: string;
+  getEmail: () => string;
   setEmail: (e: string) => void;
-  presetSettingsParams: PresetSettingsParams | null;
+  getPresetSettingsParams: () => PresetSettingsParams | null;
   setPresetSettingsParams: (p: PresetSettingsParams | null) => void;
 }
 
@@ -45,15 +45,12 @@ export function PresetSaveProvider({ children }: { children: React.ReactNode }) 
   const emailRef = useRef<string>('');
   const presetSettingsParamsRef = useRef<PresetSettingsParams | null>(null);
 
-  const [, forceUpdate] = React.useState(0);
-
   const setOnSave = useCallback((fn: (preset: Preset) => Promise<void>) => {
     onSaveRef.current = fn;
   }, []);
 
   const setEditingPreset = useCallback((p: Preset | null) => {
     editingPresetRef.current = p;
-    forceUpdate(n => n + 1);
   }, []);
 
   const setExistingPresets = useCallback((p: Preset[]) => {
@@ -66,21 +63,25 @@ export function PresetSaveProvider({ children }: { children: React.ReactNode }) 
 
   const setPresetSettingsParams = useCallback((p: PresetSettingsParams | null) => {
     presetSettingsParamsRef.current = p;
-    forceUpdate(n => n + 1);
   }, []);
 
-  const contextValue: PresetSaveContextValue = {
+  const getEditingPreset = useCallback(() => editingPresetRef.current, []);
+  const getExistingPresets = useCallback(() => existingPresetsRef.current, []);
+  const getEmail = useCallback(() => emailRef.current, []);
+  const getPresetSettingsParams = useCallback(() => presetSettingsParamsRef.current, []);
+
+  const contextValue = React.useMemo<PresetSaveContextValue>(() => ({
     onSave: async (preset: Preset) => onSaveRef.current(preset),
     setOnSave,
-    editingPreset: editingPresetRef.current,
+    getEditingPreset,
     setEditingPreset,
-    existingPresets: existingPresetsRef.current,
+    getExistingPresets,
     setExistingPresets,
-    email: emailRef.current,
+    getEmail,
     setEmail,
-    presetSettingsParams: presetSettingsParamsRef.current,
+    getPresetSettingsParams,
     setPresetSettingsParams,
-  };
+  }), [setOnSave, getEditingPreset, setEditingPreset, getExistingPresets, setExistingPresets, getEmail, setEmail, getPresetSettingsParams, setPresetSettingsParams]);
 
   return (
     <PresetSaveContext.Provider value={contextValue}>
