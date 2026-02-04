@@ -2,6 +2,7 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import HomeScreen from '../screens/HomeScreen';
 import PresetsStack from './PresetsStack';
+import StatsScreen from '../screens/StatsScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import EditPresetAppsScreen from '../screens/EditPresetAppsScreen';
 import PresetSettingsScreen from '../screens/PresetSettingsScreen';
@@ -23,6 +24,7 @@ export default function MainTabNavigator() {
     >
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Presets" component={PresetsStack} />
+      <Tab.Screen name="Stats" component={StatsScreen} />
       <Tab.Screen name="Settings" component={SettingsScreen} />
       <Tab.Screen name="EditPresetApps" component={EditPresetAppsScreen} options={{ lazy: false }} />
       <Tab.Screen name="PresetSettings" component={PresetSettingsScreen} options={{ lazy: false }} />

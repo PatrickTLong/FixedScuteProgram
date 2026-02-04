@@ -7,7 +7,7 @@ import { useTheme , textSize, fontFamily, shadow, iconSize, buttonPadding } from
 import { useResponsive } from '../utils/responsive';
 import type { BottomTabBarProps as RNBottomTabBarProps } from '@react-navigation/bottom-tabs';
 
-type TabName = 'home' | 'presets' | 'settings';
+type TabName = 'home' | 'presets' | 'stats' | 'settings';
 
 interface TabItemProps {
   label: string;
@@ -48,6 +48,18 @@ const PresetsIcon = ({ color }: { color: string }) => (
     />
     <Path
       d="M3 9h18M9 21V9"
+      stroke={color}
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+const StatsIcon = ({ color }: { color: string }) => (
+  <Svg width={iconSize.lg} height={iconSize.lg} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M18 20V10M12 20V4M6 20v-6"
       stroke={color}
       strokeWidth={2}
       strokeLinecap="round"
@@ -163,6 +175,7 @@ function BottomTabBar({ state, navigation }: RNBottomTabBarProps) {
     const routeNameMap: Record<TabName, string> = {
       home: 'Home',
       presets: 'Presets',
+      stats: 'Stats',
       settings: 'Settings',
     };
     const routeName = routeNameMap[tab];
@@ -173,6 +186,7 @@ function BottomTabBar({ state, navigation }: RNBottomTabBarProps) {
 
   const handleHomePress = useCallback(() => handleTabPress('home'), [handleTabPress]);
   const handlePresetsPress = useCallback(() => handleTabPress('presets'), [handleTabPress]);
+  const handleStatsPress = useCallback(() => handleTabPress('stats'), [handleTabPress]);
   const handleSettingsPress = useCallback(() => handleTabPress('settings'), [handleTabPress]);
 
   const bottomPadding = Math.max(insets.bottom, s(24));
@@ -205,6 +219,14 @@ function BottomTabBar({ state, navigation }: RNBottomTabBarProps) {
         isActive={activeTab === 'presets'}
         onPress={handlePresetsPress}
         icon={<PresetsIcon color={getIconColor('presets')} />}
+        activeColor={colors.text}
+        inactiveColor={colors.textMuted}
+      />
+      <TabItem
+        label="Stats"
+        isActive={activeTab === 'stats'}
+        onPress={handleStatsPress}
+        icon={<StatsIcon color={getIconColor('stats')} />}
         activeColor={colors.text}
         inactiveColor={colors.textMuted}
       />

@@ -577,9 +577,7 @@ function EditPresetAppsScreen() {
         </View>
 
         <View style={{ flex: 1 }}>
-          {activeTab !== displayedTab ? (
-            <TabSkeleton tab={activeTab} colors={colors} s={s} />
-          ) : displayedTab === 'apps' ? (
+          {activeTab === 'apps' ? (
             Platform.OS === 'ios' ? (
               // iOS: Show button to open native FamilyActivityPicker
               <View className="flex-1 px-6 pt-4">
@@ -631,7 +629,7 @@ function EditPresetAppsScreen() {
                 </View>
 
                 {/* Select All / Deselect All Buttons */}
-                {!loadingApps && contentReady && filteredApps.length > 0 && (
+                {!loadingApps && filteredApps.length > 0 && (
                   <View className="flex-row px-6 mb-3">
                     <TouchableOpacity
                       onPressIn={lightTap}
@@ -675,8 +673,8 @@ function EditPresetAppsScreen() {
                   {ListHeaderComponent}
                 </View>
 
-                {/* Apps List */}
-                {loadingApps || !contentReady ? (
+                {/* Apps List - skeleton during loading or tab switch */}
+                {loadingApps || !contentReady || activeTab !== displayedTab ? (
                   <TabSkeleton tab="apps" colors={colors} s={s} />
                 ) : (
                   <FlatList
@@ -727,26 +725,30 @@ function EditPresetAppsScreen() {
                 Enter URLs like: instagram.com, reddit.com, etc
               </Text>
 
-              {/* Website List */}
-              {blockedWebsites.map((site) => (
-                <View
-                  key={site}
-                  style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
-                  className={`flex-row items-center py-3 px-4 ${radius.xl} mb-2`}
-                >
-                  <View className="w-10 h-10 items-center justify-center mr-3">
-                    <GlobeIcon size={s(iconSize.xl)} color={colors.textSecondary} />
-                  </View>
-                  <Text style={{ color: colors.text }} className={`flex-1 ${textSize.base} ${fontFamily.regular}`}>{site}</Text>
-                  <TouchableOpacity
-                    onPressIn={lightTap}
-                    onPress={() => removeWebsite(site)}
-                    className="p-2"
+              {/* Website List - skeleton during tab switch */}
+              {activeTab !== displayedTab ? (
+                <TabSkeleton tab="websites" colors={colors} s={s} />
+              ) : (
+                blockedWebsites.map((site) => (
+                  <View
+                    key={site}
+                    style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
+                    className={`flex-row items-center py-3 px-4 ${radius.xl} mb-2`}
                   >
-                    <XIcon size={s(iconSize.sm)} color={colors.text} />
-                  </TouchableOpacity>
-                </View>
-              ))}
+                    <View className="w-10 h-10 items-center justify-center mr-3">
+                      <GlobeIcon size={s(iconSize.xl)} color={colors.textSecondary} />
+                    </View>
+                    <Text style={{ color: colors.text }} className={`flex-1 ${textSize.base} ${fontFamily.regular}`}>{site}</Text>
+                    <TouchableOpacity
+                      onPressIn={lightTap}
+                      onPress={() => removeWebsite(site)}
+                      className="p-2"
+                    >
+                      <XIcon size={s(iconSize.sm)} color={colors.text} />
+                    </TouchableOpacity>
+                  </View>
+                ))
+              )}
 
               {blockedWebsites.length === 0 && (
                 <Text style={{ color: colors.textSecondary }} className={`text-center ${textSize.base} ${fontFamily.regular} py-8`}>

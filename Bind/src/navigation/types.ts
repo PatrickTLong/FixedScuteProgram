@@ -25,6 +25,7 @@ export type PresetsStackParamList = {
 export type MainTabParamList = {
   Home: undefined;
   Presets: NavigatorScreenParams<PresetsStackParamList>;
+  Stats: undefined;
   Settings: undefined;
   EditPresetApps: undefined;
   PresetSettings: undefined;
