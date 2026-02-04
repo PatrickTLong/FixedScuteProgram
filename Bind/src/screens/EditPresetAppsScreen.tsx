@@ -226,7 +226,7 @@ const WebsiteRowSkeleton = memo(({ colors, s }: { colors: any; s: (v: number) =>
 const TabSkeleton = memo(({ tab, colors, s }: { tab: TabType; colors: any; s: (v: number) => number }) => {
   if (tab === 'apps') {
     return (
-      <View style={{ paddingHorizontal: s(24), paddingTop: s(8) }}>
+      <View style={{ paddingHorizontal: s(24) }}>
         {Array.from({ length: 8 }, (_, i) => (
           <AppRowSkeleton key={i} colors={colors} s={s} />
         ))}
@@ -234,7 +234,7 @@ const TabSkeleton = memo(({ tab, colors, s }: { tab: TabType; colors: any; s: (v
     );
   }
   return (
-    <View style={{ paddingHorizontal: s(24), paddingTop: s(8) }}>
+    <View style={{ paddingHorizontal: s(24) }}>
       {Array.from({ length: 4 }, (_, i) => (
         <WebsiteRowSkeleton key={i} colors={colors} s={s} />
       ))}
@@ -298,6 +298,7 @@ function EditPresetAppsScreen() {
   const [websiteInput, setWebsiteInput] = useState('');
   const [activeTab, setActiveTab] = useState<TabType>('apps');
   const [displayedTab, setDisplayedTab] = useState<TabType>('apps');
+  const [contentReady, setContentReady] = useState(false);
   const [installedApps, setInstalledApps] = useState<InstalledApp[]>([]);
   const [loadingApps, setLoadingApps] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -367,8 +368,12 @@ function EditPresetAppsScreen() {
       const currentParams = getPresetSettingsParams();
       if (currentParams) {
         // Returning from PresetSettings — keep current state
+        setContentReady(true);
         return;
       }
+
+      // Show skeleton immediately while content prepares
+      setContentReady(false);
 
       const preset = getEditingPreset();
       if (preset) {
@@ -391,8 +396,11 @@ function EditPresetAppsScreen() {
       setDisplayedTab('apps');
       setSearchQuery('');
       setSkipCheckboxAnimation(true);
-      // Re-enable animations after initial state is applied
-      requestAnimationFrame(() => setSkipCheckboxAnimation(false));
+      // Re-enable animations and show content on next frame
+      requestAnimationFrame(() => {
+        setSkipCheckboxAnimation(false);
+        setContentReady(true);
+      });
       // Check if we should show excluded apps info modal
       AsyncStorage.getItem(EXCLUDED_APPS_INFO_DISMISSED_KEY).then((dismissed) => {
         if (dismissed !== 'true') {
@@ -600,6 +608,9 @@ function EditPresetAppsScreen() {
                   iOS uses Screen Time to block apps. Tap above to open the app picker.
                 </Text>
               </View>
+            ) : loadingApps || !contentReady ? (
+              // Android: Show skeleton while loading
+              <TabSkeleton tab="apps" colors={colors} s={s} />
             ) : (
               // Android: Show searchable list of apps
               <>
@@ -622,7 +633,7 @@ function EditPresetAppsScreen() {
                 </View>
 
                 {/* Select All / Deselect All Buttons */}
-                {!loadingApps && filteredApps.length > 0 && (
+                {filteredApps.length > 0 && (
                   <View className="flex-row px-6 mb-3">
                     <TouchableOpacity
                       onPressIn={lightTap}
@@ -661,23 +672,23 @@ function EditPresetAppsScreen() {
                   </View>
                 )}
 
+                {/* Apps count */}
+                <View style={{ paddingHorizontal: s(24) }}>
+                  {ListHeaderComponent}
+                </View>
+
                 {/* Apps List */}
-                {loadingApps ? (
-                  <TabSkeleton tab="apps" colors={colors} s={s} />
-                ) : (
-                  <FlatList
-                    data={filteredApps}
-                    renderItem={renderAppItem}
-                    keyExtractor={keyExtractor}
-                    extraData={selectedApps}
-                    contentContainerStyle={{ paddingHorizontal: s(24), paddingBottom: s(24) }}
-                    ListHeaderComponent={ListHeaderComponent}
-                    removeClippedSubviews={true}
-                    maxToRenderPerBatch={15}
-                    windowSize={10}
-                    initialNumToRender={15}
-                  />
-                )}
+                <FlatList
+                  data={filteredApps}
+                  renderItem={renderAppItem}
+                  keyExtractor={keyExtractor}
+                  extraData={selectedApps}
+                  contentContainerStyle={{ paddingHorizontal: s(24), paddingBottom: s(24) }}
+                  removeClippedSubviews={true}
+                  maxToRenderPerBatch={15}
+                  windowSize={10}
+                  initialNumToRender={15}
+                />
               </>
             )
           ) : (
