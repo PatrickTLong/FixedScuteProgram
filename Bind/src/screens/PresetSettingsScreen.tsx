@@ -929,6 +929,7 @@ function PresetSettingsScreen() {
         visible={showDatePicker}
         animationType="none"
         presentationStyle="fullScreen"
+        statusBarTranslucent={true}
         onRequestClose={dpHandleCancel}
       >
       <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
@@ -1339,6 +1340,8 @@ function PresetSettingsScreen() {
                     setIsScheduled(false);
                     setScheduleStartDate(null);
                     setScheduleEndDate(null);
+                    setStrictMode(false);
+                    setAllowEmergencyTapout(false);
                   }
                   mediumTap();
                 });
@@ -1348,7 +1351,7 @@ function PresetSettingsScreen() {
           <ExpandableInfo expanded={!!expandedInfo.noTimeLimit}>
             <TouchableOpacity onPressIn={lightTap} onPress={() => toggleInfo('noTimeLimit')} activeOpacity={0.7} className="px-6 pb-4">
               <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular} leading-5`}>
-                Block stays active until manually ended for No Time Limit Presets. Strict Mode for this toggle ONLY disables tap to continue functionality.
+                Block stays active until manually ended via home screen for No Time Limit Presets.
               </Text>
             </TouchableOpacity>
           </ExpandableInfo>
@@ -1629,48 +1632,50 @@ function PresetSettingsScreen() {
           <ExpandableInfo expanded={!!expandedInfo.blockSettings}>
             <TouchableOpacity onPressIn={lightTap} onPress={() => toggleInfo('blockSettings')} activeOpacity={0.7} className="px-6 pb-4">
               <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular} leading-5`}>
-                Prevents access to Android Settings during the block so that overlays and essential permissions cannot be disabled. Most essential settings like WiFi or battery settings remain accessible via quick panel by sliding down from your phone.
+                Prevents access to Android Settings during the block so that overlays and essential permissions cannot be disabled. Essential settings like WiFi or battery settings remain accessible via quick panel by sliding down from your phone.
               </Text>
             </TouchableOpacity>
           </ExpandableInfo>
         </View>
 
-        {/* Strict Mode Toggle */}
-        <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}>
-          <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
-            <TouchableOpacity onPressIn={lightTap} onPress={() => toggleInfo('strictMode')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
-              <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Strict Mode</Text>
-              <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>
-                {noTimeLimit ? 'Disable "Continue anyway" button for blocked apps' : 'Lock until timer ends or emergency tapout'}
-              </Text>
-            </TouchableOpacity>
-            <AnimatedSwitch
-              value={strictMode}
-              onValueChange={async (value: boolean) => {
-                mediumTap();
-                if (value) {
-                  const dismissed = await AsyncStorage.getItem(STRICT_MODE_WARNING_DISMISSED_KEY);
-                  if (dismissed !== 'true') {
-                    setStrictModeWarningVisible(true);
+        {/* Strict Mode Toggle - hidden for no time limit presets */}
+        <ExpandableInfo expanded={!noTimeLimit} lazy>
+          <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}>
+            <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
+              <TouchableOpacity onPressIn={lightTap} onPress={() => toggleInfo('strictMode')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
+                <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Strict Mode</Text>
+                <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>
+                  Lock until timer ends or emergency tapout
+                </Text>
+              </TouchableOpacity>
+              <AnimatedSwitch
+                value={strictMode}
+                onValueChange={async (value: boolean) => {
+                  mediumTap();
+                  if (value) {
+                    const dismissed = await AsyncStorage.getItem(STRICT_MODE_WARNING_DISMISSED_KEY);
+                    if (dismissed !== 'true') {
+                      setStrictModeWarningVisible(true);
+                    } else {
+                      setStrictMode(true);
+                      setAllowEmergencyTapout((tapoutStatus?.remaining ?? 0) > 0);
+                    }
                   } else {
-                    setStrictMode(true);
-                    setAllowEmergencyTapout((tapoutStatus?.remaining ?? 0) > 0);
+                    setStrictMode(false);
+                    setAllowEmergencyTapout(false);
                   }
-                } else {
-                  setStrictMode(false);
-                  setAllowEmergencyTapout(false);
-                }
-              }}
-            />
+                }}
+              />
+            </View>
+            <ExpandableInfo expanded={!!expandedInfo.strictMode}>
+              <TouchableOpacity onPressIn={lightTap} onPress={() => toggleInfo('strictMode')} activeOpacity={0.7} className="px-6 pb-4">
+                <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular} leading-5`}>
+                  Removes the ability to unlock in any way and to dismiss blocked apps or sites. ONLY EXITS: timer expiring or Emergency Tapout (if enabled). Pair with the block settings toggle for maximum strictness.
+                </Text>
+              </TouchableOpacity>
+            </ExpandableInfo>
           </View>
-          <ExpandableInfo expanded={!!expandedInfo.strictMode}>
-            <TouchableOpacity onPressIn={lightTap} onPress={() => toggleInfo('strictMode')} activeOpacity={0.7} className="px-6 pb-4">
-              <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular} leading-5`}>
-                UNTIMED PRESETS: Disables tap to continue button on block overlay. TIMED PRESETS: Removes the ability to unlock in any way and to dismiss blocked apps or sites. ONLY EXITS: timer expiring or Emergency Tapout (if enabled). Pair with the block settings toggle for maximum strictness.
-              </Text>
-            </TouchableOpacity>
-          </ExpandableInfo>
-        </View>
+        </ExpandableInfo>
 
         {/* Emergency Tapout Toggle */}
         <ExpandableInfo expanded={strictMode && !noTimeLimit} lazy>

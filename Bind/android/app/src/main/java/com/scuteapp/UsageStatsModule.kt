@@ -4,13 +4,24 @@ import android.app.usage.UsageStats
 import android.app.usage.UsageStatsManager
 import android.content.Context
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.Path
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffXfermode
+import android.graphics.drawable.AdaptiveIconDrawable
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Drawable
 import android.os.Build
+import android.util.Base64
 import android.util.Log
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
+import java.io.ByteArrayOutputStream
 import java.util.Calendar
 
 /**
@@ -198,6 +209,18 @@ class UsageStatsModule(reactContext: ReactApplicationContext) :
                     putString("appName", appName)
                     putDouble("timeInForeground", stat.totalTimeInForeground.toDouble())
                 }
+
+                // Get app icon as base64
+                try {
+                    val icon = packageManager.getApplicationIcon(stat.packageName)
+                    val iconBase64 = drawableToBase64(icon)
+                    if (iconBase64 != null) {
+                        appMap.putString("icon", "data:image/png;base64,$iconBase64")
+                    }
+                } catch (e: Exception) {
+                    // Icon not available, skip
+                }
+
                 appsArray.pushMap(appMap)
             }
 
@@ -206,5 +229,105 @@ class UsageStatsModule(reactContext: ReactApplicationContext) :
             Log.e(TAG, "Error getting all apps usage", e)
             promise.resolve(Arguments.createArray())
         }
+    }
+
+    private fun drawableToBase64(drawable: Drawable): String? {
+        return try {
+            val size = 256
+            val bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && drawable is AdaptiveIconDrawable) {
+                renderAdaptiveIcon(drawable, size)
+            } else {
+                val rawBitmap = drawableToBitmap(drawable, size)
+                applyRoundedSquareMask(rawBitmap, size)
+            }
+
+            val outputStream = ByteArrayOutputStream()
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
+            val byteArray = outputStream.toByteArray()
+            Base64.encodeToString(byteArray, Base64.NO_WRAP)
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    private fun renderAdaptiveIcon(drawable: AdaptiveIconDrawable, size: Int): Bitmap {
+        val layerSize = (size * 1.5).toInt()
+        val offset = (layerSize - size) / 2
+
+        val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+
+        val path = createSquirclePath(size.toFloat())
+        canvas.clipPath(path)
+
+        drawable.background?.let { bg ->
+            bg.setBounds(-offset, -offset, layerSize - offset, layerSize - offset)
+            bg.draw(canvas)
+        }
+
+        drawable.foreground?.let { fg ->
+            fg.setBounds(-offset, -offset, layerSize - offset, layerSize - offset)
+            fg.draw(canvas)
+        }
+
+        return bitmap
+    }
+
+    private fun createSquirclePath(size: Float): Path {
+        val path = Path()
+        val radius = size / 2f
+        val center = size / 2f
+        val n = 3.0
+
+        val points = 100
+        for (i in 0 until points) {
+            val angle = 2.0 * Math.PI * i / points
+            val cosA = Math.cos(angle)
+            val sinA = Math.sin(angle)
+
+            val signCos = if (cosA >= 0) 1.0 else -1.0
+            val signSin = if (sinA >= 0) 1.0 else -1.0
+            val x = center + radius * signCos * Math.pow(Math.abs(cosA), 2.0 / n)
+            val y = center + radius * signSin * Math.pow(Math.abs(sinA), 2.0 / n)
+
+            if (i == 0) {
+                path.moveTo(x.toFloat(), y.toFloat())
+            } else {
+                path.lineTo(x.toFloat(), y.toFloat())
+            }
+        }
+        path.close()
+        return path
+    }
+
+    private fun applyRoundedSquareMask(source: Bitmap, size: Int): Bitmap {
+        val output = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(output)
+
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+
+        val path = createSquirclePath(size.toFloat())
+        canvas.drawPath(path, paint)
+
+        paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_IN)
+        val scaledSource = Bitmap.createScaledBitmap(source, size, size, true)
+        canvas.drawBitmap(scaledSource, 0f, 0f, paint)
+
+        return output
+    }
+
+    private fun drawableToBitmap(drawable: Drawable, size: Int): Bitmap {
+        if (drawable is BitmapDrawable && drawable.bitmap != null) {
+            return Bitmap.createScaledBitmap(drawable.bitmap, size, size, true)
+        }
+
+        val width = if (drawable.intrinsicWidth > 0) drawable.intrinsicWidth else size
+        val height = if (drawable.intrinsicHeight > 0) drawable.intrinsicHeight else size
+
+        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        drawable.setBounds(0, 0, canvas.width, canvas.height)
+        drawable.draw(canvas)
+        return Bitmap.createScaledBitmap(bitmap, size, size, true)
     }
 }

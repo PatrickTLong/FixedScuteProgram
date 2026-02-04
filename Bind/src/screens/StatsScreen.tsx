@@ -1,17 +1,18 @@
-import React, { useState, useEffect, useCallback, memo } from 'react';
+import React, { useState, useEffect, useCallback, useRef, memo } from 'react';
 import {
   Text,
   View,
   ScrollView,
+  Animated,
   NativeModules,
   AppState,
   Platform,
+  Image,
 } from 'react-native';
 import LottieView from 'lottie-react-native';
 const Lottie = LottieView as any;
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Svg, { Path } from 'react-native-svg';
-import { useTheme, textSize, fontFamily, radius, shadow, iconSize } from '../context/ThemeContext';
+import { useTheme, textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { useAuth } from '../context/AuthContext';
 
@@ -35,7 +36,77 @@ interface AppUsage {
   packageName: string;
   appName: string;
   timeInForeground: number; // milliseconds
+  icon?: string;
 }
+
+const BAR_CHART_HEIGHT = 340;
+const TOP_APPS_COUNT = 5;
+
+const AnimatedBar = memo(({ percentage, color, delay, barWidth, maxHeight, label, time, textColor, mutedColor, icon }: {
+  percentage: number;
+  color: string;
+  delay: number;
+  barWidth: number;
+  maxHeight: number;
+  label: string;
+  time: string;
+  textColor: string;
+  mutedColor: string;
+  icon?: string;
+}) => {
+  const iconSz = barWidth * 0.7;
+  // Reserve space for icon + time so bar doesn't overflow
+  const headerSpace = (icon ? iconSz + 4 : 0) + barWidth * 0.26 + 4;
+  const barMaxHeight = maxHeight - headerSpace;
+
+  const heightAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    heightAnim.setValue(0);
+    Animated.timing(heightAnim, {
+      toValue: (percentage / 100) * barMaxHeight,
+      duration: 700,
+      delay,
+      useNativeDriver: false,
+    }).start();
+  }, [percentage, delay, barMaxHeight, heightAnim]);
+
+  return (
+    <View style={{ alignItems: 'center', flex: 1 }}>
+      <View style={{ height: maxHeight, justifyContent: 'flex-end' }}>
+        <Animated.View style={{ alignItems: 'center' }}>
+          {icon ? (
+            <Image
+              source={{ uri: icon }}
+              style={{ width: iconSz, height: iconSz, borderRadius: iconSz * 0.2, marginBottom: 4 }}
+              resizeMode="contain"
+            />
+          ) : null}
+          <Text style={{ color: textColor, fontSize: barWidth * 0.26, marginBottom: 4 }} className={fontFamily.semibold}>
+            {time}
+          </Text>
+          <Animated.View
+            style={{
+              width: barWidth,
+              height: heightAnim,
+              backgroundColor: color,
+              borderRadius: barWidth * 0.2,
+            }}
+          />
+        </Animated.View>
+      </View>
+      <View style={{ height: barWidth * 0.22 * 4, marginTop: 8, justifyContent: 'flex-start' }}>
+        <Text
+          style={{ color: mutedColor, fontSize: barWidth * 0.22, textAlign: 'center', width: barWidth * 1.6 }}
+          className={fontFamily.regular}
+          numberOfLines={2}
+        >
+          {label}
+        </Text>
+      </View>
+    </View>
+  );
+});
 
 // Format milliseconds to human-readable time
 function formatTime(ms: number): string {
@@ -98,6 +169,10 @@ function StatsScreen() {
     return () => subscription.remove();
   }, [loadStats]);
 
+  // Top 5 apps for bar chart
+  const topApps = appUsages.slice(0, TOP_APPS_COUNT);
+  const maxAppTime = topApps.length > 0 ? topApps[0].timeInForeground : 0;
+
   // Calculate total from all apps for the bar proportions
   const totalFromApps = appUsages.reduce((sum, app) => sum + app.timeInForeground, 0);
   // Use whichever is larger (totalScreenTime from system vs sum of top apps)
@@ -121,18 +196,18 @@ function StatsScreen() {
     <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
       <ScrollView
         className="flex-1"
-        contentContainerStyle={{ paddingHorizontal: s(16), paddingTop: s(16), paddingBottom: s(32) }}
+        contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingHorizontal: s(16), paddingVertical: s(32) }}
         showsVerticalScrollIndicator={false}
       >
         {/* Header */}
-        <Text style={{ color: colors.text }} className={`${textSize.xLarge} ${fontFamily.bold} mb-4`}>
+        <Text style={{ color: colors.text }} className={`${textSize['2xLarge']} ${fontFamily.bold} mb-4`}>
           Stats
         </Text>
 
         {/* TODAY'S SCREEN TIME Card */}
         <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }} className={`${radius['2xl']} mb-6 p-4`}>
           <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} tracking-wider mb-3`}>
-            TODAY'S SCREEN TIME
+            Today's Screen Time
           </Text>
 
           {/* Total time */}
@@ -140,57 +215,31 @@ function StatsScreen() {
             {formatTime(displayTotal)}
           </Text>
 
-          {/* Stacked bar */}
-          {appUsages.length > 0 && displayTotal > 0 && (
-            <View
-              style={{ height: s(12), borderRadius: s(6), overflow: 'hidden', backgroundColor: colors.border }}
-              className="flex-row mb-4"
-            >
-              {appUsages.map((app, index) => {
-                const percentage = (app.timeInForeground / displayTotal) * 100;
-                if (percentage < 1) return null;
+          <View style={{ height: 1, backgroundColor: colors.divider, marginBottom: s(12), marginHorizontal: -s(16) }} />
+
+          {/* Vertical bar chart */}
+          {topApps.length > 0 && maxAppTime > 0 ? (
+            <View style={{ flexDirection: 'row', alignItems: 'flex-end', paddingTop: s(8) }}>
+              {topApps.map((app, index) => {
+                const percentage = (app.timeInForeground / maxAppTime) * 100;
                 return (
-                  <View
+                  <AnimatedBar
                     key={app.packageName}
-                    style={{
-                      width: `${percentage}%`,
-                      backgroundColor: APP_COLORS[index % APP_COLORS.length],
-                    }}
+                    percentage={percentage}
+                    color={APP_COLORS[index % APP_COLORS.length]}
+                    delay={index * 120}
+                    barWidth={s(44)}
+                    maxHeight={s(BAR_CHART_HEIGHT)}
+                    label={app.appName}
+                    time={formatTime(app.timeInForeground)}
+                    textColor={colors.text}
+                    mutedColor={colors.textMuted}
+                    icon={app.icon}
                   />
                 );
               })}
             </View>
-          )}
-
-          {/* App list */}
-          {appUsages.map((app, index) => (
-            <View
-              key={app.packageName}
-              style={index < appUsages.length - 1 ? { borderBottomWidth: 1, borderBottomColor: colors.divider } : undefined}
-              className="flex-row items-center py-3"
-            >
-              {/* Color dot */}
-              <View
-                style={{
-                  width: s(10),
-                  height: s(10),
-                  borderRadius: s(5),
-                  backgroundColor: APP_COLORS[index % APP_COLORS.length],
-                  marginRight: s(12),
-                }}
-              />
-              {/* App name */}
-              <Text style={{ color: colors.text }} className={`flex-1 ${textSize.small} ${fontFamily.semibold}`}>
-                {app.appName}
-              </Text>
-              {/* Time */}
-              <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.bold}`}>
-                {formatTime(app.timeInForeground)}
-              </Text>
-            </View>
-          ))}
-
-          {appUsages.length === 0 && (
+          ) : (
             <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular} text-center py-4`}>
               No app usage data available today.
             </Text>

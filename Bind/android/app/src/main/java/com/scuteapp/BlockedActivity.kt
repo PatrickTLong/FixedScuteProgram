@@ -66,7 +66,7 @@ class BlockedActivity : Activity() {
     // Prevent multiple dismiss calls
     private var isDismissing = false
 
-    // Store blocked item info for "Continue anyway" functionality
+    // Store blocked item info
     private var blockedType: String = TYPE_APP
     private var blockedItem: String? = null
     private var isStrictMode: Boolean = true
@@ -107,19 +107,6 @@ class BlockedActivity : Activity() {
             dismissAndGoHome()
         }
 
-        // Show "Continue anyway" button only in non-strict mode (and not for settings)
-        val continueButton = findViewById<TextView>(R.id.continue_anyway_button)
-        if (!isStrictMode && blockedType != TYPE_SETTINGS && blockedItem != null) {
-            continueButton.visibility = View.VISIBLE
-            continueButton.setOnClickListener { view ->
-                // Haptic feedback
-                view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
-                vibrate()
-                unblockAndContinue()
-            }
-        } else {
-            continueButton.visibility = View.GONE
-        }
     }
 
     /**
@@ -139,36 +126,6 @@ class BlockedActivity : Activity() {
         } catch (e: Exception) {
             // Ignore vibration errors
         }
-    }
-
-    /**
-     * Remove the blocked app/website from the blocked list and dismiss.
-     */
-    private fun unblockAndContinue() {
-        if (isDismissing) return
-        isDismissing = true
-
-        try {
-            val prefs = getSharedPreferences(UninstallBlockerService.PREFS_NAME, Context.MODE_PRIVATE)
-
-            when (blockedType) {
-                TYPE_APP -> {
-                    val blockedApps = prefs.getStringSet(UninstallBlockerService.KEY_BLOCKED_APPS, emptySet())?.toMutableSet() ?: mutableSetOf()
-                    blockedItem?.let { blockedApps.remove(it) }
-                    prefs.edit().putStringSet(UninstallBlockerService.KEY_BLOCKED_APPS, blockedApps).apply()
-                }
-                TYPE_WEBSITE -> {
-                    val blockedWebsites = prefs.getStringSet("blocked_websites", emptySet())?.toMutableSet() ?: mutableSetOf()
-                    blockedItem?.let { blockedWebsites.remove(it) }
-                    prefs.edit().putStringSet("blocked_websites", blockedWebsites).apply()
-                }
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Error unblocking item", e)
-        }
-
-        // Just finish - user can now open the app/website
-        finish()
     }
 
     override fun onBackPressed() {

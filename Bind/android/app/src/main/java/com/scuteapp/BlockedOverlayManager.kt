@@ -261,67 +261,6 @@ class BlockedOverlayManager(private val context: Context) {
             appIconView?.visibility = View.GONE
         }
 
-        // Show "Continue anyway" button only in non-strict mode
-        val continueButton = overlayView?.findViewById<TextView>(R.id.overlay_continue_button)
-        if (!strictMode && blockedItem != null) {
-            continueButton?.visibility = View.VISIBLE
-            continueButton?.setOnClickListener {
-                vibrate()
-                unblockAndContinue()
-            }
-        } else {
-            continueButton?.visibility = View.GONE
-        }
-    }
-
-    /**
-     * Remove the blocked app/website from the blocked list and dismiss
-     */
-    private fun unblockAndContinue() {
-        try {
-            val prefs = context.getSharedPreferences(UninstallBlockerService.PREFS_NAME, Context.MODE_PRIVATE)
-
-            when (currentBlockedType) {
-                TYPE_APP -> {
-                    val blockedApps = prefs.getStringSet(UninstallBlockerService.KEY_BLOCKED_APPS, emptySet())?.toMutableSet() ?: mutableSetOf()
-                    currentBlockedItem?.let { blockedApps.remove(it) }
-                    prefs.edit().putStringSet(UninstallBlockerService.KEY_BLOCKED_APPS, blockedApps).apply()
-                }
-                TYPE_SETTINGS -> {
-                    // Remove ALL Settings packages, not just the current one
-                    val blockedApps = prefs.getStringSet(UninstallBlockerService.KEY_BLOCKED_APPS, emptySet())?.toMutableSet() ?: mutableSetOf()
-                    blockedApps.removeAll(listOf(
-                        "com.android.settings",
-                        "com.samsung.android.settings",
-                        "com.samsung.android.setting.multisoundmain",
-                        "com.miui.securitycenter",
-                        "com.coloros.settings",
-                        "com.oppo.settings",
-                        "com.vivo.settings",
-                        "com.huawei.systemmanager",
-                        "com.oneplus.settings",
-                        "com.google.android.settings.intelligence",
-                        "com.android.provision",
-                        "com.lge.settings",
-                        "com.asus.settings",
-                        "com.sony.settings"
-                    ))
-                    // Also remove any package containing "settings"
-                    blockedApps.removeAll { it.contains("settings", ignoreCase = true) }
-                    prefs.edit().putStringSet(UninstallBlockerService.KEY_BLOCKED_APPS, blockedApps).apply()
-                }
-                TYPE_WEBSITE -> {
-                    val blockedWebsites = prefs.getStringSet("blocked_websites", emptySet())?.toMutableSet() ?: mutableSetOf()
-                    currentBlockedItem?.let { blockedWebsites.remove(it) }
-                    prefs.edit().putStringSet("blocked_websites", blockedWebsites).apply()
-                }
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Error unblocking item", e)
-        }
-
-        // Fade out and dismiss - don't go home, let user continue to the app
-        fadeOutAndDismiss(withCallback = false)
     }
 
     /**

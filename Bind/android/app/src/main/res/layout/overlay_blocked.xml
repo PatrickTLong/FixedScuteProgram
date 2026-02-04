@@ -54,21 +54,6 @@
             android:clickable="false"
             android:focusable="false" />
 
-        <!-- Continue anyway button (only visible in non-strict mode) -->
-        <TextView
-            android:id="@+id/overlay_continue_button"
-            android:layout_width="200dp"
-            android:layout_height="48dp"
-            android:text="Continue anyway"
-            android:textColor="#FFFFFF"
-            android:textSize="13sp"
-            android:fontFamily="@font/nunito"
-            android:gravity="center"
-            android:layout_marginTop="16dp"
-            android:background="@drawable/button_continue_anyway"
-            android:elevation="6dp"
-            android:visibility="gone" />
-
         <!-- Tap to dismiss hint -->
         <TextView
             android:layout_width="wrap_content"
