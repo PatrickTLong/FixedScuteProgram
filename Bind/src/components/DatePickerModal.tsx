@@ -56,7 +56,7 @@ const DAYS_OF_WEEK = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 // Time picker constants
 const BASE_TIME_ITEM_HEIGHT = 40;
 const TIME_VISIBLE_ITEMS = 3;
-const TIME_WINDOW_BUFFER = 4;
+const TIME_WINDOW_BUFFER = 6;
 const HOURS_12 = Array.from({ length: 12 }, (_, i) => i + 1); // 1-12
 const MINUTES = Array.from({ length: 60 }, (_, i) => i);
 
@@ -77,6 +77,7 @@ interface TimeWheelProps {
 const TimeWheel = memo(({ values, selectedValue, onValueChange, padZero = true, textColor, textMutedColor, itemHeight, wheelWidth, selectedFontSize, unselectedFontSize }: TimeWheelProps) => {
   const scrollRef = useRef<ScrollView>(null);
   const lastHapticIndex = useRef(-1);
+  const scrolledByUser = useRef(false);
   const windowCenterRef = useRef(values.indexOf(selectedValue));
   const [windowRange, setWindowRange] = useState(() => {
     const idx = values.indexOf(selectedValue);
@@ -106,6 +107,10 @@ const TimeWheel = memo(({ values, selectedValue, onValueChange, padZero = true, 
   }, [values.length]);
 
   useEffect(() => {
+    if (scrolledByUser.current) {
+      scrolledByUser.current = false;
+      return;
+    }
     const index = values.indexOf(selectedValue);
     if (index >= 0 && scrollRef.current) {
       updateWindowIfNeeded(index);
@@ -139,13 +144,9 @@ const TimeWheel = memo(({ values, selectedValue, onValueChange, padZero = true, 
     updateWindowIfNeeded(clampedIndex);
 
     if (values[clampedIndex] !== selectedValue) {
+      scrolledByUser.current = true;
       onValueChange(values[clampedIndex]);
     }
-
-    scrollRef.current?.scrollTo({
-      y: clampedIndex * itemHeight,
-      animated: true,
-    });
   }, [values, selectedValue, onValueChange, itemHeight, updateWindowIfNeeded]);
 
   const paddingVertical = (itemHeight * (TIME_VISIBLE_ITEMS - 1)) / 2;

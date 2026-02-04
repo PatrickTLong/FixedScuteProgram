@@ -12,7 +12,7 @@ import { useResponsive } from '../utils/responsive';
 
 const BASE_ITEM_HEIGHT = 40;
 const VISIBLE_ITEMS = 3;
-const WINDOW_BUFFER = 4;
+const WINDOW_BUFFER = 6;
 
 interface WheelProps {
   values: number[];
@@ -34,6 +34,7 @@ interface WheelProps {
 const Wheel = memo(({ values, selectedValue, onValueChange, label, textColor, textMutedColor, labelColor, itemHeight, wheelWidth, selectedFontSize, unselectedFontSize, labelFontSize, labelMarginTop, parentScrollRef }: WheelProps) => {
   const scrollRef = useRef<ScrollView>(null);
   const lastHapticIndex = useRef(-1);
+  const scrolledByUser = useRef(false);
   const windowCenterRef = useRef(values.indexOf(selectedValue));
   const [windowRange, setWindowRange] = useState(() => {
     const idx = values.indexOf(selectedValue);
@@ -63,6 +64,10 @@ const Wheel = memo(({ values, selectedValue, onValueChange, label, textColor, te
   }, [values.length]);
 
   useEffect(() => {
+    if (scrolledByUser.current) {
+      scrolledByUser.current = false;
+      return;
+    }
     const index = values.indexOf(selectedValue);
     if (index >= 0 && scrollRef.current) {
       updateWindowIfNeeded(index);
@@ -96,13 +101,9 @@ const Wheel = memo(({ values, selectedValue, onValueChange, label, textColor, te
     updateWindowIfNeeded(clampedIndex);
 
     if (values[clampedIndex] !== selectedValue) {
+      scrolledByUser.current = true;
       onValueChange(values[clampedIndex]);
     }
-
-    scrollRef.current?.scrollTo({
-      y: clampedIndex * itemHeight,
-      animated: true,
-    });
   }, [values, selectedValue, onValueChange, itemHeight, updateWindowIfNeeded]);
 
   const paddingVertical = (itemHeight * (VISIBLE_ITEMS - 1)) / 2;
