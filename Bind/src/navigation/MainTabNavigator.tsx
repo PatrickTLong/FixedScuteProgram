@@ -24,8 +24,8 @@ export default function MainTabNavigator() {
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Presets" component={PresetsStack} />
       <Tab.Screen name="Settings" component={SettingsScreen} />
-      <Tab.Screen name="EditPresetApps" component={EditPresetAppsScreen} />
-      <Tab.Screen name="PresetSettings" component={PresetSettingsScreen} />
+      <Tab.Screen name="EditPresetApps" component={EditPresetAppsScreen} options={{ lazy: false }} />
+      <Tab.Screen name="PresetSettings" component={PresetSettingsScreen} options={{ lazy: false }} />
     </Tab.Navigator>
   );
 }

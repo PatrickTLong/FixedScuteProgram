@@ -1,4 +1,4 @@
-import React, { useState, memo, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useRef, memo, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -261,46 +261,44 @@ function EditPresetAppsScreen() {
   const [iosSelectedAppsCount, setIosSelectedAppsCount] = useState(0);
   const [excludedAppsInfoVisible, setExcludedAppsInfoVisible] = useState(false);
   const [svgKey, setSvgKey] = useState(0);
+  const appsLoadedRef = useRef(false);
 
-  // Load installed apps
-  const loadInstalledApps = useCallback(async (presetMode?: 'all' | 'specific') => {
-    // iOS uses native FamilyActivityPicker - just get the count
-    if (Platform.OS === 'ios') {
-      try {
-        if (InstalledAppsModule?.getSelectedAppsCount) {
-          const count = await InstalledAppsModule.getSelectedAppsCount();
-          setIosSelectedAppsCount(count);
+  // Load installed apps once on mount (screen is eagerly mounted, not lazy)
+  useEffect(() => {
+    if (appsLoadedRef.current) return;
+    (async () => {
+      if (Platform.OS === 'ios') {
+        try {
+          if (InstalledAppsModule?.getSelectedAppsCount) {
+            const count = await InstalledAppsModule.getSelectedAppsCount();
+            setIosSelectedAppsCount(count);
+          }
+        } catch {
+          // Failed to get iOS app count
         }
-      } catch (error) {
-        // Failed to get iOS app count
+        setLoadingApps(false);
+        appsLoadedRef.current = true;
+        return;
       }
-      setLoadingApps(false);
-      return;
-    }
 
-    // Android: Check if we have cached apps - show them instantly without loading state
-    if (cachedInstalledApps) {
-      setLoadingApps(false);
-      setInstalledApps(cachedInstalledApps);
-      if (presetMode === 'all' && cachedInstalledApps.length > 0) {
-        setSelectedApps(cachedInstalledApps.map(app => app.id));
+      if (cachedInstalledApps) {
+        setInstalledApps(cachedInstalledApps);
+        setLoadingApps(false);
+        appsLoadedRef.current = true;
+        return;
       }
-      return;
-    }
 
-    // No cache - show loading and fetch
-    setLoadingApps(true);
-    try {
-      const apps = await loadInstalledAppsOnce();
-      setInstalledApps(apps);
-      if (presetMode === 'all' && apps.length > 0) {
-        setSelectedApps(apps.map(app => app.id));
+      setLoadingApps(true);
+      try {
+        const apps = await loadInstalledAppsOnce();
+        setInstalledApps(apps);
+      } catch {
+        // Failed to load apps
+      } finally {
+        setLoadingApps(false);
+        appsLoadedRef.current = true;
       }
-    } catch (error) {
-      // Failed to load apps
-    } finally {
-      setLoadingApps(false);
-    }
+    })();
   }, []);
 
   // iOS: Open native FamilyActivityPicker
@@ -331,7 +329,9 @@ function EditPresetAppsScreen() {
       if (preset) {
         setName(preset.name);
         setBlockedWebsites(preset.blockedWebsites);
-        if (preset.mode === 'all') {
+        if (preset.mode === 'all' && installedApps.length > 0) {
+          setSelectedApps(installedApps.map(app => app.id));
+        } else if (preset.mode === 'all') {
           setSelectedApps([]);
         } else {
           setSelectedApps(preset.selectedApps);
@@ -346,14 +346,13 @@ function EditPresetAppsScreen() {
       setDisplayedTab('apps');
       setSearchQuery('');
       setSkipCheckboxAnimation(true);
-      loadInstalledApps(preset?.mode);
       // Check if we should show excluded apps info modal
       AsyncStorage.getItem(EXCLUDED_APPS_INFO_DISMISSED_KEY).then((dismissed) => {
         if (dismissed !== 'true') {
           setExcludedAppsInfoVisible(true);
         }
       });
-    }, [preset, presetSettingsParams, loadInstalledApps])
+    }, [preset, presetSettingsParams, installedApps])
   );
 
   const toggleApp = useCallback((appId: string) => {
