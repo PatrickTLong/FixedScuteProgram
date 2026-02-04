@@ -12,8 +12,6 @@ import {
   FlatList,
   Image,
 } from 'react-native';
-import LottieView from 'lottie-react-native';
-const Lottie = LottieView as any;
 import AnimatedCheckbox from '../components/AnimatedCheckbox';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -197,6 +195,52 @@ async function loadInstalledAppsOnce(): Promise<InstalledApp[]> {
 
   return installedAppsLoadPromise;
 }
+
+// ============ Skeleton Placeholders ============
+
+const AppRowSkeleton = memo(({ colors, s }: { colors: any; s: (v: number) => number }) => (
+  <View
+    style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, paddingVertical: s(buttonPadding.standard), ...shadow.card }}
+    className={`flex-row items-center px-4 ${radius.xl} mb-2`}
+  >
+    <View style={{ width: s(48), height: s(48), marginRight: s(12), backgroundColor: colors.cardLight, borderRadius: s(12) }} />
+    <View style={{ flex: 1 }}>
+      <View style={{ width: '60%', height: s(14), backgroundColor: colors.cardLight, borderRadius: s(4) }} />
+    </View>
+    <View style={{ width: s(iconSize.lg), height: s(iconSize.lg), backgroundColor: colors.cardLight, borderRadius: s(iconSize.lg * 0.17) }} />
+  </View>
+));
+
+const WebsiteRowSkeleton = memo(({ colors, s }: { colors: any; s: (v: number) => number }) => (
+  <View
+    style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
+    className={`flex-row items-center py-3 px-4 ${radius.xl} mb-2`}
+  >
+    <View style={{ width: s(40), height: s(40), marginRight: s(12), backgroundColor: colors.cardLight, borderRadius: s(8) }} />
+    <View style={{ flex: 1 }}>
+      <View style={{ width: '50%', height: s(14), backgroundColor: colors.cardLight, borderRadius: s(4) }} />
+    </View>
+  </View>
+));
+
+const TabSkeleton = memo(({ tab, colors, s }: { tab: TabType; colors: any; s: (v: number) => number }) => {
+  if (tab === 'apps') {
+    return (
+      <View style={{ paddingHorizontal: s(24), paddingTop: s(8) }}>
+        {Array.from({ length: 8 }, (_, i) => (
+          <AppRowSkeleton key={i} colors={colors} s={s} />
+        ))}
+      </View>
+    );
+  }
+  return (
+    <View style={{ paddingHorizontal: s(24), paddingTop: s(8) }}>
+      {Array.from({ length: 4 }, (_, i) => (
+        <WebsiteRowSkeleton key={i} colors={colors} s={s} />
+      ))}
+    </View>
+  );
+});
 
 // ============ AppItemRow (no press animation) ============
 
@@ -402,11 +446,11 @@ function EditPresetAppsScreen() {
     [installedApps, searchQuery]
   );
 
-  // Tab switch
+  // Tab switch — optimistic: highlight tab instantly, swap content next frame
   const switchTab = useCallback((newTab: TabType) => {
     if (newTab === activeTab) return;
     setActiveTab(newTab);
-    setDisplayedTab(newTab);
+    requestAnimationFrame(() => setDisplayedTab(newTab));
   }, [activeTab]);
 
   // Continue handler
@@ -447,14 +491,11 @@ function EditPresetAppsScreen() {
 
   const keyExtractor = useCallback((item: InstalledApp) => item.id, []);
 
-  const ListHeaderComponent = useMemo(() =>
-    installedSelectedApps.length > 0 ? (
-      <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular} mb-3`}>
-        {installedSelectedApps.length} app{installedSelectedApps.length !== 1 ? 's' : ''} selected
-      </Text>
-    ) : null,
-    [installedSelectedApps.length, colors]
-  );
+  const ListHeaderComponent = useMemo(() => (
+    <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular} mb-3`}>
+      {installedSelectedApps.length} app{installedSelectedApps.length !== 1 ? 's' : ''} selected
+    </Text>
+  ), [installedSelectedApps.length, colors]);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
@@ -527,7 +568,9 @@ function EditPresetAppsScreen() {
         </View>
 
         <View style={{ flex: 1 }}>
-          {displayedTab === 'apps' ? (
+          {activeTab !== displayedTab ? (
+            <TabSkeleton tab={activeTab} colors={colors} s={s} />
+          ) : displayedTab === 'apps' ? (
             Platform.OS === 'ios' ? (
               // iOS: Show button to open native FamilyActivityPicker
               <View className="flex-1 px-6 pt-4">
@@ -620,15 +663,7 @@ function EditPresetAppsScreen() {
 
                 {/* Apps List */}
                 {loadingApps ? (
-                  <View className="flex-1 items-center justify-center">
-                    <Lottie
-                      source={require('../frontassets/Loading Dots Blue.json')}
-                      autoPlay
-                      loop
-                      speed={2}
-                      style={{ width: s(250), height: s(250) }}
-                    />
-                  </View>
+                  <TabSkeleton tab="apps" colors={colors} s={s} />
                 ) : (
                   <FlatList
                     data={filteredApps}
@@ -666,6 +701,7 @@ function EditPresetAppsScreen() {
                   />
                 </View>
                 <TouchableOpacity
+                  onPressIn={lightTap}
                   onPress={addWebsite}
                   style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
                   className={`w-11 h-11 ${radius.full} items-center justify-center`}
@@ -690,6 +726,7 @@ function EditPresetAppsScreen() {
                   </View>
                   <Text style={{ color: colors.text }} className={`flex-1 ${textSize.base} ${fontFamily.regular}`}>{site}</Text>
                   <TouchableOpacity
+                    onPressIn={lightTap}
                     onPress={() => removeWebsite(site)}
                     className="p-2"
                   >
