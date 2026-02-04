@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import LottieView from 'lottie-react-native';
 const Lottie = LottieView as any;
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import ConfirmationModal from '../components/ConfirmationModal';
 import EmailConfirmationModal from '../components/EmailConfirmationModal';
@@ -275,6 +275,7 @@ function SettingsScreen() {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
 
   const [loading, setLoading] = useState(!hasCache);
 
@@ -432,7 +433,7 @@ function SettingsScreen() {
     const loadingMessage = isResetting ? 'Resetting Account...' : isDeleting ? 'Deleting Account...' : 'Logging Out...';
 
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }} edges={['top']}>
+      <View style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center', paddingTop: insets.top }}>
         <Lottie
           source={require('../frontassets/Loading Dots Blue.json')}
           autoPlay
@@ -441,14 +442,14 @@ function SettingsScreen() {
           style={{ width: s(250), height: s(250) }}
         />
         <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.semibold} mt-4`}>{loadingMessage}</Text>
-      </SafeAreaView>
+      </View>
     );
   }
 
   // Show loading spinner only if cache miss (rare - HomeScreen pre-populates)
   if (loading) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }} edges={['top']}>
+      <View style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center', paddingTop: insets.top }}>
         <Lottie
           source={require('../frontassets/Loading Dots Blue.json')}
           autoPlay
@@ -456,12 +457,12 @@ function SettingsScreen() {
           speed={2}
           style={{ width: s(250), height: s(250) }}
         />
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }} edges={['top']}>
+    <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
       {/* Locked Overlay */}
       {sharedIsLocked && (
         <View style={{ backgroundColor: colors.bg + 'F2' }} className="absolute inset-0 z-50 items-center justify-center">
@@ -703,7 +704,7 @@ function SettingsScreen() {
         presentationStyle="pageSheet"
         onRequestClose={() => setPrivacyModalVisible(false)}
       >
-        <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
+        <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
           {/* Header */}
           <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }} className="flex-row items-center justify-between px-4 py-3.5">
             <View style={{ width: s(40) }} />
@@ -813,7 +814,7 @@ function SettingsScreen() {
               © 2026 Scute LLC
             </Text>
           </ScrollView>
-        </SafeAreaView>
+        </View>
       </Modal>
 
       {/* Terms of Service Modal */}
@@ -823,7 +824,7 @@ function SettingsScreen() {
         presentationStyle="pageSheet"
         onRequestClose={() => setTermsModalVisible(false)}
       >
-        <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
+        <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
           {/* Header */}
           <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }} className="flex-row items-center justify-between px-4 py-3.5">
             <View style={{ width: s(40) }} />
@@ -943,7 +944,7 @@ function SettingsScreen() {
               © 2026 Scute LLC
             </Text>
           </ScrollView>
-        </SafeAreaView>
+        </View>
       </Modal>
 
       {/* Membership Modal */}
@@ -958,7 +959,7 @@ function SettingsScreen() {
           }
         }}
       >
-        <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
+        <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
           {/* Header */}
           <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }} className="flex-row items-center justify-between px-4 py-3.5">
             {/* Only show back button if trial hasn't expired */}
@@ -1114,9 +1115,9 @@ function SettingsScreen() {
               By subscribing, you agree to our Terms of Service and Privacy Policy. Subscriptions auto-renew unless cancelled.
             </Text>
           </ScrollView>
-        </SafeAreaView>
+        </View>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 }
 

@@ -13,7 +13,7 @@ import {
 import LottieView from 'lottie-react-native';
 const Lottie = LottieView as any;
 import AnimatedSwitch from '../components/AnimatedSwitch';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Svg, { Path, Rect } from 'react-native-svg';
 import TimerPicker from '../components/TimerPicker';
@@ -436,6 +436,7 @@ function PresetSettingsScreen() {
   const { tapoutStatus } = useAuth();
   const { colors } = useTheme();
   const { s } = useResponsive();
+  const insets = useSafeAreaInsets();
 
   const timeItemHeight = s(BASE_TIME_ITEM_HEIGHT);
   const wheelWidth = s(50);
@@ -930,7 +931,7 @@ function PresetSettingsScreen() {
         presentationStyle="fullScreen"
         onRequestClose={dpHandleCancel}
       >
-      <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
+      <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
         {/* Date Picker Header */}
         <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }} className="flex-row items-center justify-between px-4 py-3.5">
           <TouchableOpacity onPressIn={lightTap} onPress={dpHandleCancel} style={{ width: s(40) }} className="px-2">
@@ -1277,14 +1278,14 @@ function PresetSettingsScreen() {
             </View>
           )}
         </ScrollView>
-      </SafeAreaView>
+      </View>
       </Modal>
     );
   };
 
   // ============ Render ============
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
+    <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
       {/* Header — key forces SVG remount on focus to fix react-freeze stroke color bug */}
       <View key={svgKey} style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }} className="flex-row items-center justify-between px-4 py-3.5">
         <TouchableOpacity onPressIn={lightTap} onPress={() => navigation.navigate('EditPresetApps')} disabled={isSaving} style={{ width: s(40) }} className="px-2">
@@ -1825,7 +1826,7 @@ function PresetSettingsScreen() {
         onCancel={() => setStrictModeWarningVisible(false)}
       />
 
-    </SafeAreaView>
+    </View>
   );
 }
 

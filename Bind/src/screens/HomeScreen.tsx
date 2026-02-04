@@ -16,7 +16,7 @@ import {
 import Svg, { Path } from 'react-native-svg';
 import LottieView from 'lottie-react-native';
 const Lottie = LottieView as any;
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import BlockNowButton from '../components/BlockNowButton';
 import InfoModal from '../components/InfoModal';
@@ -36,6 +36,7 @@ function HomeScreen() {
   const { userEmail: email, refreshTrigger, sharedPresets, setSharedPresets, sharedPresetsLoaded, setSharedPresetsLoaded, setSharedIsLocked, tapoutStatus, setTapoutStatus } = useAuth();
   const { colors } = useTheme();
   const { s } = useResponsive();
+  const insets = useSafeAreaInsets();
   const [currentPreset, setCurrentPreset] = useState<string | null>(null);
   const [activePreset, setActivePreset] = useState<Preset | null>(null);
   const [scheduledPresets, setScheduledPresets] = useState<Preset[]>([]);
@@ -956,7 +957,7 @@ function HomeScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }} edges={['top']}>
+      <View style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center', paddingTop: insets.top }}>
         <Lottie
           source={require('../frontassets/Loading Dots Blue.json')}
           autoPlay
@@ -964,12 +965,12 @@ function HomeScreen() {
           speed={2}
           style={{ width: s(250), height: s(250) }}
         />
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }} edges={['top']}>
+    <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
       <View className="flex-1 px-6">
         {/* Scute Logo - absolute positioned so it doesn't affect centering */}
         <View
@@ -1254,7 +1255,7 @@ function HomeScreen() {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 }
 

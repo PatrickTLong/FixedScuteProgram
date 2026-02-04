@@ -13,7 +13,7 @@ import {
   Image,
 } from 'react-native';
 import AnimatedCheckbox from '../components/AnimatedCheckbox';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Svg, { Path, Rect } from 'react-native-svg';
 import ExcludedAppsInfoModal from '../components/ExcludedAppsInfoModal';
@@ -203,7 +203,7 @@ const AppRowSkeleton = memo(({ colors, s }: { colors: any; s: (v: number) => num
     style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, paddingVertical: s(buttonPadding.standard), ...shadow.card }}
     className={`flex-row items-center px-4 ${radius.xl} mb-2`}
   >
-    <View style={{ width: s(48), height: s(48), marginRight: s(12), backgroundColor: colors.cardLight, borderRadius: s(12) }} />
+    <View style={{ width: s(40), height: s(40), marginRight: s(12), backgroundColor: colors.cardLight, borderRadius: s(10) }} />
     <View style={{ flex: 1 }}>
       <View style={{ width: '60%', height: s(14), backgroundColor: colors.cardLight, borderRadius: s(4) }} />
     </View>
@@ -287,6 +287,7 @@ const AppItemRow = memo(({ item, isSelected, onToggle, onPressIn, colors, s, ski
 function EditPresetAppsScreen() {
   const { colors } = useTheme();
   const { s } = useResponsive();
+  const insets = useSafeAreaInsets();
   const navigation = useNavigation<BottomTabNavigationProp<MainTabParamList, 'EditPresetApps'>>();
   const { getEditingPreset, getEmail, getExistingPresets, getPresetSettingsParams, setPresetSettingsParams, setFinalSettingsState } = usePresetSave();
 
@@ -506,7 +507,7 @@ function EditPresetAppsScreen() {
   ), [installedSelectedApps.length, colors]);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
+    <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
       {/* Header — key forces SVG remount on focus to fix react-freeze stroke color bug */}
       <View key={svgKey} style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }} className="flex-row items-center justify-between px-4 py-3.5">
         <TouchableOpacity onPressIn={lightTap} onPress={handleClose} className="px-2">
@@ -608,9 +609,6 @@ function EditPresetAppsScreen() {
                   iOS uses Screen Time to block apps. Tap above to open the app picker.
                 </Text>
               </View>
-            ) : loadingApps || !contentReady ? (
-              // Android: Show skeleton while loading
-              <TabSkeleton tab="apps" colors={colors} s={s} />
             ) : (
               // Android: Show searchable list of apps
               <>
@@ -633,7 +631,7 @@ function EditPresetAppsScreen() {
                 </View>
 
                 {/* Select All / Deselect All Buttons */}
-                {filteredApps.length > 0 && (
+                {!loadingApps && contentReady && filteredApps.length > 0 && (
                   <View className="flex-row px-6 mb-3">
                     <TouchableOpacity
                       onPressIn={lightTap}
@@ -678,17 +676,21 @@ function EditPresetAppsScreen() {
                 </View>
 
                 {/* Apps List */}
-                <FlatList
-                  data={filteredApps}
-                  renderItem={renderAppItem}
-                  keyExtractor={keyExtractor}
-                  extraData={selectedApps}
-                  contentContainerStyle={{ paddingHorizontal: s(24), paddingBottom: s(24) }}
-                  removeClippedSubviews={true}
-                  maxToRenderPerBatch={15}
-                  windowSize={10}
-                  initialNumToRender={15}
-                />
+                {loadingApps || !contentReady ? (
+                  <TabSkeleton tab="apps" colors={colors} s={s} />
+                ) : (
+                  <FlatList
+                    data={filteredApps}
+                    renderItem={renderAppItem}
+                    keyExtractor={keyExtractor}
+                    extraData={selectedApps}
+                    contentContainerStyle={{ paddingHorizontal: s(24), paddingBottom: s(24) }}
+                    removeClippedSubviews={true}
+                    maxToRenderPerBatch={15}
+                    windowSize={10}
+                    initialNumToRender={15}
+                  />
+                )}
               </>
             )
           ) : (
@@ -766,7 +768,7 @@ function EditPresetAppsScreen() {
           }
         }}
       />
-    </SafeAreaView>
+    </View>
   );
 }
 

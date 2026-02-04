@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import LottieView from 'lottie-react-native';
 const Lottie = LottieView as any;
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PresetCard, { Preset } from '../components/PresetCard';
 import ConfirmationModal from '../components/ConfirmationModal';
 import {
@@ -69,6 +69,7 @@ async function getInstalledAppsCached(): Promise<{ id: string }[]> {
 function PresetsScreen() {
   const { colors } = useTheme();
   const { s } = useResponsive();
+  const insets = useSafeAreaInsets();
   const navigation = useNavigation<NativeStackNavigationProp<MainStackParamList>>();
   const { userEmail, sharedPresets, setSharedPresets, setSharedPresetsLoaded, sharedIsLocked, setSharedIsLocked } = useAuth();
   const userEmail_safe = userEmail || '';
@@ -653,7 +654,7 @@ function PresetsScreen() {
   // Show loading state until initial data is loaded - prevents flash of incomplete content
   if (loading) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }} edges={['top']}>
+      <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
         {showSpinner && (
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
             <Lottie
@@ -665,12 +666,12 @@ function PresetsScreen() {
             />
           </View>
         )}
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }} edges={['top']}>
+    <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
       {/* Locked Overlay */}
       {sharedIsLocked === true && (
         <View style={{ backgroundColor: colors.bg + 'F2' }} className="absolute inset-0 z-50 items-center justify-center">
@@ -761,7 +762,7 @@ function PresetsScreen() {
       />
 
 
-    </SafeAreaView>
+    </View>
   );
 }
 
