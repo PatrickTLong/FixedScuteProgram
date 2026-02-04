@@ -330,60 +330,61 @@ function HomeScreen() {
     const isScheduledPreset = activePreset?.isScheduled;
 
     setTapoutLoading(true);
-    setLoading(true); // Show loading spinner like normal unlock
+    setLoading(true);
     try {
-      // Don't pass preset ID - we want to keep the preset active in backend after unlock
+      // Tapout API must succeed before unlocking (decrements tapout count)
       const result = await useEmergencyTapout(email);
       if (result.success) {
-        // Unlock was successful - close modal immediately
+        // 1) Optimistic local + shared state (instant UI)
         setEmergencyTapoutModalVisible(false);
         setIsLocked(false);
         setSharedIsLocked(false);
         setLockEndsAt(null);
         setLockStartedAt(null);
-
-        // Update database lock status to unlocked (already done by backend, but ensure local state is synced)
-        await updateLockStatus(email, false, null);
-
-        // Clear native blocking
-        if (BlockingModule) {
-          await BlockingModule.forceUnlock();
-        }
-
-        // For scheduled presets: fully deactivate/clear (same as when schedule ends)
-        // For regular presets: re-activate to keep it ready for quick re-lock
+        setTapoutStatus(tapoutStatus ? { ...tapoutStatus, remaining: result.remaining } : null);
         if (isScheduledPreset) {
-          // Deactivate the preset - same as when a scheduled preset ends naturally
-          await activatePreset(email, null);
           setCurrentPreset(null);
           setActivePreset(null);
-          // Optimistically update shared state so PresetsScreen sees deactivation immediately
           if (presetIdToKeep) {
             setSharedPresets(prev => prev.map(p =>
               p.id === presetIdToKeep ? { ...p, isActive: false } : p
             ));
           }
-        } else if (presetIdToKeep) {
-          await activatePreset(email, presetIdToKeep);
         }
 
-        // Update tapout status in shared state
-        setTapoutStatus(tapoutStatus ? { ...tapoutStatus, remaining: result.remaining } : null);
+        // 2) Clear native blocking (must complete before user leaves)
+        if (BlockingModule) {
+          await BlockingModule.forceUnlock();
+        }
 
         Vibration.vibrate(100);
-        // No modal - just unlock silently
+        setTapoutLoading(false);
+        setLoading(false);
 
-        // Refresh to get updated state (like normal unlock does)
-        invalidateUserCaches(email);
-        await loadStats(true);
+        // 3) Backend sync + data refresh (fire-and-forget)
+        (async () => {
+          try {
+            await updateLockStatus(email, false, null);
+            if (isScheduledPreset) {
+              await activatePreset(email, null);
+            } else if (presetIdToKeep) {
+              await activatePreset(email, presetIdToKeep);
+            }
+            invalidateUserCaches(email);
+            loadStats(true);
+          } catch {
+            // Backend sync failed silently — state will reconcile on next app foreground
+          }
+        })();
       } else {
+        setTapoutLoading(false);
+        setLoading(false);
         showModal('Failed', 'Could not use emergency tapout. Please try again.');
       }
     } catch (error) {
-      showModal('Error', 'Something went wrong. Please try again.');
-    } finally {
       setTapoutLoading(false);
-      setLoading(false); // Hide loading spinner after loadStats completes
+      setLoading(false);
+      showModal('Error', 'Something went wrong. Please try again.');
     }
   }, [email, tapoutStatus, activePreset, showModal, loadStats]);
 
@@ -650,63 +651,54 @@ function HomeScreen() {
     // Store preset info before starting
     const presetIdToKeep = activePreset?.id;
     const isScheduledPreset = activePreset?.isScheduled;
-    const isNoTimeLimit = activePreset?.noTimeLimit && !activePreset?.isScheduled;
 
     try {
-      // Show loading spinner during unlock
       setLoading(true);
 
-      // Update local state immediately
+      // 1) Optimistic local + shared state (instant UI)
       setIsLocked(false);
       setSharedIsLocked(false);
       setLockEndsAt(null);
       setLockStartedAt(null);
-
-      // For scheduled/recurring presets: use the same backend endpoint as emergency tapout
-      // but with skipTapoutDecrement=true so it doesn't use up tapout count
       if (isScheduledPreset) {
-        // Call the same endpoint as emergency tapout but skip the tapout decrement
-        const result = await useEmergencyTapout(email, presetIdToKeep, true);
-        if (result.success) {
-          // Clear native blocking
-          if (BlockingModule) {
-            await BlockingModule.forceUnlock();
-          }
-          setCurrentPreset(null);
-          setActivePreset(null);
-          // Optimistically update shared state so PresetsScreen sees deactivation immediately
-          if (presetIdToKeep) {
-            setSharedPresets(prev => prev.map(p =>
-              p.id === presetIdToKeep ? { ...p, isActive: false } : p
-            ));
-          }
-        } else {
-          throw new Error('Backend unlock failed');
-        }
-      } else {
-        // Regular preset - just update lock status and keep preset active
-        await updateLockStatus(email, false, null);
-
-        // Clear native blocking
-        if (BlockingModule) {
-          await BlockingModule.forceUnlock();
-        }
-
+        setCurrentPreset(null);
+        setActivePreset(null);
         if (presetIdToKeep) {
-          await activatePreset(email, presetIdToKeep);
+          setSharedPresets(prev => prev.map(p =>
+            p.id === presetIdToKeep ? { ...p, isActive: false } : p
+          ));
         }
       }
 
-      Vibration.vibrate(100);
+      // 2) Clear native blocking (must complete before user leaves)
+      if (BlockingModule) {
+        await BlockingModule.forceUnlock();
+      }
 
-      // Refresh to get updated state
-      invalidateUserCaches(email);
-      await loadStats(true);
+      Vibration.vibrate(100);
+      setLoading(false);
+
+      // 3) Backend sync + data refresh (fire-and-forget)
+      (async () => {
+        try {
+          if (isScheduledPreset) {
+            await useEmergencyTapout(email, presetIdToKeep, true);
+          } else {
+            await updateLockStatus(email, false, null);
+            if (presetIdToKeep) {
+              await activatePreset(email, presetIdToKeep);
+            }
+          }
+          invalidateUserCaches(email);
+          loadStats(true);
+        } catch {
+          // Backend sync failed silently — state will reconcile on next app foreground
+        }
+      })();
 
     } catch (error) {
-      showModal('Error', 'Failed to unlock. Please try again.');
-    } finally {
       setLoading(false);
+      showModal('Error', 'Failed to unlock. Please try again.');
     }
   }, [email, loadStats, showModal, activePreset]);
 
