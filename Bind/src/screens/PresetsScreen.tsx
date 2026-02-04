@@ -207,14 +207,10 @@ function PresetsScreen() {
     };
   }, [checkLockStatus, loadPresets, userEmail_safe]);
 
-  // Refresh presets when screen gains focus (e.g., returning from edit flow)
-  useFocusEffect(
-    useCallback(() => {
-      if (!loading) {
-        loadPresets(true);
-      }
-    }, [loadPresets, loading])
-  );
+  // No forced refetch on focus — local state is kept in sync by
+  // handleSavePreset, handleTogglePreset, and handleDeletePreset directly.
+  // A forced refetch would overwrite optimistic updates if the API call is still in flight.
+  useFocusEffect(useCallback(() => {}, []));
 
   // Disable interactions until lock status is checked, or if locked
   const isDisabled = !lockChecked || sharedIsLocked === true;
