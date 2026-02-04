@@ -231,6 +231,118 @@ class UsageStatsModule(reactContext: ReactApplicationContext) :
         }
     }
 
+    private fun getTimeRange(period: String): Pair<Long, Long> {
+        val calendar = Calendar.getInstance()
+        calendar.set(Calendar.HOUR_OF_DAY, 0)
+        calendar.set(Calendar.MINUTE, 0)
+        calendar.set(Calendar.SECOND, 0)
+        calendar.set(Calendar.MILLISECOND, 0)
+
+        when (period) {
+            "week" -> calendar.set(Calendar.DAY_OF_WEEK, calendar.firstDayOfWeek)
+            "month" -> calendar.set(Calendar.DAY_OF_MONTH, 1)
+        }
+
+        return Pair(calendar.timeInMillis, System.currentTimeMillis())
+    }
+
+    @ReactMethod
+    fun getScreenTime(period: String, promise: Promise) {
+        try {
+            val usageStatsManager = reactApplicationContext.getSystemService(Context.USAGE_STATS_SERVICE) as? UsageStatsManager
+            if (usageStatsManager == null) {
+                promise.resolve(0.0)
+                return
+            }
+
+            val (startTime, endTime) = getTimeRange(period)
+
+            val usageStatsList = usageStatsManager.queryUsageStats(
+                UsageStatsManager.INTERVAL_DAILY,
+                startTime,
+                endTime
+            )
+
+            val aggregated = HashMap<String, Long>()
+            usageStatsList?.forEach { stat ->
+                if (!EXCLUDED_PACKAGES.contains(stat.packageName)) {
+                    aggregated[stat.packageName] = (aggregated[stat.packageName] ?: 0L) + stat.totalTimeInForeground
+                }
+            }
+
+            val totalTime = aggregated.values.sum()
+            promise.resolve(totalTime.toDouble())
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting screen time for period: $period", e)
+            promise.resolve(0.0)
+        }
+    }
+
+    @ReactMethod
+    fun getAllAppsUsage(period: String, promise: Promise) {
+        try {
+            val usageStatsManager = reactApplicationContext.getSystemService(Context.USAGE_STATS_SERVICE) as? UsageStatsManager
+            if (usageStatsManager == null) {
+                promise.resolve(Arguments.createArray())
+                return
+            }
+
+            val (startTime, endTime) = getTimeRange(period)
+
+            val usageStatsList = usageStatsManager.queryUsageStats(
+                UsageStatsManager.INTERVAL_DAILY,
+                startTime,
+                endTime
+            )
+
+            // Aggregate usage per app across multiple days
+            val aggregated = HashMap<String, Long>()
+            usageStatsList?.forEach { stat ->
+                if (!EXCLUDED_PACKAGES.contains(stat.packageName)) {
+                    aggregated[stat.packageName] = (aggregated[stat.packageName] ?: 0L) + stat.totalTimeInForeground
+                }
+            }
+
+            val packageManager = reactApplicationContext.packageManager
+            val appsArray = Arguments.createArray()
+
+            aggregated.filter { it.value > 60000 }
+                .entries.sortedByDescending { it.value }
+                .take(10)
+                .forEach { (packageName, totalTime) ->
+                    val appName = try {
+                        val appInfo = packageManager.getApplicationInfo(packageName, 0)
+                        packageManager.getApplicationLabel(appInfo).toString()
+                    } catch (e: PackageManager.NameNotFoundException) {
+                        packageName
+                    }
+
+                    val appMap = Arguments.createMap().apply {
+                        putString("packageName", packageName)
+                        putString("appName", appName)
+                        putDouble("timeInForeground", totalTime.toDouble())
+                    }
+
+                    try {
+                        val icon = packageManager.getApplicationIcon(packageName)
+                        val iconBase64 = drawableToBase64(icon)
+                        if (iconBase64 != null) {
+                            appMap.putString("icon", "data:image/png;base64,$iconBase64")
+                        }
+                    } catch (e: Exception) {
+                        // Icon not available, skip
+                    }
+
+                    appsArray.pushMap(appMap)
+                }
+
+            promise.resolve(appsArray)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting all apps usage for period: $period", e)
+            promise.resolve(Arguments.createArray())
+        }
+    }
+
     private fun drawableToBase64(drawable: Drawable): String? {
         return try {
             val size = 256

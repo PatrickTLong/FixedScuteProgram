@@ -8,11 +8,13 @@ import {
   AppState,
   Platform,
   Image,
+  TouchableOpacity,
 } from 'react-native';
 import LottieView from 'lottie-react-native';
 const Lottie = LottieView as any;
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useTheme, textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
+import { useTheme, textSize, fontFamily, radius, shadow, buttonPadding } from '../context/ThemeContext';
+import { lightTap } from '../utils/haptics';
 import { useResponsive } from '../utils/responsive';
 import { useAuth } from '../context/AuthContext';
 
@@ -38,6 +40,20 @@ interface AppUsage {
   timeInForeground: number; // milliseconds
   icon?: string;
 }
+
+type StatsPeriod = 'today' | 'week' | 'month';
+
+const PERIOD_LABELS: Record<StatsPeriod, string> = {
+  today: "Today's Top Screen Time",
+  week: "This Week's Top Screen Time",
+  month: "This Month's Top Screen Time",
+};
+
+const PERIOD_EMPTY: Record<StatsPeriod, string> = {
+  today: 'No app usage data available today.',
+  week: 'No app usage data available this week.',
+  month: 'No app usage data available this month.',
+};
 
 const BAR_CHART_HEIGHT = 340;
 const TOP_APPS_COUNT = 5;
@@ -115,11 +131,11 @@ function formatTime(ms: number): string {
   const minutes = totalMinutes % 60;
 
   if (hours > 0 && minutes > 0) {
-    return `${hours} h ${minutes} m`;
+    return `${hours}h ${minutes}m`;
   } else if (hours > 0) {
-    return `${hours} h`;
+    return `${hours}h`;
   } else {
-    return `${minutes} m`;
+    return `${minutes}m`;
   }
 }
 
@@ -129,6 +145,7 @@ function StatsScreen() {
   const insets = useSafeAreaInsets();
   const { sharedIsLocked } = useAuth();
 
+  const [activePeriod, setActivePeriod] = useState<StatsPeriod>('today');
   const [loading, setLoading] = useState(true);
   const [totalScreenTime, setTotalScreenTime] = useState(0);
   const [appUsages, setAppUsages] = useState<AppUsage[]>([]);
@@ -141,8 +158,8 @@ function StatsScreen() {
 
     try {
       const [screenTime, apps] = await Promise.all([
-        UsageStatsModule.getTodayScreenTime(),
-        UsageStatsModule.getAllAppsUsageToday(),
+        UsageStatsModule.getScreenTime(activePeriod),
+        UsageStatsModule.getAllAppsUsage(activePeriod),
       ]);
 
       setTotalScreenTime(screenTime);
@@ -152,7 +169,7 @@ function StatsScreen() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [activePeriod]);
 
   // Load on mount
   useEffect(() => {
@@ -204,10 +221,38 @@ function StatsScreen() {
           Stats
         </Text>
 
-        {/* TODAY'S SCREEN TIME Card */}
+        {/* Period Tabs */}
+        <View className="flex-row mb-4">
+          {(['today', 'week', 'month'] as StatsPeriod[]).map((period, index) => (
+            <React.Fragment key={period}>
+              {index > 0 && <View className="w-2" />}
+              <TouchableOpacity
+                onPressIn={lightTap}
+                onPress={() => setActivePeriod(period)}
+                style={{
+                  backgroundColor: activePeriod === period ? colors.text : colors.card,
+                  borderWidth: 1,
+                  borderColor: colors.border,
+                  paddingVertical: s(buttonPadding.smallStandard),
+                  ...shadow.card,
+                }}
+                className={`flex-1 ${radius.full} items-center justify-center`}
+              >
+                <Text
+                  style={{ color: activePeriod === period ? colors.bg : colors.text }}
+                  className={`${textSize.small} ${fontFamily.semibold}`}
+                >
+                  {period === 'today' ? 'Today' : period === 'week' ? 'This Week' : 'This Month'}
+                </Text>
+              </TouchableOpacity>
+            </React.Fragment>
+          ))}
+        </View>
+
+        {/* SCREEN TIME Card */}
         <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }} className={`${radius['2xl']} mb-6 p-4`}>
           <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} tracking-wider mb-3`}>
-            Today's Screen Time
+            {PERIOD_LABELS[activePeriod]}
           </Text>
 
           {/* Total time */}
@@ -241,7 +286,7 @@ function StatsScreen() {
             </View>
           ) : (
             <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular} text-center py-4`}>
-              No app usage data available today.
+              {PERIOD_EMPTY[activePeriod]}
             </Text>
           )}
         </View>
