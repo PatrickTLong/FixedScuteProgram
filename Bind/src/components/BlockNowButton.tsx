@@ -221,10 +221,8 @@ function BlockNowButton({
         }}
       >
         <TouchableOpacity
-          onPress={() => {
-            lightTap();
-            onUnlockPress?.();
-          }}
+          onPressIn={lightTap}
+          onPress={() => onUnlockPress?.()}
           activeOpacity={0.7}
           className="flex-1"
           style={{

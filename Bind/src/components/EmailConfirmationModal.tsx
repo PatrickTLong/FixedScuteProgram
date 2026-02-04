@@ -22,14 +22,12 @@ function EmailConfirmationModal({ visible, userEmail, onConfirm, onCancel }: Ema
 
   const handleConfirm = useCallback(() => {
     if (inputEmail.trim().toLowerCase() === userEmail.toLowerCase()) {
-      lightTap();
       setInputEmail('');
       onConfirm();
     }
   }, [inputEmail, userEmail, onConfirm]);
 
   const handleCancel = useCallback(() => {
-    lightTap();
     setInputEmail('');
     onCancel();
   }, [onCancel]);
@@ -94,6 +92,7 @@ function EmailConfirmationModal({ visible, userEmail, onConfirm, onCancel }: Ema
           <View style={{ borderTopWidth: 1, borderTopColor: colors.divider }} className="flex-row">
             {/* Cancel Button */}
             <TouchableOpacity
+              onPressIn={lightTap}
               onPress={handleCancel}
               activeOpacity={0.7}
               className="flex-1 py-4 items-center"
@@ -106,6 +105,7 @@ function EmailConfirmationModal({ visible, userEmail, onConfirm, onCancel }: Ema
 
             {/* Delete Account Button */}
             <TouchableOpacity
+              onPressIn={lightTap}
               onPress={handleConfirm}
               disabled={!isEmailMatch}
               activeOpacity={0.7}

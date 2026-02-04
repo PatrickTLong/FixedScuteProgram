@@ -54,7 +54,6 @@ function GoogleSignInBtn({ onSuccess, onError, disabled }: Props) {
   const [loading, setLoading] = useState(false);
 
   async function handleGoogleSignIn() {
-    lightTap();
     setLoading(true);
 
     try {
@@ -109,6 +108,7 @@ function GoogleSignInBtn({ onSuccess, onError, disabled }: Props) {
 
   return (
     <TouchableOpacity
+      onPressIn={lightTap}
       onPress={handleGoogleSignIn}
       disabled={disabled || loading}
       activeOpacity={0.8}

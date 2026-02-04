@@ -1,4 +1,4 @@
-import React, { memo, useCallback } from 'react';
+import React, { memo } from 'react';
 import { TouchableOpacity, Text, View } from 'react-native';
 import LottieView from 'lottie-react-native';
 const Lottie = LottieView as any;
@@ -60,14 +60,10 @@ function Button({
     }
   };
 
-  const handlePress = useCallback(() => {
-    lightTap();
-    onPress();
-  }, [onPress]);
-
   return (
     <TouchableOpacity
-      onPress={handlePress}
+      onPressIn={lightTap}
+      onPress={onPress}
       disabled={disabled || loading}
       activeOpacity={0.8}
       style={[getButtonStyle(), {

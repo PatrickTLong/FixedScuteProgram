@@ -227,7 +227,6 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, disabled
 
   const handlePress = useCallback(() => {
     if (!disabled) {
-      lightTap();
       onPress();
     }
   }, [disabled, onPress]);
@@ -248,6 +247,7 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, disabled
 
   return (
     <Pressable
+      onPressIn={() => lightTap()}
       onPress={handlePress}
       onLongPress={handleLongPress}
       delayLongPress={500}

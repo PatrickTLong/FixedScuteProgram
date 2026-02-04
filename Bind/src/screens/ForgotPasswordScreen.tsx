@@ -282,7 +282,8 @@ function ForgotPasswordScreen() {
                 </View>
 
                 <TouchableOpacity
-                  onPress={() => { lightTap(); handleResendCode(); }}
+                  onPressIn={lightTap}
+                  onPress={() => handleResendCode()}
                   disabled={loading}
                   className="items-center mb-4"
                 >
@@ -358,8 +359,8 @@ function ForgotPasswordScreen() {
           <View className="px-6 pb-8 mt-6">
             {/* Action Button */}
             <TouchableOpacity
+              onPressIn={lightTap}
               onPress={() => {
-                lightTap();
                 step === 'email'
                   ? handleSendCode()
                   : step === 'code'

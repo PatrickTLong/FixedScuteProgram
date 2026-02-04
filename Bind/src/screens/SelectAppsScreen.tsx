@@ -91,12 +91,12 @@ interface AppItemProps {
 
 const AppItem = memo(({ item, isSelected, onToggle, cardColor, cardLightColor, textColor, textSecondaryColor, cyanColor, borderColor, iconSize, iconMarginRight, fallbackBorderRadius, fallbackFontSize }: AppItemProps) => {
   const handlePress = useCallback(() => {
-    lightTap();
     onToggle(item.id);
   }, [item.id, onToggle]);
 
   return (
     <TouchableOpacity
+      onPressIn={lightTap}
       onPress={handlePress}
       activeOpacity={0.7}
       style={{ backgroundColor: cardColor, borderWidth: 1, borderColor: borderColor, ...shadow.card }}
@@ -188,7 +188,8 @@ function SelectAppsScreen({
       {/* Header */}
       <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }} className="flex-row items-center justify-between px-4 py-3.5">
         <TouchableOpacity
-          onPress={() => { lightTap(); onClose(); }}
+          onPressIn={lightTap}
+          onPress={() => onClose()}
           className="px-2"
         >
           <BackIcon color="#FFFFFF" size={s(iconSize.headerNav)} />
@@ -207,7 +208,8 @@ function SelectAppsScreen({
       {/* Tabs */}
       <View className="flex-row mx-4 my-4">
         <TouchableOpacity
-          onPress={() => { lightTap(); setActiveTab('apps'); }}
+          onPressIn={lightTap}
+          onPress={() => setActiveTab('apps')}
           style={{ backgroundColor: activeTab === 'apps' ? colors.text : colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
           className={`flex-1 py-2 ${radius.full} items-center`}
         >
@@ -217,7 +219,8 @@ function SelectAppsScreen({
         </TouchableOpacity>
         <View className="w-2" />
         <TouchableOpacity
-          onPress={() => { lightTap(); setActiveTab('websites'); }}
+          onPressIn={lightTap}
+          onPress={() => setActiveTab('websites')}
           style={{ backgroundColor: activeTab === 'websites' ? colors.text : colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
           className={`flex-1 py-2 ${radius.full} items-center`}
         >
@@ -242,7 +245,7 @@ function SelectAppsScreen({
                 className={`flex-1 ${textSize.base} ${fontFamily.regular} ml-3`}
               />
               {searchQuery.length > 0 && (
-                <TouchableOpacity onPress={() => { lightTap(); setSearchQuery(''); }}>
+                <TouchableOpacity onPressIn={lightTap} onPress={() => setSearchQuery('')}>
                   <Text style={{ color: colors.textSecondary }} className={`${textSize.large}`}>✕</Text>
                 </TouchableOpacity>
               )}
@@ -307,7 +310,7 @@ function SelectAppsScreen({
                 onSubmitEditing={handleAddWebsite}
               />
               {websiteInput.length > 0 && (
-                <TouchableOpacity onPress={() => { lightTap(); setWebsiteInput(''); }}>
+                <TouchableOpacity onPressIn={lightTap} onPress={() => setWebsiteInput('')}>
                   <Text style={{ color: colors.textSecondary }} className={`${textSize.large}`}>✕</Text>
                 </TouchableOpacity>
               )}
@@ -347,7 +350,8 @@ function SelectAppsScreen({
       {/* Save Button */}
       <View style={{ backgroundColor: colors.bg, borderTopWidth: 1, borderTopColor: colors.divider }} className="absolute bottom-0 left-0 right-0 p-4">
         <TouchableOpacity
-          onPress={() => { lightTap(); onSave(); }}
+          onPressIn={lightTap}
+          onPress={() => onSave()}
           activeOpacity={0.8}
           style={{ backgroundColor: colors.text, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
           className={`${radius.full} py-4 items-center`}

@@ -1,4 +1,4 @@
-import React, { memo, useCallback } from 'react';
+import React, { memo } from 'react';
 import { TouchableOpacity } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { lightTap } from '../utils/haptics';
@@ -12,14 +12,10 @@ interface BackButtonProps {
 function BackButton({ onPress }: BackButtonProps) {
   const { colors } = useTheme();
   const { s } = useResponsive();
-  const handlePress = useCallback(() => {
-    lightTap();
-    onPress();
-  }, [onPress]);
-
   return (
     <TouchableOpacity
-      onPress={handlePress}
+      onPressIn={lightTap}
+      onPress={onPress}
       activeOpacity={0.7}
       hitSlop={{ top: s(10), bottom: s(10), left: s(10), right: s(10) }}
       style={{ padding: s(buttonPadding.standard) }}

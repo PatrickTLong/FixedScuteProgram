@@ -61,7 +61,8 @@ function ConfirmationModal({
           <View style={{ borderTopWidth: 1, borderTopColor: colors.divider }} className="flex-row">
             {/* Cancel Button */}
             <TouchableOpacity
-              onPress={() => { lightTap(); onCancel(); }}
+              onPressIn={lightTap}
+              onPress={onCancel}
               activeOpacity={0.7}
               style={{ borderRightWidth: 1, borderRightColor: colors.divider }}
               className="flex-1 py-4 items-center"
@@ -73,7 +74,8 @@ function ConfirmationModal({
 
             {/* Confirm Button */}
             <TouchableOpacity
-              onPress={() => { isDestructive ? heavyTap() : lightTap(); onConfirm(); }}
+              onPressIn={() => isDestructive ? heavyTap() : lightTap()}
+              onPress={onConfirm}
               activeOpacity={0.7}
               className="flex-1 py-4 items-center"
             >

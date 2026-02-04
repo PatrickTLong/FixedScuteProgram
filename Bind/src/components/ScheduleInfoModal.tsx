@@ -19,7 +19,6 @@ function ScheduleInfoModal({ visible, onClose }: ScheduleInfoModalProps) {
   const [dontShowAgain, setDontShowAgain] = useState(false);
 
   const handleClose = () => {
-    lightTap();
     onClose(dontShowAgain);
     setDontShowAgain(false); // Reset for next time
   };
@@ -45,7 +44,8 @@ function ScheduleInfoModal({ visible, onClose }: ScheduleInfoModalProps) {
 
             {/* Don't show again checkbox */}
             <TouchableOpacity
-              onPress={() => { lightTap(); setDontShowAgain(!dontShowAgain); }}
+              onPressIn={lightTap}
+              onPress={() => setDontShowAgain(!dontShowAgain)}
               activeOpacity={0.7}
               className="flex-row items-center justify-center mt-6"
             >
@@ -61,6 +61,7 @@ function ScheduleInfoModal({ visible, onClose }: ScheduleInfoModalProps) {
           {/* Button */}
           <View style={{ borderTopWidth: 1, borderTopColor: colors.divider }}>
             <TouchableOpacity
+              onPressIn={lightTap}
               onPress={handleClose}
               activeOpacity={0.7}
               className="py-4 items-center"

@@ -231,7 +231,8 @@ const SettingsRow = memo(({
   s,
 }: SettingsRowProps) => (
   <TouchableOpacity
-    onPress={() => { if (onPress) { lightTap(); onPress(); } }}
+    onPressIn={() => { if (onPress) lightTap(); }}
+    onPress={onPress || undefined}
     disabled={!onPress}
     activeOpacity={onPress ? 0.7 : 1}
     style={!isLast ? { borderBottomWidth: 1, borderBottomColor: borderColor, paddingVertical: s(buttonPadding.standard) } : { paddingVertical: s(buttonPadding.standard) }}
@@ -498,7 +499,8 @@ function SettingsScreen() {
           />
           {/* Membership Row with Trial Countdown */}
           <TouchableOpacity
-            onPress={() => { lightTap(); setMembershipModalVisible(true); }}
+            onPressIn={lightTap}
+            onPress={() => setMembershipModalVisible(true)}
             style={{ borderBottomWidth: 1, borderBottomColor: colors.divider, paddingVertical: s(buttonPadding.standard) }}
             className="px-4"
           >
@@ -706,7 +708,7 @@ function SettingsScreen() {
           <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }} className="flex-row items-center justify-between px-4 py-3.5">
             <View style={{ width: s(40) }} />
             <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Privacy Policy</Text>
-            <TouchableOpacity onPress={() => { lightTap(); setPrivacyModalVisible(false); }} style={{ width: s(40) }} className="px-2 items-end">
+            <TouchableOpacity onPressIn={lightTap} onPress={() => setPrivacyModalVisible(false)} style={{ width: s(40) }} className="px-2 items-end">
               <Svg width={s(iconSize.headerNav)} height={s(iconSize.headerNav)} viewBox="0 0 24 24" fill="none">
                 <Path d="M20 6L9 17l-5-5" stroke="#FFFFFF" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
               </Svg>
@@ -826,7 +828,7 @@ function SettingsScreen() {
           <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }} className="flex-row items-center justify-between px-4 py-3.5">
             <View style={{ width: s(40) }} />
             <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Terms of Service</Text>
-            <TouchableOpacity onPress={() => { lightTap(); setTermsModalVisible(false); }} style={{ width: s(40) }} className="px-2 items-end">
+            <TouchableOpacity onPressIn={lightTap} onPress={() => setTermsModalVisible(false)} style={{ width: s(40) }} className="px-2 items-end">
               <Svg width={s(iconSize.headerNav)} height={s(iconSize.headerNav)} viewBox="0 0 24 24" fill="none">
                 <Path d="M20 6L9 17l-5-5" stroke="#FFFFFF" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
               </Svg>
@@ -961,7 +963,7 @@ function SettingsScreen() {
           <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }} className="flex-row items-center justify-between px-4 py-3.5">
             {/* Only show back button if trial hasn't expired */}
             {!membershipStatus?.trialExpired ? (
-              <TouchableOpacity onPress={() => { lightTap(); setMembershipModalVisible(false); }} style={{ width: s(40) }} className="px-2">
+              <TouchableOpacity onPressIn={lightTap} onPress={() => setMembershipModalVisible(false)} style={{ width: s(40) }} className="px-2">
                 <Svg width={s(iconSize.headerNav)} height={s(iconSize.headerNav)} viewBox="0 0 24 24" fill="none">
                   <Path
                     d="M15 18l-6-6 6-6"
@@ -993,7 +995,8 @@ function SettingsScreen() {
 
             {/* Monthly Plan */}
             <TouchableOpacity
-              onPress={() => { lightTap(); setSelectedPlan('monthly'); }}
+              onPressIn={lightTap}
+              onPress={() => setSelectedPlan('monthly')}
               style={{
                 backgroundColor: colors.card,
                 borderWidth: 2,
@@ -1022,7 +1025,8 @@ function SettingsScreen() {
 
             {/* Yearly Plan */}
             <TouchableOpacity
-              onPress={() => { lightTap(); setSelectedPlan('yearly'); }}
+              onPressIn={lightTap}
+              onPress={() => setSelectedPlan('yearly')}
               style={{
                 backgroundColor: colors.card,
                 borderWidth: 2,
@@ -1056,7 +1060,8 @@ function SettingsScreen() {
 
             {/* Lifetime Plan */}
             <TouchableOpacity
-              onPress={() => { lightTap(); setSelectedPlan('lifetime'); }}
+              onPressIn={lightTap}
+              onPress={() => setSelectedPlan('lifetime')}
               style={{
                 backgroundColor: colors.card,
                 borderWidth: 2,
@@ -1090,7 +1095,7 @@ function SettingsScreen() {
 
             {/* Subscribe Button */}
             <TouchableOpacity
-              onPress={() => { lightTap(); }}
+              onPressIn={lightTap}
               disabled={!selectedPlan}
               style={{
                 backgroundColor: selectedPlan ? colors.text : colors.border,

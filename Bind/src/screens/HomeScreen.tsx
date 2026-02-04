@@ -352,9 +352,12 @@ function HomeScreen() {
           }
         }
 
-        // 2) Clear native blocking (must complete before user leaves)
+        // 2) Clear native blocking + minimum 200ms spinner for smooth feel
+        const minSpinner = new Promise<void>(resolve => setTimeout(resolve, 200));
         if (BlockingModule) {
-          await BlockingModule.forceUnlock();
+          await Promise.all([BlockingModule.forceUnlock(), minSpinner]);
+        } else {
+          await minSpinner;
         }
 
         Vibration.vibrate(100);
@@ -670,9 +673,12 @@ function HomeScreen() {
         }
       }
 
-      // 2) Clear native blocking (must complete before user leaves)
+      // 2) Clear native blocking + minimum 200ms spinner for smooth feel
+      const minSpinner = new Promise<void>(resolve => setTimeout(resolve, 200));
       if (BlockingModule) {
-        await BlockingModule.forceUnlock();
+        await Promise.all([BlockingModule.forceUnlock(), minSpinner]);
+      } else {
+        await minSpinner;
       }
 
       Vibration.vibrate(100);
@@ -999,7 +1005,8 @@ function HomeScreen() {
         <View style={{ position: 'absolute', top: s(20), right: s(18), zIndex: 10, flexDirection: 'row', alignItems: 'center', gap: s(8) }}>
           {/* WiFi Settings */}
           <TouchableOpacity
-            onPress={() => { lightTap(); Linking.sendIntent('android.settings.WIFI_SETTINGS').catch(() => {}); }}
+            onPressIn={lightTap}
+            onPress={() => { Linking.sendIntent('android.settings.WIFI_SETTINGS').catch(() => {}); }}
             activeOpacity={0.7}
             style={{
               backgroundColor: colors.card,
@@ -1017,7 +1024,8 @@ function HomeScreen() {
 
           {/* Support @ icon */}
           <TouchableOpacity
-            onPress={() => { lightTap(); Linking.openURL('mailto:support@scuteapp.com?subject=Scute%20Support%20Request'); }}
+            onPressIn={lightTap}
+            onPress={() => { Linking.openURL('mailto:support@scuteapp.com?subject=Scute%20Support%20Request'); }}
             activeOpacity={0.7}
             style={{
               backgroundColor: colors.card,
@@ -1104,7 +1112,8 @@ function HomeScreen() {
             {/* Scheduled Presets Button - absolutely positioned under preset text */}
             {scheduledPresets.length > 0 && (
               <TouchableOpacity
-                onPress={() => { lightTap(); setScheduledPresetsModalVisible(true); }}
+                onPressIn={lightTap}
+                onPress={() => { setScheduledPresetsModalVisible(true); }}
                 activeOpacity={0.7}
                 className={`px-5 py-2.5 ${radius.full} flex-row items-center`}
                 style={{
@@ -1232,7 +1241,8 @@ function HomeScreen() {
             {/* Close Button */}
             <View style={{ borderTopWidth: 1, borderTopColor: colors.divider }}>
               <TouchableOpacity
-                onPress={() => { lightTap(); setScheduledPresetsModalVisible(false); }}
+                onPressIn={lightTap}
+                onPress={() => { setScheduledPresetsModalVisible(false); }}
                 activeOpacity={0.7}
                 className="py-4 items-center"
               >

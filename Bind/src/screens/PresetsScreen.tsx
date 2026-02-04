@@ -696,7 +696,8 @@ function PresetsScreen() {
 
         {/* Add Button - stays green but disabled when locked */}
         <TouchableOpacity
-          onPress={() => { lightTap(); handleAddPreset(); }}
+          onPressIn={lightTap}
+          onPress={handleAddPreset}
           activeOpacity={0.7}
           disabled={isDisabled}
           style={{

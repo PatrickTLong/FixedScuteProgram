@@ -260,6 +260,7 @@ function SignInScreen() {
                       className={`${radius.full} px-5 ${textSize.small} ${fontFamily.regular}`}
                     />
                     <TouchableOpacity
+                      onPressIn={lightTap}
                       onPress={() => setShowPassword(!showPassword)}
                       style={{ position: 'absolute', right: s(16), top: 0, bottom: 0, justifyContent: 'center' }}
                     >
@@ -268,7 +269,8 @@ function SignInScreen() {
 
                     {/* Forgot Password - absolutely positioned */}
                     <TouchableOpacity
-                      onPress={() => { lightTap(); onForgotPassword(); }}
+                      onPressIn={lightTap}
+                      onPress={() => onForgotPassword()}
                       activeOpacity={0.7}
                       style={{ position: 'absolute', right: 0, top: s(60) }}
                     >
@@ -304,7 +306,8 @@ function SignInScreen() {
 
                 {/* Resend Code */}
                 <TouchableOpacity
-                  onPress={() => { lightTap(); handleResendCode(); }}
+                  onPressIn={lightTap}
+                  onPress={() => handleResendCode()}
                   disabled={loading}
                   className="items-center mb-4"
                 >
@@ -320,7 +323,8 @@ function SignInScreen() {
           <View className="px-6 pb-8 mt-12">
             {/* Sign In / Verify Button */}
             <TouchableOpacity
-              onPress={() => { lightTap(); step === 'credentials' ? handleSignIn() : handleVerifyCode(); }}
+              onPressIn={lightTap}
+              onPress={() => { step === 'credentials' ? handleSignIn() : handleVerifyCode(); }}
               disabled={loading}
               activeOpacity={0.8}
               style={{ backgroundColor: loading ? colors.textMuted : colors.text, borderWidth: 1, borderColor: colors.border, ...shadow.card }}

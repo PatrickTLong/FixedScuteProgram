@@ -202,16 +202,18 @@ async function loadInstalledAppsOnce(): Promise<InstalledApp[]> {
 
 type TabType = 'apps' | 'websites';
 
-const AppItemRow = memo(({ item, isSelected, onToggle, colors, s, skipCheckboxAnimation }: {
+const AppItemRow = memo(({ item, isSelected, onToggle, onPressIn, colors, s, skipCheckboxAnimation }: {
   item: InstalledApp;
   isSelected: boolean;
   onToggle: (id: string) => void;
+  onPressIn?: () => void;
   colors: any;
   s: (v: number) => number;
   skipCheckboxAnimation: boolean;
 }) => {
   return (
     <TouchableOpacity
+      onPressIn={onPressIn}
       onPress={() => onToggle(item.id)}
       activeOpacity={0.7}
       style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, paddingVertical: s(buttonPadding.standard), ...shadow.card }}
@@ -306,7 +308,6 @@ function EditPresetAppsScreen() {
     if (Platform.OS !== 'ios' || !InstalledAppsModule?.showAppPicker) return;
 
     try {
-      lightTap();
       const result = await InstalledAppsModule.showAppPicker();
       if (result?.success) {
         setIosSelectedAppsCount(result.appCount || 0);
@@ -356,7 +357,6 @@ function EditPresetAppsScreen() {
   );
 
   const toggleApp = useCallback((appId: string) => {
-    lightTap();
     setSelectedApps(prev =>
       prev.includes(appId)
         ? prev.filter(id => id !== appId)
@@ -368,7 +368,6 @@ function EditPresetAppsScreen() {
     const trimmed = websiteInput.trim().toLowerCase();
     if (trimmed && !blockedWebsites.includes(trimmed)) {
       if (trimmed.includes('.')) {
-        lightTap();
         setBlockedWebsites(prev => [...prev, trimmed]);
         setWebsiteInput('');
       }
@@ -376,7 +375,6 @@ function EditPresetAppsScreen() {
   }, [websiteInput, blockedWebsites]);
 
   const removeWebsite = useCallback((site: string) => {
-    lightTap();
     setBlockedWebsites(prev => prev.filter(s => s !== site));
   }, []);
 
@@ -412,7 +410,6 @@ function EditPresetAppsScreen() {
   // Continue handler
   const handleContinue = useCallback(() => {
     if (!canContinue) return;
-    lightTap();
     setPresetSettingsParams({
       name,
       selectedApps,
@@ -425,7 +422,6 @@ function EditPresetAppsScreen() {
 
   // Close handler
   const handleClose = useCallback(() => {
-    lightTap();
     setPresetSettingsParams(null);
     navigation.navigate('Presets');
   }, [navigation, setPresetSettingsParams]);
@@ -438,6 +434,7 @@ function EditPresetAppsScreen() {
         item={item}
         isSelected={isSelected}
         onToggle={toggleApp}
+        onPressIn={lightTap}
         colors={colors}
         s={s}
         skipCheckboxAnimation={skipCheckboxAnimation}
@@ -460,13 +457,14 @@ function EditPresetAppsScreen() {
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
       {/* Header — key forces SVG remount on focus to fix react-freeze stroke color bug */}
       <View key={svgKey} style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }} className="flex-row items-center justify-between px-4 py-3.5">
-        <TouchableOpacity onPress={handleClose} className="px-2">
+        <TouchableOpacity onPressIn={lightTap} onPress={handleClose} className="px-2">
           <XIcon size={s(iconSize.headerNav)} color="#FFFFFF" />
         </TouchableOpacity>
         <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>
           {preset ? 'Edit Preset' : 'New Preset'}
         </Text>
         <TouchableOpacity
+          onPressIn={lightTap}
           onPress={handleContinue}
           disabled={!canContinue}
           className="px-2"
@@ -501,7 +499,8 @@ function EditPresetAppsScreen() {
         {/* Tabs */}
         <View className="flex-row mx-6 mb-4">
           <TouchableOpacity
-            onPress={() => { lightTap(); switchTab('apps'); }}
+            onPressIn={lightTap}
+            onPress={() => switchTab('apps')}
             style={{ backgroundColor: activeTab === 'apps' ? colors.text : colors.card, borderWidth: 1, borderColor: colors.border, paddingVertical: s(buttonPadding.smallStandard), ...shadow.card }}
             className={`flex-1 ${radius.full} items-center justify-center flex-row`}
           >
@@ -512,7 +511,8 @@ function EditPresetAppsScreen() {
           </TouchableOpacity>
           <View className="w-2" />
           <TouchableOpacity
-            onPress={() => { lightTap(); switchTab('websites'); }}
+            onPressIn={lightTap}
+            onPress={() => switchTab('websites')}
             style={{ backgroundColor: activeTab === 'websites' ? colors.text : colors.card, borderWidth: 1, borderColor: colors.border, paddingVertical: s(buttonPadding.smallStandard), ...shadow.card }}
             className={`flex-1 ${radius.full} items-center justify-center flex-row`}
           >
@@ -579,8 +579,8 @@ function EditPresetAppsScreen() {
                 {!loadingApps && filteredApps.length > 0 && (
                   <View className="flex-row px-6 mb-3">
                     <TouchableOpacity
+                      onPressIn={lightTap}
                       onPress={() => {
-                        lightTap();
                         setSkipCheckboxAnimation(true);
                         setTimeout(() => setSkipCheckboxAnimation(false), 50);
                         const filteredIds = filteredApps.map(app => app.id);
@@ -598,8 +598,8 @@ function EditPresetAppsScreen() {
                       </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
+                      onPressIn={lightTap}
                       onPress={() => {
-                        lightTap();
                         setSkipCheckboxAnimation(true);
                         setTimeout(() => setSkipCheckboxAnimation(false), 50);
                         const filteredIds = new Set(filteredApps.map(app => app.id));

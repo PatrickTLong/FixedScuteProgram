@@ -142,7 +142,8 @@ function TermsAcceptScreen() {
           Do you accept these Terms of Service?
         </Text>
         <TouchableOpacity
-          onPress={() => { lightTap(); handleAcceptTerms(); }}
+          onPressIn={lightTap}
+          onPress={() => handleAcceptTerms()}
           activeOpacity={0.8}
           style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
           className={`${radius.full} py-4 items-center`}

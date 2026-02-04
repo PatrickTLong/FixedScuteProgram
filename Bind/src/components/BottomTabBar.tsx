@@ -1,5 +1,5 @@
-import React, { memo, useCallback } from 'react';
-import { View, TouchableOpacity, Text } from 'react-native';
+import React, { memo, useCallback, useRef } from 'react';
+import { View, TouchableOpacity, Text, Animated, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import { lightTap } from '../utils/haptics';
@@ -75,20 +75,50 @@ const SettingsIcon = ({ color }: { color: string }) => (
   </Svg>
 );
 
+const PULSE_SIZE = 48;
+
 const TabItem = memo(({ label, isActive, onPress, icon, activeColor, inactiveColor }: TabItemProps) => {
-  const handlePress = useCallback(() => {
+  const pulseScale = useRef(new Animated.Value(0)).current;
+  const pulseOpacity = useRef(new Animated.Value(0)).current;
+
+  const triggerPulse = useCallback(() => {
     lightTap();
-    onPress();
-  }, [onPress]);
+    pulseScale.setValue(0);
+    pulseOpacity.setValue(0.35);
+    Animated.parallel([
+      Animated.timing(pulseScale, {
+        toValue: 1,
+        duration: 350,
+        useNativeDriver: true,
+      }),
+      Animated.timing(pulseOpacity, {
+        toValue: 0,
+        duration: 350,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [pulseScale, pulseOpacity]);
 
   return (
     <TouchableOpacity
-      onPress={handlePress}
+      onPressIn={triggerPulse}
+      onPress={onPress}
       activeOpacity={0.7}
       style={{ paddingVertical: buttonPadding.tabItem }}
       className="flex-1 items-center justify-center"
     >
-      {icon}
+      <View style={styles.pulseContainer}>
+        <Animated.View
+          style={[
+            styles.pulse,
+            {
+              opacity: pulseOpacity,
+              transform: [{ scale: pulseScale }],
+            },
+          ]}
+        />
+        {icon}
+      </View>
       <Text
         style={{ color: isActive ? activeColor : inactiveColor }}
         className={`${textSize.extraSmall} mt-1 ${fontFamily.regular}`}
@@ -97,6 +127,20 @@ const TabItem = memo(({ label, isActive, onPress, icon, activeColor, inactiveCol
       </Text>
     </TouchableOpacity>
   );
+});
+
+const styles = StyleSheet.create({
+  pulseContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pulse: {
+    position: 'absolute',
+    width: PULSE_SIZE,
+    height: PULSE_SIZE,
+    borderRadius: PULSE_SIZE / 2,
+    backgroundColor: '#ffffff',
+  },
 });
 
 // Route names for hidden preset editing tabs

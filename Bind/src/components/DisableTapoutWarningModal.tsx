@@ -20,13 +20,11 @@ function DisableTapoutWarningModal({ visible, onConfirm, onCancel }: DisableTapo
   const [dontShowAgain, setDontShowAgain] = useState(false);
 
   const handleConfirm = () => {
-    lightTap();
     onConfirm(dontShowAgain);
     setDontShowAgain(false); // Reset for next time
   };
 
   const handleCancel = () => {
-    lightTap();
     onCancel();
     setDontShowAgain(false); // Reset for next time
   };
@@ -52,7 +50,8 @@ function DisableTapoutWarningModal({ visible, onConfirm, onCancel }: DisableTapo
 
             {/* Don't show again checkbox */}
             <TouchableOpacity
-              onPress={() => { lightTap(); setDontShowAgain(!dontShowAgain); }}
+              onPressIn={lightTap}
+              onPress={() => setDontShowAgain(!dontShowAgain)}
               activeOpacity={0.7}
               className="flex-row items-center justify-center mt-6"
             >
@@ -68,6 +67,7 @@ function DisableTapoutWarningModal({ visible, onConfirm, onCancel }: DisableTapo
           {/* Buttons */}
           <View style={{ borderTopWidth: 1, borderTopColor: colors.divider }} className="flex-row">
             <TouchableOpacity
+              onPressIn={lightTap}
               onPress={handleCancel}
               activeOpacity={0.7}
               style={{ borderRightWidth: 1, borderRightColor: colors.divider }}
@@ -78,6 +78,7 @@ function DisableTapoutWarningModal({ visible, onConfirm, onCancel }: DisableTapo
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
+              onPressIn={lightTap}
               onPress={handleConfirm}
               activeOpacity={0.7}
               className="flex-1 py-4 items-center"

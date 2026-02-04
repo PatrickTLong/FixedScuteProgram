@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import TimerPicker from './TimerPicker';
+import { lightTap, mediumTap } from '../utils/haptics';
 import { useResponsive } from '../utils/responsive';
 
 interface ConfigModalProps {
@@ -82,6 +83,7 @@ function ConfigModal({
           borderBottomColor: '#eee',
         }}>
           <TouchableOpacity
+            onPressIn={lightTap}
             onPress={onClose}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             style={{ minWidth: s(60) }}
@@ -92,6 +94,7 @@ function ConfigModal({
             {configMode === 'all' ? 'Disable Phone Use' : 'Select Apps'}
           </Text>
           <TouchableOpacity
+            onPressIn={lightTap}
             onPress={onSave}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             style={{ minWidth: s(60), alignItems: 'flex-end' }}
@@ -113,6 +116,7 @@ function ConfigModal({
             {/* App Selection Button */}
             {configMode === 'specific' && (
               <TouchableOpacity
+                onPressIn={lightTap}
                 onPress={onOpenAppSelector}
                 activeOpacity={0.7}
                 style={{
@@ -169,6 +173,7 @@ function ConfigModal({
                     }}
                   />
                   <TouchableOpacity
+                    onPressIn={lightTap}
                     onPress={onAddWebsite}
                     disabled={!isWebsiteValid}
                     style={{
@@ -189,6 +194,7 @@ function ConfigModal({
                     {blockedWebsites.map((site) => (
                       <TouchableOpacity
                         key={site}
+                        onPressIn={lightTap}
                         onPress={() => onRemoveWebsite(site)}
                         style={{
                           flexDirection: 'row',
@@ -227,6 +233,7 @@ function ConfigModal({
             }}>
               {/* Block Settings Toggle */}
               <TouchableOpacity
+                onPressIn={mediumTap}
                 onPress={onToggleBlockSettings}
                 activeOpacity={0.7}
                 style={{
@@ -259,6 +266,7 @@ function ConfigModal({
 
               {/* No Time Limit Toggle */}
               <TouchableOpacity
+                onPressIn={mediumTap}
                 onPress={onToggleNoTimeLimit}
                 activeOpacity={0.7}
                 style={{

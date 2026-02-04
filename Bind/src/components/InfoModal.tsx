@@ -54,7 +54,8 @@ function InfoModal({
           {/* Button */}
           <View style={{ borderTopWidth: 1, borderTopColor: colors.divider }}>
             <TouchableOpacity
-              onPress={() => { lightTap(); onClose(); }}
+              onPressIn={lightTap}
+              onPress={onClose}
               activeOpacity={0.7}
               className="py-4 items-center"
             >

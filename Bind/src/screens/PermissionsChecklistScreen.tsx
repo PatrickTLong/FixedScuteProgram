@@ -357,7 +357,8 @@ function PermissionsChecklistScreen() {
         {permissions.filter(p => !p.isGranted).map((permission) => (
           <TouchableOpacity
             key={permission.id}
-            onPress={() => { lightTap(); openPermissionSettings(permission); }}
+            onPressIn={lightTap}
+            onPress={() => openPermissionSettings(permission)}
             activeOpacity={0.7}
             style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
             className={`flex-row items-center p-4 ${radius['2xl']} mb-3`}

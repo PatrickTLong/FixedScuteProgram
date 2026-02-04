@@ -144,10 +144,8 @@ function EmergencyTapoutModal({
                 className="w-full"
               >
               <TouchableOpacity
-                onPress={() => {
-                  mediumTap();
-                  onUseTapout();
-                }}
+                onPressIn={mediumTap}
+                onPress={onUseTapout}
                 disabled={!canUseTapout || isLoading}
                 activeOpacity={0.7}
                 style={{
@@ -185,10 +183,8 @@ function EmergencyTapoutModal({
           {/* Close Button */}
           <View style={{ borderTopWidth: 1, borderTopColor: colors.divider }}>
             <TouchableOpacity
-              onPress={() => {
-                lightTap();
-                onClose();
-              }}
+              onPressIn={lightTap}
+              onPress={onClose}
               activeOpacity={0.7}
               className="py-4 items-center"
             >

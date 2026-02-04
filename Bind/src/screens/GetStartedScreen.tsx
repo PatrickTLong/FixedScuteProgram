@@ -256,6 +256,7 @@ function GetStartedScreen() {
                       className={`${radius.full} px-5 ${textSize.small} ${fontFamily.regular}`}
                     />
                     <TouchableOpacity
+                      onPressIn={lightTap}
                       onPress={() => setShowPassword(!showPassword)}
                       style={{ position: 'absolute', right: s(16), top: 0, bottom: 0, justifyContent: 'center' }}
                     >
@@ -289,7 +290,8 @@ function GetStartedScreen() {
 
                 {/* Resend Code */}
                 <TouchableOpacity
-                  onPress={() => { lightTap(); handleResendCode(); }}
+                  onPressIn={lightTap}
+                  onPress={() => handleResendCode()}
                   disabled={loading}
                   className="items-center mb-4"
                 >
@@ -305,7 +307,8 @@ function GetStartedScreen() {
           <View className="px-6 pb-8 mt-12">
             {/* Sign Up / Verify Button */}
             <TouchableOpacity
-              onPress={() => { lightTap(); step === 'form' ? handleSignUp() : handleVerifyCode(); }}
+              onPressIn={lightTap}
+              onPress={() => { step === 'form' ? handleSignUp() : handleVerifyCode(); }}
               disabled={loading}
               activeOpacity={0.8}
               style={{ backgroundColor: loading ? colors.textMuted : colors.text, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
@@ -330,7 +333,8 @@ function GetStartedScreen() {
             {/* Already have an account */}
             {step === 'form' && (
               <TouchableOpacity
-                onPress={() => { lightTap(); onSignIn(); }}
+                onPressIn={lightTap}
+                onPress={() => onSignIn()}
                 activeOpacity={0.7}
                 className="items-center py-2 mt-4"
               >

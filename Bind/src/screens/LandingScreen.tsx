@@ -38,16 +38,21 @@ function LandingScreen() {
     };
   }, [tapTextOpacity]);
 
-  const handleTap = () => {
+  const handleTapHaptic = () => {
     if (showTapText) {
       lightTap();
+    }
+  };
+
+  const handleTap = () => {
+    if (showTapText) {
       navigation.navigate('GetStarted');
     }
   };
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
-      <Pressable onPress={handleTap} style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <Pressable onPressIn={handleTapHaptic} onPress={handleTap} style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         {/* Logo centered */}
         <Image
           source={require('../frontassets/TrueScute-Photoroom.png')}

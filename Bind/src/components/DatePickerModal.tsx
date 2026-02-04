@@ -215,6 +215,7 @@ const DayCell = memo(({ day, selectable, selected, isToday: todayDay, textColor,
   const { colors } = useTheme();
   return (
   <TouchableOpacity
+    onPressIn={lightTap}
     onPress={() => onSelect(day)}
     disabled={!selectable}
     style={{ width: '14.28%', height: cellHeight }}
@@ -259,7 +260,8 @@ const AmPmSelector = memo(({ value, onChange, greenColor, cardColor, textMutedCo
   return (
   <View className="ml-2">
     <TouchableOpacity
-      onPress={() => { lightTap(); onChange('AM'); }}
+      onPressIn={lightTap}
+      onPress={() => onChange('AM')}
       style={{ backgroundColor: value === 'AM' ? colors.green : cardColor, borderWidth: 1, borderColor: value === 'AM' ? colors.green : colors.border, ...shadow.card }}
       className={`px-3 py-2 ${radius.lg}`}
     >
@@ -268,7 +270,8 @@ const AmPmSelector = memo(({ value, onChange, greenColor, cardColor, textMutedCo
       </Text>
     </TouchableOpacity>
     <TouchableOpacity
-      onPress={() => { lightTap(); onChange('PM'); }}
+      onPressIn={lightTap}
+      onPress={() => onChange('PM')}
       style={{ backgroundColor: value === 'PM' ? colors.green : cardColor, borderWidth: 1, borderColor: value === 'PM' ? colors.green : colors.border, ...shadow.card }}
       className={`px-3 py-2 ${radius.lg} mt-1`}
     >
@@ -349,7 +352,6 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
   }, []);
 
   const handlePrevMonth = useCallback(() => {
-    lightTap();
     if (viewMonth === 0) {
       setViewMonth(11);
       setViewYear(y => y - 1);
@@ -359,7 +361,6 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
   }, [viewMonth]);
 
   const handleNextMonth = useCallback(() => {
-    lightTap();
     if (viewMonth === 11) {
       setViewMonth(0);
       setViewYear(y => y + 1);
@@ -379,7 +380,6 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
   }, [viewYear, viewMonth, maxDate]);
 
   const handleSelectDay = useCallback((day: number) => {
-    lightTap();
     const selected = new Date(viewYear, viewMonth, day);
     setTempSelectedDate(selected);
   }, [viewYear, viewMonth]);
@@ -435,7 +435,6 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
   }, [tempSelectedDate, selectedHour, selectedMinute, selectedAmPm, onSelect, handleClose, isFutureDateTime]);
 
   const handleClear = useCallback(() => {
-    lightTap();
     setTempSelectedDate(null);
   }, []);
 
@@ -492,12 +491,13 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
           <SafeAreaView style={{ flex: 1 }}>
           {/* Header */}
           <View style={{ borderBottomWidth: 1, borderBottomColor: colors.divider }} className="flex-row items-center justify-between px-4 py-3">
-            <TouchableOpacity onPress={() => { lightTap(); handleClose(); }} className="px-2">
+            <TouchableOpacity onPressIn={lightTap} onPress={handleClose} className="px-2">
               <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.regular}`}>Cancel</Text>
             </TouchableOpacity>
             <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.semibold}`}>Pick Date and Time</Text>
             <TouchableOpacity
-              onPress={() => { lightTap(); handleConfirm(); }}
+              onPressIn={lightTap}
+              onPress={handleConfirm}
               disabled={!isFutureDateTime}
               className="px-2"
             >
@@ -514,6 +514,7 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
           {/* Month/Year Navigation */}
           <View className="flex-row items-center justify-between mb-4">
             <TouchableOpacity
+              onPressIn={lightTap}
               onPress={handlePrevMonth}
               disabled={!canGoPrev}
               className="w-10 h-10 items-center justify-center"
@@ -526,6 +527,7 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
             </Text>
 
             <TouchableOpacity
+              onPressIn={lightTap}
               onPress={handleNextMonth}
               disabled={!canGoNext}
               className="w-10 h-10 items-center justify-center"
@@ -620,6 +622,7 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
               {/* Clear Button - centered with text block */}
               {tempSelectedDate && (
                 <TouchableOpacity
+                  onPressIn={lightTap}
                   onPress={handleClear}
                   style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
                   className={`ml-4 px-4 py-2 ${radius.full}`}

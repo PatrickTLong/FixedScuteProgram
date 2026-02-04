@@ -343,6 +343,7 @@ const DayCell = memo(({ day, selectable, selected, isToday: todayDay, textColor,
   const { colors } = useTheme();
   return (
     <TouchableOpacity
+      onPressIn={lightTap}
       onPress={() => onSelect(day)}
       disabled={!selectable}
       style={{ width: '14.28%', height: cellHeight }}
@@ -385,7 +386,8 @@ const AmPmSelector = memo(({ value, onChange, cardColor }: AmPmSelectorProps) =>
   return (
     <View className="ml-2">
       <TouchableOpacity
-        onPress={() => { lightTap(); onChange('AM'); }}
+        onPressIn={lightTap}
+        onPress={() => onChange('AM')}
         style={{ backgroundColor: value === 'AM' ? colors.green : cardColor, borderWidth: 1, borderColor: value === 'AM' ? colors.green : colors.border, ...shadow.card }}
         className={`px-3 py-2 ${radius.AMPM}`}
       >
@@ -394,7 +396,8 @@ const AmPmSelector = memo(({ value, onChange, cardColor }: AmPmSelectorProps) =>
         </Text>
       </TouchableOpacity>
       <TouchableOpacity
-        onPress={() => { lightTap(); onChange('PM'); }}
+        onPressIn={lightTap}
+        onPress={() => onChange('PM')}
         style={{ backgroundColor: value === 'PM' ? colors.green : cardColor, borderWidth: 1, borderColor: value === 'PM' ? colors.green : colors.border, ...shadow.card }}
         className={`px-3 py-2 ${radius.AMPM} mt-1`}
       >
@@ -469,7 +472,6 @@ function PresetSettingsScreen() {
   // Expandable info dropdowns
   const [expandedInfo, setExpandedInfo] = useState<Record<string, boolean>>({});
   const toggleInfo = useCallback((key: string) => {
-    lightTap();
     setExpandedInfo(prev => ({ ...prev, [key]: !prev[key] }));
   }, []);
 
@@ -581,7 +583,6 @@ function PresetSettingsScreen() {
   }, [datePickerTarget, scheduleStartDate, dpToday]);
 
   const dpHandlePrevMonth = useCallback(() => {
-    lightTap();
     if (dpViewMonth === 0) {
       setDpViewMonth(11);
       setDpViewYear(y => y - 1);
@@ -591,7 +592,6 @@ function PresetSettingsScreen() {
   }, [dpViewMonth]);
 
   const dpHandleNextMonth = useCallback(() => {
-    lightTap();
     if (dpViewMonth === 11) {
       setDpViewMonth(0);
       setDpViewYear(y => y + 1);
@@ -611,7 +611,6 @@ function PresetSettingsScreen() {
   }, [dpViewYear, dpViewMonth, dpMaxDate]);
 
   const dpHandleSelectDay = useCallback((day: number) => {
-    lightTap();
     const selected = new Date(dpViewYear, dpViewMonth, day);
     setDpTempSelectedDate(selected);
   }, [dpViewYear, dpViewMonth]);
@@ -641,7 +640,6 @@ function PresetSettingsScreen() {
 
   // Open date picker inline
   const openDatePicker = useCallback((target: 'targetDate' | 'scheduleStart' | 'scheduleEnd') => {
-    lightTap();
     setDatePickerTarget(target);
 
     let existingDate: Date | null = null;
@@ -673,7 +671,6 @@ function PresetSettingsScreen() {
 
   const dpHandleConfirm = useCallback(() => {
     if (dpTempSelectedDate && dpIsFutureDateTime) {
-      lightTap();
       let hours24 = dpSelectedHour;
       if (dpSelectedAmPm === 'PM' && dpSelectedHour !== 12) {
         hours24 = dpSelectedHour + 12;
@@ -711,13 +708,11 @@ function PresetSettingsScreen() {
   }, [dpTempSelectedDate, dpIsFutureDateTime, dpSelectedHour, dpSelectedAmPm, dpSelectedMinute, datePickerTarget, scheduleEndDate]);
 
   const dpHandleCancel = useCallback(() => {
-    lightTap();
     setShowDatePicker(false);
     setDatePickerTarget(null);
   }, []);
 
   const dpHandleClear = useCallback(() => {
-    lightTap();
     setDpTempSelectedDate(null);
   }, []);
 
@@ -791,7 +786,6 @@ function PresetSettingsScreen() {
   // ============ Save Handler ============
   const handleSave = useCallback(async () => {
     if (!name.trim() || isSaving || !canSave) return;
-    lightTap();
 
     const trimmedName = name.trim().toLowerCase();
     const duplicateExists = existingPresets.some(
@@ -854,13 +848,14 @@ function PresetSettingsScreen() {
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
         {/* Date Picker Header */}
         <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }} className="flex-row items-center justify-between px-4 py-3.5">
-          <TouchableOpacity onPress={dpHandleCancel} style={{ width: s(40) }} className="px-2">
+          <TouchableOpacity onPressIn={lightTap} onPress={dpHandleCancel} style={{ width: s(40) }} className="px-2">
             <XIcon size={s(iconSize.headerNav)} color="#FFFFFF" />
           </TouchableOpacity>
           <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>
             {datePickerTarget === 'scheduleStart' ? 'Start Date' : datePickerTarget === 'scheduleEnd' ? 'End Date' : 'Date and Time'}
           </Text>
           <TouchableOpacity
+            onPressIn={lightTap}
             onPress={dpHandleConfirm}
             disabled={!dpIsFutureDateTime}
             style={{ width: s(40) }}
@@ -878,6 +873,7 @@ function PresetSettingsScreen() {
           {/* Month/Year Navigation */}
           <View className="flex-row items-center justify-between mb-4">
             <TouchableOpacity
+              onPressIn={lightTap}
               onPress={dpHandlePrevMonth}
               disabled={!dpCanGoPrev}
               className="w-10 h-10 items-center justify-center"
@@ -890,6 +886,7 @@ function PresetSettingsScreen() {
             </Text>
 
             <TouchableOpacity
+              onPressIn={lightTap}
               onPress={dpHandleNextMonth}
               disabled={!dpCanGoNext}
               className="w-10 h-10 items-center justify-center"
@@ -993,6 +990,7 @@ function PresetSettingsScreen() {
               </View>
               {dpTempSelectedDate && (
                 <TouchableOpacity
+                  onPressIn={lightTap}
                   onPress={dpHandleClear}
                   style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
                   className={`ml-4 px-4 py-2 ${radius.full}`}
@@ -1013,7 +1011,7 @@ function PresetSettingsScreen() {
             <View style={{ borderTopWidth: 1, borderTopColor: colors.dividerLight, marginHorizontal: s(-24), paddingHorizontal: s(24) }}>
               <View style={{ marginHorizontal: s(-24) }}>
                 <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
-                  <TouchableOpacity onPress={() => toggleInfo('recurring')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
+                  <TouchableOpacity onPressIn={lightTap} onPress={() => toggleInfo('recurring')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
                     <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Recurring Schedule</Text>
                     <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>Repeat this block automatically</Text>
                   </TouchableOpacity>
@@ -1037,7 +1035,7 @@ function PresetSettingsScreen() {
                   />
                 </View>
                 <ExpandableInfo expanded={!!expandedInfo.recurring}>
-                  <TouchableOpacity onPress={() => toggleInfo('recurring')} activeOpacity={0.7} className="px-6 pb-4">
+                  <TouchableOpacity onPressIn={lightTap} onPress={() => toggleInfo('recurring')} activeOpacity={0.7} className="px-6 pb-4">
                     <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular} leading-5`}>
                       Automatically repeats this blocking session at the interval you choose. After each session ends, the next one will start based on your selected frequency.
                     </Text>
@@ -1084,10 +1082,8 @@ function PresetSettingsScreen() {
 
                     {/* Unit Selector */}
                     <TouchableOpacity
-                      onPress={() => {
-                        lightTap();
-                        setRecurringUnitModalVisible(true);
-                      }}
+                      onPressIn={lightTap}
+                      onPress={() => setRecurringUnitModalVisible(true)}
                       activeOpacity={0.7}
                       style={{ backgroundColor: colors.card, paddingVertical: s(buttonPadding.standard), borderWidth: 1, borderColor: colors.border, ...shadow.card }}
                       className={`flex-row items-center px-4 ${radius.xl} mb-3`}
@@ -1206,11 +1202,11 @@ function PresetSettingsScreen() {
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
       {/* Header */}
       <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }} className="flex-row items-center justify-between px-4 py-3.5">
-        <TouchableOpacity onPress={() => { lightTap(); navigation.navigate('EditPresetApps'); }} disabled={isSaving} style={{ width: s(40) }} className="px-2">
+        <TouchableOpacity onPressIn={lightTap} onPress={() => navigation.navigate('EditPresetApps')} disabled={isSaving} style={{ width: s(40) }} className="px-2">
           <ChevronLeftIcon size={s(iconSize.headerNav)} color="#FFFFFF" />
         </TouchableOpacity>
         <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Final Settings</Text>
-        <TouchableOpacity onPress={handleSave} disabled={isSaving || !canSave} style={{ width: s(40), height: s(24), overflow: 'visible' }} className="px-2 items-end justify-center">
+        <TouchableOpacity onPressIn={lightTap} onPress={handleSave} disabled={isSaving || !canSave} style={{ width: s(40), height: s(24), overflow: 'visible' }} className="px-2 items-end justify-center">
           <View style={{ opacity: isSaving ? 0 : 1 }}>
             <CheckIcon size={s(iconSize.headerNav)} color={canSave ? '#FFFFFF' : colors.textMuted} />
           </View>
@@ -1239,7 +1235,7 @@ function PresetSettingsScreen() {
         {/* No Time Limit Toggle */}
         <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}>
           <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
-            <TouchableOpacity onPress={() => toggleInfo('noTimeLimit')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
+            <TouchableOpacity onPressIn={lightTap} onPress={() => toggleInfo('noTimeLimit')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
               <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>No Time Limit</Text>
               <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>Block until manually unlocked</Text>
             </TouchableOpacity>
@@ -1264,7 +1260,7 @@ function PresetSettingsScreen() {
             />
           </View>
           <ExpandableInfo expanded={!!expandedInfo.noTimeLimit}>
-            <TouchableOpacity onPress={() => toggleInfo('noTimeLimit')} activeOpacity={0.7} className="px-6 pb-4">
+            <TouchableOpacity onPressIn={lightTap} onPress={() => toggleInfo('noTimeLimit')} activeOpacity={0.7} className="px-6 pb-4">
               <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular} leading-5`}>
                 Block stays active until manually ended for No Time Limit Presets. Strict Mode for this toggle ONLY disables tap to continue functionality.
               </Text>
@@ -1276,7 +1272,7 @@ function PresetSettingsScreen() {
         <ExpandableInfo expanded={!noTimeLimit} lazy>
           <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}>
             <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
-              <TouchableOpacity onPress={() => toggleInfo('schedule')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
+              <TouchableOpacity onPressIn={lightTap} onPress={() => toggleInfo('schedule')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
                 <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Schedule for Later</Text>
                 <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>Set a future start and end time, with optional recurrence</Text>
               </TouchableOpacity>
@@ -1310,7 +1306,7 @@ function PresetSettingsScreen() {
               />
             </View>
             <ExpandableInfo expanded={!!expandedInfo.schedule}>
-              <TouchableOpacity onPress={() => toggleInfo('schedule')} activeOpacity={0.7} className="px-6 pb-4">
+              <TouchableOpacity onPressIn={lightTap} onPress={() => toggleInfo('schedule')} activeOpacity={0.7} className="px-6 pb-4">
                 <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular} leading-5`}>
                   Set a future start and end time. Hides timer options since duration is determined by your schedule. You can also set up recurring blocks when picking your end date.
                 </Text>
@@ -1328,6 +1324,7 @@ function PresetSettingsScreen() {
 
             {/* Start Date */}
             <TouchableOpacity
+              onPressIn={lightTap}
               onPress={() => openDatePicker('scheduleStart')}
               activeOpacity={0.7}
               style={{ backgroundColor: colors.card, paddingVertical: s(buttonPadding.standard), borderWidth: 1, borderColor: colors.border, ...shadow.card }}
@@ -1356,7 +1353,8 @@ function PresetSettingsScreen() {
               </View>
               {scheduleStartDate ? (
                 <TouchableOpacity
-                  onPress={() => { lightTap(); setScheduleStartDate(null); }}
+                  onPressIn={lightTap}
+                  onPress={() => setScheduleStartDate(null)}
                   hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 >
                   <XIcon size={s(iconSize.sm)} color={colors.text} />
@@ -1370,6 +1368,7 @@ function PresetSettingsScreen() {
 
             {/* End Date */}
             <TouchableOpacity
+              onPressIn={lightTap}
               onPress={() => openDatePicker('scheduleEnd')}
               activeOpacity={0.7}
               style={{ backgroundColor: colors.card, paddingVertical: s(buttonPadding.standard), borderWidth: 1, borderColor: colors.border, ...shadow.card }}
@@ -1398,7 +1397,8 @@ function PresetSettingsScreen() {
               </View>
               {scheduleEndDate ? (
                 <TouchableOpacity
-                  onPress={() => { lightTap(); setScheduleEndDate(null); }}
+                  onPressIn={lightTap}
+                  onPress={() => setScheduleEndDate(null)}
                   hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 >
                   <XIcon size={s(iconSize.sm)} color={colors.text} />
@@ -1462,6 +1462,7 @@ function PresetSettingsScreen() {
 
             {/* Pick a Date Button */}
             <TouchableOpacity
+              onPressIn={lightTap}
               onPress={() => {
                 setTimerDays(0);
                 setTimerHours(0);
@@ -1496,7 +1497,8 @@ function PresetSettingsScreen() {
               </View>
               {targetDate ? (
                 <TouchableOpacity
-                  onPress={() => { lightTap(); setTargetDate(null); }}
+                  onPressIn={lightTap}
+                  onPress={() => setTargetDate(null)}
                   hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 >
                   <XIcon size={s(iconSize.sm)} color={colors.text} />
@@ -1517,7 +1519,7 @@ function PresetSettingsScreen() {
         {/* Block Settings Toggle */}
         <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}>
           <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
-            <TouchableOpacity onPress={() => toggleInfo('blockSettings')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
+            <TouchableOpacity onPressIn={lightTap} onPress={() => toggleInfo('blockSettings')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
               <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Block Settings App</Text>
               <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>Essential settings remain accessible</Text>
             </TouchableOpacity>
@@ -1539,7 +1541,7 @@ function PresetSettingsScreen() {
             />
           </View>
           <ExpandableInfo expanded={!!expandedInfo.blockSettings}>
-            <TouchableOpacity onPress={() => toggleInfo('blockSettings')} activeOpacity={0.7} className="px-6 pb-4">
+            <TouchableOpacity onPressIn={lightTap} onPress={() => toggleInfo('blockSettings')} activeOpacity={0.7} className="px-6 pb-4">
               <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular} leading-5`}>
                 Prevents access to Android Settings during the block so that overlays and essential permissions cannot be disabled. Most essential settings like WiFi or battery settings remain accessible via quick panel by sliding down from your phone.
               </Text>
@@ -1550,7 +1552,7 @@ function PresetSettingsScreen() {
         {/* Strict Mode Toggle */}
         <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}>
           <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
-            <TouchableOpacity onPress={() => toggleInfo('strictMode')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
+            <TouchableOpacity onPressIn={lightTap} onPress={() => toggleInfo('strictMode')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
               <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Strict Mode</Text>
               <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>
                 {noTimeLimit ? 'Disable "Continue anyway" button for blocked apps' : 'Lock until timer ends or emergency tapout'}
@@ -1576,7 +1578,7 @@ function PresetSettingsScreen() {
             />
           </View>
           <ExpandableInfo expanded={!!expandedInfo.strictMode}>
-            <TouchableOpacity onPress={() => toggleInfo('strictMode')} activeOpacity={0.7} className="px-6 pb-4">
+            <TouchableOpacity onPressIn={lightTap} onPress={() => toggleInfo('strictMode')} activeOpacity={0.7} className="px-6 pb-4">
               <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular} leading-5`}>
                 UNTIMED PRESETS: Disables tap to continue button on block overlay. TIMED PRESETS: Removes the ability to unlock in any way and to dismiss blocked apps or sites. ONLY EXITS: timer expiring or Emergency Tapout (if enabled). Pair with the block settings toggle for maximum strictness.
               </Text>
@@ -1588,7 +1590,7 @@ function PresetSettingsScreen() {
         <ExpandableInfo expanded={strictMode && !noTimeLimit} lazy>
           <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}>
             <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
-              <TouchableOpacity onPress={() => toggleInfo('emergencyTapout')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
+              <TouchableOpacity onPressIn={lightTap} onPress={() => toggleInfo('emergencyTapout')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
                 <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Allow Emergency Tapout</Text>
                 <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>Use your emergency tapouts for this preset</Text>
               </TouchableOpacity>
@@ -1598,7 +1600,7 @@ function PresetSettingsScreen() {
               />
             </View>
             <ExpandableInfo expanded={!!expandedInfo.emergencyTapout}>
-              <TouchableOpacity onPress={() => toggleInfo('emergencyTapout')} activeOpacity={0.7} className="px-6 pb-4">
+              <TouchableOpacity onPressIn={lightTap} onPress={() => toggleInfo('emergencyTapout')} activeOpacity={0.7} className="px-6 pb-4">
                 <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular} leading-5`}>
                   Your safety net for Strict Mode blocks. Limited uses that refill +1 every two weeks. Disabling means NO way out except waiting.
                 </Text>
@@ -1656,10 +1658,10 @@ function PresetSettingsScreen() {
               {(['minutes', 'hours', 'days', 'weeks', 'months'] as RecurringUnit[]).map((unit) => (
                 <TouchableOpacity
                   key={unit}
+                  onPressIn={lightTap}
                   onPress={() => {
                     setRecurringUnit(unit);
                     setRecurringUnitModalVisible(false);
-                    lightTap();
                   }}
                   activeOpacity={0.7}
                   style={{

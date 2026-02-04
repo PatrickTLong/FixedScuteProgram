@@ -42,7 +42,8 @@ function MembershipScreen() {
 
         {/* Monthly Plan */}
         <TouchableOpacity
-          onPress={() => { lightTap(); setSelectedPlan('monthly'); }}
+          onPressIn={lightTap}
+          onPress={() => setSelectedPlan('monthly')}
           style={{
             backgroundColor: colors.card,
             borderWidth: 2,
@@ -71,7 +72,8 @@ function MembershipScreen() {
 
         {/* Yearly Plan */}
         <TouchableOpacity
-          onPress={() => { lightTap(); setSelectedPlan('yearly'); }}
+          onPressIn={lightTap}
+          onPress={() => setSelectedPlan('yearly')}
           style={{
             backgroundColor: colors.card,
             borderWidth: 2,
@@ -105,7 +107,8 @@ function MembershipScreen() {
 
         {/* Lifetime Plan */}
         <TouchableOpacity
-          onPress={() => { lightTap(); setSelectedPlan('lifetime'); }}
+          onPressIn={lightTap}
+          onPress={() => setSelectedPlan('lifetime')}
           style={{
             backgroundColor: colors.card,
             borderWidth: 2,
@@ -139,7 +142,8 @@ function MembershipScreen() {
 
         {/* Subscribe Button */}
         <TouchableOpacity
-          onPress={() => { lightTap(); /* TODO: Trigger Google Play purchase */ }}
+          onPressIn={lightTap}
+          onPress={() => { /* TODO: Trigger Google Play purchase */ }}
           disabled={!selectedPlan}
           style={{
             backgroundColor: selectedPlan ? colors.text : colors.border,

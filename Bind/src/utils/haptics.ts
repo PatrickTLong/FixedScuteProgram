@@ -1,43 +1,83 @@
 /**
  * Haptic Feedback Utility
- * Provides consistent haptic feedback across the app
+ * Provides consistent haptic feedback across the app.
+ *
+ * Strength is controlled globally via `setHapticStrength(n)` where
+ *   0 = haptics off, 1 = full strength (default).
+ * All five tap functions automatically scale their vibration durations
+ * by the current strength value.
  */
 
 import { Vibration, Platform } from 'react-native';
 
-// Light tap - for general button presses, tab switches
+// ── Global strength multiplier (0‒1) ──────────────────────────────
+let _strength = 0.4;
+
+/** Call this from ThemeContext to sync the strength value. */
+export function setHapticStrength(value: number): void {
+  _strength = Math.max(0, Math.min(1, value));
+}
+
+export function getHapticStrength(): number {
+  return _strength;
+}
+
+// ── Helpers ────────────────────────────────────────────────────────
+function vibrate(ms: number): void {
+  if (Platform.OS === 'android' && _strength > 0) {
+    Vibration.vibrate(Math.round(ms * _strength));
+  }
+}
+
+function vibratePattern(pattern: number[]): void {
+  if (Platform.OS === 'android' && _strength > 0) {
+    // Scale only the vibration durations (odd indices), keep pauses as-is
+    const scaled = pattern.map((v, i) =>
+      i % 2 === 1 ? Math.round(v * _strength) : v,
+    );
+    Vibration.vibrate(scaled);
+  }
+}
+
+// ── Tap functions (labels unchanged so every call site still works) ─
+/**
+ * **Light** — general button presses, tab switches
+ * Base duration: 10 ms
+ */
 export function lightTap(): void {
-  if (Platform.OS === 'android') {
-    Vibration.vibrate(10);
-  }
+  vibrate(10);
 }
 
-// Medium tap - for toggle switches, selections
+/**
+ * **Medium** — toggle switches, selections
+ * Base duration: 20 ms
+ */
 export function mediumTap(): void {
-  if (Platform.OS === 'android') {
-    Vibration.vibrate(20);
-  }
+  vibrate(20);
 }
 
-// Success feedback - for successful actions
+/**
+ * **Success** — successful actions (double-pulse pattern)
+ * Base pattern: [0, 15, 50, 15] ms
+ */
 export function successTap(): void {
-  if (Platform.OS === 'android') {
-    Vibration.vibrate([0, 15, 50, 15]);
-  }
+  vibratePattern([0, 15, 50, 15]);
 }
 
-// Error/warning feedback - for errors or destructive actions
+/**
+ * **Error** — errors or destructive actions (double-pulse pattern)
+ * Base pattern: [0, 30, 50, 30] ms
+ */
 export function errorTap(): void {
-  if (Platform.OS === 'android') {
-    Vibration.vibrate([0, 30, 50, 30]);
-  }
+  vibratePattern([0, 30, 50, 30]);
 }
 
-// Heavy tap - for important actions like confirm/delete
+/**
+ * **Heavy** — important actions like confirm / delete
+ * Base duration: 40 ms
+ */
 export function heavyTap(): void {
-  if (Platform.OS === 'android') {
-    Vibration.vibrate(40);
-  }
+  vibrate(40);
 }
 
 export default {
