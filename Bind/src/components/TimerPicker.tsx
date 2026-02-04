@@ -12,7 +12,7 @@ import { useResponsive } from '../utils/responsive';
 
 const BASE_ITEM_HEIGHT = 40;
 const VISIBLE_ITEMS = 3;
-const WINDOW_BUFFER = 2;
+const WINDOW_BUFFER = 4;
 
 interface WheelProps {
   values: number[];

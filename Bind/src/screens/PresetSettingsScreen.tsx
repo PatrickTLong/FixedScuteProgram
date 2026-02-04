@@ -184,7 +184,7 @@ const DAYS_OF_WEEK = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 const BASE_TIME_ITEM_HEIGHT = 40;
 const TIME_VISIBLE_ITEMS = 3;
-const TIME_WINDOW_BUFFER = 2;
+const TIME_WINDOW_BUFFER = 4;
 const HOURS_12 = Array.from({ length: 12 }, (_, i) => i + 1);
 const MINUTES = Array.from({ length: 60 }, (_, i) => i);
 

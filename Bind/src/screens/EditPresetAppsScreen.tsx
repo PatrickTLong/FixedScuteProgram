@@ -11,6 +11,8 @@ import {
   NativeEventEmitter,
   FlatList,
   Image,
+  Animated,
+  Easing,
 } from 'react-native';
 import AnimatedCheckbox from '../components/AnimatedCheckbox';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -200,7 +202,7 @@ async function loadInstalledAppsOnce(): Promise<InstalledApp[]> {
 
 const AppRowSkeleton = memo(({ colors, s }: { colors: any; s: (v: number) => number }) => (
   <View
-    style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, paddingVertical: s(buttonPadding.standard), ...shadow.card }}
+    style={{ backgroundColor: colors.card, paddingVertical: s(buttonPadding.standard) }}
     className={`flex-row items-center px-4 ${radius.xl} mb-2`}
   >
     <View style={{ width: s(40), height: s(40), marginRight: s(12), backgroundColor: colors.cardLight, borderRadius: s(10) }} />
@@ -213,7 +215,7 @@ const AppRowSkeleton = memo(({ colors, s }: { colors: any; s: (v: number) => num
 
 const WebsiteRowSkeleton = memo(({ colors, s }: { colors: any; s: (v: number) => number }) => (
   <View
-    style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
+    style={{ backgroundColor: colors.card }}
     className={`flex-row items-center py-3 px-4 ${radius.xl} mb-2`}
   >
     <View style={{ width: s(40), height: s(40), marginRight: s(12), backgroundColor: colors.cardLight, borderRadius: s(8) }} />
@@ -224,21 +226,34 @@ const WebsiteRowSkeleton = memo(({ colors, s }: { colors: any; s: (v: number) =>
 ));
 
 const TabSkeleton = memo(({ tab, colors, s }: { tab: TabType; colors: any; s: (v: number) => number }) => {
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, { toValue: 0.4, duration: 250, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 1, duration: 250, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+      ])
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [pulseAnim]);
+
   if (tab === 'apps') {
     return (
-      <View style={{ paddingHorizontal: s(24) }}>
+      <Animated.View style={{ paddingHorizontal: s(24), opacity: pulseAnim }}>
         {Array.from({ length: 8 }, (_, i) => (
           <AppRowSkeleton key={i} colors={colors} s={s} />
         ))}
-      </View>
+      </Animated.View>
     );
   }
   return (
-    <View style={{ paddingHorizontal: s(24) }}>
-      {Array.from({ length: 4 }, (_, i) => (
+    <Animated.View style={{ opacity: pulseAnim }}>
+      {Array.from({ length: 8 }, (_, i) => (
         <WebsiteRowSkeleton key={i} colors={colors} s={s} />
       ))}
-    </View>
+    </Animated.View>
   );
 });
 
