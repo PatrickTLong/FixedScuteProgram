@@ -347,6 +347,8 @@ function EditPresetAppsScreen() {
       setDisplayedTab('apps');
       setSearchQuery('');
       setSkipCheckboxAnimation(true);
+      // Re-enable animations after initial state is applied
+      requestAnimationFrame(() => setSkipCheckboxAnimation(false));
       // Check if we should show excluded apps info modal
       AsyncStorage.getItem(EXCLUDED_APPS_INFO_DISMISSED_KEY).then((dismissed) => {
         if (dismissed !== 'true') {
