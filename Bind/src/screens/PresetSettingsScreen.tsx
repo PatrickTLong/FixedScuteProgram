@@ -426,7 +426,7 @@ type PresetSettingsNavigationProp = BottomTabNavigationProp<MainTabParamList, 'P
 // ============ Main Screen Component ============
 function PresetSettingsScreen() {
   const navigation = useNavigation<PresetSettingsNavigationProp>();
-  const { onSave, getEditingPreset, getExistingPresets, getEmail, getPresetSettingsParams, setPresetSettingsParams } = usePresetSave();
+  const { onSave, getEditingPreset, getExistingPresets, getEmail, getPresetSettingsParams, setPresetSettingsParams, getFinalSettingsState, setFinalSettingsState } = usePresetSave();
   const paramsSnapshot = getPresetSettingsParams();
   const name = paramsSnapshot?.name ?? '';
   const selectedApps = paramsSnapshot?.selectedApps ?? [];
@@ -488,6 +488,7 @@ function PresetSettingsScreen() {
   const [recurringUnit, setRecurringUnit] = useState<RecurringUnit>('hours');
   const [recurringUnitModalVisible, setRecurringUnitModalVisible] = useState(false);
   const [recurrenceInfoVisible, setRecurrenceInfoVisible] = useState(false);
+  const [svgKey, setSvgKey] = useState(0);
 
   // ============ Inline Date Picker State ============
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -503,50 +504,128 @@ function PresetSettingsScreen() {
   const mainScrollRef = useRef<ScrollView>(null);
   const dpScrollRef = useRef<ScrollView>(null);
 
+  // Refs to track current form state for saving on blur
+  const blockSettingsRef = useRef(blockSettings);
+  const noTimeLimitRef = useRef(noTimeLimit);
+  const timerDaysRef = useRef(timerDays);
+  const timerHoursRef = useRef(timerHours);
+  const timerMinutesRef = useRef(timerMinutes);
+  const timerSecondsRef = useRef(timerSeconds);
+  const targetDateRef = useRef(targetDate);
+  const allowEmergencyTapoutRef = useRef(allowEmergencyTapout);
+  const strictModeRef = useRef(strictMode);
+  const isScheduledRef = useRef(isScheduled);
+  const scheduleStartDateRef = useRef(scheduleStartDate);
+  const scheduleEndDateRef = useRef(scheduleEndDate);
+  const isRecurringRef = useRef(isRecurring);
+  const recurringValueRef = useRef(recurringValue);
+  const recurringUnitRef = useRef(recurringUnit);
+
+  // Keep refs in sync with state
+  blockSettingsRef.current = blockSettings;
+  noTimeLimitRef.current = noTimeLimit;
+  timerDaysRef.current = timerDays;
+  timerHoursRef.current = timerHours;
+  timerMinutesRef.current = timerMinutes;
+  timerSecondsRef.current = timerSeconds;
+  targetDateRef.current = targetDate;
+  allowEmergencyTapoutRef.current = allowEmergencyTapout;
+  strictModeRef.current = strictMode;
+  isScheduledRef.current = isScheduled;
+  scheduleStartDateRef.current = scheduleStartDate;
+  scheduleEndDateRef.current = scheduleEndDate;
+  isRecurringRef.current = isRecurring;
+  recurringValueRef.current = recurringValue;
+  recurringUnitRef.current = recurringUnit;
+
   // ============ Reinitialize from editingPreset each time screen gains focus ============
+  // Restores from saved finalSettingsState if returning from EditPresetApps (back-and-forward),
+  // otherwise initializes from editingPreset or defaults.
   useFocusEffect(
     useCallback(() => {
-      const editingPreset = getEditingPreset();
-      if (editingPreset) {
-        setBlockSettings(editingPreset.blockSettings);
-        setNoTimeLimit(editingPreset.noTimeLimit);
-        setTimerDays(editingPreset.timerDays);
-        setTimerHours(editingPreset.timerHours);
-        setTimerMinutes(editingPreset.timerMinutes);
-        setTimerSeconds(editingPreset.timerSeconds ?? 0);
-        setTargetDate(editingPreset.targetDate ? new Date(editingPreset.targetDate) : null);
-        setAllowEmergencyTapout(editingPreset.allowEmergencyTapout ?? false);
-        setStrictMode(editingPreset.strictMode ?? false);
-        setIsScheduled(editingPreset.isScheduled ?? false);
-        setScheduleStartDate(editingPreset.scheduleStartDate ? new Date(editingPreset.scheduleStartDate) : null);
-        setScheduleEndDate(editingPreset.scheduleEndDate ? new Date(editingPreset.scheduleEndDate) : null);
-        setIsRecurring(editingPreset.repeat_enabled ?? false);
-        setRecurringValue(editingPreset.repeat_interval?.toString() ?? '1');
-        setRecurringUnit(editingPreset.repeat_unit ?? 'hours');
+      setSvgKey(k => k + 1);
+      const savedState = getFinalSettingsState();
+      if (savedState) {
+        // Returning from EditPresetApps — restore the form state the user already configured
+        setBlockSettings(savedState.blockSettings);
+        setNoTimeLimit(savedState.noTimeLimit);
+        setTimerDays(savedState.timerDays);
+        setTimerHours(savedState.timerHours);
+        setTimerMinutes(savedState.timerMinutes);
+        setTimerSeconds(savedState.timerSeconds);
+        setTargetDate(savedState.targetDate ? new Date(savedState.targetDate) : null);
+        setAllowEmergencyTapout(savedState.allowEmergencyTapout);
+        setStrictMode(savedState.strictMode);
+        setIsScheduled(savedState.isScheduled);
+        setScheduleStartDate(savedState.scheduleStartDate ? new Date(savedState.scheduleStartDate) : null);
+        setScheduleEndDate(savedState.scheduleEndDate ? new Date(savedState.scheduleEndDate) : null);
+        setIsRecurring(savedState.isRecurring);
+        setRecurringValue(savedState.recurringValue);
+        setRecurringUnit(savedState.recurringUnit);
       } else {
-        // New preset defaults
-        setBlockSettings(false);
-        setNoTimeLimit(false);
-        setTimerDays(0);
-        setTimerHours(0);
-        setTimerMinutes(0);
-        setTimerSeconds(0);
-        setTargetDate(null);
-        setAllowEmergencyTapout(true); // Enabled by default for safety
-        setStrictMode(false);
-        setIsScheduled(false);
-        setScheduleStartDate(null);
-        setScheduleEndDate(null);
-        setIsRecurring(false);
-        setRecurringValue('1');
-        setRecurringUnit('hours');
+        const editingPreset = getEditingPreset();
+        if (editingPreset) {
+          setBlockSettings(editingPreset.blockSettings);
+          setNoTimeLimit(editingPreset.noTimeLimit);
+          setTimerDays(editingPreset.timerDays);
+          setTimerHours(editingPreset.timerHours);
+          setTimerMinutes(editingPreset.timerMinutes);
+          setTimerSeconds(editingPreset.timerSeconds ?? 0);
+          setTargetDate(editingPreset.targetDate ? new Date(editingPreset.targetDate) : null);
+          setAllowEmergencyTapout(editingPreset.allowEmergencyTapout ?? false);
+          setStrictMode(editingPreset.strictMode ?? false);
+          setIsScheduled(editingPreset.isScheduled ?? false);
+          setScheduleStartDate(editingPreset.scheduleStartDate ? new Date(editingPreset.scheduleStartDate) : null);
+          setScheduleEndDate(editingPreset.scheduleEndDate ? new Date(editingPreset.scheduleEndDate) : null);
+          setIsRecurring(editingPreset.repeat_enabled ?? false);
+          setRecurringValue(editingPreset.repeat_interval?.toString() ?? '1');
+          setRecurringUnit(editingPreset.repeat_unit ?? 'hours');
+        } else {
+          // New preset defaults
+          setBlockSettings(false);
+          setNoTimeLimit(false);
+          setTimerDays(0);
+          setTimerHours(0);
+          setTimerMinutes(0);
+          setTimerSeconds(0);
+          setTargetDate(null);
+          setAllowEmergencyTapout(true); // Enabled by default for safety
+          setStrictMode(false);
+          setIsScheduled(false);
+          setScheduleStartDate(null);
+          setScheduleEndDate(null);
+          setIsRecurring(false);
+          setRecurringValue('1');
+          setRecurringUnit('hours');
+        }
       }
       // Reset UI state
       setIsSaving(false);
       setShowDatePicker(false);
       setDatePickerTarget(null);
       setExpandedInfo({});
-    }, [getEditingPreset])
+
+      // Save form state to context when screen loses focus (user taps back)
+      return () => {
+        setFinalSettingsState({
+          blockSettings: blockSettingsRef.current,
+          noTimeLimit: noTimeLimitRef.current,
+          timerDays: timerDaysRef.current,
+          timerHours: timerHoursRef.current,
+          timerMinutes: timerMinutesRef.current,
+          timerSeconds: timerSecondsRef.current,
+          targetDate: targetDateRef.current ? targetDateRef.current.toISOString() : null,
+          allowEmergencyTapout: allowEmergencyTapoutRef.current,
+          strictMode: strictModeRef.current,
+          isScheduled: isScheduledRef.current,
+          scheduleStartDate: scheduleStartDateRef.current ? scheduleStartDateRef.current.toISOString() : null,
+          scheduleEndDate: scheduleEndDateRef.current ? scheduleEndDateRef.current.toISOString() : null,
+          isRecurring: isRecurringRef.current,
+          recurringValue: recurringValueRef.current,
+          recurringUnit: recurringUnitRef.current,
+        });
+      };
+    }, [getEditingPreset, getFinalSettingsState, setFinalSettingsState])
   );
 
   // ============ Emergency Tapout Handler ============
@@ -834,12 +913,13 @@ function PresetSettingsScreen() {
 
     try {
       await onSave(newPreset);
+      setFinalSettingsState(null);
       setPresetSettingsParams(null);
       navigation.navigate('Presets');
     } finally {
       setIsSaving(false);
     }
-  }, [name, isSaving, canSave, getEditingPreset, getExistingPresets, installedSelectedApps, blockedWebsites, blockSettings, noTimeLimit, timerDays, timerHours, timerMinutes, timerSeconds, targetDate, onSave, allowEmergencyTapout, strictMode, isScheduled, scheduleStartDate, scheduleEndDate, isRecurring, recurringValue, recurringUnit, navigation]);
+  }, [name, isSaving, canSave, getEditingPreset, getExistingPresets, installedSelectedApps, blockedWebsites, blockSettings, noTimeLimit, timerDays, timerHours, timerMinutes, timerSeconds, targetDate, onSave, allowEmergencyTapout, strictMode, isScheduled, scheduleStartDate, scheduleEndDate, isRecurring, recurringValue, recurringUnit, navigation, setFinalSettingsState]);
 
   // ============ Full-Screen Date Picker Overlay ============
   const renderDatePickerOverlay = () => {
@@ -1205,8 +1285,8 @@ function PresetSettingsScreen() {
   // ============ Render ============
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
-      {/* Header */}
-      <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }} className="flex-row items-center justify-between px-4 py-3.5">
+      {/* Header — key forces SVG remount on focus to fix react-freeze stroke color bug */}
+      <View key={svgKey} style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }} className="flex-row items-center justify-between px-4 py-3.5">
         <TouchableOpacity onPressIn={lightTap} onPress={() => navigation.navigate('EditPresetApps')} disabled={isSaving} style={{ width: s(40) }} className="px-2">
           <ChevronLeftIcon size={s(iconSize.headerNav)} color="#FFFFFF" />
         </TouchableOpacity>

@@ -15,6 +15,25 @@ export interface PresetSettingsParams {
   iosSelectedAppsCount: number;
 }
 
+// Persisted form state for PresetSettingsScreen (survives back-and-forward navigation)
+export interface FinalSettingsState {
+  blockSettings: boolean;
+  noTimeLimit: boolean;
+  timerDays: number;
+  timerHours: number;
+  timerMinutes: number;
+  timerSeconds: number;
+  targetDate: string | null;
+  allowEmergencyTapout: boolean;
+  strictMode: boolean;
+  isScheduled: boolean;
+  scheduleStartDate: string | null;
+  scheduleEndDate: string | null;
+  isRecurring: boolean;
+  recurringValue: string;
+  recurringUnit: 'minutes' | 'hours' | 'days' | 'weeks' | 'months';
+}
+
 // Context for sharing save callback and edit state between preset screens
 interface PresetSaveContextValue {
   onSave: (preset: Preset) => Promise<void>;
@@ -27,6 +46,8 @@ interface PresetSaveContextValue {
   setEmail: (e: string) => void;
   getPresetSettingsParams: () => PresetSettingsParams | null;
   setPresetSettingsParams: (p: PresetSettingsParams | null) => void;
+  getFinalSettingsState: () => FinalSettingsState | null;
+  setFinalSettingsState: (s: FinalSettingsState | null) => void;
 }
 
 const PresetSaveContext = createContext<PresetSaveContextValue | null>(null);
@@ -44,6 +65,7 @@ export function PresetSaveProvider({ children }: { children: React.ReactNode }) 
   const existingPresetsRef = useRef<Preset[]>([]);
   const emailRef = useRef<string>('');
   const presetSettingsParamsRef = useRef<PresetSettingsParams | null>(null);
+  const finalSettingsStateRef = useRef<FinalSettingsState | null>(null);
 
   const setOnSave = useCallback((fn: (preset: Preset) => Promise<void>) => {
     onSaveRef.current = fn;
@@ -65,10 +87,15 @@ export function PresetSaveProvider({ children }: { children: React.ReactNode }) 
     presetSettingsParamsRef.current = p;
   }, []);
 
+  const setFinalSettingsState = useCallback((s: FinalSettingsState | null) => {
+    finalSettingsStateRef.current = s;
+  }, []);
+
   const getEditingPreset = useCallback(() => editingPresetRef.current, []);
   const getExistingPresets = useCallback(() => existingPresetsRef.current, []);
   const getEmail = useCallback(() => emailRef.current, []);
   const getPresetSettingsParams = useCallback(() => presetSettingsParamsRef.current, []);
+  const getFinalSettingsState = useCallback(() => finalSettingsStateRef.current, []);
 
   const contextValue = React.useMemo<PresetSaveContextValue>(() => ({
     onSave: async (preset: Preset) => onSaveRef.current(preset),
@@ -81,7 +108,9 @@ export function PresetSaveProvider({ children }: { children: React.ReactNode }) 
     setEmail,
     getPresetSettingsParams,
     setPresetSettingsParams,
-  }), [setOnSave, getEditingPreset, setEditingPreset, getExistingPresets, setExistingPresets, getEmail, setEmail, getPresetSettingsParams, setPresetSettingsParams]);
+    getFinalSettingsState,
+    setFinalSettingsState,
+  }), [setOnSave, getEditingPreset, setEditingPreset, getExistingPresets, setExistingPresets, getEmail, setEmail, getPresetSettingsParams, setPresetSettingsParams, getFinalSettingsState, setFinalSettingsState]);
 
   return (
     <PresetSaveContext.Provider value={contextValue}>

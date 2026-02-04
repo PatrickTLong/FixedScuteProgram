@@ -244,7 +244,7 @@ function EditPresetAppsScreen() {
   const { colors } = useTheme();
   const { s } = useResponsive();
   const navigation = useNavigation<BottomTabNavigationProp<MainTabParamList, 'EditPresetApps'>>();
-  const { getEditingPreset, getEmail, getExistingPresets, getPresetSettingsParams, setPresetSettingsParams } = usePresetSave();
+  const { getEditingPreset, getEmail, getExistingPresets, getPresetSettingsParams, setPresetSettingsParams, setFinalSettingsState } = usePresetSave();
 
   // State
   const [name, setName] = useState('');
@@ -422,9 +422,10 @@ function EditPresetAppsScreen() {
 
   // Close handler
   const handleClose = useCallback(() => {
+    setFinalSettingsState(null);
     setPresetSettingsParams(null);
     navigation.navigate('Presets');
-  }, [navigation, setPresetSettingsParams]);
+  }, [navigation, setPresetSettingsParams, setFinalSettingsState]);
 
   // Render app item
   const renderAppItem = useCallback(({ item }: { item: InstalledApp }) => {
@@ -631,6 +632,7 @@ function EditPresetAppsScreen() {
                     data={filteredApps}
                     renderItem={renderAppItem}
                     keyExtractor={keyExtractor}
+                    extraData={selectedApps}
                     contentContainerStyle={{ paddingHorizontal: s(24), paddingBottom: s(24) }}
                     ListHeaderComponent={ListHeaderComponent}
                     removeClippedSubviews={true}
