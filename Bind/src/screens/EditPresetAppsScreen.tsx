@@ -13,7 +13,9 @@ import {
   Image,
   Animated,
   Easing,
+  Dimensions,
 } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import AnimatedCheckbox from '../components/AnimatedCheckbox';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -198,62 +200,98 @@ async function loadInstalledAppsOnce(): Promise<InstalledApp[]> {
   return installedAppsLoadPromise;
 }
 
-// ============ Skeleton Placeholders ============
+// ============ Skeleton Placeholder ============
 
-const AppRowSkeleton = memo(({ colors, s }: { colors: any; s: (v: number) => number }) => (
+const SCREEN_WIDTH = Dimensions.get('window').width;
+
+const AppRowSkeleton = memo(({ colors, s, translateX }: { colors: any; s: (v: number) => number; translateX: Animated.AnimatedInterpolation<number> }) => (
   <View
-    style={{ backgroundColor: colors.card, paddingVertical: s(buttonPadding.standard) }}
+    style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.card, paddingVertical: s(buttonPadding.standard), overflow: 'hidden' }}
     className={`flex-row items-center px-4 ${radius.xl} mb-2`}
   >
-    <View style={{ width: s(40), height: s(40), marginRight: s(12), backgroundColor: colors.cardLight, borderRadius: s(10) }} />
+    <View style={{ width: s(48), height: s(48), marginRight: s(12), backgroundColor: colors.cardLight, borderRadius: s(12) }} />
     <View style={{ flex: 1 }}>
       <View style={{ width: '60%', height: s(14), backgroundColor: colors.cardLight, borderRadius: s(4) }} />
     </View>
     <View style={{ width: s(iconSize.lg), height: s(iconSize.lg), backgroundColor: colors.cardLight, borderRadius: s(iconSize.lg * 0.17) }} />
+    <Animated.View
+      style={{
+        position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+        transform: [{ translateX }],
+      }}
+    >
+      <LinearGradient
+        colors={['transparent', 'rgba(255,255,255,0.06)', 'transparent']}
+        start={{ x: 0, y: 0.5 }}
+        end={{ x: 1, y: 0.5 }}
+        style={{ flex: 1 }}
+      />
+    </Animated.View>
   </View>
 ));
 
-const WebsiteRowSkeleton = memo(({ colors, s }: { colors: any; s: (v: number) => number }) => (
+const WebsiteRowSkeleton = memo(({ colors, s, translateX }: { colors: any; s: (v: number) => number; translateX: Animated.AnimatedInterpolation<number> }) => (
   <View
-    style={{ backgroundColor: colors.card }}
+    style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.card, overflow: 'hidden' }}
     className={`flex-row items-center py-3 px-4 ${radius.xl} mb-2`}
   >
     <View style={{ width: s(40), height: s(40), marginRight: s(12), backgroundColor: colors.cardLight, borderRadius: s(8) }} />
     <View style={{ flex: 1 }}>
       <View style={{ width: '50%', height: s(14), backgroundColor: colors.cardLight, borderRadius: s(4) }} />
     </View>
+    <Animated.View
+      style={{
+        position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+        transform: [{ translateX }],
+      }}
+    >
+      <LinearGradient
+        colors={['transparent', 'rgba(255,255,255,0.06)', 'transparent']}
+        start={{ x: 0, y: 0.5 }}
+        end={{ x: 1, y: 0.5 }}
+        style={{ flex: 1 }}
+      />
+    </Animated.View>
   </View>
 ));
 
-const TabSkeleton = memo(({ tab, colors, s }: { tab: TabType; colors: any; s: (v: number) => number }) => {
-  const pulseAnim = useRef(new Animated.Value(1)).current;
+const TabSkeleton = memo(({ colors, s, tab }: { colors: any; s: (v: number) => number; tab?: string }) => {
+  const shimmerAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseAnim, { toValue: 0.4, duration: 250, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
-        Animated.timing(pulseAnim, { toValue: 1, duration: 250, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
-      ])
+      Animated.timing(shimmerAnim, {
+        toValue: 1,
+        duration: 400,
+        easing: Easing.inOut(Easing.ease),
+        useNativeDriver: true,
+      })
     );
     loop.start();
     return () => loop.stop();
-  }, [pulseAnim]);
+  }, [shimmerAnim]);
 
-  if (tab === 'apps') {
+  const translateX = shimmerAnim.interpolate({
+    inputRange: [-1, 1],
+    outputRange: [-SCREEN_WIDTH, SCREEN_WIDTH],
+  });
+
+  if (tab === 'websites') {
     return (
-      <Animated.View style={{ paddingHorizontal: s(24), opacity: pulseAnim }}>
+      <View>
         {Array.from({ length: 8 }, (_, i) => (
-          <AppRowSkeleton key={i} colors={colors} s={s} />
+          <WebsiteRowSkeleton key={i} colors={colors} s={s} translateX={translateX} />
         ))}
-      </Animated.View>
+      </View>
     );
   }
+
   return (
-    <Animated.View style={{ opacity: pulseAnim }}>
+    <View style={{ paddingHorizontal: s(24) }}>
       {Array.from({ length: 8 }, (_, i) => (
-        <WebsiteRowSkeleton key={i} colors={colors} s={s} />
+        <AppRowSkeleton key={i} colors={colors} s={s} translateX={translateX} />
       ))}
-    </Animated.View>
+    </View>
   );
 });
 
@@ -690,14 +728,14 @@ function EditPresetAppsScreen() {
 
                 {/* Apps List - skeleton during loading or tab switch */}
                 {loadingApps || !contentReady || activeTab !== displayedTab ? (
-                  <TabSkeleton tab="apps" colors={colors} s={s} />
+                  <TabSkeleton colors={colors} s={s} tab="apps" />
                 ) : (
                   <FlatList
                     data={filteredApps}
                     renderItem={renderAppItem}
                     keyExtractor={keyExtractor}
                     extraData={selectedApps}
-                    contentContainerStyle={{ paddingHorizontal: s(24), paddingBottom: s(24) }}
+                    contentContainerStyle={{ paddingHorizontal: s(24), paddingBottom: s(24) + insets.bottom }}
                     removeClippedSubviews={true}
                     maxToRenderPerBatch={15}
                     windowSize={10}
@@ -742,7 +780,7 @@ function EditPresetAppsScreen() {
 
               {/* Website List - skeleton during tab switch */}
               {activeTab !== displayedTab ? (
-                <TabSkeleton tab="websites" colors={colors} s={s} />
+                <TabSkeleton colors={colors} s={s} tab="websites" />
               ) : (
                 blockedWebsites.map((site) => (
                   <View
