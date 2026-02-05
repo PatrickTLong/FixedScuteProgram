@@ -26,7 +26,7 @@ module.exports = {
         'nunito-light': ['Nunito-SemiBold'],
         'nunito-medium': ['Nunito-SemiBold'],
         'nunito-semibold': ['Nunito-SemiBold'],
-        'nunito-bold': ['Nunito-SemiBold'],
+        'nunito-bold': ['Nunito-Bold'],
       },
     },
   },

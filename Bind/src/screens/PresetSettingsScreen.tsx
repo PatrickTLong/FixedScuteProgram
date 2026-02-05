@@ -24,6 +24,7 @@ import BlockSettingsWarningModal from '../components/BlockSettingsWarningModal';
 import RecurrenceInfoModal from '../components/RecurrenceInfoModal';
 import StrictModeWarningModal from '../components/StrictModeWarningModal';
 import { Preset } from '../components/PresetCard';
+import HeaderIconButton from '../components/HeaderIconButton';
 import { useAuth } from '../context/AuthContext';
 import { useTheme, textSize, fontFamily, radius, shadow, iconSize, buttonPadding } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
@@ -64,10 +65,29 @@ const ChevronLeftIcon = ({ size = iconSize.lg, color = "#FFFFFF" }: { size?: num
   </Svg>
 );
 
+const ArrowLeftIcon = ({ size = iconSize.lg, color = "#FFFFFF" }: { size?: number; color?: string }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M19 12H5M12 19l-7-7 7-7"
+      stroke={color}
+      strokeWidth={2.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
 const XIcon = ({ size = iconSize.headerNav, color = "#FFFFFF" }: { size?: number; color?: string }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Path d="M18 6L6 18" stroke={color} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
     <Path d="M6 6l12 12" stroke={color} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
+  </Svg>
+);
+
+const FileIcon = ({ size = iconSize.headerNav, color = "#FFFFFF" }: { size?: number; color?: string }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" stroke={color} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
+    <Path d="M13 2v7h7" stroke={color} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
   </Svg>
 );
 
@@ -184,7 +204,7 @@ const DAYS_OF_WEEK = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 const BASE_TIME_ITEM_HEIGHT = 40;
 const TIME_VISIBLE_ITEMS = 3;
-const TIME_WINDOW_BUFFER = 4;
+const TIME_WINDOW_BUFFER = 8;
 const HOURS_12 = Array.from({ length: 12 }, (_, i) => i + 1);
 const MINUTES = Array.from({ length: 60 }, (_, i) => i);
 
@@ -205,46 +225,30 @@ interface TimeWheelProps {
 const TimeWheel = memo(({ values, selectedValue, onValueChange, padZero = true, textColor, textMutedColor, itemHeight, wheelWidth, selectedFontSize, unselectedFontSize }: TimeWheelProps) => {
   const scrollRef = useRef<ScrollView>(null);
   const lastHapticIndex = useRef(-1);
-  const windowCenterRef = useRef(values.indexOf(selectedValue));
-  const [windowRange, setWindowRange] = useState(() => {
-    const idx = values.indexOf(selectedValue);
-    return { start: Math.max(0, idx - TIME_WINDOW_BUFFER), end: Math.min(values.length - 1, idx + TIME_WINDOW_BUFFER) };
-  });
 
-  const windowedValues = useMemo(
-    () => values.slice(windowRange.start, windowRange.end + 1),
-    [values, windowRange.start, windowRange.end],
-  );
+  const selectedIndex = values.indexOf(selectedValue);
+  const [windowStart, setWindowStart] = useState(() => Math.max(0, selectedIndex - TIME_WINDOW_BUFFER));
+  const [windowEnd, setWindowEnd] = useState(() => Math.min(values.length - 1, selectedIndex + TIME_WINDOW_BUFFER));
 
-  const topSpacerHeight = windowRange.start * itemHeight;
-  const bottomSpacerHeight = (values.length - 1 - windowRange.end) * itemHeight;
-
-  const updateWindowIfNeeded = useCallback((index: number) => {
-    windowCenterRef.current = index;
-    setWindowRange(prev => {
-      if (index <= prev.start || index >= prev.end) {
-        const newStart = Math.max(0, index - TIME_WINDOW_BUFFER);
-        const newEnd = Math.min(values.length - 1, index + TIME_WINDOW_BUFFER);
-        if (newStart !== prev.start || newEnd !== prev.end) {
-          return { start: newStart, end: newEnd };
-        }
-      }
-      return prev;
-    });
-  }, [values.length]);
+  const windowedValues = useMemo(() => values.slice(windowStart, windowEnd + 1), [values, windowStart, windowEnd]);
+  const topSpacerHeight = windowStart * itemHeight;
+  const bottomSpacerHeight = (values.length - 1 - windowEnd) * itemHeight;
 
   useEffect(() => {
     const index = values.indexOf(selectedValue);
     if (index >= 0 && scrollRef.current) {
-      updateWindowIfNeeded(index);
       setTimeout(() => {
-        scrollRef.current?.scrollTo({
-          y: index * itemHeight,
-          animated: false,
-        });
+        scrollRef.current?.scrollTo({ y: index * itemHeight, animated: false });
       }, 10);
     }
-  }, [selectedValue, values, itemHeight, updateWindowIfNeeded]);
+  }, [selectedValue, values, itemHeight]);
+
+  const updateWindow = useCallback((centerIndex: number) => {
+    const newStart = Math.max(0, centerIndex - TIME_WINDOW_BUFFER);
+    const newEnd = Math.min(values.length - 1, centerIndex + TIME_WINDOW_BUFFER);
+    setWindowStart(prev => prev !== newStart ? newStart : prev);
+    setWindowEnd(prev => prev !== newEnd ? newEnd : prev);
+  }, [values.length]);
 
   const handleScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const offsetY = event.nativeEvent.contentOffset.y;
@@ -255,26 +259,18 @@ const TimeWheel = memo(({ values, selectedValue, onValueChange, padZero = true, 
       lightTap();
     }
     lastHapticIndex.current = clampedIndex;
-
-    updateWindowIfNeeded(clampedIndex);
-  }, [values.length, itemHeight, updateWindowIfNeeded]);
+    updateWindow(clampedIndex);
+  }, [values.length, itemHeight, updateWindow]);
 
   const handleScrollEnd = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const offsetY = event.nativeEvent.contentOffset.y;
     const index = Math.round(offsetY / itemHeight);
     const clampedIndex = Math.max(0, Math.min(index, values.length - 1));
 
-    updateWindowIfNeeded(clampedIndex);
-
     if (values[clampedIndex] !== selectedValue) {
       onValueChange(values[clampedIndex]);
     }
-
-    scrollRef.current?.scrollTo({
-      y: clampedIndex * itemHeight,
-      animated: true,
-    });
-  }, [values, selectedValue, onValueChange, itemHeight, updateWindowIfNeeded]);
+  }, [values, selectedValue, onValueChange, itemHeight]);
 
   const paddingVertical = (itemHeight * (TIME_VISIBLE_ITEMS - 1)) / 2;
 
@@ -289,9 +285,7 @@ const TimeWheel = memo(({ values, selectedValue, onValueChange, padZero = true, 
         scrollEventThrottle={16}
         onMomentumScrollEnd={handleScrollEnd}
         onScrollEndDrag={(e) => {
-          if (e.nativeEvent.velocity?.y === 0) {
-            handleScrollEnd(e);
-          }
+          if (e.nativeEvent.velocity?.y === 0) handleScrollEnd(e);
         }}
         contentContainerStyle={{ paddingVertical }}
         nestedScrollEnabled={false}
@@ -301,14 +295,7 @@ const TimeWheel = memo(({ values, selectedValue, onValueChange, padZero = true, 
         {windowedValues.map((value) => {
           const isSelected = value === selectedValue;
           return (
-            <View
-              key={value}
-              style={{
-                height: itemHeight,
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}
-            >
+            <View key={value} style={{ height: itemHeight, justifyContent: 'center', alignItems: 'center' }}>
               <Text
                 style={{
                   fontSize: isSelected ? selectedFontSize : unselectedFontSize,
@@ -934,22 +921,21 @@ function PresetSettingsScreen() {
       >
       <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
         {/* Date Picker Header */}
-        <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }} className="flex-row items-center justify-between px-4 py-3.5">
-          <TouchableOpacity onPressIn={lightTap} onPress={dpHandleCancel} style={{ width: s(40) }} className="px-2">
+        <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight, overflow: 'hidden' }} className="flex-row items-center justify-between px-4 py-3.5">
+          <HeaderIconButton onPress={dpHandleCancel} style={{ width: s(40) }}>
             <XIcon size={s(iconSize.headerNav)} color="#FFFFFF" />
-          </TouchableOpacity>
-          <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>
+          </HeaderIconButton>
+          <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.bold}`}>
             {datePickerTarget === 'scheduleStart' ? 'Start Date' : datePickerTarget === 'scheduleEnd' ? 'End Date' : 'Date and Time'}
           </Text>
-          <TouchableOpacity
-            onPressIn={lightTap}
+          <HeaderIconButton
             onPress={dpHandleConfirm}
             disabled={!dpIsFutureDateTime}
             style={{ width: s(40) }}
             className="px-2 items-end"
           >
             <CheckIcon size={s(iconSize.headerNav)} color={dpIsFutureDateTime ? '#FFFFFF' : colors.textMuted} />
-          </TouchableOpacity>
+          </HeaderIconButton>
         </View>
 
         <ScrollView
@@ -1015,50 +1001,38 @@ function PresetSettingsScreen() {
 
           {/* Time Picker */}
           {dpTempSelectedDate && (
-            <View style={{ borderTopWidth: 1, borderTopColor: colors.dividerLight, marginHorizontal: s(-24), paddingHorizontal: s(24) }} className="mt-6 pt-4 pb-4">
+            <View style={{ borderTopWidth: 1, borderTopColor: colors.dividerLight, marginHorizontal: s(-24), paddingHorizontal: s(24), paddingVertical: s(buttonPadding.standard) }} className="mt-6">
               <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} tracking-wider mb-3`}>
                 Time
               </Text>
               <View className="flex-row items-center justify-center">
-                <View
-                  onTouchStart={() => dpScrollRef.current?.setNativeProps({ scrollEnabled: false })}
-                  onTouchEnd={() => dpScrollRef.current?.setNativeProps({ scrollEnabled: true })}
-                  onTouchCancel={() => dpScrollRef.current?.setNativeProps({ scrollEnabled: true })}
-                >
-                  <TimeWheel
-                    values={HOURS_12}
-                    selectedValue={dpSelectedHour}
-                    onValueChange={setDpSelectedHour}
-                    padZero={false}
-                    textColor={colors.text}
-                    textMutedColor={colors.text === '#ffffff' ? 'rgba(255,255,255,0.3)' : 'rgba(26,26,26,0.3)'}
-                    itemHeight={timeItemHeight}
-                    wheelWidth={wheelWidth}
-                    selectedFontSize={timeSelectedFontSize}
-                    unselectedFontSize={timeUnselectedFontSize}
-                  />
-                </View>
+                <TimeWheel
+                  values={HOURS_12}
+                  selectedValue={dpSelectedHour}
+                  onValueChange={setDpSelectedHour}
+                  padZero={false}
+                  textColor={colors.text}
+                  textMutedColor={colors.text === '#ffffff' ? 'rgba(255,255,255,0.3)' : 'rgba(26,26,26,0.3)'}
+                  itemHeight={timeItemHeight}
+                  wheelWidth={wheelWidth}
+                  selectedFontSize={timeSelectedFontSize}
+                  unselectedFontSize={timeUnselectedFontSize}
+                />
                 <View style={{ height: timeItemHeight, justifyContent: 'center', marginHorizontal: s(4), marginTop: -timeItemHeight * 0.15 }}>
-                  <Text style={{ color: colors.textMuted, fontSize: s(24) }}>:</Text>
+                  <Text style={{ color: colors.textMuted, fontSize: s(24) }} className={fontFamily.regular}>:</Text>
                 </View>
-                <View
-                  onTouchStart={() => dpScrollRef.current?.setNativeProps({ scrollEnabled: false })}
-                  onTouchEnd={() => dpScrollRef.current?.setNativeProps({ scrollEnabled: true })}
-                  onTouchCancel={() => dpScrollRef.current?.setNativeProps({ scrollEnabled: true })}
-                >
-                  <TimeWheel
-                    values={MINUTES}
-                    selectedValue={dpSelectedMinute}
-                    onValueChange={setDpSelectedMinute}
-                    padZero={true}
-                    textColor={colors.text}
-                    textMutedColor={colors.text === '#ffffff' ? 'rgba(255,255,255,0.3)' : 'rgba(26,26,26,0.3)'}
-                    itemHeight={timeItemHeight}
-                    wheelWidth={wheelWidth}
-                    selectedFontSize={timeSelectedFontSize}
-                    unselectedFontSize={timeUnselectedFontSize}
-                  />
-                </View>
+                <TimeWheel
+                  values={MINUTES}
+                  selectedValue={dpSelectedMinute}
+                  onValueChange={setDpSelectedMinute}
+                  padZero={true}
+                  textColor={colors.text}
+                  textMutedColor={colors.text === '#ffffff' ? 'rgba(255,255,255,0.3)' : 'rgba(26,26,26,0.3)'}
+                  itemHeight={timeItemHeight}
+                  wheelWidth={wheelWidth}
+                  selectedFontSize={timeSelectedFontSize}
+                  unselectedFontSize={timeUnselectedFontSize}
+                />
                 <AmPmSelector
                   value={dpSelectedAmPm}
                   onChange={setDpSelectedAmPm}
@@ -1289,17 +1263,17 @@ function PresetSettingsScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
       {/* Header — key forces SVG remount on focus to fix react-freeze stroke color bug */}
-      <View key={svgKey} style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }} className="flex-row items-center justify-between px-4 py-3.5">
-        <TouchableOpacity onPressIn={lightTap} onPress={() => navigation.navigate('EditPresetApps')} disabled={isSaving} style={{ width: s(40) }} className="px-2">
-          <ChevronLeftIcon size={s(iconSize.headerNav)} color="#FFFFFF" />
-        </TouchableOpacity>
-        <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Final Settings</Text>
-        <TouchableOpacity onPressIn={lightTap} onPress={handleSave} disabled={isSaving || !canSave} style={{ width: s(40), height: s(24), overflow: 'visible' }} className="px-2 items-end justify-center">
+      <View key={svgKey} style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight, overflow: 'hidden' }} className="flex-row items-center justify-between px-4 py-3.5">
+        <HeaderIconButton onPress={() => navigation.navigate('EditPresetApps')} disabled={isSaving} style={{ width: s(40) }}>
+          <ArrowLeftIcon size={s(iconSize.headerNav)} color="#FFFFFF" />
+        </HeaderIconButton>
+        <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.bold}`}>Final Settings</Text>
+        <HeaderIconButton onPress={handleSave} disabled={isSaving || !canSave} style={{ width: s(40), height: s(24), overflow: 'visible' }} className="px-2 items-end justify-center">
           <View style={{ opacity: isSaving ? 0 : 1 }}>
-            <CheckIcon size={s(iconSize.headerNav)} color={canSave ? '#FFFFFF' : colors.textMuted} />
+            <FileIcon size={s(iconSize.headerNav)} color={canSave ? '#FFFFFF' : colors.textMuted} />
           </View>
           {isSaving && (
-            <View style={{ position: 'absolute', top: s(-63), right: s(-50), width: s(150), height: s(150), justifyContent: 'center', alignItems: 'center' }}>
+            <View style={{ position: 'absolute', width: s(150), height: s(150), justifyContent: 'center', alignItems: 'center' }}>
               <Lottie
                 source={require('../frontassets/Loading Dots Blue.json')}
                 autoPlay
@@ -1309,7 +1283,7 @@ function PresetSettingsScreen() {
               />
             </View>
           )}
-        </TouchableOpacity>
+        </HeaderIconButton>
       </View>
 
       <ScrollView ref={mainScrollRef} className="flex-1 pt-6" contentContainerStyle={{ paddingBottom: s(100) }}>
@@ -1447,7 +1421,7 @@ function PresetSettingsScreen() {
                 <TouchableOpacity
                   onPressIn={lightTap}
                   onPress={() => setScheduleStartDate(null)}
-                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  hitSlop={{ top: s(10), bottom: s(10), left: s(10), right: s(10) }}
                 >
                   <XIcon size={s(iconSize.sm)} color={colors.text} />
                 </TouchableOpacity>
@@ -1491,7 +1465,7 @@ function PresetSettingsScreen() {
                 <TouchableOpacity
                   onPressIn={lightTap}
                   onPress={() => setScheduleEndDate(null)}
-                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  hitSlop={{ top: s(10), bottom: s(10), left: s(10), right: s(10) }}
                 >
                   <XIcon size={s(iconSize.sm)} color={colors.text} />
                 </TouchableOpacity>
@@ -1525,22 +1499,10 @@ function PresetSettingsScreen() {
                 hours={timerHours}
                 minutes={timerMinutes}
                 seconds={timerSeconds}
-                onDaysChange={(val) => {
-                  setTimerDays(val);
-                  if (val > 0) setTargetDate(null);
-                }}
-                onHoursChange={(val) => {
-                  setTimerHours(val);
-                  if (val > 0) setTargetDate(null);
-                }}
-                onMinutesChange={(val) => {
-                  setTimerMinutes(val);
-                  if (val > 0) setTargetDate(null);
-                }}
-                onSecondsChange={(val) => {
-                  setTimerSeconds(val);
-                  if (val > 0) setTargetDate(null);
-                }}
+                onDaysChange={setTimerDays}
+                onHoursChange={setTimerHours}
+                onMinutesChange={setTimerMinutes}
+                onSecondsChange={setTimerSeconds}
                 parentScrollRef={mainScrollRef}
               />
             </View>
@@ -1591,7 +1553,7 @@ function PresetSettingsScreen() {
                 <TouchableOpacity
                   onPressIn={lightTap}
                   onPress={() => setTargetDate(null)}
-                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  hitSlop={{ top: s(10), bottom: s(10), left: s(10), right: s(10) }}
                 >
                   <XIcon size={s(iconSize.sm)} color={colors.text} />
                 </TouchableOpacity>

@@ -13,6 +13,7 @@ const Lottie = LottieView as any;
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import ConfirmationModal from '../components/ConfirmationModal';
+import HeaderIconButton from '../components/HeaderIconButton';
 import EmailConfirmationModal from '../components/EmailConfirmationModal';
 import { getLockStatus, getEmergencyTapoutStatus, getCachedLockStatus, getCachedTapoutStatus, getMembershipStatus, MembershipStatus, getCachedMembershipStatus } from '../services/cardApi';
 import { useTheme , textSize, fontFamily, radius, shadow, iconSize, buttonPadding } from '../context/ThemeContext';
@@ -706,14 +707,14 @@ function SettingsScreen() {
       >
         <View style={{ flex: 1, backgroundColor: colors.bg }}>
           {/* Header */}
-          <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }} className="flex-row items-center justify-between px-4 py-3.5">
+          <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight, overflow: 'hidden' }} className="flex-row items-center justify-between px-4 py-3.5">
             <View style={{ width: s(40) }} />
-            <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Privacy Policy</Text>
-            <TouchableOpacity onPressIn={lightTap} onPress={() => setPrivacyModalVisible(false)} style={{ width: s(40) }} className="px-2 items-end">
+            <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.bold}`}>Privacy Policy</Text>
+            <HeaderIconButton onPress={() => setPrivacyModalVisible(false)} style={{ width: s(40) }} className="px-2 items-end">
               <Svg width={s(iconSize.headerNav)} height={s(iconSize.headerNav)} viewBox="0 0 24 24" fill="none">
                 <Path d="M20 6L9 17l-5-5" stroke="#FFFFFF" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
               </Svg>
-            </TouchableOpacity>
+            </HeaderIconButton>
           </View>
 
           <ScrollView className="flex-1 px-6 py-4">
@@ -826,14 +827,14 @@ function SettingsScreen() {
       >
         <View style={{ flex: 1, backgroundColor: colors.bg }}>
           {/* Header */}
-          <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }} className="flex-row items-center justify-between px-4 py-3.5">
+          <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight, overflow: 'hidden' }} className="flex-row items-center justify-between px-4 py-3.5">
             <View style={{ width: s(40) }} />
-            <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Terms of Service</Text>
-            <TouchableOpacity onPressIn={lightTap} onPress={() => setTermsModalVisible(false)} style={{ width: s(40) }} className="px-2 items-end">
+            <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.bold}`}>Terms of Service</Text>
+            <HeaderIconButton onPress={() => setTermsModalVisible(false)} style={{ width: s(40) }} className="px-2 items-end">
               <Svg width={s(iconSize.headerNav)} height={s(iconSize.headerNav)} viewBox="0 0 24 24" fill="none">
                 <Path d="M20 6L9 17l-5-5" stroke="#FFFFFF" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
               </Svg>
-            </TouchableOpacity>
+            </HeaderIconButton>
           </View>
 
           <ScrollView className="flex-1 px-6 py-4">
@@ -961,24 +962,24 @@ function SettingsScreen() {
       >
         <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
           {/* Header */}
-          <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }} className="flex-row items-center justify-between px-4 py-3.5">
+          <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight, overflow: 'hidden' }} className="flex-row items-center justify-between px-4 py-3.5">
             {/* Only show back button if trial hasn't expired */}
             {!membershipStatus?.trialExpired ? (
-              <TouchableOpacity onPressIn={lightTap} onPress={() => setMembershipModalVisible(false)} style={{ width: s(40) }} className="px-2">
+              <HeaderIconButton onPress={() => setMembershipModalVisible(false)} style={{ width: s(40) }}>
                 <Svg width={s(iconSize.headerNav)} height={s(iconSize.headerNav)} viewBox="0 0 24 24" fill="none">
                   <Path
-                    d="M15 18l-6-6 6-6"
+                    d="M19 12H5M12 19l-7-7 7-7"
                     stroke="#FFFFFF"
                     strokeWidth={2.5}
                     strokeLinecap="round"
                     strokeLinejoin="round"
                   />
                 </Svg>
-              </TouchableOpacity>
+              </HeaderIconButton>
             ) : (
               <View style={{ width: s(40) }} />
             )}
-            <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Membership</Text>
+            <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.bold}`}>Membership</Text>
             <View style={{ width: s(40) }} />
           </View>
 
@@ -986,7 +987,7 @@ function SettingsScreen() {
             {/* Title Section */}
             <View className="items-center mb-6">
               <View className="flex-row items-center mb-3">
-                <PlayStoreIcon size={24} />
+                <PlayStoreIcon size={s(24)} />
                 <Text style={{ color: colors.text }} className={`${textSize.xLarge} ${fontFamily.bold} ml-2`}>Choose Your Plan</Text>
               </View>
               <Text style={{ color: colors.textSecondary }} className={`text-center ${textSize.extraSmall} ${fontFamily.regular}`}>

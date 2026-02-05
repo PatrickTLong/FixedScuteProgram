@@ -14,7 +14,7 @@ interface AnimatedSwitchProps {
 
 // Size dimensions lookup - avoids recreating functions on every render
 const SIZE_DIMENSIONS = {
-  small:   { trackWidth: 44, trackHeight: 24, thumbSize: 20, thumbOffset: 2 },
+  small:   { trackWidth: 44, trackHeight: 24, thumbSize: 18, thumbOffset: 2 },
   medium:  { trackWidth: 56, trackHeight: 30, thumbSize: 26, thumbOffset: 2 },
   large:   { trackWidth: 62, trackHeight: 34, thumbSize: 30, thumbOffset: 2 },
   default: { trackWidth: 52, trackHeight: 28, thumbSize: 24, thumbOffset: 2 },
@@ -42,6 +42,7 @@ function AnimatedSwitch({
 
   const animatedValue = useRef(new Animated.Value(value ? 1 : 0)).current;
   const pulseProgress = useRef(new Animated.Value(0)).current;
+  const pressedRef = useRef(false);
 
   useEffect(() => {
     Animated.timing(animatedValue, {
@@ -50,21 +51,24 @@ function AnimatedSwitch({
       useNativeDriver: false,
     }).start();
 
-    // Trigger pulse near end of slide — expands outward and fades
-    const pulseDelay = setTimeout(() => {
-      pulseProgress.setValue(0);
-      Animated.timing(pulseProgress, {
-        toValue: 1,
-        duration: 200,
-        useNativeDriver: false,
-      }).start();
-    }, 70);
-
-    return () => clearTimeout(pulseDelay);
+    // Only pulse on manual press, not programmatic changes
+    if (pressedRef.current) {
+      pressedRef.current = false;
+      const pulseDelay = setTimeout(() => {
+        pulseProgress.setValue(0);
+        Animated.timing(pulseProgress, {
+          toValue: 1,
+          duration: 200,
+          useNativeDriver: false,
+        }).start();
+      }, 70);
+      return () => clearTimeout(pulseDelay);
+    }
   }, [value, animatedValue, pulseProgress]);
 
   const handlePress = useCallback(() => {
     if (!disabled) {
+      pressedRef.current = true;
       onValueChange(!value);
     }
   }, [disabled, onValueChange, value]);

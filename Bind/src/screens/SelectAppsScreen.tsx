@@ -14,6 +14,7 @@ import Svg, { Path } from 'react-native-svg';
 import { useTheme , textSize, fontFamily, radius, shadow, iconSize } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { lightTap } from '../utils/haptics';
+import HeaderIconButton from '../components/HeaderIconButton';
 
 interface InstalledApp {
   id: string;
@@ -47,11 +48,11 @@ const SearchIcon = ({ color }: { color: string }) => (
   </Svg>
 );
 
-// Chevron left icon - matches PresetEditModal header nav
+// Arrow left icon (Feather arrow-left)
 const BackIcon = ({ color, size = iconSize.headerNav }: { color: string; size?: number }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Path
-      d="M15 18l-6-6 6-6"
+      d="M19 12H5M12 19l-7-7 7-7"
       stroke={color}
       strokeWidth={2.5}
       strokeLinecap="round"
@@ -186,23 +187,16 @@ function SelectAppsScreen({
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
       {/* Header */}
-      <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }} className="flex-row items-center justify-between px-4 py-3.5">
-        <TouchableOpacity
-          onPressIn={lightTap}
-          onPress={() => onClose()}
-          className="px-2"
-        >
+      <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight, overflow: 'hidden' }} className="flex-row items-center justify-between px-4 py-3.5">
+        <HeaderIconButton onPress={() => onClose()}>
           <BackIcon color="#FFFFFF" size={s(iconSize.headerNav)} />
-        </TouchableOpacity>
-        <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold} flex-1 text-center`}>
+        </HeaderIconButton>
+        <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.bold} flex-1 text-center`}>
           Block List
         </Text>
-        <TouchableOpacity
-          onPress={() => setSearchQuery('')}
-          className="p-2"
-        >
+        <HeaderIconButton onPress={() => setSearchQuery('')} className="p-2">
           <SearchIcon color={colors.textSecondary} />
-        </TouchableOpacity>
+        </HeaderIconButton>
       </View>
 
       {/* Tabs */}

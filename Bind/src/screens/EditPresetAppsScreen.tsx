@@ -11,17 +11,16 @@ import {
   NativeEventEmitter,
   FlatList,
   Image,
-  Animated,
-  Easing,
-  Dimensions,
 } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
+import LottieView from 'lottie-react-native';
+const Lottie = LottieView as any;
 import AnimatedCheckbox from '../components/AnimatedCheckbox';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Svg, { Path, Rect } from 'react-native-svg';
 import ExcludedAppsInfoModal from '../components/ExcludedAppsInfoModal';
 import { Preset } from '../components/PresetCard';
+import HeaderIconButton from '../components/HeaderIconButton';
 import { lightTap } from '../utils/haptics';
 import { useTheme, textSize, fontFamily, radius, shadow, iconSize, buttonPadding } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
@@ -45,6 +44,18 @@ const ChevronRightIcon = ({ size = iconSize.lg, color = "#9CA3AF" }: { size?: nu
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Path
       d="M9 18l6-6-6-6"
+      stroke={color}
+      strokeWidth={2.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+const ArrowRightIcon = ({ size = iconSize.lg, color = "#FFFFFF" }: { size?: number; color?: string }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M5 12h14M12 5l7 7-7 7"
       stroke={color}
       strokeWidth={2.5}
       strokeLinecap="round"
@@ -154,6 +165,11 @@ const EXCLUDED_PACKAGES = [
   'com.android.sos',
   'com.google.android.apps.safetyhub',
   'com.samsung.android.emergencymode',
+  'com.android.camera',
+  'com.android.camera2',
+  'com.google.android.GoogleCamera',
+  'com.samsung.android.camera',
+  'com.sec.android.app.camera',
 ];
 
 async function loadInstalledAppsOnce(): Promise<InstalledApp[]> {
@@ -199,101 +215,6 @@ async function loadInstalledAppsOnce(): Promise<InstalledApp[]> {
 
   return installedAppsLoadPromise;
 }
-
-// ============ Skeleton Placeholder ============
-
-const SCREEN_WIDTH = Dimensions.get('window').width;
-
-const AppRowSkeleton = memo(({ colors, s, translateX }: { colors: any; s: (v: number) => number; translateX: Animated.AnimatedInterpolation<number> }) => (
-  <View
-    style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.card, paddingVertical: s(buttonPadding.standard), overflow: 'hidden' }}
-    className={`flex-row items-center px-4 ${radius.xl} mb-2`}
-  >
-    <View style={{ width: s(48), height: s(48), marginRight: s(12), backgroundColor: colors.cardLight, borderRadius: s(12) }} />
-    <View style={{ flex: 1 }}>
-      <View style={{ width: '60%', height: s(14), backgroundColor: colors.cardLight, borderRadius: s(4) }} />
-    </View>
-    <View style={{ width: s(iconSize.lg), height: s(iconSize.lg), backgroundColor: colors.cardLight, borderRadius: s(iconSize.lg * 0.17) }} />
-    <Animated.View
-      style={{
-        position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-        transform: [{ translateX }],
-      }}
-    >
-      <LinearGradient
-        colors={['transparent', 'rgba(255,255,255,0.06)', 'transparent']}
-        start={{ x: 0, y: 0.5 }}
-        end={{ x: 1, y: 0.5 }}
-        style={{ flex: 1 }}
-      />
-    </Animated.View>
-  </View>
-));
-
-const WebsiteRowSkeleton = memo(({ colors, s, translateX }: { colors: any; s: (v: number) => number; translateX: Animated.AnimatedInterpolation<number> }) => (
-  <View
-    style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.card, overflow: 'hidden' }}
-    className={`flex-row items-center py-3 px-4 ${radius.xl} mb-2`}
-  >
-    <View style={{ width: s(40), height: s(40), marginRight: s(12), backgroundColor: colors.cardLight, borderRadius: s(8) }} />
-    <View style={{ flex: 1 }}>
-      <View style={{ width: '50%', height: s(14), backgroundColor: colors.cardLight, borderRadius: s(4) }} />
-    </View>
-    <Animated.View
-      style={{
-        position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-        transform: [{ translateX }],
-      }}
-    >
-      <LinearGradient
-        colors={['transparent', 'rgba(255,255,255,0.06)', 'transparent']}
-        start={{ x: 0, y: 0.5 }}
-        end={{ x: 1, y: 0.5 }}
-        style={{ flex: 1 }}
-      />
-    </Animated.View>
-  </View>
-));
-
-const TabSkeleton = memo(({ colors, s, tab }: { colors: any; s: (v: number) => number; tab?: string }) => {
-  const shimmerAnim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    const loop = Animated.loop(
-      Animated.timing(shimmerAnim, {
-        toValue: 1,
-        duration: 400,
-        easing: Easing.inOut(Easing.ease),
-        useNativeDriver: true,
-      })
-    );
-    loop.start();
-    return () => loop.stop();
-  }, [shimmerAnim]);
-
-  const translateX = shimmerAnim.interpolate({
-    inputRange: [-1, 1],
-    outputRange: [-SCREEN_WIDTH, SCREEN_WIDTH],
-  });
-
-  if (tab === 'websites') {
-    return (
-      <View>
-        {Array.from({ length: 8 }, (_, i) => (
-          <WebsiteRowSkeleton key={i} colors={colors} s={s} translateX={translateX} />
-        ))}
-      </View>
-    );
-  }
-
-  return (
-    <View style={{ paddingHorizontal: s(24) }}>
-      {Array.from({ length: 8 }, (_, i) => (
-        <AppRowSkeleton key={i} colors={colors} s={s} translateX={translateX} />
-      ))}
-    </View>
-  );
-});
 
 // ============ AppItemRow (no press animation) ============
 
@@ -351,10 +272,8 @@ function EditPresetAppsScreen() {
   const [blockedWebsites, setBlockedWebsites] = useState<string[]>([]);
   const [websiteInput, setWebsiteInput] = useState('');
   const [activeTab, setActiveTab] = useState<TabType>('apps');
-  const [displayedTab, setDisplayedTab] = useState<TabType>('apps');
-  const [contentReady, setContentReady] = useState(false);
   const [installedApps, setInstalledApps] = useState<InstalledApp[]>([]);
-  const [loadingApps, setLoadingApps] = useState(false);
+  const [loadingApps, setLoadingApps] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [iosSelectedAppsCount, setIosSelectedAppsCount] = useState(0);
   const [excludedAppsInfoVisible, setExcludedAppsInfoVisible] = useState(false);
@@ -422,12 +341,8 @@ function EditPresetAppsScreen() {
       const currentParams = getPresetSettingsParams();
       if (currentParams) {
         // Returning from PresetSettings — keep current state
-        setContentReady(true);
         return;
       }
-
-      // Show skeleton immediately while content prepares
-      setContentReady(false);
 
       const preset = getEditingPreset();
       if (preset) {
@@ -447,13 +362,10 @@ function EditPresetAppsScreen() {
         setBlockedWebsites([]);
       }
       setActiveTab('apps');
-      setDisplayedTab('apps');
       setSearchQuery('');
       setSkipCheckboxAnimation(true);
-      // Re-enable animations and show content on next frame
       requestAnimationFrame(() => {
         setSkipCheckboxAnimation(false);
-        setContentReady(true);
       });
       // Check if we should show excluded apps info modal
       AsyncStorage.getItem(EXCLUDED_APPS_INFO_DISMISSED_KEY).then((dismissed) => {
@@ -512,7 +424,6 @@ function EditPresetAppsScreen() {
   const switchTab = useCallback((newTab: TabType) => {
     if (newTab === activeTab) return;
     setActiveTab(newTab);
-    requestAnimationFrame(() => setDisplayedTab(newTab));
   }, [activeTab]);
 
   // Continue handler
@@ -562,21 +473,16 @@ function EditPresetAppsScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
       {/* Header — key forces SVG remount on focus to fix react-freeze stroke color bug */}
-      <View key={svgKey} style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }} className="flex-row items-center justify-between px-4 py-3.5">
-        <TouchableOpacity onPressIn={lightTap} onPress={handleClose} className="px-2">
+      <View key={svgKey} style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight, overflow: 'hidden' }} className="flex-row items-center justify-between px-4 py-3.5">
+        <HeaderIconButton onPress={handleClose}>
           <XIcon size={s(iconSize.headerNav)} color="#FFFFFF" />
-        </TouchableOpacity>
-        <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>
+        </HeaderIconButton>
+        <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.bold}`}>
           {getEditingPreset() ? 'Edit Preset' : 'New Preset'}
         </Text>
-        <TouchableOpacity
-          onPressIn={lightTap}
-          onPress={handleContinue}
-          disabled={!canContinue}
-          className="px-2"
-        >
-          <ChevronRightIcon size={s(iconSize.headerNav)} color={canContinue ? '#FFFFFF' : colors.textMuted} />
-        </TouchableOpacity>
+        <HeaderIconButton onPress={handleContinue} disabled={!canContinue}>
+          <ArrowRightIcon size={s(iconSize.headerNav)} color={canContinue ? '#FFFFFF' : colors.textMuted} />
+        </HeaderIconButton>
       </View>
 
       <KeyboardAvoidingView
@@ -611,7 +517,7 @@ function EditPresetAppsScreen() {
             className={`flex-1 ${radius.full} items-center justify-center flex-row`}
           >
             <AndroidIcon size={s(iconSize.lg)} color={activeTab === 'apps' ? colors.bg : colors.text} />
-            <Text style={{ color: activeTab === 'apps' ? colors.bg : colors.text, marginLeft: 6 }} className={`${textSize.small} ${fontFamily.semibold}`}>
+            <Text style={{ color: activeTab === 'apps' ? colors.bg : colors.text, marginLeft: s(6) }} className={`${textSize.small} ${fontFamily.semibold}`}>
               Apps
             </Text>
           </TouchableOpacity>
@@ -623,15 +529,16 @@ function EditPresetAppsScreen() {
             className={`flex-1 ${radius.full} items-center justify-center flex-row`}
           >
             <GlobeIcon size={s(iconSize.lg)} color={activeTab === 'websites' ? colors.bg : colors.text} />
-            <Text style={{ color: activeTab === 'websites' ? colors.bg : colors.text, marginLeft: 6 }} className={`${textSize.small} ${fontFamily.semibold}`}>
+            <Text style={{ color: activeTab === 'websites' ? colors.bg : colors.text, marginLeft: s(6) }} className={`${textSize.small} ${fontFamily.semibold}`}>
               Websites
             </Text>
           </TouchableOpacity>
         </View>
 
         <View style={{ flex: 1 }}>
-          {activeTab === 'apps' ? (
-            Platform.OS === 'ios' ? (
+          {/* Apps tab - stays mounted, hidden when inactive */}
+          <View style={{ flex: 1, display: activeTab === 'apps' ? 'flex' : 'none' }}>
+            {Platform.OS === 'ios' ? (
               // iOS: Show button to open native FamilyActivityPicker
               <View className="flex-1 px-6 pt-4">
                 <TouchableOpacity
@@ -726,9 +633,17 @@ function EditPresetAppsScreen() {
                   {ListHeaderComponent}
                 </View>
 
-                {/* Apps List - skeleton during loading or tab switch */}
-                {loadingApps || !contentReady || activeTab !== displayedTab ? (
-                  <TabSkeleton colors={colors} s={s} tab="apps" />
+                {/* Apps List - loading dots on first load, then persists */}
+                {loadingApps ? (
+                  <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }} pointerEvents="none">
+                    <Lottie
+                      source={require('../frontassets/Loading Dots Blue.json')}
+                      autoPlay
+                      loop
+                      speed={2}
+                      style={{ width: s(200), height: s(200) }}
+                    />
+                  </View>
                 ) : (
                   <FlatList
                     data={filteredApps}
@@ -737,14 +652,19 @@ function EditPresetAppsScreen() {
                     extraData={selectedApps}
                     contentContainerStyle={{ paddingHorizontal: s(24), paddingBottom: s(24) + insets.bottom }}
                     removeClippedSubviews={true}
-                    maxToRenderPerBatch={15}
-                    windowSize={10}
-                    initialNumToRender={15}
+                    initialNumToRender={8}
+                    maxToRenderPerBatch={4}
+                    windowSize={3}
+                    updateCellsBatchingPeriod={30}
+                    keyboardShouldPersistTaps="handled"
                   />
                 )}
               </>
-            )
-          ) : (
+            )}
+          </View>
+
+          {/* Websites tab - stays mounted, hidden when inactive */}
+          <View style={{ flex: 1, display: activeTab === 'websites' ? 'flex' : 'none' }}>
             <ScrollView className="flex-1 px-6" contentContainerStyle={{ paddingBottom: s(24) + insets.bottom }}>
               {/* Website Input */}
               <View className="flex-row items-center mb-4">
@@ -778,30 +698,26 @@ function EditPresetAppsScreen() {
                 Enter URLs like: instagram.com, reddit.com, etc
               </Text>
 
-              {/* Website List - skeleton during tab switch */}
-              {activeTab !== displayedTab ? (
-                <TabSkeleton colors={colors} s={s} tab="websites" />
-              ) : (
-                blockedWebsites.map((site) => (
-                  <View
-                    key={site}
-                    style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
-                    className={`flex-row items-center py-3 px-4 ${radius.xl} mb-2`}
-                  >
-                    <View className="w-10 h-10 items-center justify-center mr-3">
-                      <GlobeIcon size={s(iconSize.xl)} color={colors.textSecondary} />
-                    </View>
-                    <Text style={{ color: colors.text }} className={`flex-1 ${textSize.base} ${fontFamily.regular}`}>{site}</Text>
-                    <TouchableOpacity
-                      onPressIn={lightTap}
-                      onPress={() => removeWebsite(site)}
-                      className="p-2"
-                    >
-                      <XIcon size={s(iconSize.sm)} color={colors.text} />
-                    </TouchableOpacity>
+              {/* Website List */}
+              {blockedWebsites.map((site) => (
+                <View
+                  key={site}
+                  style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
+                  className={`flex-row items-center py-3 px-4 ${radius.xl} mb-2`}
+                >
+                  <View className="w-10 h-10 items-center justify-center mr-3">
+                    <GlobeIcon size={s(iconSize.xl)} color={colors.textSecondary} />
                   </View>
-                ))
-              )}
+                  <Text style={{ color: colors.text }} className={`flex-1 ${textSize.base} ${fontFamily.regular}`}>{site}</Text>
+                  <TouchableOpacity
+                    onPressIn={lightTap}
+                    onPress={() => removeWebsite(site)}
+                    className="p-2"
+                  >
+                    <XIcon size={s(iconSize.sm)} color={colors.text} />
+                  </TouchableOpacity>
+                </View>
+              ))}
 
               {blockedWebsites.length === 0 && (
                 <Text style={{ color: colors.textSecondary }} className={`text-center ${textSize.base} ${fontFamily.regular} py-8`}>
@@ -809,7 +725,7 @@ function EditPresetAppsScreen() {
                 </Text>
               )}
             </ScrollView>
-          )}
+          </View>
         </View>
       </KeyboardAvoidingView>
 

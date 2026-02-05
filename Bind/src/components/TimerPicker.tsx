@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, memo, useCallback, useState, useMemo } from 'react';
+import React, { useRef, useEffect, useState, useMemo, memo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -12,7 +12,7 @@ import { useResponsive } from '../utils/responsive';
 
 const BASE_ITEM_HEIGHT = 40;
 const VISIBLE_ITEMS = 3;
-const WINDOW_BUFFER = 6;
+const WINDOW_BUFFER = 8;
 
 interface WheelProps {
   values: number[];
@@ -35,33 +35,14 @@ const Wheel = memo(({ values, selectedValue, onValueChange, label, textColor, te
   const scrollRef = useRef<ScrollView>(null);
   const lastHapticIndex = useRef(-1);
   const scrolledByUser = useRef(false);
-  const windowCenterRef = useRef(values.indexOf(selectedValue));
-  const [windowRange, setWindowRange] = useState(() => {
-    const idx = values.indexOf(selectedValue);
-    return { start: Math.max(0, idx - WINDOW_BUFFER), end: Math.min(values.length - 1, idx + WINDOW_BUFFER) };
-  });
 
-  const windowedValues = useMemo(
-    () => values.slice(windowRange.start, windowRange.end + 1),
-    [values, windowRange.start, windowRange.end],
-  );
+  const selectedIndex = values.indexOf(selectedValue);
+  const [windowStart, setWindowStart] = useState(() => Math.max(0, selectedIndex - WINDOW_BUFFER));
+  const [windowEnd, setWindowEnd] = useState(() => Math.min(values.length - 1, selectedIndex + WINDOW_BUFFER));
 
-  const topSpacerHeight = windowRange.start * itemHeight;
-  const bottomSpacerHeight = (values.length - 1 - windowRange.end) * itemHeight;
-
-  const updateWindowIfNeeded = useCallback((index: number) => {
-    windowCenterRef.current = index;
-    setWindowRange(prev => {
-      if (index <= prev.start || index >= prev.end) {
-        const newStart = Math.max(0, index - WINDOW_BUFFER);
-        const newEnd = Math.min(values.length - 1, index + WINDOW_BUFFER);
-        if (newStart !== prev.start || newEnd !== prev.end) {
-          return { start: newStart, end: newEnd };
-        }
-      }
-      return prev;
-    });
-  }, [values.length]);
+  const windowedValues = useMemo(() => values.slice(windowStart, windowEnd + 1), [values, windowStart, windowEnd]);
+  const topSpacerHeight = windowStart * itemHeight;
+  const bottomSpacerHeight = (values.length - 1 - windowEnd) * itemHeight;
 
   useEffect(() => {
     if (scrolledByUser.current) {
@@ -70,15 +51,18 @@ const Wheel = memo(({ values, selectedValue, onValueChange, label, textColor, te
     }
     const index = values.indexOf(selectedValue);
     if (index >= 0 && scrollRef.current) {
-      updateWindowIfNeeded(index);
       setTimeout(() => {
-        scrollRef.current?.scrollTo({
-          y: index * itemHeight,
-          animated: false,
-        });
+        scrollRef.current?.scrollTo({ y: index * itemHeight, animated: false });
       }, 10);
     }
-  }, [selectedValue, values, itemHeight, updateWindowIfNeeded]);
+  }, [selectedValue, values, itemHeight]);
+
+  const updateWindow = useCallback((centerIndex: number) => {
+    const newStart = Math.max(0, centerIndex - WINDOW_BUFFER);
+    const newEnd = Math.min(values.length - 1, centerIndex + WINDOW_BUFFER);
+    setWindowStart(prev => prev !== newStart ? newStart : prev);
+    setWindowEnd(prev => prev !== newEnd ? newEnd : prev);
+  }, [values.length]);
 
   const handleScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const offsetY = event.nativeEvent.contentOffset.y;
@@ -89,22 +73,19 @@ const Wheel = memo(({ values, selectedValue, onValueChange, label, textColor, te
       lightTap();
     }
     lastHapticIndex.current = clampedIndex;
-
-    updateWindowIfNeeded(clampedIndex);
-  }, [values.length, itemHeight, updateWindowIfNeeded]);
+    updateWindow(clampedIndex);
+  }, [values.length, itemHeight, updateWindow]);
 
   const handleScrollEnd = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const offsetY = event.nativeEvent.contentOffset.y;
     const index = Math.round(offsetY / itemHeight);
     const clampedIndex = Math.max(0, Math.min(index, values.length - 1));
 
-    updateWindowIfNeeded(clampedIndex);
-
     if (values[clampedIndex] !== selectedValue) {
       scrolledByUser.current = true;
       onValueChange(values[clampedIndex]);
     }
-  }, [values, selectedValue, onValueChange, itemHeight, updateWindowIfNeeded]);
+  }, [values, selectedValue, onValueChange, itemHeight]);
 
   const paddingVertical = (itemHeight * (VISIBLE_ITEMS - 1)) / 2;
 
@@ -115,13 +96,7 @@ const Wheel = memo(({ values, selectedValue, onValueChange, label, textColor, te
       onTouchEnd={parentScrollRef ? () => parentScrollRef.current?.setNativeProps({ scrollEnabled: true }) : undefined}
       onTouchCancel={parentScrollRef ? () => parentScrollRef.current?.setNativeProps({ scrollEnabled: true }) : undefined}
     >
-      <View
-        style={{
-          height: itemHeight * VISIBLE_ITEMS,
-          width: wheelWidth,
-          overflow: 'hidden',
-        }}
-      >
+      <View style={{ height: itemHeight * VISIBLE_ITEMS, width: wheelWidth, overflow: 'hidden' }}>
         <ScrollView
           ref={scrollRef}
           showsVerticalScrollIndicator={false}
@@ -131,9 +106,7 @@ const Wheel = memo(({ values, selectedValue, onValueChange, label, textColor, te
           scrollEventThrottle={16}
           onMomentumScrollEnd={handleScrollEnd}
           onScrollEndDrag={(e) => {
-            if (e.nativeEvent.velocity?.y === 0) {
-              handleScrollEnd(e);
-            }
+            if (e.nativeEvent.velocity?.y === 0) handleScrollEnd(e);
           }}
           contentContainerStyle={{ paddingVertical }}
           nestedScrollEnabled={false}
@@ -143,14 +116,7 @@ const Wheel = memo(({ values, selectedValue, onValueChange, label, textColor, te
           {windowedValues.map((value) => {
             const isSelected = value === selectedValue;
             return (
-              <View
-                key={value}
-                style={{
-                  height: itemHeight,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                }}
-              >
+              <View key={value} style={{ height: itemHeight, justifyContent: 'center', alignItems: 'center' }}>
                 <Text
                   style={{
                     fontSize: isSelected ? selectedFontSize : unselectedFontSize,
@@ -167,11 +133,7 @@ const Wheel = memo(({ values, selectedValue, onValueChange, label, textColor, te
         </ScrollView>
       </View>
       <Text
-        style={{
-          fontSize: labelFontSize,
-          color: labelColor,
-          marginTop: labelMarginTop,
-        }}
+        style={{ fontSize: labelFontSize, color: labelColor, marginTop: labelMarginTop }}
         className={fontFamily.regular}
       >
         {label}
@@ -192,47 +154,28 @@ interface TimerPickerProps {
   parentScrollRef?: React.RefObject<ScrollView | null>;
 }
 
-// Pre-generate arrays once
 const DAYS = Array.from({ length: 31 }, (_, i) => i);
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 const MINUTES = Array.from({ length: 60 }, (_, i) => i);
 const SECONDS = Array.from({ length: 60 }, (_, i) => i);
 
 function TimerPicker({
-  days,
-  hours,
-  minutes,
-  seconds,
-  onDaysChange,
-  onHoursChange,
-  onMinutesChange,
-  onSecondsChange,
+  days, hours, minutes, seconds,
+  onDaysChange, onHoursChange, onMinutesChange, onSecondsChange,
   parentScrollRef,
 }: TimerPickerProps) {
   const { colors } = useTheme();
   const { s } = useResponsive();
   const itemHeight = s(BASE_ITEM_HEIGHT);
   const wheelWidth = s(50);
-
-  // Create muted color for unselected items (30% opacity of text color)
-  const textMutedColor = colors.text === '#ffffff'
-    ? 'rgba(255,255,255,0.3)'
-    : 'rgba(26,26,26,0.3)';
-
+  const textMutedColor = colors.text === '#ffffff' ? 'rgba(255,255,255,0.3)' : 'rgba(26,26,26,0.3)';
   const selectedFontSize = s(24);
   const unselectedFontSize = s(18);
   const labelFontSize = s(12);
   const labelMarginTop = s(4);
 
   return (
-    <View
-      style={{
-        flexDirection: 'row',
-        justifyContent: 'center',
-        alignItems: 'flex-start',
-        gap: s(4),
-      }}
-    >
+    <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'flex-start', gap: s(4) }}>
       <Wheel values={DAYS} selectedValue={days} onValueChange={onDaysChange} label="days" textColor={colors.text} textMutedColor={textMutedColor} labelColor={colors.textMuted} itemHeight={itemHeight} wheelWidth={wheelWidth} selectedFontSize={selectedFontSize} unselectedFontSize={unselectedFontSize} labelFontSize={labelFontSize} labelMarginTop={labelMarginTop} parentScrollRef={parentScrollRef} />
       <View style={{ height: itemHeight * VISIBLE_ITEMS, justifyContent: 'center', marginHorizontal: s(2), marginTop: -itemHeight * 0.08 }}><Text style={{ color: colors.textMuted, fontSize: s(24) }} className={fontFamily.regular}>:</Text></View>
       <Wheel values={HOURS} selectedValue={hours} onValueChange={onHoursChange} label="hrs" textColor={colors.text} textMutedColor={textMutedColor} labelColor={colors.textMuted} itemHeight={itemHeight} wheelWidth={wheelWidth} selectedFontSize={selectedFontSize} unselectedFontSize={unselectedFontSize} labelFontSize={labelFontSize} labelMarginTop={labelMarginTop} parentScrollRef={parentScrollRef} />

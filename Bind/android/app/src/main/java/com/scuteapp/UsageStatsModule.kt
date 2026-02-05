@@ -169,7 +169,7 @@ class UsageStatsModule(reactContext: ReactApplicationContext) :
 
             var totalTime = 0L
             foregroundTimes.forEach { (pkg, time) ->
-                if (isLaunchableApp(pkg)) {
+                if (isLaunchableApp(pkg) && time > 60000) {
                     totalTime += time
                 }
             }
@@ -299,7 +299,7 @@ class UsageStatsModule(reactContext: ReactApplicationContext) :
 
             var totalTime = 0L
             foregroundTimes.forEach { (pkg, time) ->
-                if (isLaunchableApp(pkg)) {
+                if (isLaunchableApp(pkg) && time > 60000) {
                     totalTime += time
                 }
             }

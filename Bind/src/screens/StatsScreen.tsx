@@ -58,7 +58,7 @@ const PERIOD_EMPTY: Record<StatsPeriod, string> = {
 const BAR_CHART_HEIGHT = 340;
 const TOP_APPS_COUNT = 5;
 
-const AnimatedBar = memo(({ percentage, color, delay, barWidth, maxHeight, label, time, textColor, mutedColor, icon }: {
+const AnimatedBar = memo(({ percentage, color, delay, barWidth, maxHeight, label, time, textColor, mutedColor, icon, s }: {
   percentage: number;
   color: string;
   delay: number;
@@ -69,10 +69,11 @@ const AnimatedBar = memo(({ percentage, color, delay, barWidth, maxHeight, label
   textColor: string;
   mutedColor: string;
   icon?: string;
+  s: (size: number) => number;
 }) => {
   const iconSz = barWidth * 0.7;
   // Reserve space for icon + time so bar doesn't overflow
-  const headerSpace = (icon ? iconSz + 4 : 0) + barWidth * 0.26 + 4;
+  const headerSpace = (icon ? iconSz + s(4) : 0) + barWidth * 0.26 + s(4);
   const barMaxHeight = maxHeight - headerSpace;
 
   const heightAnim = useRef(new Animated.Value(0)).current;
@@ -94,11 +95,11 @@ const AnimatedBar = memo(({ percentage, color, delay, barWidth, maxHeight, label
           {icon ? (
             <Image
               source={{ uri: icon }}
-              style={{ width: iconSz, height: iconSz, borderRadius: iconSz * 0.2, marginBottom: 4 }}
+              style={{ width: iconSz, height: iconSz, borderRadius: iconSz * 0.2, marginBottom: s(4) }}
               resizeMode="contain"
             />
           ) : null}
-          <Text style={{ color: textColor, fontSize: barWidth * 0.26, marginBottom: 4 }} className={fontFamily.semibold}>
+          <Text style={{ color: textColor, fontSize: barWidth * 0.26, marginBottom: s(4) }} className={fontFamily.semibold}>
             {time}
           </Text>
           <Animated.View
@@ -111,7 +112,7 @@ const AnimatedBar = memo(({ percentage, color, delay, barWidth, maxHeight, label
           />
         </Animated.View>
       </View>
-      <View style={{ height: barWidth * 0.22 * 4, marginTop: 8, justifyContent: 'flex-start' }}>
+      <View style={{ height: barWidth * 0.22 * 4, marginTop: s(8), justifyContent: 'flex-start' }}>
         <Text
           style={{ color: mutedColor, fontSize: barWidth * 0.22, textAlign: 'center', width: barWidth * 1.6 }}
           className={fontFamily.regular}
@@ -277,6 +278,7 @@ function StatsScreen() {
                     textColor={colors.text}
                     mutedColor={colors.textMuted}
                     icon={app.icon}
+                    s={s}
                   />
                 );
               })}

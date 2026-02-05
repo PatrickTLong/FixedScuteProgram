@@ -30,11 +30,11 @@ const AndroidIcon = ({ size = iconSize.lg, color = "#FFFFFF" }: { size?: number;
   </Svg>
 );
 
-// Chevron right icon
-const ChevronRightIcon = ({ size = iconSize.lg, color = "#FFFFFF" }: { size?: number; color?: string }) => (
+// Arrow right icon
+const ArrowRightIcon = ({ size = iconSize.lg, color = "#FFFFFF" }: { size?: number; color?: string }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Path
-      d="M9 18l6-6-6-6"
+      d="M5 12h14M12 5l7 7-7 7"
       stroke={color}
       strokeWidth={2.5}
       strokeLinecap="round"
@@ -369,7 +369,7 @@ function PermissionsChecklistScreen() {
               </Text>
             </View>
 
-            <ChevronRightIcon size={s(iconSize.md)} color={colors.text} />
+            <ArrowRightIcon size={s(iconSize.md)} color={colors.text} />
           </TouchableOpacity>
         ))}
 
