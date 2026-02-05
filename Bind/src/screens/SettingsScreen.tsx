@@ -704,7 +704,7 @@ function SettingsScreen() {
         presentationStyle="pageSheet"
         onRequestClose={() => setPrivacyModalVisible(false)}
       >
-        <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
+        <View style={{ flex: 1, backgroundColor: colors.bg }}>
           {/* Header */}
           <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }} className="flex-row items-center justify-between px-4 py-3.5">
             <View style={{ width: s(40) }} />
@@ -824,7 +824,7 @@ function SettingsScreen() {
         presentationStyle="pageSheet"
         onRequestClose={() => setTermsModalVisible(false)}
       >
-        <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
+        <View style={{ flex: 1, backgroundColor: colors.bg }}>
           {/* Header */}
           <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }} className="flex-row items-center justify-between px-4 py-3.5">
             <View style={{ width: s(40) }} />

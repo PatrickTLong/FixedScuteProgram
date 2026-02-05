@@ -1,5 +1,5 @@
 import React, { memo, useCallback, useEffect, useRef } from 'react';
-import { Animated, TouchableWithoutFeedback } from 'react-native';
+import { Animated, TouchableWithoutFeedback, View } from 'react-native';
 import { useResponsive } from '../utils/responsive';
 import { shadow } from '../context/ThemeContext';
 
@@ -14,13 +14,13 @@ interface AnimatedSwitchProps {
 
 // Size dimensions lookup - avoids recreating functions on every render
 const SIZE_DIMENSIONS = {
-  small:   { trackWidth: 44, trackHeight: 24, thumbSize: 16, thumbOffset: 4 },
-  medium:  { trackWidth: 56, trackHeight: 30, thumbSize: 22, thumbOffset: 4 },
-  large:   { trackWidth: 62, trackHeight: 34, thumbSize: 26, thumbOffset: 4 },
-  default: { trackWidth: 52, trackHeight: 28, thumbSize: 20, thumbOffset: 4 },
+  small:   { trackWidth: 44, trackHeight: 24, thumbSize: 20, thumbOffset: 2 },
+  medium:  { trackWidth: 56, trackHeight: 30, thumbSize: 26, thumbOffset: 2 },
+  large:   { trackWidth: 62, trackHeight: 34, thumbSize: 30, thumbOffset: 2 },
+  default: { trackWidth: 52, trackHeight: 28, thumbSize: 24, thumbOffset: 2 },
 } as const;
 
-const ANIMATION_DURATION = 120;
+const ANIMATION_DURATION = 90;
 
 function AnimatedSwitch({
   value,
@@ -41,6 +41,7 @@ function AnimatedSwitch({
   const thumbOffset = s(dims.thumbOffset);
 
   const animatedValue = useRef(new Animated.Value(value ? 1 : 0)).current;
+  const pulseProgress = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.timing(animatedValue, {
@@ -48,7 +49,19 @@ function AnimatedSwitch({
       duration: ANIMATION_DURATION,
       useNativeDriver: false,
     }).start();
-  }, [value, animatedValue]);
+
+    // Trigger pulse near end of slide — expands outward and fades
+    const pulseDelay = setTimeout(() => {
+      pulseProgress.setValue(0);
+      Animated.timing(pulseProgress, {
+        toValue: 1,
+        duration: 200,
+        useNativeDriver: false,
+      }).start();
+    }, 70);
+
+    return () => clearTimeout(pulseDelay);
+  }, [value, animatedValue, pulseProgress]);
 
   const handlePress = useCallback(() => {
     if (!disabled) {
@@ -66,6 +79,16 @@ function AnimatedSwitch({
     outputRange: [effectiveTrackColorFalse, trackColorTrue],
   });
 
+  const pulseScale = pulseProgress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, 2.2],
+  });
+
+  const pulseOpacity = pulseProgress.interpolate({
+    inputRange: [0, 0.3, 1],
+    outputRange: [0.7, 0.5, 0],
+  });
+
   return (
     <TouchableWithoutFeedback onPress={handlePress} disabled={disabled}>
       <Animated.View
@@ -79,20 +102,43 @@ function AnimatedSwitch({
           ...shadow.card,
         }}
       >
+        {/* Thumb + pulse wrapper */}
         <Animated.View
           style={{
             width: thumbSize,
             height: thumbSize,
-            borderRadius: thumbSize / 2,
-            backgroundColor: '#FFFFFF',
             transform: [{ translateX: thumbTranslateX }],
-            shadowColor: disabled ? 'transparent' : '#000',
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: disabled ? 0 : 0.2,
-            shadowRadius: disabled ? 0 : 2.5,
-            elevation: disabled ? 0 : 4,
+            alignItems: 'center',
+            justifyContent: 'center',
           }}
-        />
+        >
+          {/* Pulse circle */}
+          <Animated.View
+            style={{
+              position: 'absolute',
+              width: thumbSize,
+              height: thumbSize,
+              borderRadius: thumbSize / 2,
+              backgroundColor: '#FFFFFF',
+              opacity: pulseOpacity,
+              transform: [{ scale: pulseScale }],
+            }}
+          />
+          {/* Thumb */}
+          <View
+            style={{
+              width: thumbSize,
+              height: thumbSize,
+              borderRadius: thumbSize / 2,
+              backgroundColor: '#FFFFFF',
+              shadowColor: disabled ? 'transparent' : '#000',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: disabled ? 0 : 0.2,
+              shadowRadius: disabled ? 0 : 2.5,
+              elevation: disabled ? 0 : 4,
+            }}
+          />
+        </Animated.View>
       </Animated.View>
     </TouchableWithoutFeedback>
   );

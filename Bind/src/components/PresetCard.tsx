@@ -302,6 +302,7 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, disabled
 
         {/* Toggle Switch */}
         <AnimatedSwitch
+          size="small"
           value={isActive && !isExpired}
           onValueChange={handleToggle}
           disabled={disabled || isExpired}

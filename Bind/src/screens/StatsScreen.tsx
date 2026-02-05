@@ -44,9 +44,9 @@ interface AppUsage {
 type StatsPeriod = 'today' | 'week' | 'month';
 
 const PERIOD_LABELS: Record<StatsPeriod, string> = {
-  today: "Today's Top Screen Time",
-  week: "This Week's Top Screen Time",
-  month: "This Month's Top Screen Time",
+  today: "Today's Screen Time",
+  week: "This Week's Screen Time",
+  month: "This Month's Screen Time",
 };
 
 const PERIOD_EMPTY: Record<StatsPeriod, string> = {
@@ -190,10 +190,7 @@ function StatsScreen() {
   const topApps = appUsages.slice(0, TOP_APPS_COUNT);
   const maxAppTime = topApps.length > 0 ? topApps[0].timeInForeground : 0;
 
-  // Calculate total from all apps for the bar proportions
-  const totalFromApps = appUsages.reduce((sum, app) => sum + app.timeInForeground, 0);
-  // Use whichever is larger (totalScreenTime from system vs sum of top apps)
-  const displayTotal = Math.max(totalScreenTime, totalFromApps);
+  const displayTotal = totalScreenTime;
 
   if (loading) {
     return (

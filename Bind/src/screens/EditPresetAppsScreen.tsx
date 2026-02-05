@@ -745,7 +745,7 @@ function EditPresetAppsScreen() {
               </>
             )
           ) : (
-            <ScrollView className="flex-1 px-6">
+            <ScrollView className="flex-1 px-6" contentContainerStyle={{ paddingBottom: s(24) + insets.bottom }}>
               {/* Website Input */}
               <View className="flex-row items-center mb-4">
                 <View

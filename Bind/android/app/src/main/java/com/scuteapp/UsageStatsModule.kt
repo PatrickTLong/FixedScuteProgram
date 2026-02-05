@@ -1,8 +1,10 @@
 package com.scuteapp
 
-import android.app.usage.UsageStats
+import android.app.usage.UsageEvents
 import android.app.usage.UsageStatsManager
 import android.content.Context
+import android.content.Intent
+import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -26,6 +28,8 @@ import java.util.Calendar
 
 /**
  * Native module for getting app usage statistics.
+ * Uses UsageEvents API for accurate foreground time calculation
+ * that matches Android's Digital Wellbeing / Parental Controls.
  */
 class UsageStatsModule(reactContext: ReactApplicationContext) :
     ReactContextBaseJavaModule(reactContext) {
@@ -33,7 +37,7 @@ class UsageStatsModule(reactContext: ReactApplicationContext) :
     companion object {
         private const val TAG = "UsageStatsModule"
 
-        // Essential system apps to exclude from most used
+        // System packages to always exclude
         private val EXCLUDED_PACKAGES = setOf(
             "com.android.launcher",
             "com.android.launcher3",
@@ -60,17 +64,99 @@ class UsageStatsModule(reactContext: ReactApplicationContext) :
     override fun getName(): String = "UsageStatsModule"
 
     /**
+     * Check if a package is a launchable user-facing app.
+     * This filters out system services, providers, and background processes
+     * that show up in usage stats but aren't real "apps" the user opened.
+     */
+    private fun isLaunchableApp(packageName: String): Boolean {
+        if (EXCLUDED_PACKAGES.contains(packageName)) return false
+        val pm = reactApplicationContext.packageManager
+        // Check if the app has a launcher intent (i.e. it appears in the app drawer)
+        val launchIntent = pm.getLaunchIntentForPackage(packageName)
+        if (launchIntent != null) return true
+        // Some apps like TV/Wear apps might not have LAUNCHER category but are still real apps
+        // Fall back to checking if it's not a system app without a launcher
+        return try {
+            val appInfo = pm.getApplicationInfo(packageName, 0)
+            // Exclude pure system apps that have no launcher entry
+            (appInfo.flags and ApplicationInfo.FLAG_SYSTEM) == 0
+        } catch (e: PackageManager.NameNotFoundException) {
+            false
+        }
+    }
+
+    /**
+     * Calculate per-app foreground durations from UsageEvents.
+     * This is the same approach Android Digital Wellbeing uses.
+     * It tracks MOVE_TO_FOREGROUND / MOVE_TO_BACKGROUND event pairs
+     * to compute actual user-visible time.
+     */
+    private fun getAppForegroundTimes(startTime: Long, endTime: Long): HashMap<String, Long> {
+        val usageStatsManager = reactApplicationContext.getSystemService(Context.USAGE_STATS_SERVICE) as? UsageStatsManager
+            ?: return HashMap()
+
+        val events = usageStatsManager.queryEvents(startTime, endTime)
+        val event = UsageEvents.Event()
+
+        // Track when each app was last moved to foreground
+        val foregroundStartTimes = HashMap<String, Long>()
+        // Accumulated foreground time per package
+        val foregroundTimes = HashMap<String, Long>()
+
+        while (events.hasNextEvent()) {
+            events.getNextEvent(event)
+            val pkg = event.packageName ?: continue
+
+            when (event.eventType) {
+                UsageEvents.Event.MOVE_TO_FOREGROUND -> {
+                    // App came to foreground — record the timestamp
+                    foregroundStartTimes[pkg] = event.timeStamp
+                }
+                UsageEvents.Event.MOVE_TO_BACKGROUND -> {
+                    // App went to background — calculate session duration
+                    val start = foregroundStartTimes.remove(pkg)
+                    if (start != null && event.timeStamp > start) {
+                        val duration = event.timeStamp - start
+                        foregroundTimes[pkg] = (foregroundTimes[pkg] ?: 0L) + duration
+                    }
+                }
+            }
+        }
+
+        // For apps still in foreground (no MOVE_TO_BACKGROUND yet),
+        // count time from last foreground event to now
+        val now = System.currentTimeMillis()
+        for ((pkg, start) in foregroundStartTimes) {
+            if (now > start) {
+                val duration = now - start
+                foregroundTimes[pkg] = (foregroundTimes[pkg] ?: 0L) + duration
+            }
+        }
+
+        return foregroundTimes
+    }
+
+    private fun getTimeRange(period: String): Pair<Long, Long> {
+        val calendar = Calendar.getInstance()
+        calendar.set(Calendar.HOUR_OF_DAY, 0)
+        calendar.set(Calendar.MINUTE, 0)
+        calendar.set(Calendar.SECOND, 0)
+        calendar.set(Calendar.MILLISECOND, 0)
+
+        when (period) {
+            "week" -> calendar.set(Calendar.DAY_OF_WEEK, calendar.firstDayOfWeek)
+            "month" -> calendar.set(Calendar.DAY_OF_MONTH, 1)
+        }
+
+        return Pair(calendar.timeInMillis, System.currentTimeMillis())
+    }
+
+    /**
      * Get total screen time for today in milliseconds
      */
     @ReactMethod
     fun getTodayScreenTime(promise: Promise) {
         try {
-            val usageStatsManager = reactApplicationContext.getSystemService(Context.USAGE_STATS_SERVICE) as? UsageStatsManager
-            if (usageStatsManager == null) {
-                promise.resolve(0.0)
-                return
-            }
-
             val calendar = Calendar.getInstance()
             calendar.set(Calendar.HOUR_OF_DAY, 0)
             calendar.set(Calendar.MINUTE, 0)
@@ -79,20 +165,15 @@ class UsageStatsModule(reactContext: ReactApplicationContext) :
             val startOfDay = calendar.timeInMillis
             val endTime = System.currentTimeMillis()
 
-            val usageStatsList = usageStatsManager.queryUsageStats(
-                UsageStatsManager.INTERVAL_DAILY,
-                startOfDay,
-                endTime
-            )
+            val foregroundTimes = getAppForegroundTimes(startOfDay, endTime)
 
             var totalTime = 0L
-            usageStatsList?.forEach { stat ->
-                if (!EXCLUDED_PACKAGES.contains(stat.packageName)) {
-                    totalTime += stat.totalTimeInForeground
+            foregroundTimes.forEach { (pkg, time) ->
+                if (isLaunchableApp(pkg)) {
+                    totalTime += time
                 }
             }
 
-            // Return in milliseconds
             promise.resolve(totalTime.toDouble())
         } catch (e: Exception) {
             Log.e(TAG, "Error getting screen time", e)
@@ -106,12 +187,6 @@ class UsageStatsModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     fun getMostUsedAppToday(promise: Promise) {
         try {
-            val usageStatsManager = reactApplicationContext.getSystemService(Context.USAGE_STATS_SERVICE) as? UsageStatsManager
-            if (usageStatsManager == null) {
-                promise.resolve(null)
-                return
-            }
-
             val calendar = Calendar.getInstance()
             calendar.set(Calendar.HOUR_OF_DAY, 0)
             calendar.set(Calendar.MINUTE, 0)
@@ -120,37 +195,33 @@ class UsageStatsModule(reactContext: ReactApplicationContext) :
             val startOfDay = calendar.timeInMillis
             val endTime = System.currentTimeMillis()
 
-            val usageStatsList = usageStatsManager.queryUsageStats(
-                UsageStatsManager.INTERVAL_DAILY,
-                startOfDay,
-                endTime
-            )
+            val foregroundTimes = getAppForegroundTimes(startOfDay, endTime)
 
-            var mostUsedApp: UsageStats? = null
+            var mostUsedPkg: String? = null
             var maxTime = 0L
 
-            usageStatsList?.forEach { stat ->
-                if (!EXCLUDED_PACKAGES.contains(stat.packageName) && stat.totalTimeInForeground > maxTime) {
-                    maxTime = stat.totalTimeInForeground
-                    mostUsedApp = stat
+            foregroundTimes.forEach { (pkg, time) ->
+                if (isLaunchableApp(pkg) && time > maxTime) {
+                    maxTime = time
+                    mostUsedPkg = pkg
                 }
             }
 
-            if (mostUsedApp == null || maxTime < 60000) { // Less than 1 minute
+            if (mostUsedPkg == null || maxTime < 60000) { // Less than 1 minute
                 promise.resolve(null)
                 return
             }
 
             val packageManager = reactApplicationContext.packageManager
             val appName = try {
-                val appInfo = packageManager.getApplicationInfo(mostUsedApp!!.packageName, 0)
+                val appInfo = packageManager.getApplicationInfo(mostUsedPkg!!, 0)
                 packageManager.getApplicationLabel(appInfo).toString()
             } catch (e: PackageManager.NameNotFoundException) {
-                mostUsedApp!!.packageName
+                mostUsedPkg!!
             }
 
             val result = Arguments.createMap().apply {
-                putString("packageName", mostUsedApp!!.packageName)
+                putString("packageName", mostUsedPkg!!)
                 putString("appName", appName)
                 putDouble("timeInForeground", maxTime.toDouble())
             }
@@ -168,12 +239,6 @@ class UsageStatsModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     fun getAllAppsUsageToday(promise: Promise) {
         try {
-            val usageStatsManager = reactApplicationContext.getSystemService(Context.USAGE_STATS_SERVICE) as? UsageStatsManager
-            if (usageStatsManager == null) {
-                promise.resolve(Arguments.createArray())
-                return
-            }
-
             val calendar = Calendar.getInstance()
             calendar.set(Calendar.HOUR_OF_DAY, 0)
             calendar.set(Calendar.MINUTE, 0)
@@ -182,37 +247,32 @@ class UsageStatsModule(reactContext: ReactApplicationContext) :
             val startOfDay = calendar.timeInMillis
             val endTime = System.currentTimeMillis()
 
-            val usageStatsList = usageStatsManager.queryUsageStats(
-                UsageStatsManager.INTERVAL_DAILY,
-                startOfDay,
-                endTime
-            )
+            val foregroundTimes = getAppForegroundTimes(startOfDay, endTime)
 
             val packageManager = reactApplicationContext.packageManager
             val appsArray = Arguments.createArray()
 
-            // Sort by usage time descending
-            usageStatsList?.filter {
-                !EXCLUDED_PACKAGES.contains(it.packageName) && it.totalTimeInForeground > 60000 // More than 1 minute
-            }?.sortedByDescending {
-                it.totalTimeInForeground
-            }?.take(10)?.forEach { stat ->
+            foregroundTimes.filter { (pkg, time) ->
+                isLaunchableApp(pkg) && time > 60000
+            }.entries.sortedByDescending {
+                it.value
+            }.take(10).forEach { (packageName, totalTime) ->
                 val appName = try {
-                    val appInfo = packageManager.getApplicationInfo(stat.packageName, 0)
+                    val appInfo = packageManager.getApplicationInfo(packageName, 0)
                     packageManager.getApplicationLabel(appInfo).toString()
                 } catch (e: PackageManager.NameNotFoundException) {
-                    stat.packageName
+                    packageName
                 }
 
                 val appMap = Arguments.createMap().apply {
-                    putString("packageName", stat.packageName)
+                    putString("packageName", packageName)
                     putString("appName", appName)
-                    putDouble("timeInForeground", stat.totalTimeInForeground.toDouble())
+                    putDouble("timeInForeground", totalTime.toDouble())
                 }
 
                 // Get app icon as base64
                 try {
-                    val icon = packageManager.getApplicationIcon(stat.packageName)
+                    val icon = packageManager.getApplicationIcon(packageName)
                     val iconBase64 = drawableToBase64(icon)
                     if (iconBase64 != null) {
                         appMap.putString("icon", "data:image/png;base64,$iconBase64")
@@ -231,46 +291,19 @@ class UsageStatsModule(reactContext: ReactApplicationContext) :
         }
     }
 
-    private fun getTimeRange(period: String): Pair<Long, Long> {
-        val calendar = Calendar.getInstance()
-        calendar.set(Calendar.HOUR_OF_DAY, 0)
-        calendar.set(Calendar.MINUTE, 0)
-        calendar.set(Calendar.SECOND, 0)
-        calendar.set(Calendar.MILLISECOND, 0)
-
-        when (period) {
-            "week" -> calendar.set(Calendar.DAY_OF_WEEK, calendar.firstDayOfWeek)
-            "month" -> calendar.set(Calendar.DAY_OF_MONTH, 1)
-        }
-
-        return Pair(calendar.timeInMillis, System.currentTimeMillis())
-    }
-
     @ReactMethod
     fun getScreenTime(period: String, promise: Promise) {
         try {
-            val usageStatsManager = reactApplicationContext.getSystemService(Context.USAGE_STATS_SERVICE) as? UsageStatsManager
-            if (usageStatsManager == null) {
-                promise.resolve(0.0)
-                return
-            }
-
             val (startTime, endTime) = getTimeRange(period)
+            val foregroundTimes = getAppForegroundTimes(startTime, endTime)
 
-            val usageStatsList = usageStatsManager.queryUsageStats(
-                UsageStatsManager.INTERVAL_DAILY,
-                startTime,
-                endTime
-            )
-
-            val aggregated = HashMap<String, Long>()
-            usageStatsList?.forEach { stat ->
-                if (!EXCLUDED_PACKAGES.contains(stat.packageName)) {
-                    aggregated[stat.packageName] = (aggregated[stat.packageName] ?: 0L) + stat.totalTimeInForeground
+            var totalTime = 0L
+            foregroundTimes.forEach { (pkg, time) ->
+                if (isLaunchableApp(pkg)) {
+                    totalTime += time
                 }
             }
 
-            val totalTime = aggregated.values.sum()
             promise.resolve(totalTime.toDouble())
         } catch (e: Exception) {
             Log.e(TAG, "Error getting screen time for period: $period", e)
@@ -281,60 +314,42 @@ class UsageStatsModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     fun getAllAppsUsage(period: String, promise: Promise) {
         try {
-            val usageStatsManager = reactApplicationContext.getSystemService(Context.USAGE_STATS_SERVICE) as? UsageStatsManager
-            if (usageStatsManager == null) {
-                promise.resolve(Arguments.createArray())
-                return
-            }
-
             val (startTime, endTime) = getTimeRange(period)
-
-            val usageStatsList = usageStatsManager.queryUsageStats(
-                UsageStatsManager.INTERVAL_DAILY,
-                startTime,
-                endTime
-            )
-
-            // Aggregate usage per app across multiple days
-            val aggregated = HashMap<String, Long>()
-            usageStatsList?.forEach { stat ->
-                if (!EXCLUDED_PACKAGES.contains(stat.packageName)) {
-                    aggregated[stat.packageName] = (aggregated[stat.packageName] ?: 0L) + stat.totalTimeInForeground
-                }
-            }
+            val foregroundTimes = getAppForegroundTimes(startTime, endTime)
 
             val packageManager = reactApplicationContext.packageManager
             val appsArray = Arguments.createArray()
 
-            aggregated.filter { it.value > 60000 }
-                .entries.sortedByDescending { it.value }
-                .take(10)
-                .forEach { (packageName, totalTime) ->
-                    val appName = try {
-                        val appInfo = packageManager.getApplicationInfo(packageName, 0)
-                        packageManager.getApplicationLabel(appInfo).toString()
-                    } catch (e: PackageManager.NameNotFoundException) {
-                        packageName
-                    }
-
-                    val appMap = Arguments.createMap().apply {
-                        putString("packageName", packageName)
-                        putString("appName", appName)
-                        putDouble("timeInForeground", totalTime.toDouble())
-                    }
-
-                    try {
-                        val icon = packageManager.getApplicationIcon(packageName)
-                        val iconBase64 = drawableToBase64(icon)
-                        if (iconBase64 != null) {
-                            appMap.putString("icon", "data:image/png;base64,$iconBase64")
-                        }
-                    } catch (e: Exception) {
-                        // Icon not available, skip
-                    }
-
-                    appsArray.pushMap(appMap)
+            foregroundTimes.filter { (pkg, time) ->
+                isLaunchableApp(pkg) && time > 60000
+            }.entries.sortedByDescending {
+                it.value
+            }.take(10).forEach { (packageName, totalTime) ->
+                val appName = try {
+                    val appInfo = packageManager.getApplicationInfo(packageName, 0)
+                    packageManager.getApplicationLabel(appInfo).toString()
+                } catch (e: Exception) {
+                    packageName
                 }
+
+                val appMap = Arguments.createMap().apply {
+                    putString("packageName", packageName)
+                    putString("appName", appName)
+                    putDouble("timeInForeground", totalTime.toDouble())
+                }
+
+                try {
+                    val icon = packageManager.getApplicationIcon(packageName)
+                    val iconBase64 = drawableToBase64(icon)
+                    if (iconBase64 != null) {
+                        appMap.putString("icon", "data:image/png;base64,$iconBase64")
+                    }
+                } catch (e: Exception) {
+                    // Icon not available, skip
+                }
+
+                appsArray.pushMap(appMap)
+            }
 
             promise.resolve(appsArray)
         } catch (e: Exception) {

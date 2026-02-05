@@ -1103,6 +1103,7 @@ function PresetSettingsScreen() {
                     <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>Repeat this block automatically</Text>
                   </TouchableOpacity>
                   <AnimatedSwitch
+                    size="small"
                     value={isRecurring}
                     onValueChange={(value: boolean) => {
                       setIsRecurring(value);
@@ -1327,6 +1328,7 @@ function PresetSettingsScreen() {
               <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>Block until manually unlocked</Text>
             </TouchableOpacity>
             <AnimatedSwitch
+              size="small"
               value={noTimeLimit}
               onValueChange={(value: boolean) => {
                 setNoTimeLimit(value);
@@ -1366,6 +1368,7 @@ function PresetSettingsScreen() {
                 <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>Set a future start and end time, with optional recurrence</Text>
               </TouchableOpacity>
               <AnimatedSwitch
+                size="small"
                 value={isScheduled}
                 onValueChange={(value: boolean) => {
                   setIsScheduled(value);
@@ -1613,6 +1616,7 @@ function PresetSettingsScreen() {
               <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>Essential settings remain accessible</Text>
             </TouchableOpacity>
             <AnimatedSwitch
+              size="small"
               value={blockSettings}
               onValueChange={async (value: boolean) => {
                 mediumTap();
@@ -1649,6 +1653,7 @@ function PresetSettingsScreen() {
                 </Text>
               </TouchableOpacity>
               <AnimatedSwitch
+                size="small"
                 value={strictMode}
                 onValueChange={async (value: boolean) => {
                   mediumTap();
@@ -1686,6 +1691,7 @@ function PresetSettingsScreen() {
                 <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>Use your emergency tapouts for this preset</Text>
               </TouchableOpacity>
               <AnimatedSwitch
+                size="small"
                 value={allowEmergencyTapout}
                 onValueChange={handleEmergencyTapoutToggle}
               />

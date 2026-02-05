@@ -407,12 +407,11 @@ function HomeScreen() {
     }
     init();
 
-    // Refresh preset when app comes to foreground
+    // Refresh preset when app comes to foreground (silently, no loading spinner)
     const subscription = AppState.addEventListener('change', async (nextAppState) => {
       if (nextAppState === 'active') {
-        // Fetch fresh data when returning to foreground with loading spinner
         invalidateUserCaches(email);
-        await loadStats(true, true); // skipCache=true, showLoading=true
+        await loadStats(true, false); // skipCache=true, showLoading=false
       }
     });
 

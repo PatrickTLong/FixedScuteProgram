@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useRef } from 'react';
+import React, { memo, useCallback, useRef, useState } from 'react';
 import { View, TouchableOpacity, Text, Animated, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
@@ -13,7 +13,7 @@ interface TabItemProps {
   label: string;
   isActive: boolean;
   onPress: () => void;
-  icon: React.ReactNode;
+  renderIcon: (color: string) => React.ReactNode;
   activeColor: string;
   inactiveColor: string;
 }
@@ -87,33 +87,28 @@ const SettingsIcon = ({ color }: { color: string }) => (
   </Svg>
 );
 
-const PULSE_SIZE = 48;
+const FLASH_SIZE = 80;
 
-const TabItem = memo(({ label, isActive, onPress, icon, activeColor, inactiveColor }: TabItemProps) => {
-  const pulseScale = useRef(new Animated.Value(0)).current;
-  const pulseOpacity = useRef(new Animated.Value(0)).current;
+const TabItem = memo(({ label, isActive, onPress, renderIcon, activeColor, inactiveColor }: TabItemProps) => {
+  const flashOpacity = useRef(new Animated.Value(0)).current;
+  const [pressed, setPressed] = useState(false);
 
-  const triggerPulse = useCallback(() => {
+  const triggerFlash = useCallback(() => {
     lightTap();
-    pulseScale.setValue(0);
-    pulseOpacity.setValue(0.35);
-    Animated.parallel([
-      Animated.timing(pulseScale, {
-        toValue: 1,
-        duration: 350,
-        useNativeDriver: true,
-      }),
-      Animated.timing(pulseOpacity, {
-        toValue: 0,
-        duration: 350,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, [pulseScale, pulseOpacity]);
+    setPressed(true);
+    flashOpacity.setValue(0.3);
+    Animated.timing(flashOpacity, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => setPressed(false));
+  }, [flashOpacity]);
+
+  const displayColor = pressed ? '#ffffff' : (isActive ? activeColor : inactiveColor);
 
   return (
     <TouchableOpacity
-      onPressIn={triggerPulse}
+      onPressIn={triggerFlash}
       onPress={onPress}
       activeOpacity={0.7}
       style={{ paddingVertical: buttonPadding.tabItem }}
@@ -122,21 +117,18 @@ const TabItem = memo(({ label, isActive, onPress, icon, activeColor, inactiveCol
       <View style={styles.pulseContainer}>
         <Animated.View
           style={[
-            styles.pulse,
-            {
-              opacity: pulseOpacity,
-              transform: [{ scale: pulseScale }],
-            },
+            styles.flash,
+            { opacity: flashOpacity },
           ]}
         />
-        {icon}
+        {renderIcon(displayColor)}
+        <Text
+          style={{ color: displayColor }}
+          className={`${textSize.extraSmall} mt-1 ${fontFamily.regular}`}
+        >
+          {label}
+        </Text>
       </View>
-      <Text
-        style={{ color: isActive ? activeColor : inactiveColor }}
-        className={`${textSize.extraSmall} mt-1 ${fontFamily.regular}`}
-      >
-        {label}
-      </Text>
     </TouchableOpacity>
   );
 });
@@ -146,11 +138,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  pulse: {
+  flash: {
     position: 'absolute',
-    width: PULSE_SIZE,
-    height: PULSE_SIZE,
-    borderRadius: PULSE_SIZE / 2,
+    width: FLASH_SIZE,
+    height: FLASH_SIZE,
+    borderRadius: FLASH_SIZE / 2,
     backgroundColor: '#ffffff',
   },
 });
@@ -167,9 +159,6 @@ function BottomTabBar({ state, navigation }: RNBottomTabBarProps) {
 
   // Map current route to which visible tab is active
   const activeTab: TabName = (currentRouteName.toLowerCase() as TabName) || 'home';
-
-  const getIconColor = (tab: TabName) =>
-    activeTab === tab ? colors.text : colors.textMuted;
 
   const handleTabPress = useCallback((tab: TabName) => {
     const routeNameMap: Record<TabName, string> = {
@@ -204,40 +193,41 @@ function BottomTabBar({ state, navigation }: RNBottomTabBarProps) {
         borderTopWidth: 1, borderTopColor: colors.border,
         ...shadow.tabBar,
       }}
-      className="flex-row pt-2"
     >
-      <TabItem
-        label="Home"
-        isActive={activeTab === 'home'}
-        onPress={handleHomePress}
-        icon={<HomeIcon color={getIconColor('home')} />}
-        activeColor={colors.text}
-        inactiveColor={colors.textMuted}
-      />
-      <TabItem
-        label="Presets"
-        isActive={activeTab === 'presets'}
-        onPress={handlePresetsPress}
-        icon={<PresetsIcon color={getIconColor('presets')} />}
-        activeColor={colors.text}
-        inactiveColor={colors.textMuted}
-      />
-      <TabItem
-        label="Stats"
-        isActive={activeTab === 'stats'}
-        onPress={handleStatsPress}
-        icon={<StatsIcon color={getIconColor('stats')} />}
-        activeColor={colors.text}
-        inactiveColor={colors.textMuted}
-      />
-      <TabItem
-        label="Settings"
-        isActive={activeTab === 'settings'}
-        onPress={handleSettingsPress}
-        icon={<SettingsIcon color={getIconColor('settings')} />}
-        activeColor={colors.text}
-        inactiveColor={colors.textMuted}
-      />
+      <View style={{ overflow: 'hidden' }} className="flex-row pt-2">
+        <TabItem
+          label="Home"
+          isActive={activeTab === 'home'}
+          onPress={handleHomePress}
+          renderIcon={(color) => <HomeIcon color={color} />}
+          activeColor={colors.text}
+          inactiveColor={colors.textMuted}
+        />
+        <TabItem
+          label="Presets"
+          isActive={activeTab === 'presets'}
+          onPress={handlePresetsPress}
+          renderIcon={(color) => <PresetsIcon color={color} />}
+          activeColor={colors.text}
+          inactiveColor={colors.textMuted}
+        />
+        <TabItem
+          label="Stats"
+          isActive={activeTab === 'stats'}
+          onPress={handleStatsPress}
+          renderIcon={(color) => <StatsIcon color={color} />}
+          activeColor={colors.text}
+          inactiveColor={colors.textMuted}
+        />
+        <TabItem
+          label="Settings"
+          isActive={activeTab === 'settings'}
+          onPress={handleSettingsPress}
+          renderIcon={(color) => <SettingsIcon color={color} />}
+          activeColor={colors.text}
+          inactiveColor={colors.textMuted}
+        />
+      </View>
     </View>
   );
 }
