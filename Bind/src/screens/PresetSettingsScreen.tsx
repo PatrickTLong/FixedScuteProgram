@@ -1449,7 +1449,7 @@ function PresetSettingsScreen() {
         </ExpandableInfo>
 
         {/* Timer Picker (if time limit enabled and not scheduled) */}
-        <ExpandableInfo expanded={!noTimeLimit && !isScheduled} lazy>
+        <View style={noTimeLimit || isScheduled ? { height: 0, overflow: 'hidden' } : undefined}>
           <View className="mt-6 px-6">
             <View>
               <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} text-white tracking-wider`}>
@@ -1527,7 +1527,7 @@ function PresetSettingsScreen() {
 
           </View>
           <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight, marginTop: s(16) }} />
-        </ExpandableInfo>
+        </View>
 
         {/* ── Block Behavior ── */}
 
