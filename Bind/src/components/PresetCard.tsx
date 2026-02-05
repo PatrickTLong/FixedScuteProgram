@@ -253,15 +253,14 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, disabled
       onPress={handlePress}
       onLongPress={handleLongPress}
       delayLongPress={500}
-      style={({ pressed }) => ({
+      style={{
         backgroundColor: colors.card,
         borderWidth: 1,
         borderColor: colors.border,
         paddingVertical: s(buttonPadding.standard),
         paddingHorizontal: s(buttonPadding.standard),
-        opacity: pressed ? 0.7 : 1,
         ...shadow.card,
-      })}
+      }}
       className={`${radius['2xl']} mb-3`}
     >
       <View className="flex-row items-center">

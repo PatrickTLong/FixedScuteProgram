@@ -397,6 +397,163 @@ const AmPmSelector = memo(({ value, onChange, cardColor }: AmPmSelectorProps) =>
   );
 });
 
+// ============ Recurrence Wheel Picker Component ============
+const RECURRENCE_ITEM_HEIGHT = 40;
+const RECURRENCE_VISIBLE_ITEMS = 3;
+const RECURRENCE_VALUES = Array.from({ length: 99 }, (_, i) => i + 1);
+const RECURRENCE_UNITS: RecurringUnit[] = ['minutes', 'hours', 'days', 'weeks', 'months'];
+
+interface RecurrenceWheelProps {
+  values: (number | string)[];
+  selectedValue: number | string;
+  onValueChange: (value: number | string) => void;
+  textColor: string;
+  textMutedColor: string;
+  itemHeight: number;
+  wheelWidth: number;
+  selectedFontSize: number;
+  unselectedFontSize: number;
+  parentScrollRef?: React.RefObject<ScrollView | null>;
+  formatValue?: (value: number | string) => string;
+}
+
+const RecurrenceWheel = memo(({ values, selectedValue, onValueChange, textColor, textMutedColor, itemHeight, wheelWidth, selectedFontSize, unselectedFontSize, parentScrollRef, formatValue }: RecurrenceWheelProps) => {
+  const scrollRef = useRef<ScrollView>(null);
+  const lastHapticIndex = useRef(-1);
+  const scrolledByUser = useRef(false);
+
+  useEffect(() => {
+    if (scrolledByUser.current) {
+      scrolledByUser.current = false;
+      return;
+    }
+    const index = values.indexOf(selectedValue);
+    if (index >= 0 && scrollRef.current) {
+      setTimeout(() => {
+        scrollRef.current?.scrollTo({ y: index * itemHeight, animated: false });
+      }, 10);
+    }
+  }, [selectedValue, values, itemHeight]);
+
+  const handleScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const offsetY = event.nativeEvent.contentOffset.y;
+    const currentIndex = Math.round(offsetY / itemHeight);
+    const clampedIndex = Math.max(0, Math.min(currentIndex, values.length - 1));
+
+    if (lastHapticIndex.current !== clampedIndex && lastHapticIndex.current !== -1) {
+      lightTap();
+    }
+    lastHapticIndex.current = clampedIndex;
+  }, [values.length, itemHeight]);
+
+  const handleScrollEnd = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const offsetY = event.nativeEvent.contentOffset.y;
+    const index = Math.round(offsetY / itemHeight);
+    const clampedIndex = Math.max(0, Math.min(index, values.length - 1));
+
+    if (values[clampedIndex] !== selectedValue) {
+      scrolledByUser.current = true;
+      onValueChange(values[clampedIndex]);
+    }
+  }, [values, selectedValue, onValueChange, itemHeight]);
+
+  const paddingVertical = (itemHeight * (RECURRENCE_VISIBLE_ITEMS - 1)) / 2;
+
+  return (
+    <View
+      style={{ alignItems: 'center' }}
+      onTouchStart={parentScrollRef ? () => parentScrollRef.current?.setNativeProps({ scrollEnabled: false }) : undefined}
+      onTouchEnd={parentScrollRef ? () => parentScrollRef.current?.setNativeProps({ scrollEnabled: true }) : undefined}
+      onTouchCancel={parentScrollRef ? () => parentScrollRef.current?.setNativeProps({ scrollEnabled: true }) : undefined}
+    >
+      <View style={{ height: itemHeight * RECURRENCE_VISIBLE_ITEMS, width: wheelWidth, overflow: 'hidden' }}>
+        <ScrollView
+          ref={scrollRef}
+          showsVerticalScrollIndicator={false}
+          snapToInterval={itemHeight}
+          decelerationRate="fast"
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
+          onMomentumScrollEnd={handleScrollEnd}
+          onScrollEndDrag={(e) => {
+            if (e.nativeEvent.velocity?.y === 0) handleScrollEnd(e);
+          }}
+          contentContainerStyle={{ paddingVertical }}
+          nestedScrollEnabled={false}
+          overScrollMode="never"
+        >
+          {values.map((value) => {
+            const isSelected = value === selectedValue;
+            const displayValue = formatValue ? formatValue(value) : String(value);
+            return (
+              <View key={String(value)} style={{ height: itemHeight, justifyContent: 'center', alignItems: 'center' }}>
+                <Text
+                  style={{
+                    fontSize: isSelected ? selectedFontSize : unselectedFontSize,
+                    color: isSelected ? textColor : textMutedColor,
+                  }}
+                  className={isSelected ? fontFamily.bold : fontFamily.regular}
+                >
+                  {displayValue}
+                </Text>
+              </View>
+            );
+          })}
+        </ScrollView>
+      </View>
+    </View>
+  );
+});
+
+interface RecurrenceWheelPickerProps {
+  value: number;
+  unit: RecurringUnit;
+  onValueChange: (value: number) => void;
+  onUnitChange: (unit: RecurringUnit) => void;
+  parentScrollRef?: React.RefObject<ScrollView | null>;
+}
+
+const RecurrenceWheelPicker = memo(({ value, unit, onValueChange, onUnitChange, parentScrollRef }: RecurrenceWheelPickerProps) => {
+  const { colors } = useTheme();
+  const { s } = useResponsive();
+  const itemHeight = s(RECURRENCE_ITEM_HEIGHT);
+  const numberWheelWidth = s(60);
+  const unitWheelWidth = s(100);
+  const textMutedColor = colors.text === '#ffffff' ? 'rgba(255,255,255,0.3)' : 'rgba(26,26,26,0.3)';
+  const selectedFontSize = s(22);
+  const unselectedFontSize = s(16);
+
+  return (
+    <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: s(8) }}>
+      <RecurrenceWheel
+        values={RECURRENCE_VALUES}
+        selectedValue={value}
+        onValueChange={(val) => onValueChange(val as number)}
+        textColor={colors.text}
+        textMutedColor={textMutedColor}
+        itemHeight={itemHeight}
+        wheelWidth={numberWheelWidth}
+        selectedFontSize={selectedFontSize}
+        unselectedFontSize={unselectedFontSize}
+        parentScrollRef={parentScrollRef}
+        formatValue={(v) => String(v).padStart(2, '0')}
+      />
+      <RecurrenceWheel
+        values={RECURRENCE_UNITS}
+        selectedValue={unit}
+        onValueChange={(val) => onUnitChange(val as RecurringUnit)}
+        textColor={colors.text}
+        textMutedColor={textMutedColor}
+        itemHeight={itemHeight}
+        wheelWidth={unitWheelWidth}
+        selectedFontSize={selectedFontSize}
+        unselectedFontSize={unselectedFontSize}
+        parentScrollRef={parentScrollRef}
+      />
+    </View>
+  );
+});
+
 // ============ ExpandableInfo Component ============
 const ExpandableInfo = ({ expanded, children, lazy = false }: { expanded: boolean; children: React.ReactNode; lazy?: boolean }) => {
   if (lazy && !expanded) return null;
@@ -475,7 +632,6 @@ function PresetSettingsScreen() {
   const [isRecurring, setIsRecurring] = useState(false);
   const [recurringValue, setRecurringValue] = useState<string>('1');
   const [recurringUnit, setRecurringUnit] = useState<RecurringUnit>('hours');
-  const [recurringUnitModalVisible, setRecurringUnitModalVisible] = useState(false);
   const [recurrenceInfoVisible, setRecurrenceInfoVisible] = useState(false);
   const [svgKey, setSvgKey] = useState(0);
 
@@ -903,7 +1059,7 @@ function PresetSettingsScreen() {
     // Navigate immediately — save happens in the background
     setFinalSettingsState(null);
     setPresetSettingsParams(null);
-    navigation.navigate('Presets');
+    navigation.navigate({ name: 'Presets' } as any);
     onSave(newPreset);
   }, [name, canSave, getEditingPreset, getExistingPresets, installedSelectedApps, blockedWebsites, blockSettings, noTimeLimit, timerDays, timerHours, timerMinutes, timerSeconds, targetDate, onSave, allowEmergencyTapout, strictMode, isScheduled, scheduleStartDate, scheduleEndDate, isRecurring, recurringValue, recurringUnit, navigation, setFinalSettingsState]);
 
@@ -1335,52 +1491,22 @@ function PresetSettingsScreen() {
                       Recurrence
                     </Text>
 
-                    {/* Number Input */}
+                    {/* Wheel Picker for Recurrence */}
                     <View
-                      style={{ backgroundColor: colors.card, paddingVertical: s(buttonPadding.standard), borderWidth: 1, borderColor: colors.border, ...shadow.card }}
-                      className={`flex-row items-center px-4 ${radius.xl} mb-3`}
+                      style={{ backgroundColor: colors.card, paddingVertical: s(16), borderWidth: 1, borderColor: colors.border, ...shadow.card }}
+                      className={`${radius.xl} mb-3`}
                     >
-                      <View className={`w-10 h-10 ${radius.lg} items-center justify-center mr-3`}>
-                        <RotateCwIcon size={s(iconSize.lg)} />
-                      </View>
-                      <View className="flex-1">
-                        <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
-                          Repeat Every
-                        </Text>
-                      </View>
-                      <TextInput
-                        style={{ color: colors.text, minWidth: s(40), textAlign: 'center', height: s(28), padding: 0 }}
-                        className={`${textSize.base} ${fontFamily.semibold}`}
-                        value={recurringValue}
-                        onChangeText={(text) => {
-                          const numericValue = text.replace(/[^0-9]/g, '');
-                          setRecurringValue(numericValue);
-                        }}
-                        keyboardType="number-pad"
-                        maxLength={3}
-                        placeholder="1"
-                        placeholderTextColor={colors.textSecondary}
+                      <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold} text-center mb-3`}>
+                        Repeat Every
+                      </Text>
+                      <RecurrenceWheelPicker
+                        value={parseInt(recurringValue, 10) || 1}
+                        unit={recurringUnit}
+                        onValueChange={(val) => setRecurringValue(val.toString())}
+                        onUnitChange={setRecurringUnit}
+                        parentScrollRef={scrollRef}
                       />
                     </View>
-
-                    {/* Unit Selector */}
-                    <TouchableOpacity
-                      onPressIn={lightTap}
-                      onPress={() => setRecurringUnitModalVisible(true)}
-                      activeOpacity={0.7}
-                      style={{ backgroundColor: colors.card, paddingVertical: s(buttonPadding.standard), borderWidth: 1, borderColor: colors.border, ...shadow.card }}
-                      className={`flex-row items-center px-4 ${radius.xl} mb-3`}
-                    >
-                      <View className={`w-10 h-10 ${radius.lg} items-center justify-center mr-3`}>
-                        <ClockIcon size={s(iconSize.lg)} />
-                      </View>
-                      <View className="flex-1">
-                        <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold} capitalize`}>
-                          {recurringUnit}
-                        </Text>
-                      </View>
-                      <ChevronRightIcon size={s(iconSize.md)} color={colors.text} />
-                    </TouchableOpacity>
 
                     {/* Next Occurrence Preview */}
                     {(() => {
@@ -1666,52 +1792,6 @@ function PresetSettingsScreen() {
           }
         }}
       />
-
-      {/* Recurring Unit Selection Modal */}
-      <Modal
-        visible={recurringUnitModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setRecurringUnitModalVisible(false)}
-      >
-        <TouchableOpacity
-          activeOpacity={1}
-          onPress={() => setRecurringUnitModalVisible(false)}
-          className="flex-1 bg-black/70 justify-center items-center px-6"
-        >
-          <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.modal }} className={`w-full ${radius['2xl']} overflow-hidden`}>
-            <View className="p-4">
-              <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.bold} text-center mb-4`}>
-                Select Unit
-              </Text>
-              {(['minutes', 'hours', 'days', 'weeks', 'months'] as RecurringUnit[]).map((unit) => (
-                <TouchableOpacity
-                  key={unit}
-                  onPressIn={lightTap}
-                  onPress={() => {
-                    setRecurringUnit(unit);
-                    setRecurringUnitModalVisible(false);
-                  }}
-                  activeOpacity={0.7}
-                  style={{
-                    backgroundColor: recurringUnit === unit ? colors.green : colors.cardLight,
-                    borderWidth: 1, borderColor: colors.border,
-                    ...shadow.card,
-                  }}
-                  className={`items-center justify-center py-4 px-4 ${radius.xl} mb-2`}
-                >
-                  <Text
-                    style={{ color: colors.text }}
-                    className={`${textSize.small} ${fontFamily.semibold} capitalize`}
-                  >
-                    {unit}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-        </TouchableOpacity>
-      </Modal>
 
       {/* No Tapouts Remaining Modal */}
       <InfoModal

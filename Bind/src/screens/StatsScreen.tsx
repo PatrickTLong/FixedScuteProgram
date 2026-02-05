@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback, useRef, memo } from 'react';
 import {
   Text,
   View,
-  ScrollView,
   Animated,
   NativeModules,
   AppState,
@@ -58,7 +57,7 @@ const PERIOD_EMPTY: Record<StatsPeriod, string> = {
 const BAR_CHART_HEIGHT = 340;
 const TOP_APPS_COUNT = 5;
 
-const AnimatedBar = memo(({ percentage, color, delay, barWidth, maxHeight, label, time, textColor, mutedColor, icon, s }: {
+const AnimatedBar = memo(({ percentage, color, delay, barWidth, maxHeight, label, time, textColor, mutedColor, icon, s, animationKey }: {
   percentage: number;
   color: string;
   delay: number;
@@ -70,6 +69,7 @@ const AnimatedBar = memo(({ percentage, color, delay, barWidth, maxHeight, label
   mutedColor: string;
   icon?: string;
   s: (size: number) => number;
+  animationKey: number;
 }) => {
   const iconSz = barWidth * 0.7;
   // Reserve space for icon + time so bar doesn't overflow
@@ -86,7 +86,7 @@ const AnimatedBar = memo(({ percentage, color, delay, barWidth, maxHeight, label
       delay,
       useNativeDriver: false,
     }).start();
-  }, [percentage, delay, barMaxHeight, heightAnim]);
+  }, [percentage, delay, barMaxHeight, heightAnim, animationKey]);
 
   return (
     <View style={{ alignItems: 'center', flex: 1 }}>
@@ -150,6 +150,7 @@ function StatsScreen() {
   const [loading, setLoading] = useState(true);
   const [totalScreenTime, setTotalScreenTime] = useState(0);
   const [appUsages, setAppUsages] = useState<AppUsage[]>([]);
+  const [animationKey, setAnimationKey] = useState(0);
 
   const loadStats = useCallback(async () => {
     if (Platform.OS !== 'android' || !UsageStatsModule) {
@@ -165,6 +166,7 @@ function StatsScreen() {
 
       setTotalScreenTime(screenTime);
       setAppUsages(apps || []);
+      setAnimationKey(prev => prev + 1);
     } catch {
       // Usage stats unavailable
     } finally {
@@ -209,16 +211,19 @@ function StatsScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
-      <ScrollView
-        className="flex-1"
-        contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingHorizontal: s(16), paddingVertical: s(32) }}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Header */}
-        <Text style={{ color: colors.text }} className={`${textSize['2xLarge']} ${fontFamily.bold} mb-4`}>
-          Stats
-        </Text>
+      {/* Header */}
+      <View className="flex-row items-center justify-between px-6 py-4">
+        <View className="flex-row items-center">
+          <Text style={{ color: colors.text }} className={`${textSize['2xLarge']} ${fontFamily.bold}`}>Stats</Text>
+        </View>
+        {/* Invisible spacer to match header height with other screens */}
+        <View className="w-11 h-11" />
+      </View>
 
+      <View
+        className="flex-1"
+        style={{ paddingHorizontal: s(16) }}
+      >
         {/* Period Tabs */}
         <View className="flex-row mb-4">
           {(['today', 'week', 'month'] as StatsPeriod[]).map((period, index) => (
@@ -279,6 +284,7 @@ function StatsScreen() {
                     mutedColor={colors.textMuted}
                     icon={app.icon}
                     s={s}
+                    animationKey={animationKey}
                   />
                 );
               })}
@@ -297,7 +303,7 @@ function StatsScreen() {
             </Text>
           </View>
         )}
-      </ScrollView>
+      </View>
     </View>
   );
 }

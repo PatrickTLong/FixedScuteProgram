@@ -5,11 +5,9 @@ import {
   NativeModules,
   TouchableOpacity,
   AppState,
-  Animated,
   Vibration,
   ScrollView,
   Modal,
-  Image,
   Platform,
   Linking,
 } from 'react-native';
@@ -27,7 +25,6 @@ import { useResponsive } from '../utils/responsive';
 import { lightTap } from '../utils/haptics';
 import { useAuth } from '../context/AuthContext';
 
-const scuteLogo = require('../frontassets/TrueScute-Photoroom.png');
 
 const { BlockingModule, PermissionsModule } = NativeModules;
 
@@ -56,12 +53,6 @@ function HomeScreen() {
 
   // Scheduled presets expandable modal
   const [scheduledPresetsModalVisible, setScheduledPresetsModalVisible] = useState(false);
-
-  // Fade animation for logo transition between locked/unlocked
-  // Start both at 0 to avoid flash - will be set correctly after initial load
-  const lockedOpacity = useRef(new Animated.Value(0)).current;
-  const unlockedOpacity = useRef(new Animated.Value(0)).current;
-  const hasInitializedLogoRef = useRef(false);
 
   // Prevent concurrent loadStats calls (race condition fix)
   const loadStatsInProgressRef = useRef(false);
@@ -521,60 +512,6 @@ function HomeScreen() {
   }, [isLocked, lockEndsAt, activePreset?.isScheduled, handleTimerExpired]);
 
   // Logo transition animation when lock state changes
-  // Only show animated gradient when actively locked (has countdown or elapsed time)
-  const isActivelyLocked = isLocked && (timeRemaining !== null || elapsedTime !== null);
-
-  useEffect(() => {
-    // Skip animation while still loading - both opacities stay at 0
-    if (loading) {
-      return;
-    }
-
-    // On first render after loading completes, set initial state without animation
-    if (!hasInitializedLogoRef.current) {
-      hasInitializedLogoRef.current = true;
-      if (isActivelyLocked) {
-        lockedOpacity.setValue(1);
-        unlockedOpacity.setValue(0);
-      } else {
-        lockedOpacity.setValue(0);
-        unlockedOpacity.setValue(1);
-      }
-      return;
-    }
-
-    // Subsequent changes animate smoothly
-    if (isActivelyLocked) {
-      // Fade in locked logo, fade out unlocked logo
-      Animated.parallel([
-        Animated.timing(lockedOpacity, {
-          toValue: 1,
-          duration: 400,
-          useNativeDriver: true,
-        }),
-        Animated.timing(unlockedOpacity, {
-          toValue: 0,
-          duration: 400,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    } else {
-      // Fade out locked logo, fade in unlocked logo
-      Animated.parallel([
-        Animated.timing(lockedOpacity, {
-          toValue: 0,
-          duration: 400,
-          useNativeDriver: true,
-        }),
-        Animated.timing(unlockedOpacity, {
-          toValue: 1,
-          duration: 400,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    }
-  }, [isActivelyLocked, lockedOpacity, unlockedOpacity, loading]);
-
   // Elapsed time effect (for no-time-limit locks)
   useEffect(() => {
     if (!isLocked || lockEndsAt || !lockStartedAt) {
@@ -993,39 +930,14 @@ function HomeScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
-      <View className="flex-1 px-6">
-        {/* Scute Logo - absolute positioned so it doesn't affect centering */}
-        <View
-          style={{ position: 'absolute', top: s(-32), left: s(-8), zIndex: 10 }}
-        >
-          {/* Unlocked logo - fades out when actively locked */}
-          <Animated.View style={{ opacity: unlockedOpacity, position: 'absolute' }}>
-            <Image
-              source={scuteLogo}
-              style={{
-                width: s(150),
-                height: s(150),
-                tintColor: colors.logoTint,
-              }}
-              resizeMode="contain"
-            />
-          </Animated.View>
-          {/* Locked logo - fades in when actively locked */}
-          <Animated.View style={{ opacity: lockedOpacity }}>
-            <Image
-              source={scuteLogo}
-              style={{
-                width: s(150),
-                height: s(150),
-                tintColor: colors.logoTint,
-              }}
-              resizeMode="contain"
-            />
-          </Animated.View>
+      {/* Header */}
+      <View className="flex-row items-center justify-between px-6 py-4">
+        <View className="flex-row items-center">
+          <Text style={{ color: colors.text }} className={`${textSize['2xLarge']} ${fontFamily.bold}`}>scute</Text>
         </View>
 
-        {/* Top right icons row */}
-        <View style={{ position: 'absolute', top: s(20), right: s(18), zIndex: 10, flexDirection: 'row', alignItems: 'center', gap: s(8) }}>
+        {/* Right side buttons */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: s(8) }}>
           {/* WiFi Settings */}
           <TouchableOpacity
             onPressIn={lightTap}
@@ -1064,9 +976,11 @@ function HomeScreen() {
             </Svg>
           </TouchableOpacity>
         </View>
+      </View>
 
+      <View className="flex-1 px-6">
         {/* Status + Preset + Scheduled - centered in full screen */}
-        <View className="flex-1 items-center justify-center" style={{ paddingTop: '8%' }}>
+        <View className="flex-1 items-center justify-center">
           {/* Status section */}
           <View className="items-center justify-center mb-4">
             {isLocked && timeRemaining ? (

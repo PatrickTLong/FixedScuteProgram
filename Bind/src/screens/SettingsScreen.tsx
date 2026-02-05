@@ -245,7 +245,7 @@ const SettingsRow = memo(({
       <Text style={{ color: valueColor }} className={`${textSize.small} ${fontFamily.regular} mr-2`}>{value}</Text>
     )}
     {showArrow && onPress && (
-      <ChevronRightIcon size={s(iconSize.md)} />
+      <ChevronRightIcon size={s(iconSize.sm)} />
     )}
   </TouchableOpacity>
 ));
@@ -492,6 +492,15 @@ function SettingsScreen() {
         </View>
       )}
 
+      {/* Header */}
+      <View className="flex-row items-center justify-between px-6 py-4">
+        <View className="flex-row items-center">
+          <Text style={{ color: colors.text }} className={`${textSize['2xLarge']} ${fontFamily.bold}`}>Settings</Text>
+        </View>
+        {/* Invisible spacer to match header height with other screens */}
+        <View className="w-11 h-11" />
+      </View>
+
       <ScrollView
         className="flex-1"
         contentContainerStyle={{ paddingHorizontal: s(16), paddingTop: s(16), paddingBottom: s(32) }}
@@ -536,7 +545,7 @@ function SettingsScreen() {
                   </Text>
                 )}
               </View>
-              <ChevronRightIcon size={s(iconSize.md)} />
+              <ChevronRightIcon size={s(iconSize.sm)} />
             </View>
           </TouchableOpacity>
           <SettingsRow

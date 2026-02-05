@@ -13,6 +13,7 @@ import { lightTap } from '../utils/haptics';
 import { useTheme , textSize, fontFamily, radius, shadow, iconSize, buttonPadding } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import Svg, { Path } from 'react-native-svg';
+import HeaderIconButton from './HeaderIconButton';
 
 const ChevronRightIcon = ({ size = iconSize.lg, color = "#FFFFFF" }: { size?: number; color?: string }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
@@ -486,27 +487,25 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
           >
           {/* Month/Year Navigation */}
           <View className="flex-row items-center justify-between mb-4">
-            <TouchableOpacity
-              onPressIn={lightTap}
+            <HeaderIconButton
               onPress={handlePrevMonth}
               disabled={!canGoPrev}
               className="w-10 h-10 items-center justify-center"
             >
               <ChevronLeftIcon size={s(16)} color={canGoPrev ? colors.text : colors.textMuted} />
-            </TouchableOpacity>
+            </HeaderIconButton>
 
             <Text style={{ color: colors.text }} className={`${textSize.xLarge} ${fontFamily.semibold}`}>
               {MONTHS[viewMonth]} {viewYear}
             </Text>
 
-            <TouchableOpacity
-              onPressIn={lightTap}
+            <HeaderIconButton
               onPress={handleNextMonth}
               disabled={!canGoNext}
               className="w-10 h-10 items-center justify-center"
             >
               <ChevronRightIcon size={s(16)} color={canGoNext ? colors.text : colors.textMuted} />
-            </TouchableOpacity>
+            </HeaderIconButton>
           </View>
 
           {/* Days of Week Header */}
