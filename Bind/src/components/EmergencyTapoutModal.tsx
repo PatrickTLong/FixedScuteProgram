@@ -114,13 +114,11 @@ function EmergencyTapoutModal({
           <View className="justify-center p-6">
             <View className="items-center">
               <View className="flex-row items-center mb-3">
-                <Svg width={iconSize.md} height={iconSize.md} viewBox="0 0 24 24" fill="none">
+                <Svg width={iconSize.md} height={iconSize.md} viewBox="0 0 24 24" fill={canUseTapout ? '#f59e0b' : colors.textMuted}>
                   <Path
-                    d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0zM12 9v4M12 17h.01"
-                    stroke={canUseTapout ? '#f59e0b' : colors.textMuted}
-                    strokeWidth={2}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
+                    fillRule="evenodd"
+                    clipRule="evenodd"
+                    d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003ZM12 8.25a.75.75 0 0 1 .75.75v3.75a.75.75 0 0 1-1.5 0V9a.75.75 0 0 1 .75-.75Zm0 8.25a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z"
                   />
                 </Svg>
                 <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold} ml-2`}>

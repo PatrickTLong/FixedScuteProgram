@@ -28,6 +28,16 @@ import { useAuth } from '../context/AuthContext';
 
 const { BlockingModule, PermissionsModule } = NativeModules;
 
+// Clock icon for schedule badges
+const ClockIcon = ({ size = 12, color = '#FFFFFF' }: { size?: number; color?: string }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
+    <Path
+      fillRule="evenodd"
+      clipRule="evenodd"
+      d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25ZM12.75 6a.75.75 0 0 0-1.5 0v6c0 .414.336.75.75.75h4.5a.75.75 0 0 0 0-1.5h-3.75V6Z"
+    />
+  </Svg>
+);
 
 function HomeScreen() {
   const { userEmail: email, refreshTrigger, sharedPresets, setSharedPresets, sharedPresetsLoaded, setSharedPresetsLoaded, setSharedIsLocked, tapoutStatus, setTapoutStatus } = useAuth();
@@ -1050,16 +1060,10 @@ function HomeScreen() {
                   borderWidth: 1, borderColor: colors.border, ...shadow.card,
                 }}
               >
-                {/* Status dot */}
-                <View
-                  style={{
-                    width: s(8),
-                    height: s(8),
-                    borderRadius: s(4),
-                    marginRight: s(8),
-                    backgroundColor: scheduledDotColor,
-                  }}
-                />
+                {/* Status clock icon */}
+                <View style={{ marginRight: s(8) }}>
+                  <ClockIcon size={s(14)} color={scheduledDotColor} />
+                </View>
                 <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
                   {scheduledPresets.length} Scheduled
                 </Text>
@@ -1135,7 +1139,6 @@ function HomeScreen() {
                 const start = new Date(preset.scheduleStartDate!);
                 const end = new Date(preset.scheduleEndDate!);
                 const isCurrentlyActive = now >= start && now < end;
-                const isPending = now < start;
 
                 return (
                   <View
@@ -1144,18 +1147,15 @@ function HomeScreen() {
                     className="p-4"
                   >
                     <View className="flex-row items-center">
-                      <View style={{ backgroundColor: isCurrentlyActive ? colors.green : colors.yellow }} className={`w-2 h-2 ${radius.full} mr-3`} />
+                      <View className="mr-3">
+                        <ClockIcon size={14} color={isCurrentlyActive ? colors.green : colors.yellow} />
+                      </View>
                       <View className="flex-1">
                         <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>
                           {preset.name}
                         </Text>
                         <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-1`}>
                           {formatScheduleDate(preset.scheduleStartDate!)} - {formatScheduleDate(preset.scheduleEndDate!)}
-                        </Text>
-                      </View>
-                      <View style={{ backgroundColor: colors.border, ...shadow.card }} className={`px-2 py-0.5 ${radius.full}`}>
-                        <Text style={{ color: colors.text }} className={`${textSize.extraSmall} ${fontFamily.semibold}`}>
-                          {isCurrentlyActive ? 'Active' : isPending ? 'Pending' : 'Scheduled'}
                         </Text>
                       </View>
                     </View>
