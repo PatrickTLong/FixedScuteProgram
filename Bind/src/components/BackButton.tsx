@@ -14,7 +14,7 @@ function BackButton({ onPress }: BackButtonProps) {
   return (
     <HeaderIconButton
       onPress={onPress}
-      style={{ padding: s(buttonPadding.standard) }}
+      style={{ padding: s(buttonPadding.standard), paddingLeft: s(22) }}
     >
       {/* Arrow left - Feather arrow-left */}
       <Svg width={s(iconSize.headerNav)} height={s(iconSize.headerNav)} viewBox="0 0 24 24" fill="none">

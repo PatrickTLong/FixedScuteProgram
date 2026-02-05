@@ -52,7 +52,6 @@ const EyeOffIcon = ({ color }: { color: string }) => (
 );
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ProgressBar from '../components/ProgressBar';
-import BackButton from '../components/BackButton';
 import InfoModal from '../components/InfoModal';
 import OTPInput from '../components/OTPInput';
 import GoogleSignInBtn from '../components/GoogleSignInButton';
@@ -69,7 +68,6 @@ import type { AuthStackParamList } from '../navigation/types';
 function GetStartedScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
   const { handleLogin } = useAuth();
-  const onBack = () => navigation.goBack();
   const onSuccess = (email: string) => handleLogin(email);
   const onSignIn = () => navigation.navigate('SignIn');
   const { colors } = useTheme();
@@ -196,11 +194,6 @@ function GetStartedScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
-      {/* Back Button */}
-      <View className="absolute top-12 left-0 z-10">
-        <BackButton onPress={step === 'form' ? onBack : () => setStep('form')} />
-      </View>
-
       {/* Progress Bar */}
       <ProgressBar currentStep={step === 'form' ? 1 : 2} totalSteps={3} />
 

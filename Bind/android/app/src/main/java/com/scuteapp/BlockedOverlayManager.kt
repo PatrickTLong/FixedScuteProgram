@@ -348,10 +348,10 @@ class BlockedOverlayManager(private val context: Context) {
             val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
             if (vibrator?.hasVibrator() == true) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    vibrator.vibrate(VibrationEffect.createOneShot(50, VibrationEffect.DEFAULT_AMPLITUDE))
+                    vibrator.vibrate(VibrationEffect.createOneShot(8, VibrationEffect.DEFAULT_AMPLITUDE))
                 } else {
                     @Suppress("DEPRECATION")
-                    vibrator.vibrate(50)
+                    vibrator.vibrate(8)
                 }
             }
         } catch (e: Exception) {

@@ -103,7 +103,6 @@ function PresetsScreen() {
   const [loading, setLoading] = useState(true); // Start true to prevent flash of content
   const [showSpinner, setShowSpinner] = useState(false); // Only show spinner after delay
   const [lockChecked, setLockChecked] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
   const [overlapModalVisible, setOverlapModalVisible] = useState(false);
   const [overlapPresetName, setOverlapPresetName] = useState<string>('');
   const [overlapIsTimedVsScheduled, setOverlapIsTimedVsScheduled] = useState(false);
@@ -476,19 +475,12 @@ function PresetsScreen() {
   }, [presetToDelete, userEmail_safe, activePresetId, presets, syncScheduledPresetsToNative]);
 
   const handleSavePreset = useCallback(async (preset: Preset) => {
-    // Prevent duplicate saves
-    if (isSaving) return;
-
-    setIsSaving(true);
-
-    // editingPreset comes from the PresetSaveContext (set before navigating)
     const editingPreset = presets.find(p => p.id === preset.id) || null;
     const isEditing = !!editingPreset;
 
     let presetToSave: Preset;
 
     if (isEditing && editingPreset) {
-      // Editing existing preset - keep the same id and isActive status
       presetToSave = {
         ...preset,
         id: editingPreset.id,
@@ -496,16 +488,6 @@ function PresetsScreen() {
         isDefault: editingPreset.isDefault,
       };
 
-      // If editing a scheduled preset, FIRST cancel existing alarms to prevent race conditions
-      if (editingPreset.isScheduled) {
-        try {
-          await ScheduleModule?.cancelPresetAlarm(editingPreset.id);
-        } catch (e) {
-          // Could not cancel existing alarm (may not exist)
-        }
-      }
-
-      // If editing an active scheduled preset, check if new times overlap with other active scheduled presets
       if (presetToSave.isScheduled && presetToSave.isActive) {
         const otherActiveScheduled = presets.filter(
           p => p.isScheduled && p.isActive && p.id !== presetToSave.id
@@ -524,7 +506,6 @@ function PresetsScreen() {
         }
       }
     } else {
-      // Creating new preset
       presetToSave = {
         ...preset,
         id: `preset-${Date.now()}`,
@@ -533,31 +514,45 @@ function PresetsScreen() {
       };
     }
 
-    const result = await savePreset(userEmail_safe, presetToSave);
-
-    if (result.success) {
-      invalidateUserCaches(userEmail_safe);
-
-      let updatedPresets: Preset[];
-      if (isEditing) {
-        updatedPresets = presets.map(p => (p.id === presetToSave.id ? presetToSave : p));
-        setPresets(updatedPresets);
-
-        if (presetToSave.isActive && !presetToSave.isScheduled) {
-          await activatePreset(userEmail_safe, presetToSave.id);
-        }
-      } else {
-        updatedPresets = [...presets, presetToSave];
-        setPresets(updatedPresets);
-      }
-
-      if (presetToSave.isScheduled) {
-        await syncScheduledPresetsToNative(updatedPresets);
-      }
+    // Optimistic update — show the preset in the list immediately
+    const previousPresets = presets;
+    if (isEditing) {
+      setPresets(prev => prev.map(p => (p.id === presetToSave.id ? presetToSave : p)));
+    } else {
+      setPresets(prev => [...prev, presetToSave]);
     }
 
-    setIsSaving(false);
-  }, [isSaving, userEmail_safe, syncScheduledPresetsToNative, presets]);
+    // Background: cancel old alarms, save to API, sync schedules
+    try {
+      if (isEditing && editingPreset?.isScheduled) {
+        try { await ScheduleModule?.cancelPresetAlarm(editingPreset.id); } catch (_) {}
+      }
+
+      const result = await savePreset(userEmail_safe, presetToSave);
+
+      if (result.success) {
+        invalidateUserCaches(userEmail_safe);
+
+        if (isEditing && presetToSave.isActive && !presetToSave.isScheduled) {
+          await activatePreset(userEmail_safe, presetToSave.id);
+        }
+
+        const latestPresets = isEditing
+          ? previousPresets.map(p => (p.id === presetToSave.id ? presetToSave : p))
+          : [...previousPresets, presetToSave];
+
+        if (presetToSave.isScheduled) {
+          await syncScheduledPresetsToNative(latestPresets);
+        }
+      } else {
+        // Revert on failure
+        setPresets(previousPresets);
+      }
+    } catch (_) {
+      // Revert on error
+      setPresets(previousPresets);
+    }
+  }, [userEmail_safe, syncScheduledPresetsToNative, presets]);
 
   // Wire handleSavePreset into PresetSaveContext so child screens can call it
   useEffect(() => {

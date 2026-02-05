@@ -10,8 +10,6 @@ import {
   NativeSyntheticEvent,
   NativeScrollEvent,
 } from 'react-native';
-import LottieView from 'lottie-react-native';
-const Lottie = LottieView as any;
 import AnimatedSwitch from '../components/AnimatedSwitch';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -438,7 +436,7 @@ function PresetSettingsScreen() {
   const [timerHours, setTimerHours] = useState(0);
   const [timerMinutes, setTimerMinutes] = useState(0);
   const [timerSeconds, setTimerSeconds] = useState(0);
-  const [isSaving, setIsSaving] = useState(false);
+  const hasSaved = useRef(false);
   const [targetDate, setTargetDate] = useState<Date | null>(null);
 
   // Emergency tapout feature
@@ -588,7 +586,7 @@ function PresetSettingsScreen() {
         }
       }
       // Reset UI state
-      setIsSaving(false);
+      hasSaved.current = false;
       setShowDatePicker(false);
       setDatePickerTarget(null);
       setExpandedInfo({});
@@ -853,8 +851,8 @@ function PresetSettingsScreen() {
   }, [selectedApps, installedApps]);
 
   // ============ Save Handler ============
-  const handleSave = useCallback(async () => {
-    if (!name.trim() || isSaving || !canSave) return;
+  const handleSave = useCallback(() => {
+    if (!name.trim() || hasSaved.current || !canSave) return;
 
     const editingPreset = getEditingPreset();
     const existingPresets = getExistingPresets();
@@ -869,7 +867,7 @@ function PresetSettingsScreen() {
       return;
     }
 
-    setIsSaving(true);
+    hasSaved.current = true;
 
     const parsedRecurringValue = parseInt(recurringValue, 10);
     const finalRecurringInterval = isNaN(parsedRecurringValue) || parsedRecurringValue <= 0 ? 1 : parsedRecurringValue;
@@ -899,15 +897,12 @@ function PresetSettingsScreen() {
       repeat_interval: isScheduled && isRecurring ? finalRecurringInterval : undefined,
     };
 
-    try {
-      await onSave(newPreset);
-      setFinalSettingsState(null);
-      setPresetSettingsParams(null);
-      navigation.navigate('Presets');
-    } finally {
-      setIsSaving(false);
-    }
-  }, [name, isSaving, canSave, getEditingPreset, getExistingPresets, installedSelectedApps, blockedWebsites, blockSettings, noTimeLimit, timerDays, timerHours, timerMinutes, timerSeconds, targetDate, onSave, allowEmergencyTapout, strictMode, isScheduled, scheduleStartDate, scheduleEndDate, isRecurring, recurringValue, recurringUnit, navigation, setFinalSettingsState]);
+    // Navigate immediately — save happens in the background
+    setFinalSettingsState(null);
+    setPresetSettingsParams(null);
+    navigation.navigate('Presets');
+    onSave(newPreset);
+  }, [name, canSave, getEditingPreset, getExistingPresets, installedSelectedApps, blockedWebsites, blockSettings, noTimeLimit, timerDays, timerHours, timerMinutes, timerSeconds, targetDate, onSave, allowEmergencyTapout, strictMode, isScheduled, scheduleStartDate, scheduleEndDate, isRecurring, recurringValue, recurringUnit, navigation, setFinalSettingsState]);
 
   // ============ Full-Screen Date Picker Overlay ============
   const renderDatePickerOverlay = () => {
@@ -1264,25 +1259,12 @@ function PresetSettingsScreen() {
     <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
       {/* Header — key forces SVG remount on focus to fix react-freeze stroke color bug */}
       <View key={svgKey} style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight, overflow: 'hidden' }} className="flex-row items-center justify-between px-4 py-3.5">
-        <HeaderIconButton onPress={() => navigation.navigate('EditPresetApps')} disabled={isSaving} style={{ width: s(40) }}>
+        <HeaderIconButton onPress={() => navigation.navigate('EditPresetApps')} style={{ width: s(40) }}>
           <ArrowLeftIcon size={s(iconSize.headerNav)} color="#FFFFFF" />
         </HeaderIconButton>
         <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.bold}`}>Final Settings</Text>
-        <HeaderIconButton onPress={handleSave} disabled={isSaving || !canSave} style={{ width: s(40), height: s(24), overflow: 'visible' }} className="px-2 items-end justify-center">
-          <View style={{ opacity: isSaving ? 0 : 1 }}>
-            <FileIcon size={s(iconSize.headerNav)} color={canSave ? '#FFFFFF' : colors.textMuted} />
-          </View>
-          {isSaving && (
-            <View style={{ position: 'absolute', width: s(150), height: s(150), justifyContent: 'center', alignItems: 'center' }}>
-              <Lottie
-                source={require('../frontassets/Loading Dots Blue.json')}
-                autoPlay
-                loop
-                speed={2}
-                style={{ width: s(150), height: s(150) }}
-              />
-            </View>
-          )}
+        <HeaderIconButton onPress={handleSave} disabled={!canSave} style={{ width: s(40) }}>
+          <FileIcon size={s(iconSize.headerNav)} color={canSave ? '#FFFFFF' : colors.textMuted} />
         </HeaderIconButton>
       </View>
 
