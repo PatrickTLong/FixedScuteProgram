@@ -21,7 +21,8 @@ import {
   getLockStatus,
   invalidateUserCaches,
 } from '../services/cardApi';
-import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
+import Svg, { Path } from 'react-native-svg';
+import { useTheme , textSize, fontFamily, radius, shadow, iconSize } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { lightTap } from '../utils/haptics';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -646,11 +647,11 @@ function PresetsScreen() {
               }}
               resizeMode="contain"
             />
-            <Text style={{ color: colors.textSecondary }} className={`${textSize.base} ${fontFamily.regular}`}>
+            <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular}`}>
               No presets yet
             </Text>
           </View>
-          <Text style={{ color: colors.textMuted }} className={`${textSize.small} ${fontFamily.regular} mt-1`}>
+          <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-1`}>
             Tap + to create one
           </Text>
         </>
@@ -700,6 +701,12 @@ function PresetsScreen() {
       <View className="flex-row items-center justify-between px-6 py-4">
         <View className="flex-row items-center">
           <Text style={{ color: colors.text }} className={`${textSize['2xLarge']} ${fontFamily.bold}`}>Presets</Text>
+          <Svg width={s(iconSize.lg)} height={s(iconSize.lg)} viewBox="0 0 24 24" fill={colors.text} style={{ marginLeft: s(8) }}>
+            <Path d="M21 6.375c0 2.692-4.03 4.875-9 4.875S3 9.067 3 6.375 7.03 1.5 12 1.5s9 2.183 9 4.875Z" />
+            <Path d="M12 12.75c2.685 0 5.19-.586 7.078-1.609a8.283 8.283 0 0 0 1.897-1.384c.016.121.025.244.025.368C21 12.817 16.97 15 12 15s-9-2.183-9-4.875c0-.124.009-.247.025-.368a8.285 8.285 0 0 0 1.897 1.384C6.809 12.164 9.315 12.75 12 12.75Z" />
+            <Path d="M12 16.5c2.685 0 5.19-.586 7.078-1.609a8.282 8.282 0 0 0 1.897-1.384c.016.121.025.244.025.368 0 2.692-4.03 4.875-9 4.875s-9-2.183-9-4.875c0-.124.009-.247.025-.368a8.284 8.284 0 0 0 1.897 1.384C6.809 15.914 9.315 16.5 12 16.5Z" />
+            <Path d="M12 20.25c2.685 0 5.19-.586 7.078-1.609a8.282 8.282 0 0 0 1.897-1.384c.016.121.025.244.025.368 0 2.692-4.03 4.875-9 4.875s-9-2.183-9-4.875c0-.124.009-.247.025-.368a8.284 8.284 0 0 0 1.897 1.384C6.809 19.664 9.315 20.25 12 20.25Z" />
+          </Svg>
         </View>
 
         {/* Add Button - stays green but disabled when locked */}

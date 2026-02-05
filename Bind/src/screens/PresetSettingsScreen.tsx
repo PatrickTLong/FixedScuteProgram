@@ -13,7 +13,7 @@ import {
 import AnimatedSwitch from '../components/AnimatedSwitch';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Svg, { Path, Rect } from 'react-native-svg';
+import Svg, { Path } from 'react-native-svg';
 import TimerPicker from '../components/TimerPicker';
 import ScheduleInfoModal from '../components/ScheduleInfoModal';
 import InfoModal from '../components/InfoModal';
@@ -51,7 +51,7 @@ const STRICT_MODE_WARNING_DISMISSED_KEY = 'strict_mode_warning_dismissed';
 type RecurringUnit = 'minutes' | 'hours' | 'days' | 'weeks' | 'months';
 
 // ============ Icon Components ============
-const ChevronLeftIcon = ({ size = iconSize.lg, color = "#FFFFFF" }: { size?: number; color?: string }) => (
+const ChevronLeftIcon = ({ size = iconSize.chevron, color = "#FFFFFF" }: { size?: number; color?: string }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Path
       d="M15 18l-6-6 6-6"
@@ -83,9 +83,12 @@ const XIcon = ({ size = iconSize.headerNav, color = "#FFFFFF" }: { size?: number
 );
 
 const FileIcon = ({ size = iconSize.headerNav, color = "#FFFFFF" }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" stroke={color} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
-    <Path d="M13 2v7h7" stroke={color} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
+    <Path
+      fillRule="evenodd"
+      clipRule="evenodd"
+      d="M6.32 2.577a49.255 49.255 0 0 1 11.36 0c1.497.174 2.57 1.46 2.57 2.93V21a.75.75 0 0 1-1.085.67L12 18.089l-7.165 3.583A.75.75 0 0 1 3.75 21V5.507c0-1.47 1.073-2.756 2.57-2.93Z"
+    />
   </Svg>
 );
 
@@ -95,42 +98,28 @@ const CheckIcon = ({ size = iconSize.headerNav, color = "#FFFFFF" }: { size?: nu
   </Svg>
 );
 
-const CalendarIcon = ({ size = iconSize.lg, color = '#FFFFFF' }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Rect
-      x="3"
-      y="4"
-      width="18"
-      height="18"
-      rx="2"
-      stroke={color}
-      strokeWidth={2.5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
+const CalendarIcon = ({ size = iconSize.forTabs, color = '#FFFFFF' }: { size?: number; color?: string }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
+    <Path d="M12.75 12.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM7.5 15.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5ZM8.25 17.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM9.75 15.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5ZM10.5 17.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12 15.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5ZM12.75 17.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM14.25 15.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5ZM15 17.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM16.5 15.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5ZM15 12.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM16.5 13.5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z" />
     <Path
-      d="M16 2v4M8 2v4M3 10h18"
-      stroke={color}
-      strokeWidth={2.5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
+      fillRule="evenodd"
+      clipRule="evenodd"
+      d="M6.75 2.25A.75.75 0 0 1 7.5 3v1.5h9V3a.75.75 0 0 1 1.5 0v1.5h.75a3 3 0 0 1 3 3v11.25a3 3 0 0 1-3 3H5.25a3 3 0 0 1-3-3V7.5a3 3 0 0 1 3-3H6V3a.75.75 0 0 1 .75-.75Zm13.5 9a1.5 1.5 0 0 0-1.5-1.5H5.25a1.5 1.5 0 0 0-1.5 1.5v7.5a1.5 1.5 0 0 0 1.5 1.5h13.5a1.5 1.5 0 0 0 1.5-1.5v-7.5Z"
     />
   </Svg>
 );
 
-const FlagIcon = ({ size = iconSize.lg, color = '#FFFFFF' }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+const FlagIcon = ({ size = iconSize.forTabs, color = '#FFFFFF' }: { size?: number; color?: string }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
     <Path
-      d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1zM4 22v-7"
-      stroke={color}
-      strokeWidth={2.5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
+      fillRule="evenodd"
+      clipRule="evenodd"
+      d="M3 2.25a.75.75 0 0 1 .75.75v.54l1.838-.46a9.75 9.75 0 0 1 6.725.738l.108.054a8.25 8.25 0 0 0 5.58.652l3.109-.732a.75.75 0 0 1 .89.75v12.173a.75.75 0 0 1-.579.732l-3.474.819a9.75 9.75 0 0 1-6.591-.77l-.108-.054a8.25 8.25 0 0 0-5.69-.625l-1.808.452V21a.75.75 0 0 1-1.5 0V3a.75.75 0 0 1 .75-.75Z"
     />
   </Svg>
 );
 
-const ChevronRightIcon = ({ size = iconSize.lg, color = "#9CA3AF" }: { size?: number; color?: string }) => (
+const ChevronRightIcon = ({ size = iconSize.chevron, color = "#9CA3AF" }: { size?: number; color?: string }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Path
       d="M9 18l6-6-6-6"
@@ -180,7 +169,7 @@ const ClockIcon = ({ size = iconSize.lg, color = '#FFFFFF' }: { size?: number; c
   </Svg>
 );
 
-const SendIcon = ({ size = iconSize.lg, color = '#FFFFFF' }: { size?: number; color?: string }) => (
+const SendIcon = ({ size = iconSize.forTabs, color = '#FFFFFF' }: { size?: number; color?: string }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Path
       d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"
@@ -1098,9 +1087,21 @@ function PresetSettingsScreen() {
           <HeaderIconButton onPress={dpHandleCancel} style={{ width: s(40) }}>
             <XIcon size={s(iconSize.headerNav)} color="#FFFFFF" />
           </HeaderIconButton>
-          <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.bold}`}>
-            {datePickerTarget === 'scheduleStart' ? 'Start Date' : datePickerTarget === 'scheduleEnd' ? 'End Date' : 'Date and Time'}
-          </Text>
+          <View className="flex-row items-center">
+            <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.bold}`}>
+              {datePickerTarget === 'scheduleStart' ? 'Start Date' : datePickerTarget === 'scheduleEnd' ? 'End Date' : 'Date and Time'}
+            </Text>
+            {datePickerTarget === 'scheduleStart' && (
+              <View style={{ marginLeft: s(8) }}>
+                <CalendarIcon size={s(iconSize.headerNav)} color="#FFFFFF" />
+              </View>
+            )}
+            {datePickerTarget === 'scheduleEnd' && (
+              <View style={{ marginLeft: s(8) }}>
+                <FlagIcon size={s(iconSize.headerNav)} color="#FFFFFF" />
+              </View>
+            )}
+          </View>
           <HeaderIconButton
             onPress={dpHandleConfirm}
             disabled={!dpIsFutureDateTime}
@@ -1126,7 +1127,7 @@ function PresetSettingsScreen() {
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               className="w-10 h-10 items-center justify-center"
             >
-              <ChevronLeftIcon size={s(iconSize.md)} color={dpCanGoPrev ? colors.text : colors.textMuted} />
+              <ChevronLeftIcon size={s(iconSize.chevron)} color={dpCanGoPrev ? colors.text : colors.textMuted} />
             </TouchableOpacity>
 
             <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>
@@ -1141,7 +1142,7 @@ function PresetSettingsScreen() {
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               className="w-10 h-10 items-center justify-center"
             >
-              <ChevronRightIcon size={s(iconSize.md)} color={dpCanGoNext ? colors.text : colors.textMuted} />
+              <ChevronRightIcon size={s(iconSize.chevron)} color={dpCanGoNext ? colors.text : colors.textMuted} />
             </TouchableOpacity>
           </View>
 
@@ -1406,7 +1407,7 @@ function PresetSettingsScreen() {
                   <XIcon size={s(iconSize.sm)} color={colors.text} />
                 </TouchableOpacity>
               ) : (
-                <ChevronRightIcon size={s(iconSize.md)} color={colors.text} />
+                <ChevronRightIcon size={s(iconSize.chevron)} color={colors.text} />
               )}
             </TouchableOpacity>
 
@@ -1450,7 +1451,7 @@ function PresetSettingsScreen() {
                   <XIcon size={s(iconSize.sm)} color={colors.text} />
                 </TouchableOpacity>
               ) : (
-                <ChevronRightIcon size={s(iconSize.md)} color={colors.text} />
+                <ChevronRightIcon size={s(iconSize.chevron)} color={colors.text} />
               )}
             </TouchableOpacity>
 
@@ -1672,7 +1673,7 @@ function PresetSettingsScreen() {
                   <XIcon size={s(iconSize.sm)} color={colors.text} />
                 </TouchableOpacity>
               ) : (
-                <ChevronRightIcon size={s(iconSize.md)} color={colors.text} />
+                <ChevronRightIcon size={s(iconSize.chevron)} color={colors.text} />
               )}
             </TouchableOpacity>
 

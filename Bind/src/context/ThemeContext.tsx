@@ -38,10 +38,12 @@ export const fontForSize = {
 export const iconSize = {
   xs: 16,      // Small badge icons (preset card badges, settings row arrows)
   sm: 18,      // Tab icons in PresetEditModal (apps, globe, android)
-  md: 20,      // Settings row icons, search icons, eye icons, alert icons
-  lg: 24,      // Navigation arrows, chevrons, action icons, tab bar icons
+  md: 24,      // Settings row icons, search icons, eye icons, alert icons
+  lg: 24,      // Navigation arrows, action icons, tab bar icons
   xl: 28,      // Info modal display icons
   headerNav: 24, // Header navigation icons (close X, chevron next/back)
+  chevron: 20,   // Chevrons in settings rows (settings, preset settings)
+  forTabs: 24,   // Icons for tabs in preset settings (calendar, flag, etc.)
 } as const;
 
 // Button padding sizes (use inside s() for responsive scaling)

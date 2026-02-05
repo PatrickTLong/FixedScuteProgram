@@ -4,10 +4,22 @@ import {
   Text,
   Pressable,
 } from 'react-native';
+import Svg, { Path } from 'react-native-svg';
 import { lightTap, mediumTap } from '../utils/haptics';
-import { useTheme , textSize, fontFamily, radius, shadow, buttonPadding } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius, shadow, buttonPadding, iconSize } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import AnimatedSwitch from './AnimatedSwitch';
+
+// Clock icon for expired presets
+const ClockIcon = ({ color, size }: { color: string; size: number }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
+    <Path
+      fillRule="evenodd"
+      clipRule="evenodd"
+      d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25ZM12.75 6a.75.75 0 0 0-1.5 0v6c0 .414.336.75.75.75h4.5a.75.75 0 0 0 0-1.5h-3.75V6Z"
+    />
+  </Svg>
+);
 
 // Pure date formatting helper - no component state dependency
 function formatScheduleDate(dateStr: string): string {
@@ -271,12 +283,8 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, disabled
               {preset.name}
             </Text>
             {isExpired ? (
-              <View style={{ backgroundColor: colors.card, ...shadow.card }} className={`ml-2 ${radius.full} overflow-hidden`}>
-                <View style={{ backgroundColor: `${colors.red}33` }} className={`px-2 py-0.5`}>
-                  <Text style={{ color: colors.red }} className={`${textSize.extraSmall} ${fontFamily.semibold}`}>
-                    Expired
-                  </Text>
-                </View>
+              <View className="ml-2">
+                <ClockIcon color={colors.red} size={iconSize.sm} />
               </View>
             ) : null}
           </View>

@@ -227,7 +227,7 @@ function ForgotPasswordScreen() {
       >
         <ScrollView
           keyboardShouldPersistTaps="handled"
-          contentContainerStyle={{ flexGrow: 1, paddingTop: '35%' }}
+          contentContainerStyle={{ flexGrow: 1, paddingTop: '25%' }}
           className="flex-1"
           showsVerticalScrollIndicator={false}
         >
