@@ -145,23 +145,19 @@ function PermissionsChecklistScreen() {
     try {
       if (PermissionsModule) {
         const states = await PermissionsModule.checkAllPermissions();
+        const requiredIds = DEFAULT_PERMISSIONS.map(p => p.id);
+        const nowAllGranted = requiredIds.every(id => states[id]);
 
-        if (Platform.OS === 'ios') {
-          // iOS returns { screenTime: bool, notifications: bool }
-          setPermissions(prev =>
-            prev.map(p => ({
-              ...p,
-              isGranted: states[p.id] ?? false,
-            }))
-          );
-        } else {
-          // Android returns all permission states
-          setPermissions(prev =>
-            prev.map(p => ({
-              ...p,
-              isGranted: states[p.id] ?? false,
-            }))
-          );
+        setPermissions(prev =>
+          prev.map(p => ({
+            ...p,
+            isGranted: states[p.id] ?? false,
+          }))
+        );
+
+        if (nowAllGranted) {
+          onComplete();
+          return;
         }
       }
     } catch (error) {
@@ -169,7 +165,7 @@ function PermissionsChecklistScreen() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [onComplete]);
 
   // Check permissions on mount
   useEffect(() => {
@@ -187,11 +183,12 @@ function PermissionsChecklistScreen() {
     return () => subscription.remove();
   }, [checkPermissions]);
 
-  // Auto-complete if all permissions are granted
+  // Auto-complete if permissions were already all granted before mount
   useEffect(() => {
     if (!isLoading && allGranted) {
       onComplete();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [allGranted, isLoading, onComplete]);
 
   async function openPermissionSettings(permission: Permission) {

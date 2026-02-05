@@ -291,18 +291,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [userEmail]);
 
   const handlePermissionsComplete = useCallback(async () => {
+    setAuthState('main');
+    // Check membership in background — redirect if trial expired
     try {
       const membership = await getMembershipStatus(userEmail, true);
       if (membership.trialExpired && !membership.isMember) {
         await deactivateAllPresets(userEmail);
         await ScheduleModule?.saveScheduledPresets('[]');
         setAuthState('membership');
-        return;
       }
     } catch (error) {
-      // Error checking membership, proceed to main
+      // Error checking membership, already on main
     }
-    setAuthState('main');
   }, [userEmail]);
 
   const handleMembershipComplete = useCallback(() => {

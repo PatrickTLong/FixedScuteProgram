@@ -12,6 +12,7 @@ interface Props {
 }
 
 export default function OnboardingStack({ initialScreen }: Props) {
+  console.log('[ONBOARDING] OnboardingStack mounted/rendered with initialScreen=', initialScreen);
   return (
     <Stack.Navigator
       initialRouteName={initialScreen}

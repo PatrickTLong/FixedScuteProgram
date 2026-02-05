@@ -4,7 +4,9 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import AuthStack from './AuthStack';
-import OnboardingStack from './OnboardingStack';
+import TermsAcceptScreen from '../screens/TermsAcceptScreen';
+import PermissionsChecklistScreen from '../screens/PermissionsChecklistScreen';
+import MembershipScreen from '../screens/MembershipScreen';
 import MainTabNavigator from './MainTabNavigator';
 import { PresetSaveProvider } from './PresetsStack';
 import type { MainStackParamList } from './types';
@@ -29,7 +31,6 @@ function MainNavigator() {
 export default function RootNavigator() {
   const { authState, isInitializing } = useAuth();
   const { colors } = useTheme();
-
   if (isInitializing) {
     return <View style={{ flex: 1, backgroundColor: colors.bg }} />;
   }
@@ -38,11 +39,11 @@ export default function RootNavigator() {
     case 'auth':
       return <AuthStack />;
     case 'terms':
-      return <OnboardingStack key="terms" initialScreen="Terms" />;
+      return <TermsAcceptScreen />;
     case 'permissions':
-      return <OnboardingStack key="permissions" initialScreen="Permissions" />;
+      return <PermissionsChecklistScreen />;
     case 'membership':
-      return <OnboardingStack key="membership" initialScreen="Membership" />;
+      return <MembershipScreen />;
     case 'main':
       return <MainNavigator />;
     default:
