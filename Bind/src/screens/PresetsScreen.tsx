@@ -564,6 +564,10 @@ function PresetsScreen() {
     setPresetToDelete(null);
   }, []);
 
+  const handleCloseOverlapModal = useCallback(() => {
+    setOverlapModalVisible(false);
+  }, []);
+
   const handleExpiredPreset = useCallback(async (preset: Preset) => {
     // Auto-deactivate expired preset
     if (preset.isScheduled) {
@@ -594,23 +598,35 @@ function PresetsScreen() {
     }
   }, [activePresetId, userEmail_safe, presets, syncScheduledPresetsToNative]);
 
+  // Keep refs to handlers so renderPresetItem stays stable
+  const handleEditPresetRef = useRef(handleEditPreset);
+  handleEditPresetRef.current = handleEditPreset;
+  const handleLongPressPresetRef = useRef(handleLongPressPreset);
+  handleLongPressPresetRef.current = handleLongPressPreset;
+  const handleTogglePresetRef = useRef(handleTogglePreset);
+  handleTogglePresetRef.current = handleTogglePreset;
+  const handleExpiredPresetRef = useRef(handleExpiredPreset);
+  handleExpiredPresetRef.current = handleExpiredPreset;
+  const activePresetIdRef = useRef(activePresetId);
+  activePresetIdRef.current = activePresetId;
+
   const renderPresetItem = useCallback(({ item: preset }: { item: Preset }) => {
     // For scheduled presets, use preset.isActive directly
     // For non-scheduled presets, use activePresetId
-    const isPresetActive = preset.isScheduled ? preset.isActive : activePresetId === preset.id;
+    const isPresetActive = preset.isScheduled ? preset.isActive : activePresetIdRef.current === preset.id;
 
     return (
       <PresetCard
         preset={preset}
         isActive={isPresetActive}
-        onPress={() => handleEditPreset(preset)}
-        onLongPress={() => handleLongPressPreset(preset)}
-        onToggle={(value) => handleTogglePreset(preset, value)}
+        onPress={() => handleEditPresetRef.current(preset)}
+        onLongPress={() => handleLongPressPresetRef.current(preset)}
+        onToggle={(value) => handleTogglePresetRef.current(preset, value)}
         disabled={isDisabled}
-        onExpired={() => handleExpiredPreset(preset)}
+        onExpired={() => handleExpiredPresetRef.current(preset)}
       />
     );
-  }, [activePresetId, handleEditPreset, handleLongPressPreset, handleTogglePreset, isDisabled, handleExpiredPreset]);
+  }, [isDisabled]);
 
   const keyExtractor = useCallback((item: Preset) => item.id, []);
 
@@ -665,7 +681,7 @@ function PresetsScreen() {
     <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
       {/* Locked Overlay */}
       {sharedIsLocked === true && (
-        <View style={{ backgroundColor: colors.bg + 'F2' }} className="absolute inset-0 z-50 items-center justify-center">
+        <View style={{ backgroundColor: colors.bg + 'F2' }} className="absolute inset-0 z-50 items-center justify-center" pointerEvents="auto" onStartShouldSetResponder={() => true}>
           <View className="items-center" style={{ marginTop: '-20%' }}>
             <Image
               source={require('../frontassets/TrueScute-Photoroom.png')}
@@ -692,6 +708,7 @@ function PresetsScreen() {
           onPress={handleAddPreset}
           activeOpacity={0.7}
           disabled={isDisabled}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           style={{
             backgroundColor: colors.card,
             borderWidth: 1, borderColor: colors.border, ...shadow.card,
@@ -735,8 +752,8 @@ function PresetsScreen() {
           ? `This preset's duration overlaps with the scheduled preset "${overlapPresetName}". Please disable the scheduled preset first or wait until it ends.`
           : `This schedule overlaps with "${overlapPresetName}". Please choose different dates or disable the other scheduled preset first.`}
         confirmText="OK"
-        onConfirm={() => setOverlapModalVisible(false)}
-        onCancel={() => setOverlapModalVisible(false)}
+        onConfirm={handleCloseOverlapModal}
+        onCancel={handleCloseOverlapModal}
       />
 
       {/* Schedule Verification Modal */}

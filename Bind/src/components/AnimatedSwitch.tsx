@@ -1,5 +1,5 @@
 import React, { memo, useCallback, useEffect, useRef } from 'react';
-import { Animated, TouchableWithoutFeedback, View } from 'react-native';
+import { Animated, Pressable, View } from 'react-native';
 import { useResponsive } from '../utils/responsive';
 import { shadow } from '../context/ThemeContext';
 
@@ -94,7 +94,11 @@ function AnimatedSwitch({
   });
 
   return (
-    <TouchableWithoutFeedback onPress={handlePress} disabled={disabled}>
+    <Pressable
+      onPress={handlePress}
+      disabled={disabled}
+      hitSlop={{ top: 10, bottom: 10, left: 6, right: 6 }}
+    >
       <Animated.View
         style={{
           width: trackWidth,
@@ -144,7 +148,7 @@ function AnimatedSwitch({
           />
         </Animated.View>
       </Animated.View>
-    </TouchableWithoutFeedback>
+    </Pressable>
   );
 }
 

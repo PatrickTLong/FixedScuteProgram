@@ -4,6 +4,7 @@ import {
   Text,
   TouchableOpacity,
   Modal,
+  Pressable,
 } from 'react-native';
 import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
 import { lightTap } from '../utils/haptics';
@@ -36,60 +37,64 @@ function DisableTapoutWarningModal({ visible, onConfirm, onCancel }: DisableTapo
       animationType="fade"
       onRequestClose={handleCancel}
     >
-      <View className="flex-1 bg-black/70 justify-center items-center px-6">
-        <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.modal }} className={`w-full ${radius['2xl']} overflow-hidden`}>
-          {/* Content */}
-          <View className="p-6">
-            <Text style={{ color: colors.text }} className={`${textSize.xLarge} ${fontFamily.bold} text-center mb-4`}>
-              Disable Emergency Tapout?
-            </Text>
+      <Pressable className="flex-1" onPress={handleCancel}>
+        <View className="flex-1 bg-black/70 justify-center items-center px-6">
+          <Pressable onPress={(e) => e.stopPropagation()}>
+            <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.modal }} className={`w-full ${radius['2xl']} overflow-hidden`}>
+              {/* Content */}
+              <View className="p-6">
+                <Text style={{ color: colors.text }} className={`${textSize.xLarge} ${fontFamily.bold} text-center mb-4`}>
+                  Disable Emergency Tapout?
+                </Text>
 
-            <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular} text-center`}>
-              You won't be able to unlock this preset early. Only disable if you're certain you won't need emergency access.
-            </Text>
+                <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular} text-center`}>
+                  You won't be able to unlock this preset early. Only disable if you're certain you won't need emergency access.
+                </Text>
 
-            {/* Don't show again checkbox */}
-            <TouchableOpacity
-              onPressIn={lightTap}
-              onPress={() => setDontShowAgain(!dontShowAgain)}
-              activeOpacity={0.7}
-              className="flex-row items-center justify-center mt-6"
-            >
-              <View className="mr-3">
-                <AnimatedCheckbox checked={dontShowAgain} size={20} />
+                {/* Don't show again checkbox */}
+                <TouchableOpacity
+                  onPressIn={lightTap}
+                  onPress={() => setDontShowAgain(!dontShowAgain)}
+                  activeOpacity={0.7}
+                  className="flex-row items-center justify-center mt-6"
+                >
+                  <View className="mr-3">
+                    <AnimatedCheckbox checked={dontShowAgain} size={20} />
+                  </View>
+                  <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular}`}>
+                    Don't show this again
+                  </Text>
+                </TouchableOpacity>
               </View>
-              <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular}`}>
-                Don't show this again
-              </Text>
-            </TouchableOpacity>
-          </View>
 
-          {/* Buttons */}
-          <View style={{ borderTopWidth: 1, borderTopColor: colors.divider }} className="flex-row">
-            <TouchableOpacity
-              onPressIn={lightTap}
-              onPress={handleCancel}
-              activeOpacity={0.7}
-              style={{ borderRightWidth: 1, borderRightColor: colors.divider }}
-              className="flex-1 py-4 items-center"
-            >
-              <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.semibold}`}>
-                Keep Enabled
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPressIn={lightTap}
-              onPress={handleConfirm}
-              activeOpacity={0.7}
-              className="flex-1 py-4 items-center"
-            >
-              <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
-                Disable
-              </Text>
-            </TouchableOpacity>
-          </View>
+              {/* Buttons */}
+              <View style={{ borderTopWidth: 1, borderTopColor: colors.divider }} className="flex-row">
+                <TouchableOpacity
+                  onPressIn={lightTap}
+                  onPress={handleCancel}
+                  activeOpacity={0.7}
+                  style={{ borderRightWidth: 1, borderRightColor: colors.divider }}
+                  className="flex-1 py-4 items-center"
+                >
+                  <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.semibold}`}>
+                    Keep Enabled
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPressIn={lightTap}
+                  onPress={handleConfirm}
+                  activeOpacity={0.7}
+                  className="flex-1 py-4 items-center"
+                >
+                  <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
+                    Disable
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Pressable>
         </View>
-      </View>
+      </Pressable>
     </Modal>
   );
 }

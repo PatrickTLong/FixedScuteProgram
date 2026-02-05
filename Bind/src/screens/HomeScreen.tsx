@@ -954,6 +954,29 @@ function HomeScreen() {
     return null;
   }, [activePreset]);
 
+  // Memoized JSX for active settings display (avoids IIFE in render)
+  const activeSettingsDisplay = useMemo(() => {
+    const settings = getActiveSettingsDisplay();
+    return activePreset && settings.length > 0 ? (
+      <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular} mt-2 text-center px-4`}>
+        Blocking {settings.join(', ')}
+      </Text>
+    ) : null;
+  }, [getActiveSettingsDisplay, activePreset, colors.textSecondary]);
+
+  // Memoized JSX for preset timing subtext (avoids IIFE in render)
+  const presetTimingSubtext = useMemo(() => {
+    const subtext = getPresetTimingSubtext();
+    return subtext ? (
+      <Text
+        style={{ color: colors.textMuted }}
+        className={`${textSize.small} ${fontFamily.regular} mt-1 text-center`}
+      >
+        {subtext}
+      </Text>
+    ) : null;
+  }, [getPresetTimingSubtext, colors.textMuted]);
+
   if (loading) {
     return (
       <View style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center', paddingTop: insets.top }}>
@@ -1008,6 +1031,7 @@ function HomeScreen() {
             onPressIn={lightTap}
             onPress={() => { Linking.sendIntent('android.settings.WIFI_SETTINGS').catch(() => {}); }}
             activeOpacity={0.7}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             style={{
               backgroundColor: colors.card,
               borderWidth: 1, borderColor: colors.border, ...shadow.card,
@@ -1027,6 +1051,7 @@ function HomeScreen() {
             onPressIn={lightTap}
             onPress={() => { Linking.openURL('mailto:support@scuteapp.com?subject=Scute%20Support%20Request'); }}
             activeOpacity={0.7}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             style={{
               backgroundColor: colors.card,
               borderWidth: 1, borderColor: colors.border, ...shadow.card,
@@ -1087,27 +1112,10 @@ function HomeScreen() {
             </View>
 
             {/* Active settings display */}
-            {(() => {
-              const settings = getActiveSettingsDisplay();
-              return activePreset && settings.length > 0 ? (
-                <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular} mt-2 text-center px-4`}>
-                  Blocking {settings.join(', ')}
-                </Text>
-              ) : null;
-            })()}
+            {activeSettingsDisplay}
 
             {/* Preset timing subtext (for timed/dated presets) */}
-            {(() => {
-              const subtext = getPresetTimingSubtext();
-              return subtext ? (
-                <Text
-                  style={{ color: colors.textMuted }}
-                  className={`${textSize.small} ${fontFamily.regular} mt-1 text-center`}
-                >
-                  {subtext}
-                </Text>
-              ) : null;
-            })()}
+            {presetTimingSubtext}
 
             {/* Scheduled Presets Button - absolutely positioned under preset text */}
             {scheduledPresets.length > 0 && (

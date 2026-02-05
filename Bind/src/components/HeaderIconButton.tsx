@@ -47,6 +47,7 @@ function HeaderIconButton({ onPress, disabled = false, children, style, classNam
       onPress={disabled ? undefined : onPress}
       disabled={disabled}
       activeOpacity={0.7}
+      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
       style={style}
       className={className || 'px-2'}
     >

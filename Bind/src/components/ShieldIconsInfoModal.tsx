@@ -4,6 +4,7 @@ import {
   Text,
   TouchableOpacity,
   Modal,
+  Pressable,
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { useTheme , textSize, fontFamily, radius, shadow, iconSize } from '../context/ThemeContext';
@@ -65,100 +66,104 @@ function ShieldIconsInfoModal({ visible, onClose }: ShieldIconsInfoModalProps) {
       animationType="fade"
       onRequestClose={handleClose}
     >
-      <View className="flex-1 bg-black/70 justify-center items-center px-6">
-        <View
-          style={{
-            backgroundColor: colors.card,
-            borderWidth: 1, borderColor: colors.border,
-            ...shadow.modal,
-          }}
-          className={`w-full ${radius['2xl']} overflow-hidden`}
-        >
-          {/* Content */}
-          <View className="p-6">
-            <Text style={{ color: colors.text }} className={`${textSize.xLarge} ${fontFamily.bold} text-center mb-4`}>
-              Preset Icons
-            </Text>
-
-            {/* Bookmark - Scheduled */}
-            <View className="flex-row items-center mb-4">
-              <View className="mr-3">
-                <BookmarkIcon color={colors.text} size={28} />
-              </View>
-              <View className="flex-1">
-                <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>
-                  Scheduled
-                </Text>
-                <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular}`}>
-                  This preset has a scheduled start and end time.
-                </Text>
-              </View>
-            </View>
-
-            {/* White Refresh - Recurring */}
-            <View className="flex-row items-center">
-              <View className="mr-3">
-                <RotateCwIcon color={colors.text} size={28} />
-              </View>
-              <View className="flex-1">
-                <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>
-                  Recurring
-                </Text>
-                <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular}`}>
-                  This preset repeats automatically on a schedule.
-                </Text>
-              </View>
-            </View>
-
-            {/* Don't show again checkbox */}
-            <TouchableOpacity
-              onPressIn={lightTap}
-              onPress={() => setDontShowAgain(!dontShowAgain)}
-              activeOpacity={0.7}
-              className="flex-row items-center justify-center mt-6"
+      <Pressable className="flex-1" onPress={handleClose}>
+        <View className="flex-1 bg-black/70 justify-center items-center px-6">
+          <Pressable onPress={(e) => e.stopPropagation()}>
+            <View
+              style={{
+                backgroundColor: colors.card,
+                borderWidth: 1, borderColor: colors.border,
+                ...shadow.modal,
+              }}
+              className={`w-full ${radius['2xl']} overflow-hidden`}
             >
-              <View
-                style={{
-                  backgroundColor: dontShowAgain ? colors.green : 'transparent',
-                  borderColor: dontShowAgain ? colors.green : colors.textSecondary,
-                }}
-                className="w-5 h-5 rounded border-2 items-center justify-center mr-3"
-              >
-                {dontShowAgain && (
+              {/* Content */}
+              <View className="p-6">
+                <Text style={{ color: colors.text }} className={`${textSize.xLarge} ${fontFamily.bold} text-center mb-4`}>
+                  Preset Icons
+                </Text>
+
+                {/* Bookmark - Scheduled */}
+                <View className="flex-row items-center mb-4">
+                  <View className="mr-3">
+                    <BookmarkIcon color={colors.text} size={28} />
+                  </View>
+                  <View className="flex-1">
+                    <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>
+                      Scheduled
+                    </Text>
+                    <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular}`}>
+                      This preset has a scheduled start and end time.
+                    </Text>
+                  </View>
+                </View>
+
+                {/* White Refresh - Recurring */}
+                <View className="flex-row items-center">
+                  <View className="mr-3">
+                    <RotateCwIcon color={colors.text} size={28} />
+                  </View>
+                  <View className="flex-1">
+                    <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>
+                      Recurring
+                    </Text>
+                    <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular}`}>
+                      This preset repeats automatically on a schedule.
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Don't show again checkbox */}
+                <TouchableOpacity
+                  onPressIn={lightTap}
+                  onPress={() => setDontShowAgain(!dontShowAgain)}
+                  activeOpacity={0.7}
+                  className="flex-row items-center justify-center mt-6"
+                >
                   <View
                     style={{
-                      width: s(8),
-                      height: s(13),
-                      borderRightWidth: 2.5,
-                      borderBottomWidth: 2.5,
-                      borderColor: colors.text,
-                      transform: [{ rotate: '45deg' }],
-                      marginTop: s(-2),
+                      backgroundColor: dontShowAgain ? colors.green : 'transparent',
+                      borderColor: dontShowAgain ? colors.green : colors.textSecondary,
                     }}
-                  />
-                )}
+                    className="w-5 h-5 rounded border-2 items-center justify-center mr-3"
+                  >
+                    {dontShowAgain && (
+                      <View
+                        style={{
+                          width: s(8),
+                          height: s(13),
+                          borderRightWidth: 2.5,
+                          borderBottomWidth: 2.5,
+                          borderColor: colors.text,
+                          transform: [{ rotate: '45deg' }],
+                          marginTop: s(-2),
+                        }}
+                      />
+                    )}
+                  </View>
+                  <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular}`}>
+                    Don't show this again
+                  </Text>
+                </TouchableOpacity>
               </View>
-              <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular}`}>
-                Don't show this again
-              </Text>
-            </TouchableOpacity>
-          </View>
 
-          {/* Button */}
-          <View style={{ borderTopWidth: 1, borderTopColor: colors.divider }}>
-            <TouchableOpacity
-              onPressIn={lightTap}
-              onPress={handleClose}
-              activeOpacity={0.7}
-              className="py-4 items-center"
-            >
-              <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
-                Got it
-              </Text>
-            </TouchableOpacity>
-          </View>
+              {/* Button */}
+              <View style={{ borderTopWidth: 1, borderTopColor: colors.divider }}>
+                <TouchableOpacity
+                  onPressIn={lightTap}
+                  onPress={handleClose}
+                  activeOpacity={0.7}
+                  className="py-4 items-center"
+                >
+                  <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
+                    Got it
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Pressable>
         </View>
-      </View>
+      </Pressable>
     </Modal>
   );
 }

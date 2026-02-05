@@ -331,6 +331,7 @@ const DayCell = memo(({ day, selectable, selected, isToday: todayDay, textColor,
       onPressIn={lightTap}
       onPress={() => onSelect(day)}
       disabled={!selectable}
+      activeOpacity={0.7}
       style={{ width: '14.28%', height: cellHeight }}
       className="items-center justify-center"
     >
@@ -373,6 +374,7 @@ const AmPmSelector = memo(({ value, onChange, cardColor }: AmPmSelectorProps) =>
       <TouchableOpacity
         onPressIn={lightTap}
         onPress={() => onChange('AM')}
+        activeOpacity={0.7}
         style={{ backgroundColor: value === 'AM' ? colors.green : cardColor, borderWidth: 1, borderColor: value === 'AM' ? colors.green : colors.border, ...shadow.card }}
         className={`px-3 py-2 ${radius.AMPM}`}
       >
@@ -383,6 +385,7 @@ const AmPmSelector = memo(({ value, onChange, cardColor }: AmPmSelectorProps) =>
       <TouchableOpacity
         onPressIn={lightTap}
         onPress={() => onChange('PM')}
+        activeOpacity={0.7}
         style={{ backgroundColor: value === 'PM' ? colors.green : cardColor, borderWidth: 1, borderColor: value === 'PM' ? colors.green : colors.border, ...shadow.card }}
         className={`px-3 py-2 ${radius.AMPM} mt-1`}
       >
@@ -615,7 +618,7 @@ function PresetSettingsScreen() {
   );
 
   // ============ Emergency Tapout Handler ============
-  const handleEmergencyTapoutToggle = useCallback(async (value: boolean) => {
+  const handleEmergencyTapoutToggle = useCallback((value: boolean) => {
     mediumTap();
 
     if (value) {
@@ -625,12 +628,12 @@ function PresetSettingsScreen() {
         setAllowEmergencyTapout(true);
       }
     } else {
-      const dismissed = await AsyncStorage.getItem(DISABLE_TAPOUT_WARNING_DISMISSED_KEY);
-      if (dismissed !== 'true') {
-        setDisableTapoutWarningVisible(true);
-      } else {
-        setAllowEmergencyTapout(false);
-      }
+      setAllowEmergencyTapout(false);
+      AsyncStorage.getItem(DISABLE_TAPOUT_WARNING_DISMISSED_KEY).then(dismissed => {
+        if (dismissed !== 'true') {
+          setDisableTapoutWarningVisible(true);
+        }
+      });
     }
   }, [tapoutStatus]);
 
@@ -944,6 +947,8 @@ function PresetSettingsScreen() {
               onPressIn={lightTap}
               onPress={dpHandlePrevMonth}
               disabled={!dpCanGoPrev}
+              activeOpacity={0.7}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               className="w-10 h-10 items-center justify-center"
             >
               <ChevronLeftIcon size={s(iconSize.md)} color={dpCanGoPrev ? colors.text : colors.textMuted} />
@@ -957,6 +962,8 @@ function PresetSettingsScreen() {
               onPressIn={lightTap}
               onPress={dpHandleNextMonth}
               disabled={!dpCanGoNext}
+              activeOpacity={0.7}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               className="w-10 h-10 items-center justify-center"
             >
               <ChevronRightIcon size={s(iconSize.md)} color={dpCanGoNext ? colors.text : colors.textMuted} />
@@ -1048,6 +1055,8 @@ function PresetSettingsScreen() {
                 <TouchableOpacity
                   onPressIn={lightTap}
                   onPress={dpHandleClear}
+                  activeOpacity={0.7}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                   style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
                   className={`ml-4 px-4 py-2 ${radius.full}`}
                 >
@@ -1541,17 +1550,15 @@ function PresetSettingsScreen() {
             <AnimatedSwitch
               size="small"
               value={blockSettings}
-              onValueChange={async (value: boolean) => {
+              onValueChange={(value: boolean) => {
                 mediumTap();
+                setBlockSettings(value);
                 if (value) {
-                  const dismissed = await AsyncStorage.getItem(BLOCK_SETTINGS_WARNING_DISMISSED_KEY);
-                  if (dismissed !== 'true') {
-                    setBlockSettingsWarningVisible(true);
-                  } else {
-                    setBlockSettings(true);
-                  }
-                } else {
-                  setBlockSettings(false);
+                  AsyncStorage.getItem(BLOCK_SETTINGS_WARNING_DISMISSED_KEY).then(dismissed => {
+                    if (dismissed !== 'true') {
+                      setBlockSettingsWarningVisible(true);
+                    }
+                  });
                 }
               }}
             />
@@ -1578,18 +1585,17 @@ function PresetSettingsScreen() {
               <AnimatedSwitch
                 size="small"
                 value={strictMode}
-                onValueChange={async (value: boolean) => {
+                onValueChange={(value: boolean) => {
                   mediumTap();
+                  setStrictMode(value);
                   if (value) {
-                    const dismissed = await AsyncStorage.getItem(STRICT_MODE_WARNING_DISMISSED_KEY);
-                    if (dismissed !== 'true') {
-                      setStrictModeWarningVisible(true);
-                    } else {
-                      setStrictMode(true);
-                      setAllowEmergencyTapout((tapoutStatus?.remaining ?? 0) > 0);
-                    }
+                    setAllowEmergencyTapout((tapoutStatus?.remaining ?? 0) > 0);
+                    AsyncStorage.getItem(STRICT_MODE_WARNING_DISMISSED_KEY).then(dismissed => {
+                      if (dismissed !== 'true') {
+                        setStrictModeWarningVisible(true);
+                      }
+                    });
                   } else {
-                    setStrictMode(false);
                     setAllowEmergencyTapout(false);
                   }
                 }}

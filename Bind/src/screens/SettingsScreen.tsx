@@ -1,4 +1,4 @@
-import React, { useState, useEffect, memo } from 'react';
+import React, { useState, useEffect, useMemo, memo } from 'react';
 import {
   Text,
   View,
@@ -428,6 +428,17 @@ function SettingsScreen() {
   // Don't allow any actions until lock status is checked, or if locked
   const isDisabled = !lockChecked || sharedIsLocked === true;
 
+  // Memoize icon JSX so SettingsRow memo isn't defeated by new element references
+  const mailIcon = useMemo(() => <MailIcon />, []);
+  const membershipIcon = useMemo(() => <MembershipIcon />, []);
+  const logoutIcon = useMemo(() => <LogoutIcon />, []);
+  const messageIcon = useMemo(() => <MessageIcon />, []);
+  const bugIcon = useMemo(() => <BugIcon />, []);
+  const shieldIcon = useMemo(() => <ShieldIcon />, []);
+  const fileTextIcon = useMemo(() => <FileTextIcon />, []);
+  const refreshIcon = useMemo(() => <RefreshIcon />, []);
+  const trashIcon = useMemo(() => <TrashIcon color={colors.red} />, [colors.red]);
+
   // Show full-screen loading only for destructive actions (reset/delete/logout)
   // Initial load uses cache so it's instant - no spinner needed
   if (isResetting || isDeleting || isLoggingOut) {
@@ -466,7 +477,7 @@ function SettingsScreen() {
     <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
       {/* Locked Overlay */}
       {sharedIsLocked && (
-        <View style={{ backgroundColor: colors.bg + 'F2' }} className="absolute inset-0 z-50 items-center justify-center">
+        <View style={{ backgroundColor: colors.bg + 'F2' }} className="absolute inset-0 z-50 items-center justify-center" pointerEvents="auto" onStartShouldSetResponder={() => true}>
           <View className="items-center" style={{ marginTop: '-20%' }}>
             <Image
               source={require('../frontassets/TrueScute-Photoroom.png')}
@@ -492,7 +503,7 @@ function SettingsScreen() {
         </Text>
         <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }} className={`${radius['2xl']} mb-6`}>
           <SettingsRow
-            icon={<MailIcon />}
+            icon={mailIcon}
             label={email}
             showArrow={false}
             labelColor={colors.text}
@@ -503,6 +514,7 @@ function SettingsScreen() {
           <TouchableOpacity
             onPressIn={lightTap}
             onPress={() => setMembershipModalVisible(true)}
+            activeOpacity={0.7}
             style={{ borderBottomWidth: 1, borderBottomColor: colors.divider, paddingVertical: s(buttonPadding.standard) }}
             className="px-4"
           >
@@ -528,7 +540,7 @@ function SettingsScreen() {
             </View>
           </TouchableOpacity>
           <SettingsRow
-            icon={<LogoutIcon />}
+            icon={logoutIcon}
             label="Log Out"
             onPress={isDisabled ? undefined : () => setLogoutModalVisible(true)}
             labelColor={colors.text}
@@ -580,7 +592,7 @@ function SettingsScreen() {
         </Text>
         <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }} className={`${radius['2xl']}`}>
           <SettingsRow
-            icon={<MessageIcon />}
+            icon={messageIcon}
             label="Contact Support"
             onPress={isDisabled ? undefined : handleContactSupport}
             labelColor={colors.text}
@@ -589,7 +601,7 @@ function SettingsScreen() {
             s={s}
           />
           <SettingsRow
-            icon={<BugIcon />}
+            icon={bugIcon}
             label="Bug Report"
             onPress={isDisabled ? undefined : handleBugReport}
             labelColor={colors.text}
@@ -598,7 +610,7 @@ function SettingsScreen() {
             s={s}
           />
           <SettingsRow
-            icon={<ShieldIcon />}
+            icon={shieldIcon}
             label="Privacy Policy"
             onPress={() => setPrivacyModalVisible(true)}
             labelColor={colors.text}
@@ -607,7 +619,7 @@ function SettingsScreen() {
             s={s}
           />
           <SettingsRow
-            icon={<FileTextIcon />}
+            icon={fileTextIcon}
             label="Terms of Service"
             onPress={() => setTermsModalVisible(true)}
             labelColor={colors.text}
@@ -634,7 +646,7 @@ function SettingsScreen() {
         )}
         <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }} className={`${radius['2xl']}`}>
           <SettingsRow
-            icon={<RefreshIcon />}
+            icon={refreshIcon}
             label="Reset Account"
             onPress={isDisabled ? undefined : () => setResetModalVisible(true)}
             labelColor={colors.text}
@@ -643,7 +655,7 @@ function SettingsScreen() {
             s={s}
           />
           <SettingsRow
-            icon={<TrashIcon color={colors.red} />}
+            icon={trashIcon}
             label="Delete Account"
             onPress={isDisabled ? undefined : () => setDeleteAccountModalVisible(true)}
             labelColor={colors.red}
@@ -960,7 +972,7 @@ function SettingsScreen() {
           }
         }}
       >
-        <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
+        <View style={{ flex: 1, backgroundColor: colors.bg }}>
           {/* Header */}
           <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight, overflow: 'hidden' }} className="flex-row items-center justify-between px-4 py-3.5">
             {/* Only show back button if trial hasn't expired */}
@@ -999,6 +1011,7 @@ function SettingsScreen() {
             <TouchableOpacity
               onPressIn={lightTap}
               onPress={() => setSelectedPlan('monthly')}
+              activeOpacity={0.7}
               style={{
                 backgroundColor: colors.card,
                 borderWidth: 2,
@@ -1029,6 +1042,7 @@ function SettingsScreen() {
             <TouchableOpacity
               onPressIn={lightTap}
               onPress={() => setSelectedPlan('yearly')}
+              activeOpacity={0.7}
               style={{
                 backgroundColor: colors.card,
                 borderWidth: 2,
@@ -1064,6 +1078,7 @@ function SettingsScreen() {
             <TouchableOpacity
               onPressIn={lightTap}
               onPress={() => setSelectedPlan('lifetime')}
+              activeOpacity={0.7}
               style={{
                 backgroundColor: colors.card,
                 borderWidth: 2,
@@ -1099,6 +1114,7 @@ function SettingsScreen() {
             <TouchableOpacity
               onPressIn={lightTap}
               disabled={!selectedPlan}
+              activeOpacity={0.7}
               style={{
                 backgroundColor: selectedPlan ? colors.text : colors.border,
                 opacity: selectedPlan ? 1 : 0.5,

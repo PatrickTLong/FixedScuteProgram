@@ -111,6 +111,7 @@ const TabItem = memo(({ label, isActive, onPress, renderIcon, activeColor, inact
       onPressIn={triggerFlash}
       onPress={onPress}
       activeOpacity={0.7}
+      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
       style={{ paddingVertical: buttonPadding.tabItem }}
       className="flex-1 items-center justify-center"
     >
@@ -180,6 +181,11 @@ function BottomTabBar({ state, navigation }: RNBottomTabBarProps) {
 
   const bottomPadding = Math.max(insets.bottom, s(24));
 
+  const renderHomeIcon = useCallback((color: string) => <HomeIcon color={color} />, []);
+  const renderPresetsIcon = useCallback((color: string) => <PresetsIcon color={color} />, []);
+  const renderStatsIcon = useCallback((color: string) => <StatsIcon color={color} />, []);
+  const renderSettingsIcon = useCallback((color: string) => <SettingsIcon color={color} />, []);
+
   // Hide tab bar on preset editing screens (after all hooks)
   if (HIDDEN_ROUTES.includes(currentRouteName)) {
     return null;
@@ -199,7 +205,7 @@ function BottomTabBar({ state, navigation }: RNBottomTabBarProps) {
           label="Home"
           isActive={activeTab === 'home'}
           onPress={handleHomePress}
-          renderIcon={(color) => <HomeIcon color={color} />}
+          renderIcon={renderHomeIcon}
           activeColor={colors.text}
           inactiveColor={colors.textMuted}
         />
@@ -207,7 +213,7 @@ function BottomTabBar({ state, navigation }: RNBottomTabBarProps) {
           label="Presets"
           isActive={activeTab === 'presets'}
           onPress={handlePresetsPress}
-          renderIcon={(color) => <PresetsIcon color={color} />}
+          renderIcon={renderPresetsIcon}
           activeColor={colors.text}
           inactiveColor={colors.textMuted}
         />
@@ -215,7 +221,7 @@ function BottomTabBar({ state, navigation }: RNBottomTabBarProps) {
           label="Stats"
           isActive={activeTab === 'stats'}
           onPress={handleStatsPress}
-          renderIcon={(color) => <StatsIcon color={color} />}
+          renderIcon={renderStatsIcon}
           activeColor={colors.text}
           inactiveColor={colors.textMuted}
         />
@@ -223,7 +229,7 @@ function BottomTabBar({ state, navigation }: RNBottomTabBarProps) {
           label="Settings"
           isActive={activeTab === 'settings'}
           onPress={handleSettingsPress}
-          renderIcon={(color) => <SettingsIcon color={color} />}
+          renderIcon={renderSettingsIcon}
           activeColor={colors.text}
           inactiveColor={colors.textMuted}
         />

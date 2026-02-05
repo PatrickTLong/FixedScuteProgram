@@ -268,7 +268,9 @@ function EditPresetAppsScreen() {
   // State
   const [name, setName] = useState('');
   const [selectedApps, setSelectedApps] = useState<string[]>([]);
+  const selectedAppsSet = useMemo(() => new Set(selectedApps), [selectedApps]);
   const [skipCheckboxAnimation, setSkipCheckboxAnimation] = useState(false);
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [blockedWebsites, setBlockedWebsites] = useState<string[]>([]);
   const [websiteInput, setWebsiteInput] = useState('');
   const [activeTab, setActiveTab] = useState<TabType>('apps');
@@ -414,6 +416,12 @@ function EditPresetAppsScreen() {
     setBlockedWebsites(prev => prev.filter(s => s !== site));
   }, []);
 
+  // Debounce search query
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearchQuery(searchQuery), 150);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
   // Filter selectedApps to only count apps that are still installed
   const installedSelectedApps = useMemo(() => {
     const installedIds = new Set(installedApps.map(app => app.id));
@@ -428,12 +436,12 @@ function EditPresetAppsScreen() {
     return name.trim() && (hasApps || blockedWebsites.length > 0);
   }, [name, installedSelectedApps.length, blockedWebsites.length, iosSelectedAppsCount]);
 
-  // Filtered apps for search
+  // Filtered apps for search (uses debounced query to avoid re-render on every keystroke)
   const filteredApps = useMemo(() =>
     installedApps.filter(app =>
-      app.name.toLowerCase().includes(searchQuery.toLowerCase())
+      app.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase())
     ),
-    [installedApps, searchQuery]
+    [installedApps, debouncedSearchQuery]
   );
 
   // Tab switch — optimistic: highlight tab instantly, swap content next frame
@@ -462,9 +470,13 @@ function EditPresetAppsScreen() {
     navigation.navigate('Presets');
   }, [navigation, setPresetSettingsParams, setFinalSettingsState]);
 
-  // Render app item
+  // Keep a ref to selectedAppsSet so renderAppItem can read it without re-creating
+  const selectedAppsSetRef = useRef(selectedAppsSet);
+  selectedAppsSetRef.current = selectedAppsSet;
+
+  // Render app item — does NOT depend on selectedApps; extraData handles re-renders
   const renderAppItem = useCallback(({ item }: { item: InstalledApp }) => {
-    const isSelected = selectedApps.includes(item.id);
+    const isSelected = selectedAppsSetRef.current.has(item.id);
     return (
       <AppItemRow
         item={item}
@@ -476,7 +488,7 @@ function EditPresetAppsScreen() {
         skipCheckboxAnimation={skipCheckboxAnimation}
       />
     );
-  }, [selectedApps, toggleApp, colors, s, skipCheckboxAnimation]);
+  }, [toggleApp, colors, s, skipCheckboxAnimation]);
 
   const keyExtractor = useCallback((item: InstalledApp) => item.id, []);
 
@@ -529,6 +541,7 @@ function EditPresetAppsScreen() {
           <TouchableOpacity
             onPressIn={lightTap}
             onPress={() => switchTab('apps')}
+            activeOpacity={0.7}
             style={{ backgroundColor: activeTab === 'apps' ? colors.text : colors.card, borderWidth: 1, borderColor: colors.border, paddingVertical: s(buttonPadding.smallStandard), ...shadow.card }}
             className={`flex-1 ${radius.full} items-center justify-center flex-row`}
           >
@@ -541,6 +554,7 @@ function EditPresetAppsScreen() {
           <TouchableOpacity
             onPressIn={lightTap}
             onPress={() => switchTab('websites')}
+            activeOpacity={0.7}
             style={{ backgroundColor: activeTab === 'websites' ? colors.text : colors.card, borderWidth: 1, borderColor: colors.border, paddingVertical: s(buttonPadding.smallStandard), ...shadow.card }}
             className={`flex-1 ${radius.full} items-center justify-center flex-row`}
           >
@@ -619,6 +633,7 @@ function EditPresetAppsScreen() {
                           return Array.from(newSet);
                         });
                       }}
+                      activeOpacity={0.7}
                       style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, paddingVertical: s(buttonPadding.smallStandard), ...shadow.card }}
                       className={`flex-1 ${radius.full} items-center justify-center mr-2`}
                     >
@@ -634,6 +649,7 @@ function EditPresetAppsScreen() {
                         const filteredIds = new Set(filteredApps.map(app => app.id));
                         setSelectedApps(prev => prev.filter(id => !filteredIds.has(id)));
                       }}
+                      activeOpacity={0.7}
                       style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, paddingVertical: s(buttonPadding.smallStandard), ...shadow.card }}
                       className={`flex-1 ${radius.full} items-center justify-center`}
                     >
@@ -703,6 +719,8 @@ function EditPresetAppsScreen() {
                 <TouchableOpacity
                   onPressIn={lightTap}
                   onPress={addWebsite}
+                  activeOpacity={0.7}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                   style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
                   className={`w-11 h-11 ${radius.full} items-center justify-center`}
                 >
@@ -728,6 +746,8 @@ function EditPresetAppsScreen() {
                   <TouchableOpacity
                     onPressIn={lightTap}
                     onPress={() => removeWebsite(site)}
+                    activeOpacity={0.7}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                     className="p-2"
                   >
                     <XIcon size={s(iconSize.sm)} color={colors.text} />
