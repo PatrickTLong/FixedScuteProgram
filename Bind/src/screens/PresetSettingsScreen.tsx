@@ -218,10 +218,9 @@ interface TimeWheelProps {
   wheelWidth: number;
   selectedFontSize: number;
   unselectedFontSize: number;
-  parentScrollRef?: React.RefObject<ScrollView | null>;
 }
 
-const TimeWheel = memo(({ values, selectedValue, onValueChange, padZero = true, textColor, textMutedColor, itemHeight, wheelWidth, selectedFontSize, unselectedFontSize, parentScrollRef }: TimeWheelProps) => {
+const TimeWheel = memo(({ values, selectedValue, onValueChange, padZero = true, textColor, textMutedColor, itemHeight, wheelWidth, selectedFontSize, unselectedFontSize }: TimeWheelProps) => {
   const scrollRef = useRef<ScrollView>(null);
   const lastHapticIndex = useRef(-1);
 
@@ -274,12 +273,7 @@ const TimeWheel = memo(({ values, selectedValue, onValueChange, padZero = true, 
   const paddingVertical = (itemHeight * (TIME_VISIBLE_ITEMS - 1)) / 2;
 
   return (
-    <View
-      style={{ height: itemHeight * TIME_VISIBLE_ITEMS, width: wheelWidth, overflow: 'hidden' }}
-      onTouchStart={parentScrollRef ? () => parentScrollRef.current?.setNativeProps({ scrollEnabled: false }) : undefined}
-      onTouchEnd={parentScrollRef ? () => parentScrollRef.current?.setNativeProps({ scrollEnabled: true }) : undefined}
-      onTouchCancel={parentScrollRef ? () => parentScrollRef.current?.setNativeProps({ scrollEnabled: true }) : undefined}
-    >
+    <View style={{ height: itemHeight * TIME_VISIBLE_ITEMS, width: wheelWidth, overflow: 'hidden' }}>
       <ScrollView
         ref={scrollRef}
         showsVerticalScrollIndicator={false}
@@ -292,7 +286,7 @@ const TimeWheel = memo(({ values, selectedValue, onValueChange, padZero = true, 
           if (e.nativeEvent.velocity?.y === 0) handleScrollEnd(e);
         }}
         contentContainerStyle={{ paddingVertical }}
-        nestedScrollEnabled={true}
+        nestedScrollEnabled={false}
         overScrollMode="never"
       >
         {topSpacerHeight > 0 && <View style={{ height: topSpacerHeight }} />}
@@ -1018,7 +1012,6 @@ function PresetSettingsScreen() {
                   wheelWidth={wheelWidth}
                   selectedFontSize={timeSelectedFontSize}
                   unselectedFontSize={timeUnselectedFontSize}
-                  parentScrollRef={dpScrollRef}
                 />
                 <View style={{ height: timeItemHeight, justifyContent: 'center', marginHorizontal: s(4), marginTop: -timeItemHeight * 0.15 }}>
                   <Text style={{ color: colors.textMuted, fontSize: s(24) }} className={fontFamily.regular}>:</Text>
@@ -1034,7 +1027,6 @@ function PresetSettingsScreen() {
                   wheelWidth={wheelWidth}
                   selectedFontSize={timeSelectedFontSize}
                   unselectedFontSize={timeUnselectedFontSize}
-                  parentScrollRef={dpScrollRef}
                 />
                 <AmPmSelector
                   value={dpSelectedAmPm}
@@ -1070,193 +1062,6 @@ function PresetSettingsScreen() {
             )}
           </View>
 
-          {/* Recurring Schedule - only when picking end date and start date is already set */}
-          {datePickerTarget === 'scheduleEnd' && scheduleStartDate && (
-            <View style={{ borderTopWidth: 1, borderTopColor: colors.dividerLight, marginHorizontal: s(-24), paddingHorizontal: s(24) }}>
-              <View style={{ marginHorizontal: s(-24) }}>
-                <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
-                  <TouchableOpacity onPressIn={lightTap} onPress={() => toggleInfo('recurring')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
-                    <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Recurring Schedule</Text>
-                    <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>Repeat this block automatically</Text>
-                  </TouchableOpacity>
-                  <AnimatedSwitch
-                    size="small"
-                    value={isRecurring}
-                    onValueChange={(value: boolean) => {
-                      setIsRecurring(value);
-                      if (value) {
-                        mediumTap();
-                        AsyncStorage.getItem(RECURRENCE_INFO_DISMISSED_KEY).then(dismissed => {
-                          if (dismissed !== 'true') {
-                            setRecurrenceInfoVisible(true);
-                          }
-                        });
-                      } else {
-                        setRecurringValue('1');
-                        setRecurringUnit('hours');
-                        mediumTap();
-                      }
-                    }}
-                  />
-                </View>
-                <ExpandableInfo expanded={!!expandedInfo.recurring}>
-                  <TouchableOpacity onPressIn={lightTap} onPress={() => toggleInfo('recurring')} activeOpacity={0.7} className="px-6 pb-4">
-                    <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular} leading-5`}>
-                      Automatically repeats this blocking session at the interval you choose. After each session ends, the next one will start based on your selected frequency.
-                    </Text>
-                  </TouchableOpacity>
-                </ExpandableInfo>
-                {(isRecurring || !!expandedInfo.recurring) && (
-                  <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }} />
-                )}
-
-                {/* Recurring Options */}
-                <ExpandableInfo expanded={isRecurring} lazy>
-                  <View className="mt-4 px-6 pb-6">
-                    <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} tracking-wider mb-4`}>
-                      Recurrence
-                    </Text>
-
-                    {/* Number Input */}
-                    <View
-                      style={{ backgroundColor: colors.card, paddingVertical: s(buttonPadding.standard), borderWidth: 1, borderColor: colors.border, ...shadow.card }}
-                      className={`flex-row items-center px-4 ${radius.xl} mb-3`}
-                    >
-                      <View className={`w-10 h-10 ${radius.lg} items-center justify-center mr-3`}>
-                        <RotateCwIcon size={s(iconSize.lg)} />
-                      </View>
-                      <View className="flex-1">
-                        <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
-                          Repeat Every
-                        </Text>
-                      </View>
-                      <TextInput
-                        style={{ color: colors.text, minWidth: s(40), textAlign: 'center', height: s(28), padding: 0 }}
-                        className={`${textSize.base} ${fontFamily.semibold}`}
-                        value={recurringValue}
-                        onChangeText={(text) => {
-                          const numericValue = text.replace(/[^0-9]/g, '');
-                          setRecurringValue(numericValue);
-                        }}
-                        keyboardType="number-pad"
-                        maxLength={3}
-                        placeholder="1"
-                        placeholderTextColor={colors.textSecondary}
-                      />
-                    </View>
-
-                    {/* Unit Selector */}
-                    <TouchableOpacity
-                      onPressIn={lightTap}
-                      onPress={() => setRecurringUnitModalVisible(true)}
-                      activeOpacity={0.7}
-                      style={{ backgroundColor: colors.card, paddingVertical: s(buttonPadding.standard), borderWidth: 1, borderColor: colors.border, ...shadow.card }}
-                      className={`flex-row items-center px-4 ${radius.xl} mb-3`}
-                    >
-                      <View className={`w-10 h-10 ${radius.lg} items-center justify-center mr-3`}>
-                        <ClockIcon size={s(iconSize.lg)} />
-                      </View>
-                      <View className="flex-1">
-                        <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold} capitalize`}>
-                          {recurringUnit}
-                        </Text>
-                      </View>
-                      <ChevronRightIcon size={s(iconSize.md)} color={colors.text} />
-                    </TouchableOpacity>
-
-                    {/* Next Occurrence Preview */}
-                    {(() => {
-                      if (!dpTempSelectedDate || !scheduleStartDate || !isRecurring) return null;
-
-                      let hours24 = dpSelectedHour % 12;
-                      if (dpSelectedAmPm === 'PM') hours24 += 12;
-                      if (dpSelectedAmPm === 'AM' && dpSelectedHour === 12) hours24 = 0;
-                      const pendingEndDate = new Date(
-                        dpTempSelectedDate.getFullYear(),
-                        dpTempSelectedDate.getMonth(),
-                        dpTempSelectedDate.getDate(),
-                        hours24,
-                        dpSelectedMinute,
-                        0
-                      );
-
-                      if (pendingEndDate <= scheduleStartDate) return null;
-
-                      const parsedValue = parseInt(recurringValue, 10);
-                      const value = isNaN(parsedValue) || parsedValue <= 0 ? 1 : parsedValue;
-                      const duration = pendingEndDate.getTime() - scheduleStartDate.getTime();
-
-                      let nextStart: Date;
-                      let nextEnd: Date;
-
-                      if (recurringUnit === 'minutes' || recurringUnit === 'hours') {
-                        const intervalMs = recurringUnit === 'minutes'
-                          ? value * 60 * 1000
-                          : value * 60 * 60 * 1000;
-                        const newStartTime = pendingEndDate.getTime() + intervalMs;
-                        nextStart = new Date(newStartTime);
-                        nextEnd = new Date(newStartTime + duration);
-                      } else {
-                        nextStart = new Date(scheduleStartDate);
-                        nextEnd = new Date(pendingEndDate);
-                        if (recurringUnit === 'days') {
-                          nextStart.setDate(nextStart.getDate() + value);
-                          nextEnd.setDate(nextEnd.getDate() + value);
-                        } else if (recurringUnit === 'weeks') {
-                          nextStart.setDate(nextStart.getDate() + (value * 7));
-                          nextEnd.setDate(nextEnd.getDate() + (value * 7));
-                        } else if (recurringUnit === 'months') {
-                          nextStart.setMonth(nextStart.getMonth() + value);
-                          nextEnd.setMonth(nextEnd.getMonth() + value);
-                        }
-                      }
-
-                      const isSameDay = nextStart.toDateString() === nextEnd.toDateString();
-
-                      return (
-                        <View>
-                          <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular} mb-1`}>
-                            {`Start: ${scheduleStartDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} ${scheduleStartDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`}
-                          </Text>
-                          <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular} mb-3`}>
-                            {`End: ${pendingEndDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} ${pendingEndDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`}
-                          </Text>
-                          <View style={{ backgroundColor: colors.card, paddingVertical: s(buttonPadding.standard), borderWidth: 1, borderColor: colors.border, ...shadow.card }} className={`flex-row items-center px-4 ${radius.xl}`}>
-                            <View className={`w-10 h-10 ${radius.lg} items-center justify-center mr-3`}>
-                              <SendIcon size={s(iconSize.lg)} />
-                            </View>
-                            <View className="flex-1">
-                              <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
-                                Next Occurrence
-                              </Text>
-                              <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>
-                                {`e.g. ${nextStart.toLocaleDateString('en-US', {
-                                  month: 'short',
-                                  day: 'numeric',
-                                })} ${nextStart.toLocaleTimeString('en-US', {
-                                  hour: 'numeric',
-                                  minute: '2-digit',
-                                  hour12: true,
-                                })} - ${isSameDay ? '' : nextEnd.toLocaleDateString('en-US', {
-                                  month: 'short',
-                                  day: 'numeric',
-                                }) + ' '}${nextEnd.toLocaleTimeString('en-US', {
-                                  hour: 'numeric',
-                                  minute: '2-digit',
-                                  hour12: true,
-                                })}`}
-                              </Text>
-                            </View>
-                          </View>
-                          <View style={{ height: s(40) }} />
-                        </View>
-                      );
-                    })()}
-                  </View>
-                </ExpandableInfo>
-              </View>
-            </View>
-          )}
         </ScrollView>
       </View>
       </Modal>
@@ -1475,6 +1280,171 @@ function PresetSettingsScreen() {
             )}
 
             <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight, marginTop: s(20), marginHorizontal: s(-24) }} />
+
+            {/* Recurring Schedule - only when both dates are valid */}
+            {scheduleStartDate && scheduleEndDate && scheduleEndDate > scheduleStartDate && (
+              <View style={{ marginHorizontal: s(-24) }}>
+                <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}>
+                  <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
+                    <TouchableOpacity onPressIn={lightTap} onPress={() => toggleInfo('recurring')} activeOpacity={0.7} style={{ maxWidth: '75%' }}>
+                      <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Recurring Schedule</Text>
+                      <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>Repeat this block automatically</Text>
+                    </TouchableOpacity>
+                    <AnimatedSwitch
+                      size="small"
+                      value={isRecurring}
+                      onValueChange={(value: boolean) => {
+                        setIsRecurring(value);
+                        if (value) {
+                          mediumTap();
+                          AsyncStorage.getItem(RECURRENCE_INFO_DISMISSED_KEY).then(dismissed => {
+                            if (dismissed !== 'true') {
+                              setRecurrenceInfoVisible(true);
+                            }
+                          });
+                        } else {
+                          setRecurringValue('1');
+                          setRecurringUnit('hours');
+                          mediumTap();
+                        }
+                      }}
+                    />
+                  </View>
+                  <ExpandableInfo expanded={!!expandedInfo.recurring}>
+                    <TouchableOpacity onPressIn={lightTap} onPress={() => toggleInfo('recurring')} activeOpacity={0.7} className="px-6 pb-4">
+                      <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular} leading-5`}>
+                        Automatically repeats this blocking session at the interval you choose. After each session ends, the next one will start based on your selected frequency.
+                      </Text>
+                    </TouchableOpacity>
+                  </ExpandableInfo>
+                </View>
+
+                {/* Recurring Options */}
+                <ExpandableInfo expanded={isRecurring} lazy>
+                  <View style={{ paddingBottom: s(20) }} className="mt-4 px-6">
+                    <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} tracking-wider mb-4`}>
+                      Recurrence
+                    </Text>
+
+                    {/* Number Input */}
+                    <View
+                      style={{ backgroundColor: colors.card, paddingVertical: s(buttonPadding.standard), borderWidth: 1, borderColor: colors.border, ...shadow.card }}
+                      className={`flex-row items-center px-4 ${radius.xl} mb-3`}
+                    >
+                      <View className={`w-10 h-10 ${radius.lg} items-center justify-center mr-3`}>
+                        <RotateCwIcon size={s(iconSize.lg)} />
+                      </View>
+                      <View className="flex-1">
+                        <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
+                          Repeat Every
+                        </Text>
+                      </View>
+                      <TextInput
+                        style={{ color: colors.text, minWidth: s(40), textAlign: 'center', height: s(28), padding: 0 }}
+                        className={`${textSize.base} ${fontFamily.semibold}`}
+                        value={recurringValue}
+                        onChangeText={(text) => {
+                          const numericValue = text.replace(/[^0-9]/g, '');
+                          setRecurringValue(numericValue);
+                        }}
+                        keyboardType="number-pad"
+                        maxLength={3}
+                        placeholder="1"
+                        placeholderTextColor={colors.textSecondary}
+                      />
+                    </View>
+
+                    {/* Unit Selector */}
+                    <TouchableOpacity
+                      onPressIn={lightTap}
+                      onPress={() => setRecurringUnitModalVisible(true)}
+                      activeOpacity={0.7}
+                      style={{ backgroundColor: colors.card, paddingVertical: s(buttonPadding.standard), borderWidth: 1, borderColor: colors.border, ...shadow.card }}
+                      className={`flex-row items-center px-4 ${radius.xl} mb-3`}
+                    >
+                      <View className={`w-10 h-10 ${radius.lg} items-center justify-center mr-3`}>
+                        <ClockIcon size={s(iconSize.lg)} />
+                      </View>
+                      <View className="flex-1">
+                        <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold} capitalize`}>
+                          {recurringUnit}
+                        </Text>
+                      </View>
+                      <ChevronRightIcon size={s(iconSize.md)} color={colors.text} />
+                    </TouchableOpacity>
+
+                    {/* Next Occurrence Preview */}
+                    {(() => {
+                      if (!scheduleStartDate || !scheduleEndDate || !isRecurring) return null;
+
+                      const parsedValue = parseInt(recurringValue, 10);
+                      const value = isNaN(parsedValue) || parsedValue <= 0 ? 1 : parsedValue;
+                      const duration = scheduleEndDate.getTime() - scheduleStartDate.getTime();
+
+                      let nextStart: Date;
+                      let nextEnd: Date;
+
+                      if (recurringUnit === 'minutes' || recurringUnit === 'hours') {
+                        const intervalMs = recurringUnit === 'minutes'
+                          ? value * 60 * 1000
+                          : value * 60 * 60 * 1000;
+                        const newStartTime = scheduleEndDate.getTime() + intervalMs;
+                        nextStart = new Date(newStartTime);
+                        nextEnd = new Date(newStartTime + duration);
+                      } else {
+                        nextStart = new Date(scheduleStartDate);
+                        nextEnd = new Date(scheduleEndDate);
+                        if (recurringUnit === 'days') {
+                          nextStart.setDate(nextStart.getDate() + value);
+                          nextEnd.setDate(nextEnd.getDate() + value);
+                        } else if (recurringUnit === 'weeks') {
+                          nextStart.setDate(nextStart.getDate() + (value * 7));
+                          nextEnd.setDate(nextEnd.getDate() + (value * 7));
+                        } else if (recurringUnit === 'months') {
+                          nextStart.setMonth(nextStart.getMonth() + value);
+                          nextEnd.setMonth(nextEnd.getMonth() + value);
+                        }
+                      }
+
+                      const isSameDay = nextStart.toDateString() === nextEnd.toDateString();
+
+                      return (
+                        <View style={{ backgroundColor: colors.card, paddingVertical: s(buttonPadding.standard), borderWidth: 1, borderColor: colors.border, ...shadow.card }} className={`flex-row items-center px-4 ${radius.xl}`}>
+                          <View className={`w-10 h-10 ${radius.lg} items-center justify-center mr-3`}>
+                            <SendIcon size={s(iconSize.lg)} />
+                          </View>
+                          <View className="flex-1">
+                            <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
+                              Next Occurrence
+                            </Text>
+                            <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>
+                              {`e.g. ${nextStart.toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                              })} ${nextStart.toLocaleTimeString('en-US', {
+                                hour: 'numeric',
+                                minute: '2-digit',
+                                hour12: true,
+                              })} - ${isSameDay ? '' : nextEnd.toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                              }) + ' '}${nextEnd.toLocaleTimeString('en-US', {
+                                hour: 'numeric',
+                                minute: '2-digit',
+                                hour12: true,
+                              })}`}
+                            </Text>
+                          </View>
+                        </View>
+                      );
+                    })()}
+                  </View>
+                </ExpandableInfo>
+                <ExpandableInfo expanded={isRecurring} lazy>
+                  <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }} />
+                </ExpandableInfo>
+              </View>
+            )}
           </View>
         </ExpandableInfo>
 
