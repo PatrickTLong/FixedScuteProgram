@@ -318,6 +318,22 @@ function EditPresetAppsScreen() {
     })();
   }, []);
 
+  // Reload app list when apps are installed/uninstalled
+  useEffect(() => {
+    if (Platform.OS !== 'android' || !InstalledAppsModule) return;
+    const emitter = new NativeEventEmitter(InstalledAppsModule);
+    const subscription = emitter.addListener('onAppsChanged', async () => {
+      invalidateInstalledAppsCache();
+      try {
+        const apps = await loadInstalledAppsOnce();
+        setInstalledApps(apps);
+      } catch {
+        // Failed to reload apps
+      }
+    });
+    return () => subscription.remove();
+  }, []);
+
   // iOS: Open native FamilyActivityPicker
   const openIOSAppPicker = useCallback(async () => {
     if (Platform.OS !== 'ios' || !InstalledAppsModule?.showAppPicker) return;
