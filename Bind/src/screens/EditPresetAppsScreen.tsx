@@ -250,7 +250,7 @@ const AppItemRow = memo(({ item, isSelected, onToggle, onPressIn, colors, s, ski
           </Text>
         </View>
       )}
-      <Text style={{ color: colors.text }} className={`flex-1 ${textSize.base} ${fontFamily.regular}`}>{item.name}</Text>
+      <Text style={{ color: colors.text }} className={`flex-1 ${textSize.small} ${fontFamily.regular}`}>{item.name}</Text>
       <AnimatedCheckbox checked={isSelected} size={s(iconSize.lg)} skipAnimation={skipCheckboxAnimation} />
     </TouchableOpacity>
   );
@@ -708,7 +708,7 @@ function EditPresetAppsScreen() {
                   <View className="w-10 h-10 items-center justify-center mr-3">
                     <GlobeIcon size={s(iconSize.xl)} color={colors.textSecondary} />
                   </View>
-                  <Text style={{ color: colors.text }} className={`flex-1 ${textSize.base} ${fontFamily.regular}`}>{site}</Text>
+                  <Text style={{ color: colors.text }} className={`flex-1 ${textSize.small} ${fontFamily.regular}`}>{site}</Text>
                   <TouchableOpacity
                     onPressIn={lightTap}
                     onPress={() => removeWebsite(site)}
@@ -720,7 +720,7 @@ function EditPresetAppsScreen() {
               ))}
 
               {blockedWebsites.length === 0 && (
-                <Text style={{ color: colors.textSecondary }} className={`text-center ${textSize.base} ${fontFamily.regular} py-8`}>
+                <Text style={{ color: colors.textSecondary }} className={`text-center ${textSize.small} ${fontFamily.regular} py-8`}>
                   No websites blocked yet
                 </Text>
               )}

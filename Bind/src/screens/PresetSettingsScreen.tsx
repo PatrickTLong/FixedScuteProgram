@@ -218,9 +218,10 @@ interface TimeWheelProps {
   wheelWidth: number;
   selectedFontSize: number;
   unselectedFontSize: number;
+  parentScrollRef?: React.RefObject<ScrollView | null>;
 }
 
-const TimeWheel = memo(({ values, selectedValue, onValueChange, padZero = true, textColor, textMutedColor, itemHeight, wheelWidth, selectedFontSize, unselectedFontSize }: TimeWheelProps) => {
+const TimeWheel = memo(({ values, selectedValue, onValueChange, padZero = true, textColor, textMutedColor, itemHeight, wheelWidth, selectedFontSize, unselectedFontSize, parentScrollRef }: TimeWheelProps) => {
   const scrollRef = useRef<ScrollView>(null);
   const lastHapticIndex = useRef(-1);
 
@@ -273,7 +274,12 @@ const TimeWheel = memo(({ values, selectedValue, onValueChange, padZero = true, 
   const paddingVertical = (itemHeight * (TIME_VISIBLE_ITEMS - 1)) / 2;
 
   return (
-    <View style={{ height: itemHeight * TIME_VISIBLE_ITEMS, width: wheelWidth, overflow: 'hidden' }}>
+    <View
+      style={{ height: itemHeight * TIME_VISIBLE_ITEMS, width: wheelWidth, overflow: 'hidden' }}
+      onTouchStart={parentScrollRef ? () => parentScrollRef.current?.setNativeProps({ scrollEnabled: false }) : undefined}
+      onTouchEnd={parentScrollRef ? () => parentScrollRef.current?.setNativeProps({ scrollEnabled: true }) : undefined}
+      onTouchCancel={parentScrollRef ? () => parentScrollRef.current?.setNativeProps({ scrollEnabled: true }) : undefined}
+    >
       <ScrollView
         ref={scrollRef}
         showsVerticalScrollIndicator={false}
@@ -286,7 +292,7 @@ const TimeWheel = memo(({ values, selectedValue, onValueChange, padZero = true, 
           if (e.nativeEvent.velocity?.y === 0) handleScrollEnd(e);
         }}
         contentContainerStyle={{ paddingVertical }}
-        nestedScrollEnabled={false}
+        nestedScrollEnabled={true}
         overScrollMode="never"
       >
         {topSpacerHeight > 0 && <View style={{ height: topSpacerHeight }} />}
@@ -1012,6 +1018,7 @@ function PresetSettingsScreen() {
                   wheelWidth={wheelWidth}
                   selectedFontSize={timeSelectedFontSize}
                   unselectedFontSize={timeUnselectedFontSize}
+                  parentScrollRef={dpScrollRef}
                 />
                 <View style={{ height: timeItemHeight, justifyContent: 'center', marginHorizontal: s(4), marginTop: -timeItemHeight * 0.15 }}>
                   <Text style={{ color: colors.textMuted, fontSize: s(24) }} className={fontFamily.regular}>:</Text>
@@ -1027,6 +1034,7 @@ function PresetSettingsScreen() {
                   wheelWidth={wheelWidth}
                   selectedFontSize={timeSelectedFontSize}
                   unselectedFontSize={timeUnselectedFontSize}
+                  parentScrollRef={dpScrollRef}
                 />
                 <AmPmSelector
                   value={dpSelectedAmPm}
@@ -1240,6 +1248,7 @@ function PresetSettingsScreen() {
                               </Text>
                             </View>
                           </View>
+                          <View style={{ height: s(40) }} />
                         </View>
                       );
                     })()}
@@ -1649,6 +1658,9 @@ function PresetSettingsScreen() {
             </ExpandableInfo>
           </View>
         </ExpandableInfo>
+
+        {/* Extra bottom padding */}
+        <View style={{ height: s(40) }} />
 
       </ScrollView>
 
