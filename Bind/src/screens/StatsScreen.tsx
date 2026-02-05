@@ -77,15 +77,27 @@ const AnimatedBar = memo(({ percentage, color, delay, barWidth, maxHeight, label
   const barMaxHeight = maxHeight - headerSpace;
 
   const heightAnim = useRef(new Animated.Value(0)).current;
+  const isMounted = useRef(true);
 
   useEffect(() => {
-    heightAnim.setValue(0);
-    Animated.timing(heightAnim, {
-      toValue: (percentage / 100) * barMaxHeight,
-      duration: 700,
-      delay,
-      useNativeDriver: false,
-    }).start();
+    isMounted.current = true;
+
+    // Small delay to ensure layout is complete before animating
+    const timeout = setTimeout(() => {
+      if (!isMounted.current) return;
+      heightAnim.setValue(0);
+      Animated.timing(heightAnim, {
+        toValue: (percentage / 100) * barMaxHeight,
+        duration: 700,
+        delay,
+        useNativeDriver: false,
+      }).start();
+    }, 50);
+
+    return () => {
+      isMounted.current = false;
+      clearTimeout(timeout);
+    };
   }, [percentage, delay, barMaxHeight, heightAnim, animationKey]);
 
   return (
@@ -272,7 +284,7 @@ function StatsScreen() {
                 const percentage = (app.timeInForeground / maxAppTime) * 100;
                 return (
                   <AnimatedBar
-                    key={app.packageName}
+                    key={`${app.packageName}-${animationKey}`}
                     percentage={percentage}
                     color={APP_COLORS[index % APP_COLORS.length]}
                     delay={index * 120}

@@ -505,7 +505,7 @@ function EditPresetAppsScreen() {
         <HeaderIconButton onPress={handleClose}>
           <XIcon size={s(iconSize.headerNav)} color="#FFFFFF" />
         </HeaderIconButton>
-        <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.bold}`}>
+        <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.bold}`}>
           {getEditingPreset() ? 'Edit Preset' : 'New Preset'}
         </Text>
         <HeaderIconButton onPress={handleContinue} disabled={!canContinue}>

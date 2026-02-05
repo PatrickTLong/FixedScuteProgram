@@ -191,7 +191,7 @@ function SelectAppsScreen({
         <HeaderIconButton onPress={() => onClose()}>
           <BackIcon color="#FFFFFF" size={s(iconSize.headerNav)} />
         </HeaderIconButton>
-        <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.bold} flex-1 text-center`}>
+        <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.bold} flex-1 text-center`}>
           Block List
         </Text>
         <HeaderIconButton onPress={() => setSearchQuery('')} className="p-2">

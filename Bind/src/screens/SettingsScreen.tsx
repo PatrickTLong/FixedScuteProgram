@@ -730,7 +730,7 @@ function SettingsScreen() {
           {/* Header */}
           <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight, overflow: 'hidden' }} className="flex-row items-center justify-between px-4 py-3.5">
             <View style={{ width: s(40) }} />
-            <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.bold}`}>Privacy Policy</Text>
+            <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.bold}`}>Privacy Policy</Text>
             <HeaderIconButton onPress={() => setPrivacyModalVisible(false)} style={{ width: s(40) }} className="px-2 items-end">
               <Svg width={s(iconSize.headerNav)} height={s(iconSize.headerNav)} viewBox="0 0 24 24" fill="none">
                 <Path d="M20 6L9 17l-5-5" stroke="#FFFFFF" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
@@ -850,7 +850,7 @@ function SettingsScreen() {
           {/* Header */}
           <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight, overflow: 'hidden' }} className="flex-row items-center justify-between px-4 py-3.5">
             <View style={{ width: s(40) }} />
-            <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.bold}`}>Terms of Service</Text>
+            <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.bold}`}>Terms of Service</Text>
             <HeaderIconButton onPress={() => setTermsModalVisible(false)} style={{ width: s(40) }} className="px-2 items-end">
               <Svg width={s(iconSize.headerNav)} height={s(iconSize.headerNav)} viewBox="0 0 24 24" fill="none">
                 <Path d="M20 6L9 17l-5-5" stroke="#FFFFFF" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
@@ -1000,7 +1000,7 @@ function SettingsScreen() {
             ) : (
               <View style={{ width: s(40) }} />
             )}
-            <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.bold}`}>Membership</Text>
+            <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.bold}`}>Membership</Text>
             <View style={{ width: s(40) }} />
           </View>
 

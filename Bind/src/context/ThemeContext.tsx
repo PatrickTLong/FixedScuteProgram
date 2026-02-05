@@ -15,23 +15,23 @@ export const textSize = {
 
 // Font classes
 export const fontFamily = {
-  regular: 'font-nunito',
-  light: 'font-nunito-light',
-  medium: 'font-nunito-medium',
-  semibold: 'font-nunito-semibold',
+  regular: 'font-nunito-bold',
+  light: 'font-nunito-bold',
+  medium: 'font-nunito-bold',
+  semibold: 'font-nunito-bold',
   bold: 'font-nunito-bold',
 } as const;
 
 // Font weight paired with text size:
-// text-base and above → semibold, text-sm → semibold, text-xs → medium
+// Large and above → bold, base → semibold, small → medium, extraSmall → regular
 export const fontForSize = {
-  extraSmall: fontFamily.medium,       // text-xs → medium
-  small: fontFamily.semibold,          // text-sm → semibold
+  extraSmall: fontFamily.regular,      // text-xs → regular
+  small: fontFamily.medium,            // text-sm → medium
   base: fontFamily.semibold,           // text-base → semibold
-  large: fontFamily.semibold,          // text-lg → semibold
-  xLarge: fontFamily.semibold,         // text-xl → semibold
-  '2xLarge': fontFamily.semibold,      // text-2xl → semibold
-  '4xLarge': fontFamily.semibold,      // text-4xl → semibold
+  large: fontFamily.bold,              // text-lg → bold
+  xLarge: fontFamily.bold,             // text-xl → bold
+  '2xLarge': fontFamily.bold,          // text-2xl → bold
+  '4xLarge': fontFamily.bold,          // text-4xl → bold
 } as const;
 
 // Icon sizes (use inside s() for responsive scaling)

@@ -27,7 +27,7 @@ function AnimatedCheckbox({
     } else {
       Animated.timing(animatedValue, {
         toValue: checked ? 1 : 0,
-        duration: 120,
+        duration: 90,
         easing: Easing.out(Easing.ease),
         useNativeDriver: true, // Now we can use native driver!
       }).start();

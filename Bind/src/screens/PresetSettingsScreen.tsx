@@ -400,6 +400,7 @@ const AmPmSelector = memo(({ value, onChange, cardColor }: AmPmSelectorProps) =>
 // ============ Recurrence Wheel Picker Component ============
 const RECURRENCE_ITEM_HEIGHT = 40;
 const RECURRENCE_VISIBLE_ITEMS = 3;
+const RECURRENCE_WINDOW_BUFFER = 5;
 const RECURRENCE_VALUES = Array.from({ length: 99 }, (_, i) => i + 1);
 const RECURRENCE_UNITS: RecurringUnit[] = ['minutes', 'hours', 'days', 'weeks', 'months'];
 
@@ -413,14 +414,22 @@ interface RecurrenceWheelProps {
   wheelWidth: number;
   selectedFontSize: number;
   unselectedFontSize: number;
-  parentScrollRef?: React.RefObject<ScrollView | null>;
   formatValue?: (value: number | string) => string;
+  parentScrollRef?: React.RefObject<ScrollView | null>;
 }
 
-const RecurrenceWheel = memo(({ values, selectedValue, onValueChange, textColor, textMutedColor, itemHeight, wheelWidth, selectedFontSize, unselectedFontSize, parentScrollRef, formatValue }: RecurrenceWheelProps) => {
+const RecurrenceWheel = memo(({ values, selectedValue, onValueChange, textColor, textMutedColor, itemHeight, wheelWidth, selectedFontSize, unselectedFontSize, formatValue, parentScrollRef }: RecurrenceWheelProps) => {
   const scrollRef = useRef<ScrollView>(null);
   const lastHapticIndex = useRef(-1);
   const scrolledByUser = useRef(false);
+
+  const selectedIndex = values.indexOf(selectedValue);
+  const [windowStart, setWindowStart] = useState(() => Math.max(0, selectedIndex - RECURRENCE_WINDOW_BUFFER));
+  const [windowEnd, setWindowEnd] = useState(() => Math.min(values.length - 1, selectedIndex + RECURRENCE_WINDOW_BUFFER));
+
+  const windowedValues = useMemo(() => values.slice(windowStart, windowEnd + 1), [values, windowStart, windowEnd]);
+  const topSpacerHeight = windowStart * itemHeight;
+  const bottomSpacerHeight = (values.length - 1 - windowEnd) * itemHeight;
 
   useEffect(() => {
     if (scrolledByUser.current) {
@@ -435,6 +444,13 @@ const RecurrenceWheel = memo(({ values, selectedValue, onValueChange, textColor,
     }
   }, [selectedValue, values, itemHeight]);
 
+  const updateWindow = useCallback((centerIndex: number) => {
+    const newStart = Math.max(0, centerIndex - RECURRENCE_WINDOW_BUFFER);
+    const newEnd = Math.min(values.length - 1, centerIndex + RECURRENCE_WINDOW_BUFFER);
+    setWindowStart(prev => prev !== newStart ? newStart : prev);
+    setWindowEnd(prev => prev !== newEnd ? newEnd : prev);
+  }, [values.length]);
+
   const handleScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const offsetY = event.nativeEvent.contentOffset.y;
     const currentIndex = Math.round(offsetY / itemHeight);
@@ -444,7 +460,8 @@ const RecurrenceWheel = memo(({ values, selectedValue, onValueChange, textColor,
       lightTap();
     }
     lastHapticIndex.current = clampedIndex;
-  }, [values.length, itemHeight]);
+    updateWindow(clampedIndex);
+  }, [values.length, itemHeight, updateWindow]);
 
   const handleScrollEnd = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const offsetY = event.nativeEvent.contentOffset.y;
@@ -482,7 +499,8 @@ const RecurrenceWheel = memo(({ values, selectedValue, onValueChange, textColor,
           nestedScrollEnabled={false}
           overScrollMode="never"
         >
-          {values.map((value) => {
+          {topSpacerHeight > 0 && <View style={{ height: topSpacerHeight }} />}
+          {windowedValues.map((value) => {
             const isSelected = value === selectedValue;
             const displayValue = formatValue ? formatValue(value) : String(value);
             return (
@@ -499,6 +517,7 @@ const RecurrenceWheel = memo(({ values, selectedValue, onValueChange, textColor,
               </View>
             );
           })}
+          {bottomSpacerHeight > 0 && <View style={{ height: bottomSpacerHeight }} />}
         </ScrollView>
       </View>
     </View>
@@ -524,7 +543,7 @@ const RecurrenceWheelPicker = memo(({ value, unit, onValueChange, onUnitChange, 
   const unselectedFontSize = s(16);
 
   return (
-    <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: s(8) }}>
+    <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: s(16) }}>
       <RecurrenceWheel
         values={RECURRENCE_VALUES}
         selectedValue={value}
@@ -535,8 +554,8 @@ const RecurrenceWheelPicker = memo(({ value, unit, onValueChange, onUnitChange, 
         wheelWidth={numberWheelWidth}
         selectedFontSize={selectedFontSize}
         unselectedFontSize={unselectedFontSize}
-        parentScrollRef={parentScrollRef}
         formatValue={(v) => String(v).padStart(2, '0')}
+        parentScrollRef={parentScrollRef}
       />
       <RecurrenceWheel
         values={RECURRENCE_UNITS}
@@ -1079,7 +1098,7 @@ function PresetSettingsScreen() {
           <HeaderIconButton onPress={dpHandleCancel} style={{ width: s(40) }}>
             <XIcon size={s(iconSize.headerNav)} color="#FFFFFF" />
           </HeaderIconButton>
-          <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.bold}`}>
+          <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.bold}`}>
             {datePickerTarget === 'scheduleStart' ? 'Start Date' : datePickerTarget === 'scheduleEnd' ? 'End Date' : 'Date and Time'}
           </Text>
           <HeaderIconButton
@@ -1177,7 +1196,7 @@ function PresetSettingsScreen() {
                   unselectedFontSize={timeUnselectedFontSize}
                 />
                 <View style={{ height: timeItemHeight, justifyContent: 'center', marginHorizontal: s(4), marginTop: -timeItemHeight * 0.15 }}>
-                  <Text style={{ color: colors.textMuted, fontSize: s(24) }} className={fontFamily.regular}>:</Text>
+                  <Text style={{ color: colors.text, fontSize: s(24) }} className={fontFamily.regular}>:</Text>
                 </View>
                 <TimeWheel
                   values={MINUTES}
@@ -1241,7 +1260,7 @@ function PresetSettingsScreen() {
         <HeaderIconButton onPress={() => navigation.navigate('EditPresetApps')} style={{ width: s(40) }}>
           <ArrowLeftIcon size={s(iconSize.headerNav)} color="#FFFFFF" />
         </HeaderIconButton>
-        <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.bold}`}>Final Settings</Text>
+        <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.bold}`}>Final Settings</Text>
         <HeaderIconButton onPress={handleSave} disabled={!canSave} style={{ width: s(40) }}>
           <FileIcon size={s(iconSize.headerNav)} color={canSave ? '#FFFFFF' : colors.textMuted} />
         </HeaderIconButton>
@@ -1485,8 +1504,11 @@ function PresetSettingsScreen() {
                 </View>
 
                 {/* Recurring Options */}
-                <ExpandableInfo expanded={isRecurring} lazy>
-                  <View style={{ paddingBottom: s(20) }} className="mt-4 px-6">
+                <View style={!isRecurring ? { height: 0, overflow: 'hidden' } : undefined}>
+                  <View
+                    style={{ paddingBottom: s(20) }}
+                    className="mt-4 px-6"
+                  >
                     <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} tracking-wider mb-4`}>
                       Recurrence
                     </Text>
@@ -1504,7 +1526,7 @@ function PresetSettingsScreen() {
                         unit={recurringUnit}
                         onValueChange={(val) => setRecurringValue(val.toString())}
                         onUnitChange={setRecurringUnit}
-                        parentScrollRef={scrollRef}
+                        parentScrollRef={mainScrollRef}
                       />
                     </View>
 
@@ -1574,10 +1596,8 @@ function PresetSettingsScreen() {
                       );
                     })()}
                   </View>
-                </ExpandableInfo>
-                <ExpandableInfo expanded={isRecurring} lazy>
                   <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }} />
-                </ExpandableInfo>
+                </View>
               </View>
             )}
           </View>
@@ -1586,22 +1606,20 @@ function PresetSettingsScreen() {
         {/* Timer Picker (if time limit enabled and not scheduled) */}
         <View style={noTimeLimit || isScheduled ? { height: 0, overflow: 'hidden' } : undefined}>
           <View className="mt-6 px-6">
-            <View>
-              <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} text-white tracking-wider`}>
-                Duration
-              </Text>
-              <TimerPicker
-                days={timerDays}
-                hours={timerHours}
-                minutes={timerMinutes}
-                seconds={timerSeconds}
-                onDaysChange={setTimerDays}
-                onHoursChange={setTimerHours}
-                onMinutesChange={setTimerMinutes}
-                onSecondsChange={setTimerSeconds}
-                parentScrollRef={mainScrollRef}
-              />
-            </View>
+            <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} tracking-wider mb-4`}>
+              Fixed Time
+            </Text>
+            <TimerPicker
+              days={timerDays}
+              hours={timerHours}
+              minutes={timerMinutes}
+              seconds={timerSeconds}
+              onDaysChange={setTimerDays}
+              onHoursChange={setTimerHours}
+              onMinutesChange={setTimerMinutes}
+              onSecondsChange={setTimerSeconds}
+              parentScrollRef={mainScrollRef}
+            />
 
             {/* Or Pick a Date Divider */}
             <View className="flex-row items-center my-6 -mx-6">
