@@ -8,10 +8,13 @@ import {
   Image,
   Platform,
   RefreshControl,
+  Animated,
+  Dimensions,
 } from 'react-native';
 import LottieView from 'lottie-react-native';
 const Lottie = LottieView as any;
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Svg, { Path } from 'react-native-svg';
 import PresetCard, { Preset } from '../components/PresetCard';
 import ConfirmationModal from '../components/ConfirmationModal';
 import {
@@ -22,8 +25,8 @@ import {
   getLockStatus,
   invalidateUserCaches,
 } from '../services/cardApi';
-import Svg, { Path } from 'react-native-svg';
-import { useTheme , textSize, fontFamily, radius, shadow, iconSize } from '../context/ThemeContext';
+import { AnimatedPresetsIcon, AnimatedPresetsIconRef } from '../components/BottomTabBar';
+import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { lightTap } from '../utils/haptics';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -115,6 +118,45 @@ function PresetsScreen() {
 
   // Pull-to-refresh state
   const [refreshing, setRefreshing] = useState(false);
+
+  // "Preset Saved" toast state
+  const [showSavedToast, setShowSavedToast] = useState(false);
+  const savedToastOpacity = useRef(new Animated.Value(0)).current;
+
+  // Header icon animation - only when coming from other tabs, not from edit screens
+  const headerIconRef = useRef<AnimatedPresetsIconRef>(null);
+  const isReturningFromEdit = useRef(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      // Skip animation if returning from edit screens
+      if (isReturningFromEdit.current) {
+        isReturningFromEdit.current = false;
+        return;
+      }
+      // Trigger header icon animation on screen focus
+      if (headerIconRef.current) {
+        headerIconRef.current.animate();
+      }
+    }, [])
+  );
+
+  // Mark when navigating to edit screens
+  const handleAddPresetWithFlag = useCallback(() => {
+    isReturningFromEdit.current = true;
+    setContextEditingPreset(null);
+    setExistingPresets(presets);
+    setEmail(userEmail_safe);
+    navigation.getParent()?.navigate('EditPresetApps');
+  }, [presets, userEmail_safe, navigation, setContextEditingPreset, setExistingPresets, setEmail]);
+
+  const handleEditPresetWithFlag = useCallback((preset: Preset) => {
+    isReturningFromEdit.current = true;
+    setContextEditingPreset(preset);
+    setExistingPresets(presets);
+    setEmail(userEmail_safe);
+    navigation.getParent()?.navigate('EditPresetApps');
+  }, [presets, userEmail_safe, navigation, setContextEditingPreset, setExistingPresets, setEmail]);
 
   const checkLockStatus = useCallback(async () => {
     const status = await getLockStatus(userEmail_safe);
@@ -415,19 +457,6 @@ function PresetsScreen() {
     }
   }, [userEmail_safe, syncScheduledPresetsToNative, presets]);
 
-  const handleAddPreset = useCallback(() => {
-    setContextEditingPreset(null);
-    setExistingPresets(presets);
-    setEmail(userEmail_safe);
-    navigation.getParent()?.navigate('EditPresetApps');
-  }, [presets, userEmail_safe, navigation, setContextEditingPreset, setExistingPresets, setEmail]);
-
-  const handleEditPreset = useCallback((preset: Preset) => {
-    setContextEditingPreset(preset);
-    setExistingPresets(presets);
-    setEmail(userEmail_safe);
-    navigation.getParent()?.navigate('EditPresetApps');
-  }, [presets, userEmail_safe, navigation, setContextEditingPreset, setExistingPresets, setEmail]);
 
   const handleLongPressPreset = useCallback((preset: Preset) => {
     setPresetToDelete(preset);
@@ -475,7 +504,24 @@ function PresetsScreen() {
     });
   }, [presetToDelete, userEmail_safe, activePresetId, presets, syncScheduledPresetsToNative]);
 
+  // Show "Preset Saved" toast with fade animation
+  const showSavedToastAnimation = useCallback(() => {
+    setShowSavedToast(true);
+    savedToastOpacity.setValue(0.8);
+    Animated.timing(savedToastOpacity, {
+      toValue: 0,
+      duration: 1000,
+      delay: 0,
+      useNativeDriver: true,
+    }).start(() => {
+      setShowSavedToast(false);
+    });
+  }, [savedToastOpacity]);
+
   const handleSavePreset = useCallback(async (preset: Preset) => {
+    // Show "Preset Saved" toast immediately
+    showSavedToastAnimation();
+
     const editingPreset = presets.find(p => p.id === preset.id) || null;
     const isEditing = !!editingPreset;
 
@@ -553,7 +599,7 @@ function PresetsScreen() {
       // Revert on error
       setPresets(previousPresets);
     }
-  }, [userEmail_safe, syncScheduledPresetsToNative, presets]);
+  }, [userEmail_safe, syncScheduledPresetsToNative, presets, showSavedToastAnimation]);
 
   // Wire handleSavePreset into PresetSaveContext so child screens can call it
   useEffect(() => {
@@ -600,8 +646,8 @@ function PresetsScreen() {
   }, [activePresetId, userEmail_safe, presets, syncScheduledPresetsToNative]);
 
   // Keep refs to handlers so renderPresetItem stays stable
-  const handleEditPresetRef = useRef(handleEditPreset);
-  handleEditPresetRef.current = handleEditPreset;
+  const handleEditPresetRef = useRef(handleEditPresetWithFlag);
+  handleEditPresetRef.current = handleEditPresetWithFlag;
   const handleLongPressPresetRef = useRef(handleLongPressPreset);
   handleLongPressPresetRef.current = handleLongPressPreset;
   const handleTogglePresetRef = useRef(handleTogglePreset);
@@ -709,18 +755,15 @@ function PresetsScreen() {
       <View className="flex-row items-center justify-between px-6 py-4">
         <View className="flex-row items-center">
           <Text style={{ color: colors.text }} className={`${textSize['2xLarge']} ${fontFamily.bold}`}>Presets</Text>
-          <Svg width={s(iconSize.lg)} height={s(iconSize.lg)} viewBox="0 0 24 24" fill={colors.text} style={{ marginLeft: s(8) }}>
-            <Path d="M21 6.375c0 2.692-4.03 4.875-9 4.875S3 9.067 3 6.375 7.03 1.5 12 1.5s9 2.183 9 4.875Z" />
-            <Path d="M12 12.75c2.685 0 5.19-.586 7.078-1.609a8.283 8.283 0 0 0 1.897-1.384c.016.121.025.244.025.368C21 12.817 16.97 15 12 15s-9-2.183-9-4.875c0-.124.009-.247.025-.368a8.285 8.285 0 0 0 1.897 1.384C6.809 12.164 9.315 12.75 12 12.75Z" />
-            <Path d="M12 16.5c2.685 0 5.19-.586 7.078-1.609a8.282 8.282 0 0 0 1.897-1.384c.016.121.025.244.025.368 0 2.692-4.03 4.875-9 4.875s-9-2.183-9-4.875c0-.124.009-.247.025-.368a8.284 8.284 0 0 0 1.897 1.384C6.809 15.914 9.315 16.5 12 16.5Z" />
-            <Path d="M12 20.25c2.685 0 5.19-.586 7.078-1.609a8.282 8.282 0 0 0 1.897-1.384c.016.121.025.244.025.368 0 2.692-4.03 4.875-9 4.875s-9-2.183-9-4.875c0-.124.009-.247.025-.368a8.284 8.284 0 0 0 1.897 1.384C6.809 19.664 9.315 20.25 12 20.25Z" />
-          </Svg>
+          <View style={{ marginLeft: s(8) }}>
+            <AnimatedPresetsIcon ref={headerIconRef} color={colors.text} filled />
+          </View>
         </View>
 
         {/* Add Button - stays green but disabled when locked */}
         <TouchableOpacity
           onPressIn={lightTap}
-          onPress={handleAddPreset}
+          onPress={handleAddPresetWithFlag}
           activeOpacity={0.7}
           disabled={isDisabled}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
@@ -793,6 +836,36 @@ function PresetsScreen() {
         onCancel={handleScheduleVerifyCancel}
       />
 
+      {/* Preset Saved Toast - positioned at true screen center */}
+      {showSavedToast && (
+        <Animated.View
+          pointerEvents="none"
+          style={{
+            position: 'absolute',
+            top: -insets.top,
+            left: 0,
+            right: 0,
+            height: Dimensions.get('screen').height,
+            justifyContent: 'center',
+            alignItems: 'center',
+            opacity: savedToastOpacity,
+          }}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Svg width={24} height={24} viewBox="0 0 24 24" fill={colors.text}>
+              <Path
+                fillRule="evenodd"
+                clipRule="evenodd"
+                d="M6.32 2.577a49.255 49.255 0 0 1 11.36 0c1.497.174 2.57 1.46 2.57 2.93V21a.75.75 0 0 1-1.085.67L12 18.089l-7.165 3.583A.75.75 0 0 1 3.75 21V5.507c0-1.47 1.073-2.756 2.57-2.93Z"
+                fill={colors.text}
+              />
+            </Svg>
+            <Text style={{ color: colors.text, marginLeft: s(8) }} className={`${textSize.large} ${fontFamily.semibold}`}>
+              Preset Saved
+            </Text>
+          </View>
+        </Animated.View>
+      )}
 
     </View>
   );

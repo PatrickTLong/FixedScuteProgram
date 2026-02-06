@@ -1162,24 +1162,48 @@ function HomeScreen() {
                 const end = new Date(preset.scheduleEndDate!);
                 const isCurrentlyActive = now >= start && now < end;
 
+                // Calculate time remaining or time until start
+                const getTimeDisplay = () => {
+                  const diff = isCurrentlyActive ? end.getTime() - now.getTime() : start.getTime() - now.getTime();
+                  if (diff <= 0) return null;
+                  const days = Math.floor(diff / (24 * 60 * 60 * 1000));
+                  const hours = Math.floor((diff % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
+                  const minutes = Math.floor((diff % (60 * 60 * 1000)) / (60 * 1000));
+                  if (days > 0) return `${days}d ${hours}h`;
+                  if (hours > 0) return `${hours}h ${minutes}m`;
+                  return `${minutes}m`;
+                };
+                const timeDisplay = getTimeDisplay();
+
                 return (
                   <View
                     key={preset.id}
                     style={{ borderBottomWidth: index < scheduledPresets.length - 1 ? 1 : 0, borderBottomColor: colors.divider }}
-                    className="p-4 items-center"
+                    className="px-4 py-3"
                   >
-                    <View className="flex-row items-start">
-                      <View style={{ marginTop: s(3), marginRight: s(10) }}>
-                        <ClockIcon size={14} color={isCurrentlyActive ? colors.green : colors.yellow} />
+                    <View className="flex-row items-center">
+                      {/* Left side: Clock icon + text */}
+                      <View className="flex-row items-center flex-1">
+                        <View style={{ marginRight: s(15) }}>
+                          <ClockIcon size={14} color={isCurrentlyActive ? colors.green : colors.yellow} />
+                        </View>
+                        <View className="flex-1">
+                          <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>
+                            {preset.name}
+                          </Text>
+                          <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-0.5`}>
+                            {formatScheduleDate(preset.scheduleStartDate!)} - {formatScheduleDate(preset.scheduleEndDate!)}
+                          </Text>
+                        </View>
                       </View>
-                      <View>
-                        <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>
-                          {preset.name}
-                        </Text>
-                        <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-1`}>
-                          {formatScheduleDate(preset.scheduleStartDate!)} - {formatScheduleDate(preset.scheduleEndDate!)}
-                        </Text>
-                      </View>
+                      {/* Right side: Timer display */}
+                      {timeDisplay && (
+                        <View style={{ marginLeft: s(12) }}>
+                          <Text style={{ color: isCurrentlyActive ? colors.green : colors.yellow }} className={`${textSize.small} ${fontFamily.semibold}`}>
+                            {timeDisplay}
+                          </Text>
+                        </View>
+                      )}
                     </View>
                   </View>
                 );

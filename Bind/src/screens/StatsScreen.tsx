@@ -131,7 +131,7 @@ const AnimatedBar = memo(({ percentage, color, delay, barWidth, maxHeight, label
       </View>
       <View style={{ height: barWidth * 0.22 * 4, marginTop: s(8), justifyContent: 'flex-start' }}>
         <Text
-          style={{ color: mutedColor, fontSize: barWidth * 0.22, textAlign: 'center', width: barWidth * 1.6 }}
+          style={{ color: textColor, fontSize: barWidth * 0.22, textAlign: 'center', width: barWidth * 1.6 }}
           className={fontFamily.regular}
           numberOfLines={2}
         >
@@ -209,21 +209,11 @@ function StatsScreen() {
     loadStats();
   }, [loadStats]);
 
-  // Refresh data when app comes to foreground (but don't replay animation)
+  // Refresh data and replay animation when app comes to foreground
   useEffect(() => {
-    const subscription = AppState.addEventListener('change', async (nextAppState) => {
-      if (nextAppState === 'active' && Platform.OS === 'android' && UsageStatsModule) {
-        try {
-          const [screenTime, apps] = await Promise.all([
-            UsageStatsModule.getScreenTime(activePeriod),
-            UsageStatsModule.getAllAppsUsage(activePeriod),
-          ]);
-          setTotalScreenTime(screenTime);
-          setAppUsages(apps || []);
-          // Don't increment animationKey here - no animation on app foreground
-        } catch {
-          // Usage stats unavailable
-        }
+    const subscription = AppState.addEventListener('change', (nextAppState) => {
+      if (nextAppState === 'active') {
+        loadStats();
       }
     });
     return () => subscription.remove();
