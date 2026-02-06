@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, memo } from 'react';
+import React, { useState, useEffect, useMemo, memo, useRef, useCallback } from 'react';
 import {
   Text,
   View,
@@ -7,7 +7,11 @@ import {
   Linking,
   Modal,
   Image,
+  Animated,
+  Easing,
+  RefreshControl,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import LottieView from 'lottie-react-native';
 const Lottie = LottieView as any;
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -219,6 +223,23 @@ function SettingsScreen() {
   const insets = useSafeAreaInsets();
 
   const [loading, setLoading] = useState(!hasCache);
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Gear spin animation
+  const gearRotation = useRef(new Animated.Value(0)).current;
+
+  useFocusEffect(
+    React.useCallback(() => {
+      // Reset and play gear spin animation on screen focus
+      gearRotation.setValue(0);
+      Animated.timing(gearRotation, {
+        toValue: 1,
+        duration: 600,
+        easing: Easing.out(Easing.back(1.5)),
+        useNativeDriver: true,
+      }).start();
+    }, [gearRotation])
+  );
 
   // Membership state - initialize from cache if available
   const [membershipStatus, setMembershipStatus] = useState<MembershipStatus | null>(cachedMembership);
@@ -368,6 +389,20 @@ function SettingsScreen() {
   // Don't allow any actions until lock status is checked, or if locked
   const isDisabled = !lockChecked || sharedIsLocked === true;
 
+  // Pull-to-refresh handler
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    const [status, tapout, membership] = await Promise.all([
+      getLockStatus(email, true),
+      getEmergencyTapoutStatus(email, true),
+      getMembershipStatus(email, true),
+    ]);
+    setSharedIsLocked(status.isLocked);
+    setTapoutStatus(tapout);
+    setMembershipStatus(membership);
+    setRefreshing(false);
+  }, [email, setSharedIsLocked, setTapoutStatus]);
+
   // Memoize icon JSX so SettingsRow memo isn't defeated by new element references
   const mailIcon = useMemo(() => <MailIcon />, []);
   const membershipIcon = useMemo(() => <MembershipIcon />, []);
@@ -436,15 +471,25 @@ function SettingsScreen() {
       <View className="flex-row items-center justify-between px-6 py-4">
         <View className="flex-row items-center">
           <Text style={{ color: colors.text }} className={`${textSize['2xLarge']} ${fontFamily.bold}`}>Settings</Text>
-          <Svg width={s(iconSize.lg)} height={s(iconSize.lg)} viewBox="0 0 24 24" fill="none" style={{ marginLeft: s(8) }}>
-            <Path
-              d="M4.5 12a7.5 7.5 0 0 0 15 0m-15 0a7.5 7.5 0 1 1 15 0m-15 0H3m16.5 0H21m-1.5 0H12m-8.457 3.077 1.41-.513m14.095-5.13 1.41-.513M5.106 17.785l1.15-.964m11.49-9.642 1.149-.964M7.501 19.795l.75-1.3m7.5-12.99.75-1.3m-6.063 16.658.26-1.477m2.605-14.772.26-1.477m0 17.726-.26-1.477M10.698 4.614l-.26-1.477M16.5 19.794l-.75-1.299M7.5 4.205 12 12m6.894 5.785-1.149-.964M6.256 7.178l-1.15-.964m15.352 8.864-1.41-.513M4.954 9.435l-1.41-.514M12.002 12l-3.75 6.495"
-              stroke={colors.text}
-              strokeWidth={1.5}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </Svg>
+          <Animated.View style={{
+            marginLeft: s(8),
+            transform: [{
+              rotate: gearRotation.interpolate({
+                inputRange: [0, 1],
+                outputRange: ['0deg', '70deg'],
+              }),
+            }],
+          }}>
+            <Svg width={s(iconSize.lg)} height={s(iconSize.lg)} viewBox="0 0 24 24" fill="none">
+              <Path
+                d="M4.5 12a7.5 7.5 0 0 0 15 0m-15 0a7.5 7.5 0 1 1 15 0m-15 0H3m16.5 0H21m-1.5 0H12m-8.457 3.077 1.41-.513m14.095-5.13 1.41-.513M5.106 17.785l1.15-.964m11.49-9.642 1.149-.964M7.501 19.795l.75-1.3m7.5-12.99.75-1.3m-6.063 16.658.26-1.477m2.605-14.772.26-1.477m0 17.726-.26-1.477M10.698 4.614l-.26-1.477M16.5 19.794l-.75-1.299M7.5 4.205 12 12m6.894 5.785-1.149-.964M6.256 7.178l-1.15-.964m15.352 8.864-1.41-.513M4.954 9.435l-1.41-.514M12.002 12l-3.75 6.495"
+                stroke={colors.text}
+                strokeWidth={1.5}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </Svg>
+          </Animated.View>
         </View>
         {/* Invisible spacer to match header height with other screens */}
         <View className="w-11 h-11" />
@@ -454,6 +499,15 @@ function SettingsScreen() {
         className="flex-1"
         contentContainerStyle={{ paddingHorizontal: s(16), paddingTop: s(16), paddingBottom: s(32) }}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.text}
+            colors={[colors.text]}
+            progressBackgroundColor={colors.card}
+          />
+        }
       >
         {/* ACCOUNT Section */}
         <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} tracking-wider mb-2`}>

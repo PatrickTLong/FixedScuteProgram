@@ -10,6 +10,7 @@ import {
   Modal,
   Platform,
   Linking,
+  RefreshControl,
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import LottieView from 'lottie-react-native';
@@ -63,6 +64,9 @@ function HomeScreen() {
 
   // Scheduled presets expandable modal
   const [scheduledPresetsModalVisible, setScheduledPresetsModalVisible] = useState(false);
+
+  // Pull-to-refresh state
+  const [refreshing, setRefreshing] = useState(false);
 
   // Prevent concurrent loadStats calls (race condition fix)
   const loadStatsInProgressRef = useRef(false);
@@ -434,6 +438,7 @@ function HomeScreen() {
 
   // React to shared preset changes from other screens (e.g., PresetsScreen toggling)
   // This updates derived state without a full loadStats call
+  // Note: Expiration checking is handled globally in AuthContext
   useEffect(() => {
     if (!sharedPresetsLoaded || loading) return;
 
@@ -924,6 +929,14 @@ function HomeScreen() {
     ) : null;
   }, [getPresetTimingSubtext, colors.textMuted]);
 
+  // Pull-to-refresh handler
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    invalidateUserCaches(email);
+    await loadStats(true, false);
+    setRefreshing(false);
+  }, [email, loadStats]);
+
   if (loading) {
     return (
       <View style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center', paddingTop: insets.top }}>
@@ -943,11 +956,8 @@ function HomeScreen() {
       {/* Header */}
       <View className="flex-row items-center justify-between px-6 py-4">
         <View className="flex-row items-center">
-          <Text style={{ color: colors.text }} className={`${textSize['2xLarge']} ${fontFamily.bold}`}>Home</Text>
-          <Svg width={s(iconSize.lg)} height={s(iconSize.lg)} viewBox="0 0 24 24" fill={colors.text} style={{ marginLeft: s(8) }}>
-            <Path d="M11.47 3.841a.75.75 0 0 1 1.06 0l8.69 8.69a.75.75 0 1 0 1.06-1.061l-8.689-8.69a2.25 2.25 0 0 0-3.182 0l-8.69 8.69a.75.75 0 1 0 1.061 1.06l8.69-8.689Z" />
-            <Path d="m12 5.432 8.159 8.159c.03.03.06.058.091.086v6.198c0 1.035-.84 1.875-1.875 1.875H15a.75.75 0 0 1-.75-.75v-4.5a.75.75 0 0 0-.75-.75h-3a.75.75 0 0 0-.75.75V21a.75.75 0 0 1-.75.75H5.625a1.875 1.875 0 0 1-1.875-1.875v-6.198a2.29 2.29 0 0 0 .091-.086L12 5.432Z" />
-          </Svg>
+          <Text style={{ color: colors.text }} className={`${textSize['2xLarge']} ${fontFamily.bold}`}>scute</Text>
+    
         </View>
 
         {/* Right side buttons */}
@@ -992,7 +1002,19 @@ function HomeScreen() {
         </View>
       </View>
 
-      <View className="flex-1 px-6">
+      <ScrollView
+        className="flex-1 px-6"
+        contentContainerStyle={{ flexGrow: 1 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.text}
+            colors={[colors.text]}
+            progressBackgroundColor={colors.card}
+          />
+        }
+      >
         {/* Status + Preset + Scheduled - centered in full screen */}
         <View className="flex-1 items-center justify-center">
           {/* Status section */}
@@ -1084,7 +1106,7 @@ function HomeScreen() {
             strictMode={activePreset?.strictMode ?? false}
           />
         </View>
-      </View>
+      </ScrollView>
 
 
       {/* Info Modal */}
@@ -1144,13 +1166,13 @@ function HomeScreen() {
                   <View
                     key={preset.id}
                     style={{ borderBottomWidth: index < scheduledPresets.length - 1 ? 1 : 0, borderBottomColor: colors.divider }}
-                    className="p-4"
+                    className="p-4 items-center"
                   >
-                    <View className="flex-row items-center">
-                      <View className="mr-3">
+                    <View className="flex-row items-start">
+                      <View style={{ marginTop: s(3), marginRight: s(10) }}>
                         <ClockIcon size={14} color={isCurrentlyActive ? colors.green : colors.yellow} />
                       </View>
-                      <View className="flex-1">
+                      <View>
                         <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>
                           {preset.name}
                         </Text>

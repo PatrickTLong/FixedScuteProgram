@@ -1,7 +1,9 @@
-import React, { memo, useCallback, useRef, useState } from 'react';
-import { View, TouchableOpacity, Text, Animated, StyleSheet } from 'react-native';
+import React, { memo, useCallback, useRef, useState, useImperativeHandle, forwardRef } from 'react';
+import { View, TouchableOpacity, Text, Animated, StyleSheet, Easing } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Svg, { Path } from 'react-native-svg';
+import Svg, { Path, Rect, Line } from 'react-native-svg';
+
+const AnimatedLine = Animated.createAnimatedComponent(Line);
 import { lightTap } from '../utils/haptics';
 import { useTheme , textSize, fontFamily, shadow, iconSize, buttonPadding } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
@@ -13,9 +15,11 @@ interface TabItemProps {
   label: string;
   isActive: boolean;
   onPress: () => void;
-  renderIcon: (color: string, filled: boolean) => React.ReactNode;
+  renderIcon: (color: string, filled: boolean, iconRef?: React.RefObject<AnimatedStatsIconRef | null>) => React.ReactNode;
   activeColor: string;
   inactiveColor: string;
+  isSettings?: boolean;
+  isStats?: boolean;
 }
 
 const HomeIcon = ({ color, filled }: { color: string; filled?: boolean }) => (
@@ -58,6 +62,7 @@ const PresetsIcon = ({ color, filled }: { color: string; filled?: boolean }) => 
   </Svg>
 );
 
+// Static StatsIcon for non-animated use
 const StatsIcon = ({ color, filled }: { color: string; filled?: boolean }) => (
   <Svg width={iconSize.lg} height={iconSize.lg} viewBox="0 0 24 24" fill={filled ? color : "none"}>
     {filled ? (
@@ -78,6 +83,133 @@ const StatsIcon = ({ color, filled }: { color: string; filled?: boolean }) => (
   </Svg>
 );
 
+// Animated StatsIcon with bars that build up
+export interface AnimatedStatsIconRef {
+  animate: () => void;
+}
+
+export const AnimatedStatsIcon = forwardRef<AnimatedStatsIconRef, { color: string; filled?: boolean; barColor?: string }>(
+  ({ color, filled, barColor }, ref) => {
+    // Bar heights: bar1=2.25, bar2=4.5, bar3=6.75, bar4=9 (in viewBox units)
+    const bar1Anim = useRef(new Animated.Value(1)).current;
+    const bar2Anim = useRef(new Animated.Value(1)).current;
+    const bar3Anim = useRef(new Animated.Value(1)).current;
+    const bar4Anim = useRef(new Animated.Value(1)).current;
+
+    const animate = useCallback(() => {
+      // Reset all bars to 0
+      bar1Anim.setValue(0);
+      bar2Anim.setValue(0);
+      bar3Anim.setValue(0);
+      bar4Anim.setValue(0);
+
+      // Staggered animation - bars build up one after another
+      Animated.stagger(60, [
+        Animated.timing(bar1Anim, {
+          toValue: 1,
+          duration: 250,
+          easing: Easing.out(Easing.back(1.5)),
+          useNativeDriver: false,
+        }),
+        Animated.timing(bar2Anim, {
+          toValue: 1,
+          duration: 250,
+          easing: Easing.out(Easing.back(1.5)),
+          useNativeDriver: false,
+        }),
+        Animated.timing(bar3Anim, {
+          toValue: 1,
+          duration: 250,
+          easing: Easing.out(Easing.back(1.5)),
+          useNativeDriver: false,
+        }),
+        Animated.timing(bar4Anim, {
+          toValue: 1,
+          duration: 250,
+          easing: Easing.out(Easing.back(1.5)),
+          useNativeDriver: false,
+        }),
+      ]).start();
+    }, [bar1Anim, bar2Anim, bar3Anim, bar4Anim]);
+
+    useImperativeHandle(ref, () => ({ animate }), [animate]);
+
+    // Interpolate bar heights (y1 is top, y2 is bottom at 16.5)
+    const bar1Y1 = bar1Anim.interpolate({
+      inputRange: [0, 1],
+      outputRange: [16.5, 14.25], // height 2.25
+    });
+    const bar2Y1 = bar2Anim.interpolate({
+      inputRange: [0, 1],
+      outputRange: [16.5, 12], // height 4.5
+    });
+    const bar3Y1 = bar3Anim.interpolate({
+      inputRange: [0, 1],
+      outputRange: [16.5, 9.75], // height 6.75
+    });
+    const bar4Y1 = bar4Anim.interpolate({
+      inputRange: [0, 1],
+      outputRange: [16.5, 7.5], // height 9
+    });
+
+    return (
+      <Svg width={iconSize.lg} height={iconSize.lg} viewBox="0 0 24 24">
+        {/* Background rectangle */}
+        <Rect
+          x={3}
+          y={3}
+          width={18}
+          height={18}
+          rx={3}
+          stroke={filled ? "none" : color}
+          strokeWidth={filled ? 0 : 1.5}
+          fill={filled ? color : "none"}
+        />
+        {/* Bar 1 - shortest */}
+        <AnimatedLine
+          x1={7.5}
+          y1={bar1Y1}
+          x2={7.5}
+          y2={16.5}
+          stroke={filled && barColor ? barColor : color}
+          strokeWidth={1.5}
+          strokeLinecap="round"
+        />
+        {/* Bar 2 */}
+        <AnimatedLine
+          x1={10.5}
+          y1={bar2Y1}
+          x2={10.5}
+          y2={16.5}
+          stroke={filled && barColor ? barColor : color}
+          strokeWidth={1.5}
+          strokeLinecap="round"
+        />
+        {/* Bar 3 */}
+        <AnimatedLine
+          x1={13.5}
+          y1={bar3Y1}
+          x2={13.5}
+          y2={16.5}
+          stroke={filled && barColor ? barColor : color}
+          strokeWidth={1.5}
+          strokeLinecap="round"
+        />
+        {/* Bar 4 - tallest */}
+        <AnimatedLine
+          x1={16.5}
+          y1={bar4Y1}
+          x2={16.5}
+          y2={16.5}
+          stroke={filled && barColor ? barColor : color}
+          strokeWidth={1.5}
+          strokeLinecap="round"
+        />
+      </Svg>
+    );
+  }
+);
+
 const SettingsIcon = ({ color }: { color: string }) => (
   <Svg width={iconSize.lg} height={iconSize.lg} viewBox="0 0 24 24" fill="none">
     <Path
@@ -92,8 +224,11 @@ const SettingsIcon = ({ color }: { color: string }) => (
 
 const FLASH_SIZE = 80;
 
-const TabItem = memo(({ label, isActive, onPress, renderIcon, activeColor, inactiveColor }: TabItemProps) => {
+const TabItem = memo(({ label, isActive, onPress, renderIcon, activeColor, inactiveColor, isSettings = false, isStats = false }: TabItemProps) => {
   const flashOpacity = useRef(new Animated.Value(0)).current;
+  const iconScale = useRef(new Animated.Value(1)).current;
+  const iconRotation = useRef(new Animated.Value(0)).current;
+  const statsIconRef = useRef<AnimatedStatsIconRef>(null);
   const [pressed, setPressed] = useState(false);
 
   const triggerFlash = useCallback(() => {
@@ -105,9 +240,47 @@ const TabItem = memo(({ label, isActive, onPress, renderIcon, activeColor, inact
       duration: 300,
       useNativeDriver: true,
     }).start(() => setPressed(false));
-  }, [flashOpacity]);
+
+    // Icon scale animation - quick pop (skip for stats since it has its own animation)
+    if (!isStats) {
+      iconScale.setValue(1);
+      Animated.sequence([
+        Animated.timing(iconScale, {
+          toValue: 1.2,
+          duration: 100,
+          useNativeDriver: true,
+        }),
+        Animated.timing(iconScale, {
+          toValue: 1,
+          duration: 100,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+
+    // Gear rotation for settings tab
+    if (isSettings) {
+      iconRotation.setValue(0);
+      Animated.timing(iconRotation, {
+        toValue: 1,
+        duration: 400,
+        easing: Easing.out(Easing.back(1.5)),
+        useNativeDriver: true,
+      }).start();
+    }
+
+    // Stats bars animation
+    if (isStats && statsIconRef.current) {
+      statsIconRef.current.animate();
+    }
+  }, [flashOpacity, iconScale, iconRotation, isSettings, isStats]);
 
   const displayColor = pressed ? '#ffffff' : (isActive ? activeColor : inactiveColor);
+
+  const rotateInterpolate = iconRotation.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '70deg'],
+  });
 
   return (
     <TouchableOpacity
@@ -125,7 +298,14 @@ const TabItem = memo(({ label, isActive, onPress, renderIcon, activeColor, inact
             { opacity: flashOpacity },
           ]}
         />
-        {renderIcon(displayColor, isActive)}
+        <Animated.View style={{
+          transform: [
+            { scale: iconScale },
+            { rotate: isSettings ? rotateInterpolate : '0deg' },
+          ]
+        }}>
+          {renderIcon(displayColor, isActive, isStats ? statsIconRef : undefined)}
+        </Animated.View>
         <Text
           style={{ color: displayColor }}
           className={`${textSize.extraSmall} mt-1 ${fontFamily.regular}`}
@@ -186,7 +366,8 @@ function BottomTabBar({ state, navigation }: RNBottomTabBarProps) {
 
   const renderHomeIcon = useCallback((color: string, filled: boolean) => <HomeIcon color={color} filled={filled} />, []);
   const renderPresetsIcon = useCallback((color: string, filled: boolean) => <PresetsIcon color={color} filled={filled} />, []);
-  const renderStatsIcon = useCallback((color: string, filled: boolean) => <StatsIcon color={color} filled={filled} />, []);
+  const renderStatsIcon = useCallback((color: string, filled: boolean, iconRef?: React.RefObject<AnimatedStatsIconRef | null>) =>
+    iconRef ? <AnimatedStatsIcon ref={iconRef} color={color} filled={filled} barColor={colors.bg} /> : <StatsIcon color={color} filled={filled} />, [colors.bg]);
   const renderSettingsIcon = useCallback((color: string) => <SettingsIcon color={color} />, []);
 
   // Hide tab bar on preset editing screens (after all hooks)
@@ -227,6 +408,7 @@ function BottomTabBar({ state, navigation }: RNBottomTabBarProps) {
           renderIcon={renderStatsIcon}
           activeColor={colors.text}
           inactiveColor={colors.textMuted}
+          isStats
         />
         <TabItem
           label="Settings"
@@ -235,6 +417,7 @@ function BottomTabBar({ state, navigation }: RNBottomTabBarProps) {
           renderIcon={renderSettingsIcon}
           activeColor={colors.text}
           inactiveColor={colors.textMuted}
+          isSettings
         />
       </View>
     </View>

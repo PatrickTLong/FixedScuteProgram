@@ -7,6 +7,7 @@ import {
   NativeModules,
   Image,
   Platform,
+  RefreshControl,
 } from 'react-native';
 import LottieView from 'lottie-react-native';
 const Lottie = LottieView as any;
@@ -112,7 +113,8 @@ function PresetsScreen() {
   const [scheduleVerifyModalVisible, setScheduleVerifyModalVisible] = useState(false);
   const [pendingScheduledPreset, setPendingScheduledPreset] = useState<Preset | null>(null);
 
-
+  // Pull-to-refresh state
+  const [refreshing, setRefreshing] = useState(false);
 
   const checkLockStatus = useCallback(async () => {
     const status = await getLockStatus(userEmail_safe);
@@ -207,9 +209,7 @@ function PresetsScreen() {
     };
   }, [checkLockStatus, loadPresets, userEmail_safe]);
 
-  // No forced refetch on focus — local state is kept in sync by
-  // handleSavePreset, handleTogglePreset, and handleDeletePreset directly.
-  // A forced refetch would overwrite optimistic updates if the API call is still in flight.
+  // Note: Expiration checking is handled globally in AuthContext
   useFocusEffect(useCallback(() => {}, []));
 
   // Disable interactions until lock status is checked, or if locked
@@ -659,6 +659,14 @@ function PresetsScreen() {
     </View>
   ), [loading, colors.textSecondary, colors.textMuted, s]);
 
+  // Pull-to-refresh handler
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    invalidateUserCaches(userEmail_safe);
+    await Promise.all([checkLockStatus(), loadPresets(true)]);
+    setRefreshing(false);
+  }, [userEmail_safe, checkLockStatus, loadPresets]);
+
   // Show loading state until initial data is loaded - prevents flash of incomplete content
   if (loading) {
     return (
@@ -737,6 +745,15 @@ function PresetsScreen() {
         removeClippedSubviews={true}
         maxToRenderPerBatch={10}
         windowSize={5}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.text}
+            colors={[colors.text]}
+            progressBackgroundColor={colors.card}
+          />
+        }
       />
 
       {/* Delete Confirmation Modal */}

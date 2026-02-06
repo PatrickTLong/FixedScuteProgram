@@ -482,6 +482,83 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.remove();
   }, [checkPermissionsOnForeground, checkScheduledPresetLaunch, checkBlockedOverlayLaunch, checkActiveScheduledPreset]);
 
+  // Ref to track current sharedPresets for use in timeout callbacks
+  const sharedPresetsRef = useRef(sharedPresets);
+  sharedPresetsRef.current = sharedPresets;
+
+  // Global expiration check - runs whenever sharedPresets changes AND sets a timer for next expiration
+  // This ensures expired presets are marked inactive regardless of which screen is active
+  // Handles both scheduled presets (scheduleEndDate) and dated presets (targetDate)
+  useEffect(() => {
+    if (!userEmail || authState !== 'main' || !sharedPresetsLoaded) return;
+
+    const checkExpiration = () => {
+      const now = new Date();
+      const currentPresets = sharedPresetsRef.current;
+      const expiredPresets = currentPresets.filter(p => {
+        if (!p.isActive) return false;
+
+        // Scheduled presets
+        if (p.isScheduled && p.scheduleEndDate) {
+          // Recurring presets with toggle ON never expire - they auto-reschedule
+          if (p.repeat_enabled) return false;
+          return new Date(p.scheduleEndDate) <= now;
+        }
+
+        // Non-scheduled presets with targetDate (dated presets)
+        if (!p.isScheduled && p.targetDate && !p.noTimeLimit) {
+          return new Date(p.targetDate) <= now;
+        }
+
+        return false;
+      });
+
+      if (expiredPresets.length > 0) {
+        // Update sharedPresets to mark expired ones as inactive
+        setSharedPresets(prev => prev.map(p =>
+          expiredPresets.some(exp => exp.id === p.id) ? { ...p, isActive: false } : p
+        ));
+        // Invalidate cache so getPresets() returns fresh data
+        invalidateUserCaches(userEmail);
+        // Save to backend for each expired preset
+        expiredPresets.forEach(p => {
+          savePreset(userEmail, { ...p, isActive: false }).catch(() => {});
+        });
+      }
+    };
+
+    // Check immediately
+    checkExpiration();
+
+    // Find the next preset that will expire and set a timeout for it
+    const now = new Date();
+    const expirationTimes: number[] = [];
+
+    sharedPresets.forEach(p => {
+      if (!p.isActive) return;
+
+      // Scheduled presets
+      if (p.isScheduled && p.scheduleEndDate && !p.repeat_enabled) {
+        const time = new Date(p.scheduleEndDate).getTime();
+        if (time > now.getTime()) expirationTimes.push(time);
+      }
+
+      // Non-scheduled presets with targetDate
+      if (!p.isScheduled && p.targetDate && !p.noTimeLimit) {
+        const time = new Date(p.targetDate).getTime();
+        if (time > now.getTime()) expirationTimes.push(time);
+      }
+    });
+
+    const nextExpiration = expirationTimes.sort((a, b) => a - b)[0];
+
+    if (nextExpiration) {
+      const timeUntilExpiration = nextExpiration - now.getTime() + 1000; // +1s buffer
+      const timeout = setTimeout(checkExpiration, timeUntilExpiration);
+      return () => clearTimeout(timeout);
+    }
+  }, [sharedPresets, sharedPresetsLoaded, userEmail, authState]);
+
   // Session changed listener
   useEffect(() => {
     if (!userEmail || authState !== 'main') return;

@@ -8,15 +8,19 @@ import {
   Platform,
   Image,
   TouchableOpacity,
+  ScrollView,
+  RefreshControl,
 } from 'react-native';
 import LottieView from 'lottie-react-native';
 const Lottie = LottieView as any;
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import Svg, { Path } from 'react-native-svg';
 import { useTheme, textSize, fontFamily, radius, shadow, buttonPadding, iconSize } from '../context/ThemeContext';
 import { lightTap } from '../utils/haptics';
 import { useResponsive } from '../utils/responsive';
 import { useAuth } from '../context/AuthContext';
+import { AnimatedStatsIcon, AnimatedStatsIconRef } from '../components/BottomTabBar';
 
 const { UsageStatsModule } = NativeModules;
 
@@ -164,6 +168,19 @@ function StatsScreen() {
   const [totalScreenTime, setTotalScreenTime] = useState(0);
   const [appUsages, setAppUsages] = useState<AppUsage[]>([]);
   const [animationKey, setAnimationKey] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Header stats icon animation
+  const headerStatsIconRef = useRef<AnimatedStatsIconRef>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      // Trigger header icon animation on screen focus
+      if (headerStatsIconRef.current) {
+        headerStatsIconRef.current.animate();
+      }
+    }, [])
+  );
 
   const loadStats = useCallback(async () => {
     if (Platform.OS !== 'android' || !UsageStatsModule) {
@@ -192,21 +209,38 @@ function StatsScreen() {
     loadStats();
   }, [loadStats]);
 
-  // Refresh when app comes to foreground
+  // Refresh data when app comes to foreground (but don't replay animation)
   useEffect(() => {
-    const subscription = AppState.addEventListener('change', (nextAppState) => {
-      if (nextAppState === 'active') {
-        loadStats();
+    const subscription = AppState.addEventListener('change', async (nextAppState) => {
+      if (nextAppState === 'active' && Platform.OS === 'android' && UsageStatsModule) {
+        try {
+          const [screenTime, apps] = await Promise.all([
+            UsageStatsModule.getScreenTime(activePeriod),
+            UsageStatsModule.getAllAppsUsage(activePeriod),
+          ]);
+          setTotalScreenTime(screenTime);
+          setAppUsages(apps || []);
+          // Don't increment animationKey here - no animation on app foreground
+        } catch {
+          // Usage stats unavailable
+        }
       }
     });
     return () => subscription.remove();
-  }, [loadStats]);
+  }, [activePeriod]);
 
   // Top 5 apps for bar chart
   const topApps = appUsages.slice(0, TOP_APPS_COUNT);
   const maxAppTime = topApps.length > 0 ? topApps[0].timeInForeground : 0;
 
   const displayTotal = totalScreenTime;
+
+  // Pull-to-refresh handler
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await loadStats();
+    setRefreshing(false);
+  }, [loadStats]);
 
   if (loading) {
     return (
@@ -228,21 +262,26 @@ function StatsScreen() {
       <View className="flex-row items-center justify-between px-6 py-4">
         <View className="flex-row items-center">
           <Text style={{ color: colors.text }} className={`${textSize['2xLarge']} ${fontFamily.bold}`}>Stats</Text>
-          <Svg width={s(iconSize.lg)} height={s(iconSize.lg)} viewBox="0 0 24 24" fill={colors.text} style={{ marginLeft: s(8) }}>
-            <Path
-              fillRule="evenodd"
-              clipRule="evenodd"
-              d="M3 6a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V6Zm4.5 7.5a.75.75 0 0 1 .75.75v2.25a.75.75 0 0 1-1.5 0v-2.25a.75.75 0 0 1 .75-.75Zm3.75-1.5a.75.75 0 0 0-1.5 0v4.5a.75.75 0 0 0 1.5 0V12Zm2.25-3a.75.75 0 0 1 .75.75v6.75a.75.75 0 0 1-1.5 0V9.75A.75.75 0 0 1 13.5 9Zm3.75-1.5a.75.75 0 0 0-1.5 0v9a.75.75 0 0 0 1.5 0v-9Z"
-            />
-          </Svg>
+          <View style={{ marginLeft: s(8) }}>
+            <AnimatedStatsIcon ref={headerStatsIconRef} color={colors.text} filled barColor={colors.bg} />
+          </View>
         </View>
         {/* Invisible spacer to match header height with other screens */}
         <View className="w-11 h-11" />
       </View>
 
-      <View
+      <ScrollView
         className="flex-1"
-        style={{ paddingHorizontal: s(16) }}
+        contentContainerStyle={{ paddingHorizontal: s(16), paddingBottom: s(24) }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.text}
+            colors={[colors.text]}
+            progressBackgroundColor={colors.card}
+          />
+        }
       >
         {/* Period Tabs */}
         <View className="flex-row mb-4">
@@ -323,7 +362,7 @@ function StatsScreen() {
             </Text>
           </View>
         )}
-      </View>
+      </ScrollView>
     </View>
   );
 }

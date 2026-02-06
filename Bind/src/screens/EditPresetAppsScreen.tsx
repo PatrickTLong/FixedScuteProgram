@@ -11,6 +11,7 @@ import {
   NativeEventEmitter,
   FlatList,
   Image,
+  Animated,
 } from 'react-native';
 import LottieView from 'lottie-react-native';
 const Lottie = LottieView as any;
@@ -216,7 +217,7 @@ async function loadInstalledAppsOnce(): Promise<InstalledApp[]> {
   return installedAppsLoadPromise;
 }
 
-// ============ AppItemRow (no press animation) ============
+// ============ AppItemRow (with tap scale animation) ============
 
 type TabType = 'apps' | 'websites';
 
@@ -229,30 +230,51 @@ const AppItemRow = memo(({ item, isSelected, onToggle, onPressIn, colors, s, ski
   s: (v: number) => number;
   skipCheckboxAnimation: boolean;
 }) => {
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  const handlePress = useCallback(() => {
+    // Animate scale: 1 -> 1.05 -> 1
+    Animated.sequence([
+      Animated.timing(scaleAnim, {
+        toValue: 1.05,
+        duration: 80,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleAnim, {
+        toValue: 1,
+        duration: 80,
+        useNativeDriver: true,
+      }),
+    ]).start();
+    onToggle(item.id);
+  }, [scaleAnim, onToggle, item.id]);
+
   return (
-    <TouchableOpacity
-      onPressIn={onPressIn}
-      onPress={() => onToggle(item.id)}
-      activeOpacity={0.7}
-      style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, paddingVertical: s(buttonPadding.standard), ...shadow.card }}
-      className={`flex-row items-center px-4 ${radius.xl} mb-2`}
-    >
-      {item.icon ? (
-        <Image
-          source={{ uri: item.icon }}
-          style={{ width: s(48), height: s(48), marginRight: s(12) }}
-          resizeMode="contain"
-        />
-      ) : (
-        <View style={{ width: s(48), height: s(48), marginRight: s(12), backgroundColor: colors.cardLight, borderRadius: s(12), alignItems: 'center', justifyContent: 'center' }}>
-          <Text style={{ color: colors.textSecondary, fontSize: s(18), fontWeight: 'bold' }}>
-            {item.name.charAt(0)}
-          </Text>
-        </View>
-      )}
-      <Text style={{ color: colors.text }} className={`flex-1 ${textSize.small} ${fontFamily.regular}`}>{item.name}</Text>
-      <AnimatedCheckbox checked={isSelected} size={s(iconSize.lg)} skipAnimation={skipCheckboxAnimation} />
-    </TouchableOpacity>
+    <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+      <TouchableOpacity
+        onPressIn={onPressIn}
+        onPress={handlePress}
+        activeOpacity={0.9}
+        style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, paddingVertical: s(buttonPadding.standard), ...shadow.card }}
+        className={`flex-row items-center px-4 ${radius.xl} mb-2`}
+      >
+        {item.icon ? (
+          <Image
+            source={{ uri: item.icon }}
+            style={{ width: s(48), height: s(48), marginRight: s(12) }}
+            resizeMode="contain"
+          />
+        ) : (
+          <View style={{ width: s(48), height: s(48), marginRight: s(12), backgroundColor: colors.cardLight, borderRadius: s(12), alignItems: 'center', justifyContent: 'center' }}>
+            <Text style={{ color: colors.textSecondary, fontSize: s(18), fontWeight: 'bold' }}>
+              {item.name.charAt(0)}
+            </Text>
+          </View>
+        )}
+        <Text style={{ color: colors.text }} className={`flex-1 ${textSize.small} ${fontFamily.regular}`}>{item.name}</Text>
+        <AnimatedCheckbox checked={isSelected} size={s(iconSize.lg)} skipAnimation={skipCheckboxAnimation} />
+      </TouchableOpacity>
+    </Animated.View>
   );
 });
 
