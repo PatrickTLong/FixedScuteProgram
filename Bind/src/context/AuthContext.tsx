@@ -335,6 +335,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const freshPresets = await getPresets(userEmail, true);
       setSharedPresets(freshPresets);
       setSharedPresetsLoaded(true);
+      setSharedIsLocked(false);
       return { success: true };
     } catch (error) {
       return { success: false, error: 'Failed to reset account' };
@@ -352,6 +353,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       invalidateUserCaches(userEmail);
       setSharedPresets([]);
       setSharedPresetsLoaded(false);
+      setSharedIsLocked(false);
       await AsyncStorage.clear();
       await clearAuthToken();
       setUserEmail('');
