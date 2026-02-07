@@ -251,6 +251,7 @@ function StatsScreen() {
 
   // Pull-to-refresh handler
   const onRefresh = useCallback(async () => {
+    lightTap();
     setRefreshing(true);
     await loadStats();
     setRefreshing(false);

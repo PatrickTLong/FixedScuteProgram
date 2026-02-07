@@ -724,6 +724,7 @@ function PresetsScreen() {
 
   // Pull-to-refresh handler
   const onRefresh = useCallback(async () => {
+    lightTap();
     setRefreshing(true);
     invalidateUserCaches(userEmail_safe);
     await Promise.all([checkLockStatus(), loadPresets(true)]);

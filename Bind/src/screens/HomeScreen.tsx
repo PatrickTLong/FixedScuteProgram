@@ -950,6 +950,7 @@ function HomeScreen() {
 
   // Pull-to-refresh handler
   const onRefresh = useCallback(async () => {
+    lightTap();
     setRefreshing(true);
     invalidateUserCaches(email);
     await loadStats(true, false);

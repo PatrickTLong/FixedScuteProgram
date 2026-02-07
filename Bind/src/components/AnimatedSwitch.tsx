@@ -10,6 +10,7 @@ interface AnimatedSwitchProps {
   trackColorFalse?: string;
   trackColorTrue?: string;
   size?: 'default' | 'small' | 'medium' | 'large';
+  animate?: boolean; // Set to false to skip animation (for programmatic changes)
 }
 
 // Size dimensions lookup - avoids recreating functions on every render
@@ -29,6 +30,7 @@ function AnimatedSwitch({
   trackColorFalse,
   trackColorTrue = '#22c55e',
   size = 'medium',
+  animate = true,
 }: AnimatedSwitchProps) {
   const { s } = useResponsive();
 
@@ -45,11 +47,16 @@ function AnimatedSwitch({
   const pressedRef = useRef(false);
 
   useEffect(() => {
-    Animated.timing(animatedValue, {
-      toValue: value ? 1 : 0,
-      duration: ANIMATION_DURATION,
-      useNativeDriver: false,
-    }).start();
+    if (animate) {
+      Animated.timing(animatedValue, {
+        toValue: value ? 1 : 0,
+        duration: ANIMATION_DURATION,
+        useNativeDriver: false,
+      }).start();
+    } else {
+      // Skip animation - set value instantly
+      animatedValue.setValue(value ? 1 : 0);
+    }
 
     // Only pulse on manual press, not programmatic changes
     if (pressedRef.current) {
@@ -64,7 +71,7 @@ function AnimatedSwitch({
       }, 70);
       return () => clearTimeout(pulseDelay);
     }
-  }, [value, animatedValue, pulseProgress]);
+  }, [value, animatedValue, pulseProgress, animate]);
 
   const handlePress = useCallback(() => {
     if (!disabled) {
