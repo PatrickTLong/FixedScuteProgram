@@ -87,18 +87,14 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, onExpire
   const getExpirationStatus = useCallback((): ExpirationStatus => {
     const now = new Date();
 
-    // Date picker presets (targetDate): expire when target date passes, regardless of toggle state
+    // Date picker presets (targetDate): only show expired clock, no pending/blocking
     if (preset.targetDate) {
       const targetDate = new Date(preset.targetDate);
       if (now > targetDate) {
         return 'expired';
       }
-      // Only green when actually blocking (phone is locked AND this preset is active)
-      if (isActive && sharedIsLocked) {
-        return 'blocking';
-      }
-      // Has date set but not currently blocking = pending (yellow)
-      return 'pending';
+      // Not expired - no clock for dated presets
+      return null;
     }
 
     // Scheduled presets: expire if toggle is OFF and past start date (missed blocking window)

@@ -24,7 +24,7 @@ import EmergencyTapoutModal from '../components/EmergencyTapoutModal';
 import { getPresets, getLockStatus, updateLockStatus, Preset, getEmergencyTapoutStatus, useEmergencyTapout, activatePreset, invalidateUserCaches, isFirstLoad, markInitialLoadComplete, clearAllCaches } from '../services/cardApi';
 import { useTheme , textSize, fontFamily, radius, shadow, iconSize } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
-import { lightTap } from '../utils/haptics';
+import { lightTap, mediumTap } from '../utils/haptics';
 import { useAuth } from '../context/AuthContext';
 
 
@@ -950,7 +950,7 @@ function HomeScreen() {
 
   // Pull-to-refresh handler
   const onRefresh = useCallback(async () => {
-    lightTap();
+    mediumTap();
     setRefreshing(true);
     invalidateUserCaches(email);
     await loadStats(true, false);
@@ -1190,7 +1190,7 @@ function HomeScreen() {
                   if (diff <= 0) return null;
                   const days = Math.floor(diff / (24 * 60 * 60 * 1000));
                   const hours = Math.floor((diff % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
-                  const minutes = Math.floor((diff % (60 * 60 * 1000)) / (60 * 1000));
+                  const minutes = Math.max(1, Math.floor((diff % (60 * 60 * 1000)) / (60 * 1000)));
                   if (days > 0) return `${days}d ${hours}h`;
                   if (hours > 0) return `${hours}h ${minutes}m`;
                   return `${minutes}m`;

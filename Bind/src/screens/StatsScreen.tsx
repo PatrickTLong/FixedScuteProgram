@@ -17,7 +17,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import Svg, { Path } from 'react-native-svg';
 import { useTheme, textSize, fontFamily, radius, shadow, buttonPadding, iconSize } from '../context/ThemeContext';
-import { lightTap } from '../utils/haptics';
+import { lightTap, mediumTap } from '../utils/haptics';
 import { useResponsive } from '../utils/responsive';
 import { useAuth } from '../context/AuthContext';
 import { AnimatedStatsIcon, AnimatedStatsIconRef } from '../components/BottomTabBar';
@@ -251,7 +251,7 @@ function StatsScreen() {
 
   // Pull-to-refresh handler
   const onRefresh = useCallback(async () => {
-    lightTap();
+    mediumTap();
     setRefreshing(true);
     await loadStats();
     setRefreshing(false);

@@ -156,12 +156,12 @@ class TimerPresetReceiver : BroadcastReceiver() {
             val notification = NotificationCompat.Builder(context, ALERT_CHANNEL_ID)
                 .setContentTitle("Session Ended")
                 .setContentText("\"$presetName\" has ended.")
-                .setSmallIcon(android.R.drawable.ic_lock_idle_lock)
+                .setSmallIcon(R.drawable.ic_notification_unlock)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setCategory(NotificationCompat.CATEGORY_ALARM)
                 .setAutoCancel(true)
                 .setContentIntent(pendingIntent)
-                .setDefaults(NotificationCompat.DEFAULT_ALL) // Sound, vibrate, lights
+                .setDefaults(NotificationCompat.DEFAULT_SOUND or NotificationCompat.DEFAULT_LIGHTS)
                 .build()
 
             notificationManager.notify(TIMER_END_NOTIFICATION_ID, notification)

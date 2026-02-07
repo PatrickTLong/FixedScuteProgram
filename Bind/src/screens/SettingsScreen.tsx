@@ -22,7 +22,7 @@ import EmailConfirmationModal from '../components/EmailConfirmationModal';
 import { getLockStatus, getEmergencyTapoutStatus, getCachedLockStatus, getCachedTapoutStatus, getMembershipStatus, MembershipStatus, getCachedMembershipStatus } from '../services/cardApi';
 import { useTheme , textSize, fontFamily, radius, shadow, iconSize, buttonPadding } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
-import { lightTap } from '../utils/haptics';
+import { lightTap, mediumTap } from '../utils/haptics';
 import { useAuth } from '../context/AuthContext';
 
 // Icons - white with thicker strokes
@@ -391,7 +391,7 @@ function SettingsScreen() {
 
   // Pull-to-refresh handler
   const onRefresh = useCallback(async () => {
-    lightTap();
+    mediumTap();
     setRefreshing(true);
     const [status, tapout, membership] = await Promise.all([
       getLockStatus(email, true),

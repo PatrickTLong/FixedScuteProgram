@@ -28,7 +28,7 @@ import {
 import { AnimatedPresetsIcon, AnimatedPresetsIconRef } from '../components/BottomTabBar';
 import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
-import { lightTap } from '../utils/haptics';
+import { lightTap, mediumTap } from '../utils/haptics';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { MainStackParamList } from '../navigation/types';
@@ -724,7 +724,7 @@ function PresetsScreen() {
 
   // Pull-to-refresh handler
   const onRefresh = useCallback(async () => {
-    lightTap();
+    mediumTap();
     setRefreshing(true);
     invalidateUserCaches(userEmail_safe);
     await Promise.all([checkLockStatus(), loadPresets(true)]);
