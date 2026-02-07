@@ -77,81 +77,68 @@ interface PresetCardProps {
 function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, disabled = false, onExpired }: PresetCardProps) {
   const { colors } = useTheme();
   const { s } = useResponsive();
-  // Only force re-render when we're close to expiration
+  // Force re-render when we're close to expiration
   const [, setTick] = useState(0);
 
-  // Check if preset is expired - memoized to avoid recalculation
+  // Check if preset is expired - memoized but recalculates on tick
   const isExpired = useMemo(() => {
     const now = new Date();
 
+    // Handle scheduled presets
     if (preset.isScheduled) {
-      // Recurring presets with toggle ON never show as expired - they auto-reschedule
-      if (preset.repeat_enabled && preset.isActive) {
-        return false;
-      }
-      // Scheduled presets with dates (including recurring with toggle OFF)
+      // Recurring presets with toggle ON don't expire
+      if (preset.repeat_enabled && isActive) return false;
+
       if (preset.scheduleStartDate && preset.scheduleEndDate) {
         const endDate = new Date(preset.scheduleEndDate);
-        // If end time passed, it's expired (whether recurring or not, if toggle is off)
-        if (now >= endDate) {
-          return true;
-        }
-        // If start time passed and it's not currently running, it's expired (missed the window)
-        const startDate = new Date(preset.scheduleStartDate);
-        if (now >= startDate && !isActive) {
-          return true;
-        }
+        // Expired if end date has passed
+        if (now >= endDate) return true;
       }
-      // Scheduled presets with no time limit (no dates) - never expire
       return false;
     }
-    // Non-scheduled presets with target date
+
+    // Handle date picker presets
     if (preset.targetDate && !preset.noTimeLimit) {
       return new Date(preset.targetDate) < now;
     }
+
     return false;
-  }, [preset.isScheduled, preset.scheduleStartDate, preset.scheduleEndDate, preset.targetDate, preset.noTimeLimit, isActive, preset.repeat_enabled, preset.isActive]);
+  }, [preset.isScheduled, preset.scheduleStartDate, preset.scheduleEndDate, preset.targetDate, preset.noTimeLimit, isActive, preset.repeat_enabled]);
 
-  // Timer to check expiration - only runs when close to expiration (within 2 minutes)
+  // Timer to trigger re-render when expiration approaches
   useEffect(() => {
-    // Only set up timer if preset has a date that could expire
-    const hasRelevantDate = preset.isScheduled
-      ? (preset.scheduleStartDate || preset.scheduleEndDate)
-      : (preset.targetDate && !preset.noTimeLimit);
-    if (!hasRelevantDate || isExpired) return;
+    if (!isActive) return;
+    // Recurring presets with toggle ON don't expire
+    if (preset.isScheduled && preset.repeat_enabled) return;
 
-    // Calculate time until expiration
-    const now = new Date();
+    // Get the relevant expiration date
     let expirationDate: Date | null = null;
-
     if (preset.isScheduled && preset.scheduleEndDate) {
       expirationDate = new Date(preset.scheduleEndDate);
-    } else if (preset.targetDate) {
+    } else if (!preset.isScheduled && preset.targetDate && !preset.noTimeLimit) {
       expirationDate = new Date(preset.targetDate);
     }
 
     if (!expirationDate) return;
 
+    const now = new Date();
     const timeUntilExpiration = expirationDate.getTime() - now.getTime();
 
-    // Only tick every second if within 2 minutes of expiration
-    // Otherwise, set a timeout to start ticking when we're close
-    if (timeUntilExpiration <= 120000) {
-      // Within 2 minutes - tick every second
-      const interval = setInterval(() => {
-        setTick(t => t + 1);
-      }, 1000);
-      return () => clearInterval(interval);
-    } else {
-      // More than 2 minutes away - set timeout to start ticking later
-      const timeout = setTimeout(() => {
-        setTick(t => t + 1); // Trigger re-render to start interval
-      }, timeUntilExpiration - 120000);
-      return () => clearTimeout(timeout);
+    // Already expired - trigger tick immediately
+    if (timeUntilExpiration <= 0) {
+      setTick(t => t + 1);
+      return;
     }
-  }, [preset.isScheduled, preset.scheduleStartDate, preset.scheduleEndDate, preset.targetDate, preset.noTimeLimit, isExpired]);
 
-  // Auto-deactivate expired presets
+    // Set timeout to fire exactly when date passes
+    const timeout = setTimeout(() => {
+      setTick(t => t + 1);
+    }, timeUntilExpiration);
+
+    return () => clearTimeout(timeout);
+  }, [isActive, preset.isScheduled, preset.repeat_enabled, preset.scheduleEndDate, preset.targetDate, preset.noTimeLimit]);
+
+  // Auto-deactivate when expired
   useEffect(() => {
     if (isExpired && isActive && onExpired) {
       onExpired();
@@ -257,7 +244,9 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, disabled
     }
   }, [disabled, isExpired, onToggle]);
 
-  const handlePressIn = useCallback(() => lightTap(), []);
+  const handlePressIn = useCallback(() => {
+    lightTap();
+  }, []);
 
   return (
     <Pressable
@@ -282,11 +271,40 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, disabled
             <Text style={{ color: isExpired ? colors.textMuted : colors.text }} className={`${textSize.large} ${fontFamily.semibold}`}>
               {preset.name}
             </Text>
-            {isExpired ? (
-              <View className="ml-2">
-                <ClockIcon color={colors.red} size={iconSize.sm} />
-              </View>
-            ) : null}
+            {(() => {
+              if (isExpired) {
+                return (
+                  <View className="ml-2">
+                    <ClockIcon color={colors.red} size={iconSize.sm} />
+                  </View>
+                );
+              }
+              if (preset.isScheduled && preset.scheduleStartDate && preset.scheduleEndDate) {
+                const now = new Date();
+                const start = new Date(preset.scheduleStartDate);
+                const end = new Date(preset.scheduleEndDate);
+                const isEndDatePassed = now >= end;
+                const isCurrentlyBlocking = now >= start && now < end && isActive;
+
+                // Determine clock color:
+                // - Red if end date passed AND toggle is OFF (expired)
+                // - Green if currently within schedule window AND toggle is ON (blocking)
+                // - Yellow otherwise (pending or toggle off but not expired)
+                let clockColor: string = colors.yellow;
+                if (isEndDatePassed && !isActive && !preset.repeat_enabled) {
+                  clockColor = colors.red;
+                } else if (isCurrentlyBlocking) {
+                  clockColor = colors.green;
+                }
+
+                return (
+                  <View className="ml-2">
+                    <ClockIcon color={clockColor} size={iconSize.sm} />
+                  </View>
+                );
+              }
+              return null;
+            })()}
           </View>
 
           {/* Settings Description */}

@@ -127,6 +127,23 @@ function PresetsScreen() {
   const headerIconRef = useRef<AnimatedPresetsIconRef>(null);
   const isReturningFromEdit = useRef(false);
 
+  // Button bounce animation
+  const addButtonScale = useRef(new Animated.Value(1)).current;
+  const animateButtonPress = useCallback((scaleAnim: Animated.Value) => {
+    Animated.sequence([
+      Animated.timing(scaleAnim, {
+        toValue: 1.03,
+        duration: 80,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleAnim, {
+        toValue: 1,
+        duration: 80,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
+
   useFocusEffect(
     useCallback(() => {
       // Skip animation if returning from edit screens
@@ -507,7 +524,7 @@ function PresetsScreen() {
   // Show "Preset Saved" toast with fade animation
   const showSavedToastAnimation = useCallback(() => {
     setShowSavedToast(true);
-    savedToastOpacity.setValue(0.8);
+    savedToastOpacity.setValue(1);
     Animated.timing(savedToastOpacity, {
       toValue: 0,
       duration: 1000,
@@ -761,20 +778,21 @@ function PresetsScreen() {
         </View>
 
         {/* Add Button - stays green but disabled when locked */}
-        <TouchableOpacity
-          onPressIn={lightTap}
-          onPress={handleAddPresetWithFlag}
-          activeOpacity={0.7}
-          disabled={isDisabled}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          style={{
-            backgroundColor: colors.card,
-            borderWidth: 1, borderColor: colors.border, ...shadow.card,
-          }}
-          className={`w-11 h-11 ${radius.full} items-center justify-center`}
-        >
-          <Text className={`${textSize['2xLarge']} ${fontFamily.light} text-white`}>+</Text>
-        </TouchableOpacity>
+        <Animated.View style={{ transform: [{ scale: addButtonScale }] }}>
+          <TouchableOpacity
+            onPress={() => { lightTap(); animateButtonPress(addButtonScale); handleAddPresetWithFlag(); }}
+            activeOpacity={1}
+            disabled={isDisabled}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            style={{
+              backgroundColor: colors.card,
+              borderWidth: 1, borderColor: colors.border, ...shadow.card,
+            }}
+            className={`w-11 h-11 ${radius.full} items-center justify-center`}
+          >
+            <Text className={`${textSize['2xLarge']} ${fontFamily.light} text-white`}>+</Text>
+          </TouchableOpacity>
+        </Animated.View>
       </View>
 
       {/* Presets List */}
@@ -784,7 +802,7 @@ function PresetsScreen() {
         renderItem={renderPresetItem}
         keyExtractor={keyExtractor}
         ListEmptyComponent={ListEmptyComponent}
-        contentContainerStyle={{ paddingHorizontal: s(20), paddingBottom: s(32) }}
+        contentContainerStyle={{ paddingHorizontal: s(20), paddingTop: s(12), paddingBottom: s(32) }}
         removeClippedSubviews={true}
         maxToRenderPerBatch={10}
         windowSize={5}

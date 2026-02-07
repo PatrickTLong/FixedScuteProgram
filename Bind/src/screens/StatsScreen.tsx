@@ -49,14 +49,14 @@ type StatsPeriod = 'today' | 'week' | 'month';
 
 const PERIOD_LABELS: Record<StatsPeriod, string> = {
   today: "Today's Screen Time",
-  week: "This Week's Screen Time",
-  month: "This Month's Screen Time",
+  week: 'Last 7 Days Screen Time',
+  month: 'Last 30 Days Screen Time',
 };
 
 const PERIOD_EMPTY: Record<StatsPeriod, string> = {
   today: 'No app usage data available today.',
-  week: 'No app usage data available this week.',
-  month: 'No app usage data available this month.',
+  week: 'No app usage data available for the last 7 days.',
+  month: 'No app usage data available for the last 30 days.',
 };
 
 const BAR_CHART_HEIGHT = 340;
@@ -163,7 +163,7 @@ function StatsScreen() {
   const insets = useSafeAreaInsets();
   const { sharedIsLocked } = useAuth();
 
-  const [activePeriod, setActivePeriod] = useState<StatsPeriod>('today');
+  const [activePeriod, setActivePeriod] = useState<StatsPeriod>('month');
   const [loading, setLoading] = useState(true);
   const [totalScreenTime, setTotalScreenTime] = useState(0);
   const [appUsages, setAppUsages] = useState<AppUsage[]>([]);
@@ -172,6 +172,30 @@ function StatsScreen() {
 
   // Header stats icon animation
   const headerStatsIconRef = useRef<AnimatedStatsIconRef>(null);
+
+  // Period tab scale animations
+  const monthTabScale = useRef(new Animated.Value(1)).current;
+  const weekTabScale = useRef(new Animated.Value(1)).current;
+  const todayTabScale = useRef(new Animated.Value(1)).current;
+  const tabScales: Record<StatsPeriod, Animated.Value> = {
+    month: monthTabScale,
+    week: weekTabScale,
+    today: todayTabScale,
+  };
+  const animateTabPress = useCallback((scaleAnim: Animated.Value) => {
+    Animated.sequence([
+      Animated.timing(scaleAnim, {
+        toValue: 1.03,
+        duration: 80,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleAnim, {
+        toValue: 1,
+        duration: 80,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -275,28 +299,30 @@ function StatsScreen() {
       >
         {/* Period Tabs */}
         <View className="flex-row mb-4">
-          {(['today', 'week', 'month'] as StatsPeriod[]).map((period, index) => (
+          {(['month', 'week', 'today'] as StatsPeriod[]).map((period, index) => (
             <React.Fragment key={period}>
               {index > 0 && <View className="w-2" />}
-              <TouchableOpacity
-                onPressIn={lightTap}
-                onPress={() => setActivePeriod(period)}
-                style={{
-                  backgroundColor: activePeriod === period ? colors.text : colors.card,
-                  borderWidth: 1,
-                  borderColor: colors.border,
-                  paddingVertical: s(buttonPadding.smallStandard),
-                  ...shadow.card,
-                }}
-                className={`flex-1 ${radius.full} items-center justify-center`}
-              >
-                <Text
-                  style={{ color: activePeriod === period ? colors.bg : colors.text }}
-                  className={`${textSize.small} ${fontFamily.semibold}`}
+              <Animated.View style={{ flex: 1, transform: [{ scale: tabScales[period] }] }}>
+                <TouchableOpacity
+                  onPress={() => { lightTap(); animateTabPress(tabScales[period]); setActivePeriod(period); }}
+                  activeOpacity={1}
+                  style={{
+                    backgroundColor: activePeriod === period ? colors.text : colors.card,
+                    borderWidth: 1,
+                    borderColor: colors.border,
+                    paddingVertical: s(buttonPadding.smallStandard),
+                    ...shadow.card,
+                  }}
+                  className={`${radius.full} items-center justify-center`}
                 >
-                  {period === 'today' ? 'Today' : period === 'week' ? 'This Week' : 'This Month'}
-                </Text>
-              </TouchableOpacity>
+                  <Text
+                    style={{ color: activePeriod === period ? colors.bg : colors.text }}
+                    className={`${textSize.small} ${fontFamily.semibold}`}
+                  >
+                    {period === 'month' ? '30 Days' : period === 'week' ? '7 Days' : 'Today'}
+                  </Text>
+                </TouchableOpacity>
+              </Animated.View>
             </React.Fragment>
           ))}
         </View>

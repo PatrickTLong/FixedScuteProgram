@@ -137,6 +137,7 @@ class UsageStatsModule(reactContext: ReactApplicationContext) :
     }
 
     private fun getTimeRange(period: String): Pair<Long, Long> {
+        val now = System.currentTimeMillis()
         val calendar = Calendar.getInstance()
         calendar.set(Calendar.HOUR_OF_DAY, 0)
         calendar.set(Calendar.MINUTE, 0)
@@ -144,11 +145,18 @@ class UsageStatsModule(reactContext: ReactApplicationContext) :
         calendar.set(Calendar.MILLISECOND, 0)
 
         when (period) {
-            "week" -> calendar.set(Calendar.DAY_OF_WEEK, calendar.firstDayOfWeek)
-            "month" -> calendar.set(Calendar.DAY_OF_MONTH, 1)
+            "week" -> {
+                // Last 7 days (not current calendar week)
+                calendar.add(Calendar.DAY_OF_YEAR, -6)
+            }
+            "month" -> {
+                // Last 30 days (not current calendar month)
+                calendar.add(Calendar.DAY_OF_YEAR, -29)
+            }
+            // "today" - already at start of today, no change needed
         }
 
-        return Pair(calendar.timeInMillis, System.currentTimeMillis())
+        return Pair(calendar.timeInMillis, now)
     }
 
     /**

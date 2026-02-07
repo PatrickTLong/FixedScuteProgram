@@ -9,6 +9,7 @@ import {
   Platform,
   NativeSyntheticEvent,
   NativeScrollEvent,
+  Animated,
 } from 'react-native';
 import AnimatedSwitch from '../components/AnimatedSwitch';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -331,33 +332,53 @@ interface DayCellProps {
 
 const DayCell = memo(({ day, selectable, selected, isToday: todayDay, textColor, textMutedColor, onSelect, cellHeight }: DayCellProps) => {
   const { colors } = useTheme();
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  const handlePressIn = useCallback(() => {
+    lightTap();
+    Animated.sequence([
+      Animated.timing(scaleAnim, {
+        toValue: 1.03,
+        duration: 80,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleAnim, {
+        toValue: 1,
+        duration: 80,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [scaleAnim]);
+
   return (
-    <TouchableOpacity
-      onPressIn={lightTap}
-      onPress={() => onSelect(day)}
-      disabled={!selectable}
-      activeOpacity={0.7}
-      style={{ width: '14.28%', height: cellHeight }}
-      className="items-center justify-center"
-    >
-      <View
-        style={{
-          backgroundColor: selected ? colors.green : 'transparent',
-          borderColor: todayDay && !selected ? colors.green : 'transparent',
-          borderWidth: todayDay && !selected ? 1 : 0,
-        }}
-        className={`w-9 h-9 ${radius.full} items-center justify-center`}
+    <Animated.View style={{ width: '14.28%', height: cellHeight, transform: [{ scale: scaleAnim }] }}>
+      <TouchableOpacity
+        onPressIn={handlePressIn}
+        onPress={() => onSelect(day)}
+        disabled={!selectable}
+        activeOpacity={0.7}
+        style={{ flex: 1 }}
+        className="items-center justify-center"
       >
-        <Text
+        <View
           style={{
-            color: selected ? colors.text : selectable ? textColor : textMutedColor,
+            backgroundColor: selected ? colors.green : 'transparent',
+            borderColor: todayDay && !selected ? colors.green : 'transparent',
+            borderWidth: todayDay && !selected ? 1 : 0,
           }}
-          className={`${textSize.base} ${fontFamily.regular} ${selected ? fontFamily.bold : ''}`}
+          className={`w-9 h-9 ${radius.full} items-center justify-center`}
         >
-          {day}
-        </Text>
-      </View>
-    </TouchableOpacity>
+          <Text
+            style={{
+              color: selected ? colors.text : selectable ? textColor : textMutedColor,
+            }}
+            className={`${textSize.base} ${fontFamily.regular} ${selected ? fontFamily.bold : ''}`}
+          >
+            {day}
+          </Text>
+        </View>
+      </TouchableOpacity>
+    </Animated.View>
   );
 });
 
@@ -374,38 +395,60 @@ interface AmPmSelectorProps {
 
 const AmPmSelector = memo(({ value, onChange, cardColor }: AmPmSelectorProps) => {
   const { colors } = useTheme();
+  const amScaleAnim = useRef(new Animated.Value(1)).current;
+  const pmScaleAnim = useRef(new Animated.Value(1)).current;
+
+  const animatePress = useCallback((scaleAnim: Animated.Value) => {
+    Animated.sequence([
+      Animated.timing(scaleAnim, {
+        toValue: 1.03,
+        duration: 80,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleAnim, {
+        toValue: 1,
+        duration: 80,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
+
   return (
     <View className="ml-2">
       {/* AM button with sun icon */}
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-        <TouchableOpacity
-          onPressIn={lightTap}
-          onPress={() => onChange('AM')}
-          activeOpacity={0.7}
-          style={{ backgroundColor: value === 'AM' ? colors.green : cardColor, borderWidth: 1, borderColor: value === 'AM' ? colors.green : colors.border, ...shadow.card }}
-          className={`px-3 py-2 ${radius.AMPM}`}
-        >
-          <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
-            AM
-          </Text>
-        </TouchableOpacity>
+        <Animated.View style={{ transform: [{ scale: amScaleAnim }] }}>
+          <TouchableOpacity
+            onPressIn={() => { lightTap(); animatePress(amScaleAnim); }}
+            onPress={() => onChange('AM')}
+            activeOpacity={0.7}
+            style={{ backgroundColor: value === 'AM' ? colors.green : cardColor, borderWidth: 1, borderColor: value === 'AM' ? colors.green : colors.border, ...shadow.card }}
+            className={`px-3 py-2 ${radius.AMPM}`}
+          >
+            <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
+              AM
+            </Text>
+          </TouchableOpacity>
+        </Animated.View>
         <View style={{ position: 'absolute', right: -26 }}>
           <SunIcon size={18} color={value === 'AM' ? colors.yellow : colors.textMuted} />
         </View>
       </View>
       {/* PM button with moon icon */}
       <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
-        <TouchableOpacity
-          onPressIn={lightTap}
-          onPress={() => onChange('PM')}
-          activeOpacity={0.7}
-          style={{ backgroundColor: value === 'PM' ? colors.green : cardColor, borderWidth: 1, borderColor: value === 'PM' ? colors.green : colors.border, ...shadow.card }}
-          className={`px-3 py-2 ${radius.AMPM}`}
-        >
-          <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
-            PM
-          </Text>
-        </TouchableOpacity>
+        <Animated.View style={{ transform: [{ scale: pmScaleAnim }] }}>
+          <TouchableOpacity
+            onPressIn={() => { lightTap(); animatePress(pmScaleAnim); }}
+            onPress={() => onChange('PM')}
+            activeOpacity={0.7}
+            style={{ backgroundColor: value === 'PM' ? colors.green : cardColor, borderWidth: 1, borderColor: value === 'PM' ? colors.green : colors.border, ...shadow.card }}
+            className={`px-3 py-2 ${radius.AMPM}`}
+          >
+            <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
+              PM
+            </Text>
+          </TouchableOpacity>
+        </Animated.View>
         <View style={{ position: 'absolute', right: -26 }}>
           <MoonIcon size={18} color={value === 'PM' ? colors.text : colors.textMuted} />
         </View>
@@ -1405,38 +1448,38 @@ function PresetSettingsScreen() {
               style={{ backgroundColor: colors.card, paddingVertical: s(buttonPadding.standard), borderWidth: 1, borderColor: colors.border, ...shadow.card }}
               className={`flex-row items-center px-4 ${radius.xl} mb-3`}
             >
-              <View className={`w-10 h-10 ${radius.lg} items-center justify-center mr-3`}>
-                <CalendarIcon size={s(iconSize.lg)} />
-              </View>
-              <View className="flex-1">
-                <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
-                  {scheduleStartDate ? 'Start Date' : 'Pick Start Date'}
-                </Text>
-                {scheduleStartDate && (
-                  <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>
-                    {scheduleStartDate.toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      year: 'numeric',
-                    })} at {scheduleStartDate.toLocaleTimeString('en-US', {
-                      hour: 'numeric',
-                      minute: '2-digit',
-                      hour12: true,
-                    })}
+                <View className={`w-10 h-10 ${radius.lg} items-center justify-center mr-3`}>
+                  <CalendarIcon size={s(iconSize.lg)} />
+                </View>
+                <View className="flex-1">
+                  <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
+                    {scheduleStartDate ? 'Start Date' : 'Pick Start Date'}
                   </Text>
+                  {scheduleStartDate && (
+                    <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>
+                      {scheduleStartDate.toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })} at {scheduleStartDate.toLocaleTimeString('en-US', {
+                        hour: 'numeric',
+                        minute: '2-digit',
+                        hour12: true,
+                      })}
+                    </Text>
+                  )}
+                </View>
+                {scheduleStartDate ? (
+                  <TouchableOpacity
+                    onPressIn={lightTap}
+                    onPress={() => setScheduleStartDate(null)}
+                    hitSlop={{ top: s(10), bottom: s(10), left: s(10), right: s(10) }}
+                  >
+                    <XIcon size={s(iconSize.sm)} color={colors.text} />
+                  </TouchableOpacity>
+                ) : (
+                  <ChevronRightIcon size={s(iconSize.chevron)} color={colors.text} />
                 )}
-              </View>
-              {scheduleStartDate ? (
-                <TouchableOpacity
-                  onPressIn={lightTap}
-                  onPress={() => setScheduleStartDate(null)}
-                  hitSlop={{ top: s(10), bottom: s(10), left: s(10), right: s(10) }}
-                >
-                  <XIcon size={s(iconSize.sm)} color={colors.text} />
-                </TouchableOpacity>
-              ) : (
-                <ChevronRightIcon size={s(iconSize.chevron)} color={colors.text} />
-              )}
             </TouchableOpacity>
 
             {/* Date picker rendered as full-screen overlay */}
@@ -1445,42 +1488,42 @@ function PresetSettingsScreen() {
             <TouchableOpacity
               onPressIn={lightTap}
               onPress={() => openDatePicker('scheduleEnd')}
-              activeOpacity={0.7}
-              style={{ backgroundColor: colors.card, paddingVertical: s(buttonPadding.standard), borderWidth: 1, borderColor: colors.border, ...shadow.card }}
-              className={`flex-row items-center px-4 ${radius.xl}`}
-            >
-              <View className={`w-10 h-10 ${radius.lg} items-center justify-center mr-3`}>
-                <FlagIcon size={s(iconSize.lg)} />
-              </View>
-              <View className="flex-1">
-                <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
-                  {scheduleEndDate ? 'End Date' : 'Pick End Date'}
-                </Text>
-                {scheduleEndDate && (
-                  <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>
-                    {scheduleEndDate.toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      year: 'numeric',
-                    })} at {scheduleEndDate.toLocaleTimeString('en-US', {
-                      hour: 'numeric',
-                      minute: '2-digit',
-                      hour12: true,
-                    })}
+                activeOpacity={0.7}
+                style={{ backgroundColor: colors.card, paddingVertical: s(buttonPadding.standard), borderWidth: 1, borderColor: colors.border, ...shadow.card }}
+                className={`flex-row items-center px-4 ${radius.xl}`}
+              >
+                <View className={`w-10 h-10 ${radius.lg} items-center justify-center mr-3`}>
+                  <FlagIcon size={s(iconSize.lg)} />
+                </View>
+                <View className="flex-1">
+                  <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
+                    {scheduleEndDate ? 'End Date' : 'Pick End Date'}
                   </Text>
+                  {scheduleEndDate && (
+                    <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>
+                      {scheduleEndDate.toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })} at {scheduleEndDate.toLocaleTimeString('en-US', {
+                        hour: 'numeric',
+                        minute: '2-digit',
+                        hour12: true,
+                      })}
+                    </Text>
+                  )}
+                </View>
+                {scheduleEndDate ? (
+                  <TouchableOpacity
+                    onPressIn={lightTap}
+                    onPress={() => setScheduleEndDate(null)}
+                    hitSlop={{ top: s(10), bottom: s(10), left: s(10), right: s(10) }}
+                  >
+                    <XIcon size={s(iconSize.sm)} color={colors.text} />
+                  </TouchableOpacity>
+                ) : (
+                  <ChevronRightIcon size={s(iconSize.chevron)} color={colors.text} />
                 )}
-              </View>
-              {scheduleEndDate ? (
-                <TouchableOpacity
-                  onPressIn={lightTap}
-                  onPress={() => setScheduleEndDate(null)}
-                  hitSlop={{ top: s(10), bottom: s(10), left: s(10), right: s(10) }}
-                >
-                  <XIcon size={s(iconSize.sm)} color={colors.text} />
-                </TouchableOpacity>
-              ) : (
-                <ChevronRightIcon size={s(iconSize.chevron)} color={colors.text} />
-              )}
             </TouchableOpacity>
 
             {/* Date picker rendered as full-screen overlay */}

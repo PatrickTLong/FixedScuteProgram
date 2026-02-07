@@ -238,6 +238,7 @@ class UninstallBlockerService : Service() {
     private fun createNotification(): Notification {
         val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         val presetName = prefs.getString("active_preset_name", null) ?: "Preset"
+        val isScheduledPreset = prefs.getBoolean("is_scheduled_preset", false)
 
         // Create intent to open the app when notification is tapped
         val launchIntent = packageManager.getLaunchIntentForPackage(packageName)?.apply {
@@ -250,9 +251,16 @@ class UninstallBlockerService : Service() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
+        // For scheduled presets, show a simpler notification without "in session" text
+        val contentText = if (isScheduledPreset) {
+            "\"$presetName\" blocking active"
+        } else {
+            "\"$presetName\" in session"
+        }
+
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("Scute Protection Active")
-            .setContentText("\"$presetName\" in session")
+            .setContentText(contentText)
             .setSmallIcon(android.R.drawable.ic_lock_lock)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setOngoing(true) // Makes it non-dismissible

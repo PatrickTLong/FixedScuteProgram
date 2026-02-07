@@ -661,14 +661,8 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
 
             Log.d(TAG, "Scheduled preset activated: ${targetPreset.optString("name")}")
 
-            // Show a high-priority notification to alert the user
-            showActivationNotification(
-                context,
-                targetPreset.optString("name", "Scheduled Preset"),
-                presetId
-            )
-
             // Floating bubble is shown by UninstallBlockerService.onStartCommand
+            // Note: No activation notification shown for scheduled presets - the foreground service notification is sufficient
 
             // Notify React Native that a session started
             SessionEventHelper.emitSessionEvent(context, "session_started")
