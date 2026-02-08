@@ -16,6 +16,7 @@ interface ConfirmationModalProps {
   confirmText?: string;
   cancelText?: string;
   isDestructive?: boolean;
+  icon?: React.ReactNode;
   onConfirm: () => void;
   onCancel: () => void;
 }
@@ -27,6 +28,7 @@ function ConfirmationModal({
   confirmText = 'Confirm',
   cancelText = 'Cancel',
   isDestructive = false,
+  icon,
   onConfirm,
   onCancel,
 }: ConfirmationModalProps) {
@@ -78,11 +80,13 @@ function ConfirmationModal({
                 <TouchableOpacity
                   onPress={onConfirm}
                   activeOpacity={0.7}
-                  className="flex-1 py-4 items-center"
+                  className="flex-1 py-4 items-center justify-center"
                 >
-                  <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
-                    {confirmText}
-                  </Text>
+                  {icon ? icon : (
+                    <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
+                      {confirmText}
+                    </Text>
+                  )}
                 </TouchableOpacity>
               </View>
             </View>

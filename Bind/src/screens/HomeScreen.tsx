@@ -16,6 +16,7 @@ import LottieView from 'lottie-react-native';
 const Lottie = LottieView as any;
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import HeaderIconButton from '../components/HeaderIconButton';
 import BlockNowButton from '../components/BlockNowButton';
 import InfoModal from '../components/InfoModal';
 import EmergencyTapoutModal from '../components/EmergencyTapoutModal';
@@ -955,15 +956,14 @@ function HomeScreen() {
         {/* Right side buttons */}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: s(8) }}>
           {/* WiFi Settings */}
-          <TouchableOpacity
+          <HeaderIconButton
             onPress={() => { Linking.sendIntent('android.settings.WIFI_SETTINGS').catch(() => {}); }}
-            activeOpacity={0.7}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             style={{
               backgroundColor: colors.card,
               borderWidth: 1, borderColor: colors.border, ...shadow.card,
+              width: s(44), height: s(44), borderRadius: 9999, alignItems: 'center', justifyContent: 'center',
             }}
-            className={`w-11 h-11 ${radius.full} items-center justify-center`}
+            className=""
           >
             <Svg width={s(18)} height={s(18)} viewBox="0 0 24 24" fill="none">
               <Path d="M5 12.55a11 11 0 0 1 14.08 0" stroke="#FFFFFF" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
@@ -971,24 +971,23 @@ function HomeScreen() {
               <Path d="M8.53 16.11a6 6 0 0 1 6.95 0" stroke="#FFFFFF" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
               <Path d="M12 20h.01" stroke="#FFFFFF" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
             </Svg>
-          </TouchableOpacity>
+          </HeaderIconButton>
 
           {/* Support @ icon */}
-          <TouchableOpacity
+          <HeaderIconButton
             onPress={() => { Linking.openURL('mailto:support@scuteapp.com?subject=Scute%20Support%20Request'); }}
-            activeOpacity={0.7}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             style={{
               backgroundColor: colors.card,
               borderWidth: 1, borderColor: colors.border, ...shadow.card,
+              width: s(44), height: s(44), borderRadius: 9999, alignItems: 'center', justifyContent: 'center',
             }}
-            className={`w-11 h-11 ${radius.full} items-center justify-center`}
+            className=""
           >
             <Svg width={s(18)} height={s(18)} viewBox="0 0 24 24" fill="none">
               <Path d="M12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" stroke="#FFFFFF" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
               <Path d="M16 8v5a3 3 0 0 0 6 0V12a10 10 0 1 0-3.92 7.94" stroke="#FFFFFF" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
             </Svg>
-          </TouchableOpacity>
+          </HeaderIconButton>
         </View>
       </View>
 

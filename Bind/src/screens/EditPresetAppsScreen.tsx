@@ -64,13 +64,9 @@ const ArrowRightIcon = ({ size = iconSize.lg, color = "#FFFFFF" }: { size?: numb
 );
 
 const EditIcon = ({ size = iconSize.lg, color = '#FFFFFF' }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
     <Path
-      d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"
-      stroke={color}
-      strokeWidth={2.5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
+      d="M21.731 2.269a2.625 2.625 0 0 0-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 0 0 0-3.712ZM19.513 8.199l-3.712-3.712-12.15 12.15a5.25 5.25 0 0 0-1.32 2.214l-.8 2.685a.75.75 0 0 0 .933.933l2.685-.8a5.25 5.25 0 0 0 2.214-1.32L19.513 8.2Z"
     />
   </Svg>
 );
@@ -83,6 +79,16 @@ const SearchIcon = ({ size = iconSize.lg, color = '#FFFFFF' }: { size?: number; 
       strokeWidth={2.5}
       strokeLinecap="round"
       strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+const PlusIcon = ({ size = iconSize.lg, color = '#FFFFFF' }: { size?: number; color?: string }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
+    <Path
+      fillRule="evenodd"
+      clipRule="evenodd"
+      d="M12 3.75a.75.75 0 0 1 .75.75v6.75h6.75a.75.75 0 0 1 0 1.5h-6.75v6.75a.75.75 0 0 1-1.5 0v-6.75H4.5a.75.75 0 0 1 0-1.5h6.75V4.5a.75.75 0 0 1 .75-.75Z"
     />
   </Svg>
 );
@@ -491,7 +497,7 @@ function EditPresetAppsScreen() {
   const keyExtractor = useCallback((item: InstalledApp) => item.id, []);
 
   const ListHeaderComponent = useMemo(() => (
-    <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular} mb-3`}>
+    <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular} mb-5`}>
       {installedSelectedApps.length} app{installedSelectedApps.length !== 1 ? 's' : ''} selected
     </Text>
   ), [installedSelectedApps.length, colors]);
@@ -710,15 +716,17 @@ function EditPresetAppsScreen() {
                     className={`${textSize.small} ${fontFamily.semibold}`}
                   />
                 </View>
-                <TouchableOpacity
+                <HeaderIconButton
                   onPress={addWebsite}
-                  activeOpacity={0.7}
-                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                  style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
-                  className={`w-11 h-11 ${radius.full} items-center justify-center`}
+                  style={{
+                    backgroundColor: colors.card,
+                    borderWidth: 1, borderColor: colors.border, ...shadow.card,
+                    width: s(44), height: s(44), borderRadius: 9999, alignItems: 'center', justifyContent: 'center',
+                  }}
+                  className=""
                 >
-                  <Text className={`text-white ${textSize['2xLarge']} ${fontFamily.light}`}>+</Text>
-                </TouchableOpacity>
+                  <PlusIcon size={s(iconSize.lg)} color={colors.text} />
+                </HeaderIconButton>
               </View>
 
               <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} mb-4`}>

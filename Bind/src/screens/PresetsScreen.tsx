@@ -15,6 +15,7 @@ import LottieView from 'lottie-react-native';
 const Lottie = LottieView as any;
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
+import HeaderIconButton from '../components/HeaderIconButton';
 import PresetCard, { Preset } from '../components/PresetCard';
 import ConfirmationModal from '../components/ConfirmationModal';
 import {
@@ -26,7 +27,7 @@ import {
   invalidateUserCaches,
 } from '../services/cardApi';
 import { AnimatedPresetsIcon, AnimatedPresetsIconRef } from '../components/BottomTabBar';
-import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius, shadow, iconSize } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -35,6 +36,26 @@ import { usePresetSave } from '../navigation/PresetsStack';
 import { useAuth } from '../context/AuthContext';
 
 const { InstalledAppsModule, ScheduleModule } = NativeModules;
+
+const PlusIcon = ({ size = iconSize.lg, color = '#FFFFFF' }: { size?: number; color?: string }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
+    <Path
+      fillRule="evenodd"
+      clipRule="evenodd"
+      d="M12 3.75a.75.75 0 0 1 .75.75v6.75h6.75a.75.75 0 0 1 0 1.5h-6.75v6.75a.75.75 0 0 1-1.5 0v-6.75H4.5a.75.75 0 0 1 0-1.5h6.75V4.5a.75.75 0 0 1 .75-.75Z"
+    />
+  </Svg>
+);
+
+const TrashIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
+  <Svg width={iconSize.forTabs} height={iconSize.forTabs} viewBox="0 0 24 24" fill={color}>
+    <Path
+      fillRule="evenodd"
+      clipRule="evenodd"
+      d="M16.5 4.478v.227a48.816 48.816 0 0 1 3.878.512.75.75 0 1 1-.256 1.478l-.209-.035-1.005 13.07a3 3 0 0 1-2.991 2.77H8.084a3 3 0 0 1-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 0 1-.256-1.478A48.567 48.567 0 0 1 7.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 0 1 3.369 0c1.603.051 2.815 1.387 2.815 2.951Zm-6.136-1.452a51.196 51.196 0 0 1 3.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 0 0-6 0v-.113c0-.794.609-1.428 1.364-1.452Zm-.355 5.945a.75.75 0 1 0-1.5.058l.347 9a.75.75 0 1 0 1.499-.058l-.346-9Zm5.48.058a.75.75 0 1 0-1.498-.058l-.347 9a.75.75 0 0 0 1.5.058l.345-9Z"
+    />
+  </Svg>
+);
 
 // Pure function - check if two date ranges overlap
 function dateRangesOverlap(
@@ -761,19 +782,18 @@ function PresetsScreen() {
         </View>
 
         {/* Add Button - stays green but disabled when locked */}
-          <TouchableOpacity
+          <HeaderIconButton
             onPress={handleAddPresetWithFlag}
-            activeOpacity={0.7}
             disabled={isDisabled}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             style={{
               backgroundColor: colors.card,
               borderWidth: 1, borderColor: colors.border, ...shadow.card,
+              width: s(44), height: s(44), borderRadius: 9999, alignItems: 'center', justifyContent: 'center',
             }}
-            className={`w-11 h-11 ${radius.full} items-center justify-center`}
+            className=""
           >
-            <Text className={`${textSize['2xLarge']} ${fontFamily.light} text-white`}>+</Text>
-          </TouchableOpacity>
+            <PlusIcon size={s(iconSize.lg)} color={colors.text} />
+          </HeaderIconButton>
       </View>
 
       {/* Presets List */}
@@ -806,6 +826,7 @@ function PresetsScreen() {
         confirmText="Delete"
         cancelText="Cancel"
         isDestructive
+        icon={<TrashIcon color={colors.red} />}
         onConfirm={handleDeletePreset}
         onCancel={handleCloseDeleteModal}
       />
