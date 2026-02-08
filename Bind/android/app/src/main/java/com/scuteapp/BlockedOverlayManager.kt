@@ -8,8 +8,6 @@ import android.graphics.BitmapFactory
 import android.graphics.PixelFormat
 import android.graphics.drawable.Drawable
 import android.os.Build
-import android.os.VibrationEffect
-import android.os.Vibrator
 import android.provider.Settings
 import android.util.Base64
 import android.util.Log
@@ -198,7 +196,6 @@ class BlockedOverlayManager(private val context: Context) {
             isClickable = true
             setOnClickListener {
                 if (!isTransitioning) {
-                    vibrate()
                     dismiss()
                 }
             }
@@ -340,22 +337,4 @@ class BlockedOverlayManager(private val context: Context) {
      */
     fun isShowing(): Boolean = isShowing
 
-    /**
-     * Vibrate for haptic feedback
-     */
-    private fun vibrate() {
-        try {
-            val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
-            if (vibrator?.hasVibrator() == true) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    vibrator.vibrate(VibrationEffect.createOneShot(8, VibrationEffect.DEFAULT_AMPLITUDE))
-                } else {
-                    @Suppress("DEPRECATION")
-                    vibrator.vibrate(8)
-                }
-            }
-        } catch (e: Exception) {
-            // Ignore vibration errors
-        }
-    }
 }

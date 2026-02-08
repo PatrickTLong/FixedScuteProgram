@@ -7,7 +7,6 @@ import {
   TextInput,
 } from 'react-native';
 import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
-import { lightTap } from '../utils/haptics';
 
 interface EmailConfirmationModalProps {
   visible: boolean;
@@ -92,7 +91,6 @@ function EmailConfirmationModal({ visible, userEmail, onConfirm, onCancel }: Ema
           <View style={{ borderTopWidth: 1, borderTopColor: colors.divider }} className="flex-row">
             {/* Cancel Button */}
             <TouchableOpacity
-              onPressIn={lightTap}
               onPress={handleCancel}
               activeOpacity={0.7}
               className="flex-1 py-4 items-center"
@@ -105,7 +103,6 @@ function EmailConfirmationModal({ visible, userEmail, onConfirm, onCancel }: Ema
 
             {/* Delete Account Button */}
             <TouchableOpacity
-              onPressIn={lightTap}
               onPress={handleConfirm}
               disabled={!isEmailMatch}
               activeOpacity={0.7}

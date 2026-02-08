@@ -7,7 +7,7 @@ import {
   Pressable,
 } from 'react-native';
 import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
-import { lightTap } from '../utils/haptics';
+
 import AnimatedCheckbox from './AnimatedCheckbox';
 
 interface AppSelectionInfoModalProps {
@@ -47,7 +47,6 @@ function AppSelectionInfoModal({ visible, onClose }: AppSelectionInfoModalProps)
 
                 {/* Don't show again checkbox */}
                 <TouchableOpacity
-                  onPressIn={lightTap}
                   onPress={() => setDontShowAgain(!dontShowAgain)}
                   activeOpacity={0.7}
                   className="flex-row items-center justify-center mt-5"
@@ -64,7 +63,6 @@ function AppSelectionInfoModal({ visible, onClose }: AppSelectionInfoModalProps)
               {/* Button */}
               <View style={{ borderTopWidth: 1, borderTopColor: colors.divider }}>
                 <TouchableOpacity
-                  onPressIn={lightTap}
                   onPress={handleConfirm}
                   activeOpacity={0.7}
                   className="py-4 items-center"

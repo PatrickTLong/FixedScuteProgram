@@ -10,7 +10,6 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTheme , textSize, fontFamily } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
-import { lightTap } from '../utils/haptics';
 import type { AuthStackParamList } from '../navigation/types';
 
 function LandingScreen() {
@@ -38,12 +37,6 @@ function LandingScreen() {
     };
   }, [tapTextOpacity]);
 
-  const handleTapHaptic = () => {
-    if (showTapText) {
-      lightTap();
-    }
-  };
-
   const handleTap = () => {
     if (showTapText) {
       navigation.navigate('GetStarted');
@@ -52,7 +45,7 @@ function LandingScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
-      <Pressable onPressIn={handleTapHaptic} onPress={handleTap} style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <Pressable onPress={handleTap} style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         {/* Logo centered */}
         <Image
           source={require('../frontassets/TrueScute-Photoroom.png')}

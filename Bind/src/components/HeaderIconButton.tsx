@@ -1,6 +1,5 @@
 import React, { memo, useCallback, useRef } from 'react';
 import { Animated, TouchableOpacity, View } from 'react-native';
-import { lightTap } from '../utils/haptics';
 import { useResponsive } from '../utils/responsive';
 
 const PULSE_SIZE = 24;
@@ -30,7 +29,6 @@ function HeaderIconButton({ onPress, disabled = false, children, style, classNam
 
   const triggerPulse = useCallback(() => {
     if (disabled) return;
-    lightTap();
     pulseProgress.setValue(0);
     Animated.timing(pulseProgress, {
       toValue: 1,

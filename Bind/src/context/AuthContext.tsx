@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
-import { Vibration, NativeModules, AppState, DeviceEventEmitter } from 'react-native';
+import { NativeModules, AppState, DeviceEventEmitter } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createNavigationContainerRef } from '@react-navigation/native';
 import {
@@ -161,7 +161,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             p.id === activePresetForTapout.id ? { ...p, isActive: false } : p
           ));
         }
-        Vibration.vibrate(100);
         showModal('Unlocked', `Phone unlocked. You have ${result.remaining} emergency tapout${result.remaining !== 1 ? 's' : ''} remaining.`);
         setRefreshTrigger(prev => prev + 1);
       } else {

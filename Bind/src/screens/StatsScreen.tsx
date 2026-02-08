@@ -17,7 +17,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import Svg, { Path } from 'react-native-svg';
 import { useTheme, textSize, fontFamily, radius, shadow, buttonPadding, iconSize } from '../context/ThemeContext';
-import { lightTap, mediumTap } from '../utils/haptics';
 import { useResponsive } from '../utils/responsive';
 import { useAuth } from '../context/AuthContext';
 import { AnimatedStatsIcon, AnimatedStatsIconRef } from '../components/BottomTabBar';
@@ -173,30 +172,6 @@ function StatsScreen() {
   // Header stats icon animation
   const headerStatsIconRef = useRef<AnimatedStatsIconRef>(null);
 
-  // Period tab scale animations
-  const monthTabScale = useRef(new Animated.Value(1)).current;
-  const weekTabScale = useRef(new Animated.Value(1)).current;
-  const todayTabScale = useRef(new Animated.Value(1)).current;
-  const tabScales: Record<StatsPeriod, Animated.Value> = {
-    month: monthTabScale,
-    week: weekTabScale,
-    today: todayTabScale,
-  };
-  const animateTabPress = useCallback((scaleAnim: Animated.Value) => {
-    Animated.sequence([
-      Animated.timing(scaleAnim, {
-        toValue: 1.03,
-        duration: 80,
-        useNativeDriver: true,
-      }),
-      Animated.timing(scaleAnim, {
-        toValue: 1,
-        duration: 80,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, []);
-
   useFocusEffect(
     useCallback(() => {
       // Trigger header icon animation on screen focus
@@ -251,7 +226,6 @@ function StatsScreen() {
 
   // Pull-to-refresh handler
   const onRefresh = useCallback(async () => {
-    mediumTap();
     setRefreshing(true);
     await loadStats();
     setRefreshing(false);
@@ -264,8 +238,8 @@ function StatsScreen() {
           source={require('../frontassets/Loading Dots Blue.json')}
           autoPlay
           loop
-          speed={2}
-          style={{ width: s(250), height: s(250) }}
+          speed={3.5}
+          style={{ width: s(150), height: s(150) }}
         />
       </View>
     );
@@ -303,10 +277,10 @@ function StatsScreen() {
           {(['month', 'week', 'today'] as StatsPeriod[]).map((period, index) => (
             <React.Fragment key={period}>
               {index > 0 && <View className="w-2" />}
-              <Animated.View style={{ flex: 1, transform: [{ scale: tabScales[period] }] }}>
+              <View style={{ flex: 1 }}>
                 <TouchableOpacity
-                  onPress={() => { lightTap(); animateTabPress(tabScales[period]); setActivePeriod(period); }}
-                  activeOpacity={1}
+                  onPress={() => setActivePeriod(period)}
+                  activeOpacity={0.7}
                   style={{
                     backgroundColor: activePeriod === period ? colors.text : colors.card,
                     borderWidth: 1,
@@ -323,7 +297,7 @@ function StatsScreen() {
                     {period === 'month' ? '30 Days' : period === 'week' ? '7 Days' : 'Today'}
                   </Text>
                 </TouchableOpacity>
-              </Animated.View>
+              </View>
             </React.Fragment>
           ))}
         </View>

@@ -64,7 +64,6 @@ import { useAuth } from '../context/AuthContext';
 import type { AuthStackParamList } from '../navigation/types';
 import { setAuthToken } from '../services/cardApi';
 import { API_URL } from '../config/api';
-import { lightTap } from '../utils/haptics';
 
 function SignInScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
@@ -191,8 +190,8 @@ function SignInScreen() {
           source={require('../frontassets/Loading Dots Blue.json')}
           autoPlay
           loop
-          speed={2}
-          style={{ width: s(250), height: s(250) }}
+          speed={3.5}
+          style={{ width: s(150), height: s(150) }}
         />
       </SafeAreaView>
     );
@@ -260,7 +259,6 @@ function SignInScreen() {
                       className={`${radius.full} px-5 ${textSize.small} ${fontFamily.regular}`}
                     />
                     <TouchableOpacity
-                      onPressIn={lightTap}
                       onPress={() => setShowPassword(!showPassword)}
                       style={{ position: 'absolute', right: s(16), top: 0, bottom: 0, justifyContent: 'center' }}
                     >
@@ -269,7 +267,6 @@ function SignInScreen() {
 
                     {/* Forgot Password - absolutely positioned */}
                     <TouchableOpacity
-                      onPressIn={lightTap}
                       onPress={() => onForgotPassword()}
                       activeOpacity={0.7}
                       style={{ position: 'absolute', right: 0, top: s(60) }}
@@ -306,7 +303,6 @@ function SignInScreen() {
 
                 {/* Resend Code */}
                 <TouchableOpacity
-                  onPressIn={lightTap}
                   onPress={() => handleResendCode()}
                   disabled={loading}
                   className="items-center mb-4"
@@ -323,7 +319,6 @@ function SignInScreen() {
           <View className="px-6 pb-8 mt-12">
             {/* Sign In / Verify Button */}
             <TouchableOpacity
-              onPressIn={lightTap}
               onPress={() => { step === 'credentials' ? handleSignIn() : handleVerifyCode(); }}
               disabled={loading}
               activeOpacity={0.8}

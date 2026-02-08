@@ -5,7 +5,6 @@ import {
   Pressable,
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import { lightTap, mediumTap } from '../utils/haptics';
 import { useTheme , textSize, fontFamily, radius, shadow, buttonPadding, iconSize } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { useAuth } from '../context/AuthContext';
@@ -267,25 +266,18 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, onExpire
 
   const handleLongPress = useCallback(() => {
     if (!disabled) {
-      mediumTap();
       onLongPress();
     }
   }, [disabled, onLongPress]);
 
   const handleToggle = useCallback((value: boolean) => {
     if (!disabled && !isExpired) {
-      mediumTap();
       onToggle(value);
     }
   }, [disabled, isExpired, onToggle]);
 
-  const handlePressIn = useCallback(() => {
-    lightTap();
-  }, []);
-
   return (
     <Pressable
-      onPressIn={handlePressIn}
       onPress={handlePress}
       onLongPress={handleLongPress}
       delayLongPress={500}

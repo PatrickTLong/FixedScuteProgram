@@ -5,10 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.os.VibrationEffect
-import android.os.Vibrator
 import android.util.Log
-import android.view.HapticFeedbackConstants
 import android.view.View
 import android.view.WindowManager
 import android.widget.TextView
@@ -107,25 +104,6 @@ class BlockedActivity : Activity() {
             dismissAndGoHome()
         }
 
-    }
-
-    /**
-     * Vibrate for haptic feedback
-     */
-    private fun vibrate() {
-        try {
-            val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
-            if (vibrator?.hasVibrator() == true) {
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                    vibrator.vibrate(VibrationEffect.createOneShot(50, VibrationEffect.DEFAULT_AMPLITUDE))
-                } else {
-                    @Suppress("DEPRECATION")
-                    vibrator.vibrate(50)
-                }
-            }
-        } catch (e: Exception) {
-            // Ignore vibration errors
-        }
     }
 
     override fun onBackPressed() {

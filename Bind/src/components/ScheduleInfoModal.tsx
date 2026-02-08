@@ -7,7 +7,6 @@ import {
   Pressable,
 } from 'react-native';
 import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
-import { lightTap } from '../utils/haptics';
 import AnimatedCheckbox from './AnimatedCheckbox';
 
 interface ScheduleInfoModalProps {
@@ -47,7 +46,6 @@ function ScheduleInfoModal({ visible, onClose }: ScheduleInfoModalProps) {
 
                 {/* Don't show again checkbox */}
                 <TouchableOpacity
-                  onPressIn={lightTap}
                   onPress={() => setDontShowAgain(!dontShowAgain)}
                   activeOpacity={0.7}
                   className="flex-row items-center justify-center mt-6"
@@ -64,7 +62,6 @@ function ScheduleInfoModal({ visible, onClose }: ScheduleInfoModalProps) {
               {/* Button */}
               <View style={{ borderTopWidth: 1, borderTopColor: colors.divider }}>
                 <TouchableOpacity
-                  onPressIn={lightTap}
                   onPress={handleClose}
                   activeOpacity={0.7}
                   className="py-4 items-center"

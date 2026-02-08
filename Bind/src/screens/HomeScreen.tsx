@@ -5,13 +5,11 @@ import {
   NativeModules,
   TouchableOpacity,
   AppState,
-  Vibration,
   ScrollView,
   Modal,
   Platform,
   Linking,
   RefreshControl,
-  Animated,
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import LottieView from 'lottie-react-native';
@@ -24,7 +22,6 @@ import EmergencyTapoutModal from '../components/EmergencyTapoutModal';
 import { getPresets, getLockStatus, updateLockStatus, Preset, getEmergencyTapoutStatus, useEmergencyTapout, activatePreset, invalidateUserCaches, isFirstLoad, markInitialLoadComplete, clearAllCaches } from '../services/cardApi';
 import { useTheme , textSize, fontFamily, radius, shadow, iconSize } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
-import { lightTap, mediumTap } from '../utils/haptics';
 import { useAuth } from '../context/AuthContext';
 
 
@@ -71,24 +68,6 @@ function HomeScreen() {
 
   // Prevent concurrent loadStats calls (race condition fix)
   const loadStatsInProgressRef = useRef(false);
-
-  // Button bounce animations
-  const wifiButtonScale = useRef(new Animated.Value(1)).current;
-  const supportButtonScale = useRef(new Animated.Value(1)).current;
-  const animateButtonPress = useCallback((scaleAnim: Animated.Value) => {
-    Animated.sequence([
-      Animated.timing(scaleAnim, {
-        toValue: 1.03,
-        duration: 80,
-        useNativeDriver: true,
-      }),
-      Animated.timing(scaleAnim, {
-        toValue: 1,
-        duration: 80,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, []);
 
   const showModal = useCallback((title: string, message: string) => {
     setModalTitle(title);
@@ -178,7 +157,7 @@ function HomeScreen() {
         });
       }
 
-      Vibration.vibrate([0, 100, 50, 100]);
+
     } catch (error) {
     } finally {
       // Clear the activating ref after a delay to allow for settling
@@ -265,7 +244,6 @@ function HomeScreen() {
             }
             // NOTE: Don't deactivate the preset - keep it selected so user can lock again easily
             invalidateUserCaches(email);
-            Vibration.vibrate(100);
 
             // Set unlocked state but keep the preset showing
             setIsLocked(false);
@@ -385,7 +363,6 @@ function HomeScreen() {
           await minSpinner;
         }
 
-        Vibration.vibrate(100);
         setTapoutLoading(false);
         setLoading(false);
 
@@ -492,7 +469,6 @@ function HomeScreen() {
         await BlockingModule.forceUnlock();
       }
 
-      Vibration.vibrate(100);
       invalidateUserCaches(email);
 
       // Refresh to get updated state (same as app launch unlock)
@@ -652,7 +628,6 @@ function HomeScreen() {
         await minSpinner;
       }
 
-      Vibration.vibrate(100);
       setLoading(false);
 
       // 3) Backend sync + data refresh (fire-and-forget)
@@ -836,9 +811,7 @@ function HomeScreen() {
           strictMode: activePreset.strictMode ?? false,
         });
 
-        Vibration.vibrate(50);
       } else {
-        Vibration.vibrate(50);
       }
 
       // Local state already set above - no need to call loadStats which would cause a delay
@@ -950,7 +923,6 @@ function HomeScreen() {
 
   // Pull-to-refresh handler
   const onRefresh = useCallback(async () => {
-    mediumTap();
     setRefreshing(true);
     invalidateUserCaches(email);
     await loadStats(true, false);
@@ -964,8 +936,8 @@ function HomeScreen() {
           source={require('../frontassets/Loading Dots Blue.json')}
           autoPlay
           loop
-          speed={2}
-          style={{ width: s(250), height: s(250) }}
+          speed={3.5}
+          style={{ width: s(150), height: s(150) }}
         />
       </View>
     );
@@ -983,44 +955,40 @@ function HomeScreen() {
         {/* Right side buttons */}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: s(8) }}>
           {/* WiFi Settings */}
-          <Animated.View style={{ transform: [{ scale: wifiButtonScale }] }}>
-            <TouchableOpacity
-              onPress={() => { lightTap(); animateButtonPress(wifiButtonScale); Linking.sendIntent('android.settings.WIFI_SETTINGS').catch(() => {}); }}
-              activeOpacity={1}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              style={{
-                backgroundColor: colors.card,
-                borderWidth: 1, borderColor: colors.border, ...shadow.card,
-              }}
-              className={`w-11 h-11 ${radius.full} items-center justify-center`}
-            >
-              <Svg width={s(18)} height={s(18)} viewBox="0 0 24 24" fill="none">
-                <Path d="M5 12.55a11 11 0 0 1 14.08 0" stroke="#FFFFFF" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-                <Path d="M1.42 9a16 16 0 0 1 21.16 0" stroke="#FFFFFF" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-                <Path d="M8.53 16.11a6 6 0 0 1 6.95 0" stroke="#FFFFFF" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-                <Path d="M12 20h.01" stroke="#FFFFFF" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-              </Svg>
-            </TouchableOpacity>
-          </Animated.View>
+          <TouchableOpacity
+            onPress={() => { Linking.sendIntent('android.settings.WIFI_SETTINGS').catch(() => {}); }}
+            activeOpacity={0.7}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            style={{
+              backgroundColor: colors.card,
+              borderWidth: 1, borderColor: colors.border, ...shadow.card,
+            }}
+            className={`w-11 h-11 ${radius.full} items-center justify-center`}
+          >
+            <Svg width={s(18)} height={s(18)} viewBox="0 0 24 24" fill="none">
+              <Path d="M5 12.55a11 11 0 0 1 14.08 0" stroke="#FFFFFF" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+              <Path d="M1.42 9a16 16 0 0 1 21.16 0" stroke="#FFFFFF" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+              <Path d="M8.53 16.11a6 6 0 0 1 6.95 0" stroke="#FFFFFF" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+              <Path d="M12 20h.01" stroke="#FFFFFF" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+            </Svg>
+          </TouchableOpacity>
 
           {/* Support @ icon */}
-          <Animated.View style={{ transform: [{ scale: supportButtonScale }] }}>
-            <TouchableOpacity
-              onPress={() => { lightTap(); animateButtonPress(supportButtonScale); Linking.openURL('mailto:support@scuteapp.com?subject=Scute%20Support%20Request'); }}
-              activeOpacity={1}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              style={{
-                backgroundColor: colors.card,
-                borderWidth: 1, borderColor: colors.border, ...shadow.card,
-              }}
-              className={`w-11 h-11 ${radius.full} items-center justify-center`}
-            >
-              <Svg width={s(18)} height={s(18)} viewBox="0 0 24 24" fill="none">
-                <Path d="M12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" stroke="#FFFFFF" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-                <Path d="M16 8v5a3 3 0 0 0 6 0V12a10 10 0 1 0-3.92 7.94" stroke="#FFFFFF" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-              </Svg>
-            </TouchableOpacity>
-          </Animated.View>
+          <TouchableOpacity
+            onPress={() => { Linking.openURL('mailto:support@scuteapp.com?subject=Scute%20Support%20Request'); }}
+            activeOpacity={0.7}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            style={{
+              backgroundColor: colors.card,
+              borderWidth: 1, borderColor: colors.border, ...shadow.card,
+            }}
+            className={`w-11 h-11 ${radius.full} items-center justify-center`}
+          >
+            <Svg width={s(18)} height={s(18)} viewBox="0 0 24 24" fill="none">
+              <Path d="M12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" stroke="#FFFFFF" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+              <Path d="M16 8v5a3 3 0 0 0 6 0V12a10 10 0 1 0-3.92 7.94" stroke="#FFFFFF" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+            </Svg>
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -1092,7 +1060,6 @@ function HomeScreen() {
             {/* Scheduled Presets Button - absolutely positioned under preset text */}
             {scheduledPresets.length > 0 && (
               <TouchableOpacity
-                onPressIn={lightTap}
                 onPress={() => { setScheduledPresetsModalVisible(true); }}
                 activeOpacity={0.7}
                 className={`px-5 py-2.5 ${radius.full} flex-row items-center`}
@@ -1235,7 +1202,6 @@ function HomeScreen() {
             {/* Close Button */}
             <View style={{ borderTopWidth: 1, borderTopColor: colors.divider }}>
               <TouchableOpacity
-                onPressIn={lightTap}
                 onPress={() => { setScheduledPresetsModalVisible(false); }}
                 activeOpacity={0.7}
                 className="py-4 items-center"

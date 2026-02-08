@@ -22,7 +22,6 @@ import EmailConfirmationModal from '../components/EmailConfirmationModal';
 import { getLockStatus, getEmergencyTapoutStatus, getCachedLockStatus, getCachedTapoutStatus, getMembershipStatus, MembershipStatus, getCachedMembershipStatus } from '../services/cardApi';
 import { useTheme , textSize, fontFamily, radius, shadow, iconSize, buttonPadding } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
-import { lightTap, mediumTap } from '../utils/haptics';
 import { useAuth } from '../context/AuthContext';
 
 // Icons - white with thicker strokes
@@ -176,7 +175,6 @@ const SettingsRow = memo(({
   s,
 }: SettingsRowProps) => (
   <TouchableOpacity
-    onPressIn={() => { if (onPress) lightTap(); }}
     onPress={onPress || undefined}
     disabled={!onPress}
     activeOpacity={onPress ? 0.7 : 1}
@@ -391,7 +389,6 @@ function SettingsScreen() {
 
   // Pull-to-refresh handler
   const onRefresh = useCallback(async () => {
-    mediumTap();
     setRefreshing(true);
     const [status, tapout, membership] = await Promise.all([
       getLockStatus(email, true),
@@ -426,8 +423,8 @@ function SettingsScreen() {
           source={require('../frontassets/Loading Dots Blue.json')}
           autoPlay
           loop
-          speed={2}
-          style={{ width: s(250), height: s(250) }}
+          speed={3.5}
+          style={{ width: s(150), height: s(150) }}
         />
         <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.semibold} mt-4`}>{loadingMessage}</Text>
       </View>
@@ -442,8 +439,8 @@ function SettingsScreen() {
           source={require('../frontassets/Loading Dots Blue.json')}
           autoPlay
           loop
-          speed={2}
-          style={{ width: s(250), height: s(250) }}
+          speed={3.5}
+          style={{ width: s(150), height: s(150) }}
         />
       </View>
     );
@@ -525,7 +522,6 @@ function SettingsScreen() {
           />
           {/* Membership Row with Trial Countdown */}
           <TouchableOpacity
-            onPressIn={lightTap}
             onPress={() => setMembershipModalVisible(true)}
             activeOpacity={0.7}
             style={{ borderBottomWidth: 1, borderBottomColor: colors.divider, paddingVertical: s(buttonPadding.standard) }}
@@ -1022,7 +1018,6 @@ function SettingsScreen() {
 
             {/* Monthly Plan */}
             <TouchableOpacity
-              onPressIn={lightTap}
               onPress={() => setSelectedPlan('monthly')}
               activeOpacity={0.7}
               style={{
@@ -1053,7 +1048,6 @@ function SettingsScreen() {
 
             {/* Yearly Plan */}
             <TouchableOpacity
-              onPressIn={lightTap}
               onPress={() => setSelectedPlan('yearly')}
               activeOpacity={0.7}
               style={{
@@ -1089,7 +1083,6 @@ function SettingsScreen() {
 
             {/* Lifetime Plan */}
             <TouchableOpacity
-              onPressIn={lightTap}
               onPress={() => setSelectedPlan('lifetime')}
               activeOpacity={0.7}
               style={{
@@ -1125,7 +1118,6 @@ function SettingsScreen() {
 
             {/* Subscribe Button */}
             <TouchableOpacity
-              onPressIn={lightTap}
               disabled={!selectedPlan}
               activeOpacity={0.7}
               style={{

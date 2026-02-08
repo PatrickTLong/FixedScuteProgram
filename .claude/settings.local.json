@@ -56,7 +56,8 @@
       "Bash(cmd /c \"cd /d c:\\\\Users\\\\Shado\\\\OneDrive\\\\Desktop\\\\ScuteProgram\\\\Bind\\\\android && call gradlew.bat clean 2>&1\")",
       "Bash(cmd /c \"rmdir /s /q \"\"c:\\\\Users\\\\Shado\\\\OneDrive\\\\Desktop\\\\ScuteProgram\\\\Bind\\\\android\\\\app\\\\.cxx\"\" 2>&1 & echo DONE\")",
       "Bash(npm ls:*)",
-      "Bash(del:*)"
+      "Bash(del:*)",
+      "Bash(/tmp/edit_preset.py:*)"
     ],
     "additionalDirectories": [
       "c:\\Users\\Shado\\OneDrive\\Desktop\\ScuteProgram\\Bind\\src"

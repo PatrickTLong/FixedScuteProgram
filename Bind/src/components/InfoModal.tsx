@@ -6,7 +6,6 @@ import {
   Modal,
   Pressable,
 } from 'react-native';
-import { lightTap } from '../utils/haptics';
 import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
 
 interface InfoModalProps {
@@ -57,7 +56,6 @@ function InfoModal({
               {/* Button */}
               <View style={{ borderTopWidth: 1, borderTopColor: colors.divider }}>
                 <TouchableOpacity
-                  onPressIn={lightTap}
                   onPress={onClose}
                   activeOpacity={0.7}
                   className="py-4 items-center"

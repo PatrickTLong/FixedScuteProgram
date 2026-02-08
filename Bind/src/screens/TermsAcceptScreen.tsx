@@ -8,7 +8,6 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
-import { lightTap } from '../utils/haptics';
 import { useAuth } from '../context/AuthContext';
 
 function TermsAcceptScreen() {
@@ -142,7 +141,6 @@ function TermsAcceptScreen() {
           Do you accept these Terms of Service?
         </Text>
         <TouchableOpacity
-          onPressIn={lightTap}
           onPress={() => handleAcceptTerms()}
           activeOpacity={0.8}
           style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}

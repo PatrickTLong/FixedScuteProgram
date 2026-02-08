@@ -29,7 +29,7 @@ function AnimatedCheckbox({
         toValue: checked ? 1 : 0,
         duration: 90,
         easing: Easing.out(Easing.ease),
-        useNativeDriver: true, // Now we can use native driver!
+        useNativeDriver: true,
       }).start();
     }
   }, [checked, animatedValue, skipAnimation]);

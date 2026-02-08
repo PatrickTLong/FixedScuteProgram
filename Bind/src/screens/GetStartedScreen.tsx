@@ -61,7 +61,6 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { setAuthToken } from '../services/cardApi';
 import { API_URL } from '../config/api';
-import { lightTap } from '../utils/haptics';
 import { useAuth } from '../context/AuthContext';
 import type { AuthStackParamList } from '../navigation/types';
 
@@ -185,8 +184,8 @@ function GetStartedScreen() {
           source={require('../frontassets/Loading Dots Blue.json')}
           autoPlay
           loop
-          speed={2}
-          style={{ width: s(250), height: s(250) }}
+          speed={3.5}
+          style={{ width: s(150), height: s(150) }}
         />
       </SafeAreaView>
     );
@@ -249,7 +248,6 @@ function GetStartedScreen() {
                       className={`${radius.full} px-5 ${textSize.small} ${fontFamily.regular}`}
                     />
                     <TouchableOpacity
-                      onPressIn={lightTap}
                       onPress={() => setShowPassword(!showPassword)}
                       style={{ position: 'absolute', right: s(16), top: 0, bottom: 0, justifyContent: 'center' }}
                     >
@@ -283,7 +281,6 @@ function GetStartedScreen() {
 
                 {/* Resend Code */}
                 <TouchableOpacity
-                  onPressIn={lightTap}
                   onPress={() => handleResendCode()}
                   disabled={loading}
                   className="items-center mb-4"
@@ -300,7 +297,6 @@ function GetStartedScreen() {
           <View className="px-6 pb-8 mt-12">
             {/* Sign Up / Verify Button */}
             <TouchableOpacity
-              onPressIn={lightTap}
               onPress={() => { step === 'form' ? handleSignUp() : handleVerifyCode(); }}
               disabled={loading}
               activeOpacity={0.8}
@@ -326,7 +322,6 @@ function GetStartedScreen() {
             {/* Already have an account */}
             {step === 'form' && (
               <TouchableOpacity
-                onPressIn={lightTap}
                 onPress={() => onSignIn()}
                 activeOpacity={0.7}
                 className="items-center py-2 mt-4"

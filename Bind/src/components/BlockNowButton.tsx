@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   Dimensions,
 } from 'react-native';
-import { lightTap, mediumTap, successTap } from '../utils/haptics';
+
 import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 
@@ -46,7 +46,6 @@ function BlockNowButton({
   // Slide state — ref-only to avoid re-renders during drag
   const slidePosition = useRef(new Animated.Value(0)).current;
   const buttonWidthRef = useRef(SCREEN_WIDTH - buttonHorizontalPadding);
-  const hapticTriggeredRef = useRef({ first: false, second: false, third: false });
 
   // Can activate only when not disabled and not locked
   const canActivate = !disabled && !isLocked;
@@ -71,7 +70,6 @@ function BlockNowButton({
   useEffect(() => {
     if (!showSlideToUnlock) {
       slidePosition.setValue(0);
-      hapticTriggeredRef.current = { first: false, second: false, third: false };
     }
   }, [showSlideToUnlock, slidePosition]);
 
@@ -79,14 +77,8 @@ function BlockNowButton({
   const startAnimation = useCallback(() => {
     if (!canActivateRef.current) return;
 
-    mediumTap();
     setIsPressed(true);
     fillAnimation.setValue(0);
-
-    // Single haptic at halfway through hold
-    const hapticTimeout = setTimeout(() => {
-      lightTap();
-    }, 500);
 
     animationRef.current = Animated.timing(fillAnimation, {
       toValue: 1,
@@ -95,10 +87,7 @@ function BlockNowButton({
     });
 
     animationRef.current.start(({ finished }) => {
-      clearTimeout(hapticTimeout);
-
       if (finished) {
-        successTap();
         onActivateRef.current();
         setIsPressed(false);
         fillAnimation.setValue(0);
@@ -118,7 +107,6 @@ function BlockNowButton({
 
   // Slide-to-unlock functions
   const resetSlider = useCallback(() => {
-    hapticTriggeredRef.current = { first: false, second: false, third: false };
     Animated.spring(slidePosition, {
       toValue: 0,
       useNativeDriver: false,
@@ -129,14 +117,12 @@ function BlockNowButton({
   const handleSlideComplete = useCallback(async () => {
     setIsUnlocking(true);
     isUnlockingRef.current = true;
-    successTap();
     try {
       await onSlideUnlockRef.current?.();
     } finally {
       setIsUnlocking(false);
       isUnlockingRef.current = false;
       slidePosition.setValue(0);
-      hapticTriggeredRef.current = { first: false, second: false, third: false };
     }
   }, [slidePosition]);
 
@@ -165,26 +151,11 @@ function BlockNowButton({
       onStartShouldSetPanResponder: () => !isUnlockingRef.current,
       onMoveShouldSetPanResponder: (_, g) => !isUnlockingRef.current && Math.abs(g.dx) > 5,
       onPanResponderGrant: () => {
-        mediumTap();
-        hapticTriggeredRef.current = { first: false, second: false, third: false };
-      },
+        },
       onPanResponderMove: (_, g) => {
         const maxSlide = buttonWidthRef.current;
         const pos = Math.max(0, Math.min(g.dx, maxSlide));
         slidePosition.setValue(pos);
-        const progress = pos / maxSlide;
-        if (progress >= 0.33 && !hapticTriggeredRef.current.first) {
-          hapticTriggeredRef.current.first = true;
-          lightTap();
-        }
-        if (progress >= 0.66 && !hapticTriggeredRef.current.second) {
-          hapticTriggeredRef.current.second = true;
-          lightTap();
-        }
-        if (progress >= 0.90 && !hapticTriggeredRef.current.third) {
-          hapticTriggeredRef.current.third = true;
-          mediumTap();
-        }
       },
       onPanResponderRelease: (_, g) => {
         const maxSlide = buttonWidthRef.current;
@@ -221,7 +192,6 @@ function BlockNowButton({
         }}
       >
         <TouchableOpacity
-          onPressIn={lightTap}
           onPress={() => onUnlockPress?.()}
           activeOpacity={0.7}
           className="flex-1"

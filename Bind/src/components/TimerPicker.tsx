@@ -6,7 +6,6 @@ import {
   NativeSyntheticEvent,
   NativeScrollEvent,
 } from 'react-native';
-import { lightTap } from '../utils/haptics';
 import { useTheme, fontFamily } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 
@@ -33,7 +32,6 @@ interface WheelProps {
 
 const Wheel = memo(({ values, selectedValue, onValueChange, label, textColor, textMutedColor, labelColor, itemHeight, wheelWidth, selectedFontSize, unselectedFontSize, labelFontSize, labelMarginTop, parentScrollRef }: WheelProps) => {
   const scrollRef = useRef<ScrollView>(null);
-  const lastHapticIndex = useRef(-1);
   const scrolledByUser = useRef(false);
 
   const selectedIndex = values.indexOf(selectedValue);
@@ -69,10 +67,6 @@ const Wheel = memo(({ values, selectedValue, onValueChange, label, textColor, te
     const currentIndex = Math.round(offsetY / itemHeight);
     const clampedIndex = Math.max(0, Math.min(currentIndex, values.length - 1));
 
-    if (lastHapticIndex.current !== clampedIndex && lastHapticIndex.current !== -1) {
-      lightTap();
-    }
-    lastHapticIndex.current = clampedIndex;
     updateWindow(clampedIndex);
   }, [values.length, itemHeight, updateWindow]);
 

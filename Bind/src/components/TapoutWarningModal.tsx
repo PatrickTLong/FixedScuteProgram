@@ -7,7 +7,6 @@ import {
   Pressable,
 } from 'react-native';
 import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
-import { lightTap } from '../utils/haptics';
 import { useResponsive } from '../utils/responsive';
 
 interface TapoutWarningModalProps {
@@ -53,7 +52,6 @@ function TapoutWarningModal({ visible, onClose }: TapoutWarningModalProps) {
 
                 {/* Don't show again checkbox */}
                 <TouchableOpacity
-                  onPressIn={lightTap}
                   onPress={() => setDontShowAgain(!dontShowAgain)}
                   activeOpacity={0.7}
                   className="flex-row items-center justify-center mt-6"
@@ -88,7 +86,6 @@ function TapoutWarningModal({ visible, onClose }: TapoutWarningModalProps) {
               {/* Buttons */}
               <View style={{ borderTopWidth: 1, borderTopColor: colors.divider }} className="flex-row">
                 <TouchableOpacity
-                  onPressIn={lightTap}
                   onPress={handleCancel}
                   activeOpacity={0.7}
                   style={{ borderRightWidth: 1, borderRightColor: colors.divider }}
@@ -99,7 +96,6 @@ function TapoutWarningModal({ visible, onClose }: TapoutWarningModalProps) {
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  onPressIn={lightTap}
                   onPress={handleConfirm}
                   activeOpacity={0.7}
                   className="flex-1 py-4 items-center"

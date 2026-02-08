@@ -9,7 +9,6 @@ import Svg, { Path } from 'react-native-svg';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme , textSize, fontFamily, radius, shadow, buttonPadding, iconSize } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
-import { lightTap } from '../utils/haptics';
 
 // Magic Wand Icon
 const MagicWandIcon = ({ size = iconSize.lg, color = '#FFFFFF' }: { size?: number; color?: string }) => (
@@ -39,7 +38,6 @@ function MembershipScreen() {
 
         {/* Monthly Plan */}
         <TouchableOpacity
-          onPressIn={lightTap}
           onPress={() => setSelectedPlan('monthly')}
           style={{
             backgroundColor: colors.card,
@@ -69,7 +67,6 @@ function MembershipScreen() {
 
         {/* Yearly Plan */}
         <TouchableOpacity
-          onPressIn={lightTap}
           onPress={() => setSelectedPlan('yearly')}
           style={{
             backgroundColor: colors.card,
@@ -104,7 +101,6 @@ function MembershipScreen() {
 
         {/* Lifetime Plan */}
         <TouchableOpacity
-          onPressIn={lightTap}
           onPress={() => setSelectedPlan('lifetime')}
           style={{
             backgroundColor: colors.card,
@@ -139,7 +135,6 @@ function MembershipScreen() {
 
         {/* Subscribe Button */}
         <TouchableOpacity
-          onPressIn={lightTap}
           onPress={() => { /* TODO: Trigger Google Play purchase */ }}
           disabled={!selectedPlan}
           style={{

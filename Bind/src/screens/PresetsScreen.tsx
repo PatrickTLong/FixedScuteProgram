@@ -28,7 +28,6 @@ import {
 import { AnimatedPresetsIcon, AnimatedPresetsIconRef } from '../components/BottomTabBar';
 import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
-import { lightTap, mediumTap } from '../utils/haptics';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { MainStackParamList } from '../navigation/types';
@@ -127,22 +126,6 @@ function PresetsScreen() {
   const headerIconRef = useRef<AnimatedPresetsIconRef>(null);
   const isReturningFromEdit = useRef(false);
 
-  // Button bounce animation
-  const addButtonScale = useRef(new Animated.Value(1)).current;
-  const animateButtonPress = useCallback((scaleAnim: Animated.Value) => {
-    Animated.sequence([
-      Animated.timing(scaleAnim, {
-        toValue: 1.03,
-        duration: 80,
-        useNativeDriver: true,
-      }),
-      Animated.timing(scaleAnim, {
-        toValue: 1,
-        duration: 80,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -724,7 +707,6 @@ function PresetsScreen() {
 
   // Pull-to-refresh handler
   const onRefresh = useCallback(async () => {
-    mediumTap();
     setRefreshing(true);
     invalidateUserCaches(userEmail_safe);
     await Promise.all([checkLockStatus(), loadPresets(true)]);
@@ -741,8 +723,8 @@ function PresetsScreen() {
               source={require('../frontassets/Loading Dots Blue.json')}
               autoPlay
               loop
-              speed={2}
-              style={{ width: s(250), height: s(250) }}
+              speed={3.5}
+              style={{ width: s(150), height: s(150) }}
             />
           </View>
         )}
@@ -779,10 +761,9 @@ function PresetsScreen() {
         </View>
 
         {/* Add Button - stays green but disabled when locked */}
-        <Animated.View style={{ transform: [{ scale: addButtonScale }] }}>
           <TouchableOpacity
-            onPress={() => { lightTap(); animateButtonPress(addButtonScale); handleAddPresetWithFlag(); }}
-            activeOpacity={1}
+            onPress={handleAddPresetWithFlag}
+            activeOpacity={0.7}
             disabled={isDisabled}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             style={{
@@ -793,7 +774,6 @@ function PresetsScreen() {
           >
             <Text className={`${textSize['2xLarge']} ${fontFamily.light} text-white`}>+</Text>
           </TouchableOpacity>
-        </Animated.View>
       </View>
 
       {/* Presets List */}

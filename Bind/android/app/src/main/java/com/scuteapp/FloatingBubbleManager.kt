@@ -6,13 +6,9 @@ import android.graphics.PixelFormat
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
-import android.os.VibrationEffect
-import android.os.Vibrator
-import android.os.VibratorManager
 import android.provider.Settings
 import android.util.Log
 import android.view.Gravity
-import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
@@ -100,7 +96,6 @@ class FloatingBubbleManager(private val context: Context) {
     private var longPressTriggered = false
     private val longPressRunnable = Runnable {
         longPressTriggered = true
-        performLongPressHaptic()
         showHideButton()
     }
 
@@ -217,7 +212,6 @@ class FloatingBubbleManager(private val context: Context) {
 
             // Set up hide button click
             bubbleHideButton?.setOnClickListener {
-                performClickHaptic()
                 hideBubble()
             }
 
@@ -332,7 +326,6 @@ class FloatingBubbleManager(private val context: Context) {
 
             // Set up hide button click
             bubbleHideButton?.setOnClickListener {
-                performClickHaptic()
                 hideBubble()
             }
 
@@ -421,7 +414,6 @@ class FloatingBubbleManager(private val context: Context) {
                     hasPendingDragUpdate = false
                     if (!isDragging && !longPressTriggered) {
                         // Regular tap - toggle expand/collapse
-                        performTapHaptic()
                         toggleExpanded()
                     } else if (isExpanded) {
                         // Reschedule auto-collapse after drag/long-press ends
@@ -754,24 +746,4 @@ class FloatingBubbleManager(private val context: Context) {
     }
 
 
-    /**
-     * Perform light haptic feedback for tap
-     */
-    private fun performTapHaptic() {
-        bubbleMain?.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
-    }
-
-    /**
-     * Perform heavier haptic feedback for long press
-     */
-    private fun performLongPressHaptic() {
-        bubbleMain?.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
-    }
-
-    /**
-     * Perform haptic feedback for button click
-     */
-    private fun performClickHaptic() {
-        bubbleHideButton?.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
-    }
 }

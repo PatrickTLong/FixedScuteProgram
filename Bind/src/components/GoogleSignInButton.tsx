@@ -10,7 +10,6 @@ const Lottie = LottieView as any;
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { setAuthToken } from '../services/cardApi';
 import { API_URL } from '../config/api';
-import { lightTap } from '../utils/haptics';
 import { useTheme , textSize, fontFamily, radius, shadow, buttonPadding, iconSize } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 
@@ -108,7 +107,6 @@ function GoogleSignInBtn({ onSuccess, onError, disabled }: Props) {
 
   return (
     <TouchableOpacity
-      onPressIn={lightTap}
       onPress={handleGoogleSignIn}
       disabled={disabled || loading}
       activeOpacity={0.8}
@@ -135,7 +133,7 @@ function GoogleSignInBtn({ onSuccess, onError, disabled }: Props) {
             source={require('../frontassets/Loading Dots Blue.json')}
             autoPlay
             loop
-            speed={2}
+            speed={3.5}
             style={{ width: s(150), height: s(150) }}
           />
         </View>

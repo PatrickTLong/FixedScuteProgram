@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path, Rect, Line, G } from 'react-native-svg';
 
 const AnimatedLine = Animated.createAnimatedComponent(Line);
-import { lightTap } from '../utils/haptics';
+
 import { useTheme , textSize, fontFamily, shadow, iconSize, buttonPadding } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import type { BottomTabBarProps as RNBottomTabBarProps } from '@react-navigation/bottom-tabs';
@@ -351,7 +351,6 @@ const TabItem = memo(({ label, isActive, onPress, renderIcon, activeColor, inact
   const hasCustomAnimation = isStats || isPresets;
 
   const triggerFlash = useCallback(() => {
-    lightTap();
     setPressed(true);
     flashOpacity.setValue(0.3);
     Animated.timing(flashOpacity, {

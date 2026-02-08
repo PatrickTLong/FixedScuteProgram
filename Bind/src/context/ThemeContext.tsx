@@ -1,6 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { setHapticStrength } from '../utils/haptics';
+import React, { createContext, useContext, useMemo } from 'react';
 
 // Text size classes
 export const textSize = {
@@ -109,49 +107,16 @@ export const colors = {
   logoTint: '#ffffff',
 } as const;
 
-/**
- * Haptic strength: 0 = off, 0.5 = half, 1 = full (default).
- * Persisted to AsyncStorage so it survives app restarts.
- */
-const HAPTIC_STRENGTH_KEY = 'haptic_strength';
-
 interface ThemeContextType {
   colors: typeof colors;
-  /** Current haptic strength multiplier (0‒1). */
-  hapticStrength: number;
-  /** Update the global haptic strength (0‒1). Persists automatically. */
-  setHapticStrengthValue: (value: number) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [hapticStrengthState, setHapticStrengthState] = useState(0.4);
-
-  // Load persisted value on mount
-  useEffect(() => {
-    AsyncStorage.getItem(HAPTIC_STRENGTH_KEY).then((stored) => {
-      if (stored !== null) {
-        const parsed = parseFloat(stored);
-        if (!isNaN(parsed)) {
-          const clamped = Math.max(0, Math.min(1, parsed));
-          setHapticStrengthState(clamped);
-          setHapticStrength(clamped);
-        }
-      }
-    });
-  }, []);
-
-  const setHapticStrengthValue = useCallback((value: number) => {
-    const clamped = Math.max(0, Math.min(1, value));
-    setHapticStrengthState(clamped);
-    setHapticStrength(clamped);
-    AsyncStorage.setItem(HAPTIC_STRENGTH_KEY, String(clamped));
-  }, []);
-
   const value = useMemo<ThemeContextType>(
-    () => ({ colors, hapticStrength: hapticStrengthState, setHapticStrengthValue }),
-    [hapticStrengthState, setHapticStrengthValue],
+    () => ({ colors }),
+    [],
   );
 
   return (

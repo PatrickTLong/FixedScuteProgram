@@ -2,7 +2,7 @@ import React, { memo } from 'react';
 import { TouchableOpacity, Text, View } from 'react-native';
 import LottieView from 'lottie-react-native';
 const Lottie = LottieView as any;
-import { lightTap } from '../utils/haptics';
+
 import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 
@@ -62,7 +62,6 @@ function Button({
 
   return (
     <TouchableOpacity
-      onPressIn={lightTap}
       onPress={onPress}
       disabled={disabled || loading}
       activeOpacity={0.8}
@@ -79,7 +78,7 @@ function Button({
             source={require('../frontassets/Loading Dots Blue.json')}
             autoPlay
             loop
-            speed={2}
+            speed={3.5}
             style={{ width: s(150), height: s(150) }}
           />
         </View>

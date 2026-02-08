@@ -6,9 +6,6 @@ import android.nfc.NfcAdapter
 import android.nfc.Tag
 import android.os.Build
 import android.os.Bundle
-import android.os.VibrationEffect
-import android.os.Vibrator
-import android.os.VibratorManager
 import android.util.Log
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
@@ -162,7 +159,6 @@ class MainActivity : ReactActivity() {
 
         if (normalizedScanned != normalizedRegistered) {
             Log.d(TAG, "Tag doesn't match registered tag. Scanned: $normalizedScanned, Registered: $normalizedRegistered")
-            vibrateError()
             return true  // We handled it (by rejecting it)
         }
 
@@ -180,13 +176,11 @@ class MainActivity : ReactActivity() {
             if (!noTimeLimit) {
                 // Timer is running, don't allow unlock
                 Log.d(TAG, "Timer still active, unlock not allowed")
-                vibrateError()
                 return true  // We handled it (by preventing unlock)
             }
 
             // Stop the session
             stopSession(sessionPrefs)
-            vibrateSuccess()
             Log.d(TAG, "Session stopped via NFC")
             return true  // We handled it successfully
         } else {
@@ -194,12 +188,10 @@ class MainActivity : ReactActivity() {
             val tapConfig = nfcPrefs.getString(KEY_TAP_CONFIG, null)
             if (tapConfig == null) {
                 Log.d(TAG, "No tap config saved, can't start session")
-                vibrateError()
                 return true  // We handled it (by showing error)
             }
 
             startSessionFromConfig(sessionPrefs, tapConfig)
-            vibrateSuccess()
             Log.d(TAG, "Session started via NFC")
             return true  // We handled it successfully
         }
@@ -267,31 +259,6 @@ class MainActivity : ReactActivity() {
             Log.d(TAG, "Session started with ${appSet.size} apps, ${websiteSet.size} websites, duration: ${durationMs}ms")
         } catch (e: Exception) {
             Log.e(TAG, "Error parsing tap config", e)
-        }
-    }
-
-    private fun vibrateSuccess() {
-        vibrate(longArrayOf(0, 300, 100, 300))
-    }
-
-    private fun vibrateError() {
-        vibrate(longArrayOf(0, 100, 50, 100, 50, 100))
-    }
-
-    private fun vibrate(pattern: LongArray) {
-        val vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            val vibratorManager = getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
-            vibratorManager.defaultVibrator
-        } else {
-            @Suppress("DEPRECATION")
-            getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-        }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            vibrator.vibrate(VibrationEffect.createWaveform(pattern, -1))
-        } else {
-            @Suppress("DEPRECATION")
-            vibrator.vibrate(pattern, -1)
         }
     }
 

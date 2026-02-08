@@ -57,7 +57,6 @@ import OTPInput from '../components/OTPInput';
 import { useTheme , textSize, fontFamily, radius, shadow, iconSize } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { API_URL } from '../config/api';
-import { lightTap } from '../utils/haptics';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { AuthStackParamList } from '../navigation/types';
@@ -204,8 +203,8 @@ function ForgotPasswordScreen() {
           source={require('../frontassets/Loading Dots Blue.json')}
           autoPlay
           loop
-          speed={2}
-          style={{ width: s(250), height: s(250) }}
+          speed={3.5}
+          style={{ width: s(150), height: s(150) }}
         />
       </SafeAreaView>
     );
@@ -282,7 +281,6 @@ function ForgotPasswordScreen() {
                 </View>
 
                 <TouchableOpacity
-                  onPressIn={lightTap}
                   onPress={() => handleResendCode()}
                   disabled={loading}
                   className="items-center mb-4"
@@ -359,7 +357,6 @@ function ForgotPasswordScreen() {
           <View className="px-6 pb-8 mt-6">
             {/* Action Button */}
             <TouchableOpacity
-              onPressIn={lightTap}
               onPress={() => {
                 step === 'email'
                   ? handleSendCode()

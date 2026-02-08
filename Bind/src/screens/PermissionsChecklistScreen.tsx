@@ -16,7 +16,6 @@ import Svg, { Path } from 'react-native-svg';
 import { useAuth } from '../context/AuthContext';
 import { useTheme , textSize, fontFamily, radius, shadow, iconSize } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
-import { lightTap } from '../utils/haptics';
 
 const { PermissionsModule } = NativeModules;
 
@@ -319,8 +318,8 @@ function PermissionsChecklistScreen() {
           source={require('../frontassets/Loading Dots Blue.json')}
           autoPlay
           loop
-          speed={2}
-          style={{ width: s(250), height: s(250) }}
+          speed={3.5}
+          style={{ width: s(150), height: s(150) }}
         />
         <Text style={{ color: colors.textSecondary }} className={`${textSize.base} ${fontFamily.regular} mt-4`}>
           Checking permissions...
@@ -354,7 +353,6 @@ function PermissionsChecklistScreen() {
         {permissions.filter(p => !p.isGranted).map((permission) => (
           <TouchableOpacity
             key={permission.id}
-            onPressIn={lightTap}
             onPress={() => openPermissionSettings(permission)}
             activeOpacity={0.7}
             style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}

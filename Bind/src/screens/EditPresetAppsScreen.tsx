@@ -11,7 +11,6 @@ import {
   NativeEventEmitter,
   FlatList,
   Image,
-  Animated,
 } from 'react-native';
 import LottieView from 'lottie-react-native';
 const Lottie = LottieView as any;
@@ -22,7 +21,6 @@ import Svg, { Path, Rect } from 'react-native-svg';
 import ExcludedAppsInfoModal from '../components/ExcludedAppsInfoModal';
 import { Preset } from '../components/PresetCard';
 import HeaderIconButton from '../components/HeaderIconButton';
-import { lightTap } from '../utils/haptics';
 import { useTheme, textSize, fontFamily, radius, shadow, iconSize, buttonPadding } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -230,31 +228,11 @@ const AppItemRow = memo(({ item, isSelected, onToggle, onPressIn, colors, s, ski
   s: (v: number) => number;
   skipCheckboxAnimation: boolean;
 }) => {
-  const scaleAnim = useRef(new Animated.Value(1)).current;
-
-  const handlePress = useCallback(() => {
-    // Animate scale: 1 -> 1.03 -> 1
-    Animated.sequence([
-      Animated.timing(scaleAnim, {
-        toValue: 1.03,
-        duration: 80,
-        useNativeDriver: true,
-      }),
-      Animated.timing(scaleAnim, {
-        toValue: 1,
-        duration: 80,
-        useNativeDriver: true,
-      }),
-    ]).start();
-    onToggle(item.id);
-  }, [scaleAnim, onToggle, item.id]);
-
   return (
-    <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
       <TouchableOpacity
         onPressIn={onPressIn}
-        onPress={handlePress}
-        activeOpacity={0.9}
+        onPress={() => onToggle(item.id)}
+        activeOpacity={0.7}
         style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, paddingVertical: s(buttonPadding.standard), ...shadow.card }}
         className={`flex-row items-center px-4 ${radius.xl} mb-2`}
       >
@@ -274,7 +252,6 @@ const AppItemRow = memo(({ item, isSelected, onToggle, onPressIn, colors, s, ski
         <Text style={{ color: colors.text }} className={`flex-1 ${textSize.small} ${fontFamily.regular}`}>{item.name}</Text>
         <AnimatedCheckbox checked={isSelected} size={s(iconSize.lg)} skipAnimation={skipCheckboxAnimation} />
       </TouchableOpacity>
-    </Animated.View>
   );
 });
 
@@ -303,39 +280,6 @@ function EditPresetAppsScreen() {
   const [excludedAppsInfoVisible, setExcludedAppsInfoVisible] = useState(false);
   const [svgKey, setSvgKey] = useState(0);
   const appsLoadedRef = useRef(false);
-
-  // Input focus scale animations
-  const nameInputScale = useRef(new Animated.Value(1)).current;
-  const websiteInputScale = useRef(new Animated.Value(1)).current;
-  const searchInputScale = useRef(new Animated.Value(1)).current;
-  const selectAllScale = useRef(new Animated.Value(1)).current;
-  const deselectAllScale = useRef(new Animated.Value(1)).current;
-  const appsTabScale = useRef(new Animated.Value(1)).current;
-  const websitesTabScale = useRef(new Animated.Value(1)).current;
-  const websiteAddButtonScale = useRef(new Animated.Value(1)).current;
-
-  const animateInputFocus = useCallback((scaleAnim: Animated.Value, focused: boolean) => {
-    Animated.timing(scaleAnim, {
-      toValue: focused ? 1.03 : 1,
-      duration: 80,
-      useNativeDriver: true,
-    }).start();
-  }, []);
-
-  const animateButtonPress = useCallback((scaleAnim: Animated.Value) => {
-    Animated.sequence([
-      Animated.timing(scaleAnim, {
-        toValue: 1.03,
-        duration: 80,
-        useNativeDriver: true,
-      }),
-      Animated.timing(scaleAnim, {
-        toValue: 1,
-        duration: 80,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, []);
 
   // Load installed apps once on mount (screen is eagerly mounted, not lazy)
   useEffect(() => {
@@ -537,7 +481,6 @@ function EditPresetAppsScreen() {
         item={item}
         isSelected={isSelected}
         onToggle={toggleApp}
-        onPressIn={lightTap}
         colors={colors}
         s={s}
         skipCheckboxAnimation={skipCheckboxAnimation}
@@ -574,8 +517,8 @@ function EditPresetAppsScreen() {
       >
         {/* Preset Name Input */}
         <View className="px-6 py-4">
-          <Animated.View
-            style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card, transform: [{ scale: nameInputScale }] }}
+          <View
+            style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
             className={`${radius.xl} px-4 h-12 flex-row items-center`}
           >
             <EditIcon size={s(iconSize.sm)} color={colors.textSecondary} />
@@ -585,43 +528,37 @@ function EditPresetAppsScreen() {
               value={name}
               onChangeText={setName}
               maxLength={50}
-              onFocus={() => animateInputFocus(nameInputScale, true)}
-              onBlur={() => animateInputFocus(nameInputScale, false)}
               style={{ color: colors.text, flex: 1, marginLeft: s(8), paddingVertical: 0, includeFontPadding: false, textAlignVertical: 'center' }}
               className={`${textSize.small} ${fontFamily.semibold}`}
             />
-          </Animated.View>
+          </View>
         </View>
 
         {/* Tabs */}
         <View className="flex-row mx-6 mb-4">
-          <Animated.View style={{ flex: 1, transform: [{ scale: appsTabScale }] }}>
-            <TouchableOpacity
-              onPress={() => { lightTap(); animateButtonPress(appsTabScale); switchTab('apps'); }}
-              activeOpacity={1}
-              style={{ backgroundColor: activeTab === 'apps' ? colors.text : colors.card, borderWidth: 1, borderColor: colors.border, paddingVertical: s(buttonPadding.smallStandard), ...shadow.card }}
-              className={`${radius.full} items-center justify-center flex-row`}
-            >
-              <AndroidIcon size={s(iconSize.lg)} color={activeTab === 'apps' ? colors.bg : colors.text} />
-              <Text style={{ color: activeTab === 'apps' ? colors.bg : colors.text, marginLeft: s(6) }} className={`${textSize.small} ${fontFamily.semibold}`}>
-                Apps
-              </Text>
-            </TouchableOpacity>
-          </Animated.View>
+          <TouchableOpacity
+            onPress={() => switchTab('apps')}
+            activeOpacity={0.7}
+            style={{ flex: 1, backgroundColor: activeTab === 'apps' ? colors.text : colors.card, borderWidth: 1, borderColor: colors.border, paddingVertical: s(buttonPadding.smallStandard), ...shadow.card }}
+            className={`${radius.full} items-center justify-center flex-row`}
+          >
+            <AndroidIcon size={s(iconSize.lg)} color={activeTab === 'apps' ? colors.bg : colors.text} />
+            <Text style={{ color: activeTab === 'apps' ? colors.bg : colors.text, marginLeft: s(6) }} className={`${textSize.small} ${fontFamily.semibold}`}>
+              Apps
+            </Text>
+          </TouchableOpacity>
           <View className="w-2" />
-          <Animated.View style={{ flex: 1, transform: [{ scale: websitesTabScale }] }}>
-            <TouchableOpacity
-              onPress={() => { lightTap(); animateButtonPress(websitesTabScale); switchTab('websites'); }}
-              activeOpacity={1}
-              style={{ backgroundColor: activeTab === 'websites' ? colors.text : colors.card, borderWidth: 1, borderColor: colors.border, paddingVertical: s(buttonPadding.smallStandard), ...shadow.card }}
-              className={`${radius.full} items-center justify-center flex-row`}
-            >
-              <GlobeIcon size={s(iconSize.lg)} color={activeTab === 'websites' ? colors.bg : colors.text} />
-              <Text style={{ color: activeTab === 'websites' ? colors.bg : colors.text, marginLeft: s(6) }} className={`${textSize.small} ${fontFamily.semibold}`}>
-                Websites
-              </Text>
-            </TouchableOpacity>
-          </Animated.View>
+          <TouchableOpacity
+            onPress={() => switchTab('websites')}
+            activeOpacity={0.7}
+            style={{ flex: 1, backgroundColor: activeTab === 'websites' ? colors.text : colors.card, borderWidth: 1, borderColor: colors.border, paddingVertical: s(buttonPadding.smallStandard), ...shadow.card }}
+            className={`${radius.full} items-center justify-center flex-row`}
+          >
+            <GlobeIcon size={s(iconSize.lg)} color={activeTab === 'websites' ? colors.bg : colors.text} />
+            <Text style={{ color: activeTab === 'websites' ? colors.bg : colors.text, marginLeft: s(6) }} className={`${textSize.small} ${fontFamily.semibold}`}>
+              Websites
+            </Text>
+          </TouchableOpacity>
         </View>
 
         <View style={{ flex: 1 }}>
@@ -661,8 +598,8 @@ function EditPresetAppsScreen() {
               <>
                 {/* Search */}
                 <View className="px-6 mb-4">
-                  <Animated.View
-                    style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card, transform: [{ scale: searchInputScale }] }}
+                  <View
+                    style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
                     className={`${radius.xl} px-4 h-12 flex-row items-center`}
                   >
                     <SearchIcon size={s(iconSize.sm)} color={colors.textSecondary} />
@@ -671,65 +608,49 @@ function EditPresetAppsScreen() {
                       placeholderTextColor={colors.textSecondary}
                       value={searchQuery}
                       onChangeText={setSearchQuery}
-                      onFocus={() => animateInputFocus(searchInputScale, true)}
-                      onBlur={() => animateInputFocus(searchInputScale, false)}
                       style={{ color: colors.text, flex: 1, marginLeft: s(8), paddingVertical: 0, includeFontPadding: false, textAlignVertical: 'center' }}
                       className={`${textSize.small} ${fontFamily.semibold}`}
                     />
-                  </Animated.View>
+                  </View>
                 </View>
 
                 {/* Select All / Deselect All Buttons */}
                 {!loadingApps && filteredApps.length > 0 && (
                   <View className="flex-row px-6 mb-3">
-                    <Animated.View style={{ flex: 1, marginRight: s(8), transform: [{ scale: selectAllScale }] }}>
-                      <TouchableOpacity
-                        onPress={() => {
-                          lightTap();
-                          Animated.sequence([
-                            Animated.timing(selectAllScale, { toValue: 1.03, duration: 80, useNativeDriver: true }),
-                            Animated.timing(selectAllScale, { toValue: 1, duration: 80, useNativeDriver: true }),
-                          ]).start();
-                          setSkipCheckboxAnimation(true);
-                          setTimeout(() => setSkipCheckboxAnimation(false), 50);
-                          const filteredIds = filteredApps.map(app => app.id);
-                          setSelectedApps(prev => {
-                            const newSet = new Set(prev);
-                            filteredIds.forEach(id => newSet.add(id));
-                            return Array.from(newSet);
-                          });
-                        }}
-                        activeOpacity={1}
-                        style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, paddingVertical: s(buttonPadding.smallStandard), ...shadow.card }}
-                        className={`${radius.full} items-center justify-center`}
-                      >
-                        <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
-                          Select All
-                        </Text>
-                      </TouchableOpacity>
-                    </Animated.View>
-                    <Animated.View style={{ flex: 1, transform: [{ scale: deselectAllScale }] }}>
-                      <TouchableOpacity
-                        onPress={() => {
-                          lightTap();
-                          Animated.sequence([
-                            Animated.timing(deselectAllScale, { toValue: 1.03, duration: 80, useNativeDriver: true }),
-                            Animated.timing(deselectAllScale, { toValue: 1, duration: 80, useNativeDriver: true }),
-                          ]).start();
-                          setSkipCheckboxAnimation(true);
-                          setTimeout(() => setSkipCheckboxAnimation(false), 50);
-                          const filteredIds = new Set(filteredApps.map(app => app.id));
-                          setSelectedApps(prev => prev.filter(id => !filteredIds.has(id)));
-                        }}
-                        activeOpacity={1}
-                        style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, paddingVertical: s(buttonPadding.smallStandard), ...shadow.card }}
-                        className={`${radius.full} items-center justify-center`}
-                      >
-                        <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.semibold}`}>
-                          Deselect All
-                        </Text>
-                      </TouchableOpacity>
-                    </Animated.View>
+                    <TouchableOpacity
+                      onPress={() => {
+                        setSkipCheckboxAnimation(true);
+                        setTimeout(() => setSkipCheckboxAnimation(false), 50);
+                        const filteredIds = filteredApps.map(app => app.id);
+                        setSelectedApps(prev => {
+                          const newSet = new Set(prev);
+                          filteredIds.forEach(id => newSet.add(id));
+                          return Array.from(newSet);
+                        });
+                      }}
+                      activeOpacity={0.7}
+                      style={{ flex: 1, marginRight: s(8), backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, paddingVertical: s(buttonPadding.smallStandard), ...shadow.card }}
+                      className={`${radius.full} items-center justify-center`}
+                    >
+                      <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
+                        Select All
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => {
+                        setSkipCheckboxAnimation(true);
+                        setTimeout(() => setSkipCheckboxAnimation(false), 50);
+                        const filteredIds = new Set(filteredApps.map(app => app.id));
+                        setSelectedApps(prev => prev.filter(id => !filteredIds.has(id)));
+                      }}
+                      activeOpacity={0.7}
+                      style={{ flex: 1, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, paddingVertical: s(buttonPadding.smallStandard), ...shadow.card }}
+                      className={`${radius.full} items-center justify-center`}
+                    >
+                      <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.semibold}`}>
+                        Deselect All
+                      </Text>
+                    </TouchableOpacity>
                   </View>
                 )}
 
@@ -745,8 +666,8 @@ function EditPresetAppsScreen() {
                       source={require('../frontassets/Loading Dots Blue.json')}
                       autoPlay
                       loop
-                      speed={2}
-                      style={{ width: s(200), height: s(200) }}
+                      speed={3.5}
+                      style={{ width: s(150), height: s(150) }}
                     />
                   </View>
                 ) : (
@@ -773,8 +694,8 @@ function EditPresetAppsScreen() {
             <ScrollView className="flex-1 px-6" contentContainerStyle={{ paddingBottom: s(24) + insets.bottom }}>
               {/* Website Input */}
               <View className="flex-row items-center mb-4">
-                <Animated.View
-                  style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card, flex: 1, transform: [{ scale: websiteInputScale }] }}
+                <View
+                  style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card, flex: 1 }}
                   className={`${radius.xl} px-4 h-12 flex-row items-center mr-2`}
                 >
                   <GlobeIcon size={s(iconSize.md)} color={colors.textSecondary} />
@@ -785,23 +706,19 @@ function EditPresetAppsScreen() {
                     onChangeText={setWebsiteInput}
                     autoCapitalize="none"
                     keyboardType="url"
-                    onFocus={() => animateInputFocus(websiteInputScale, true)}
-                    onBlur={() => animateInputFocus(websiteInputScale, false)}
                     style={{ color: colors.text, flex: 1, marginLeft: s(8), paddingVertical: 0, includeFontPadding: false, textAlignVertical: 'center' }}
                     className={`${textSize.small} ${fontFamily.semibold}`}
                   />
-                </Animated.View>
-                <Animated.View style={{ transform: [{ scale: websiteAddButtonScale }] }}>
-                  <TouchableOpacity
-                    onPress={() => { lightTap(); animateButtonPress(websiteAddButtonScale); addWebsite(); }}
-                    activeOpacity={1}
-                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                    style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
-                    className={`w-11 h-11 ${radius.full} items-center justify-center`}
-                  >
-                    <Text className={`text-white ${textSize['2xLarge']} ${fontFamily.light}`}>+</Text>
-                  </TouchableOpacity>
-                </Animated.View>
+                </View>
+                <TouchableOpacity
+                  onPress={addWebsite}
+                  activeOpacity={0.7}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
+                  className={`w-11 h-11 ${radius.full} items-center justify-center`}
+                >
+                  <Text className={`text-white ${textSize['2xLarge']} ${fontFamily.light}`}>+</Text>
+                </TouchableOpacity>
               </View>
 
               <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} mb-4`}>
@@ -820,7 +737,6 @@ function EditPresetAppsScreen() {
                   </View>
                   <Text style={{ color: colors.text }} className={`flex-1 ${textSize.small} ${fontFamily.regular}`}>{site}</Text>
                   <TouchableOpacity
-                    onPressIn={lightTap}
                     onPress={() => removeWebsite(site)}
                     activeOpacity={0.7}
                     hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}

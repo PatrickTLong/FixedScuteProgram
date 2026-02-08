@@ -6,7 +6,7 @@ import {
   Modal,
   Pressable,
 } from 'react-native';
-import { lightTap, heavyTap } from '../utils/haptics';
+
 import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
 
 interface ConfirmationModalProps {
@@ -64,7 +64,6 @@ function ConfirmationModal({
               <View style={{ borderTopWidth: 1, borderTopColor: colors.divider }} className="flex-row">
                 {/* Cancel Button */}
                 <TouchableOpacity
-                  onPressIn={lightTap}
                   onPress={onCancel}
                   activeOpacity={0.7}
                   style={{ borderRightWidth: 1, borderRightColor: colors.divider }}
@@ -77,7 +76,6 @@ function ConfirmationModal({
 
                 {/* Confirm Button */}
                 <TouchableOpacity
-                  onPressIn={() => isDestructive ? heavyTap() : lightTap()}
                   onPress={onConfirm}
                   activeOpacity={0.7}
                   className="flex-1 py-4 items-center"

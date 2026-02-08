@@ -8,7 +8,6 @@ import {
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { useTheme , textSize, fontFamily, radius, shadow, iconSize } from '../context/ThemeContext';
-import { lightTap } from '../utils/haptics';
 import { useResponsive } from '../utils/responsive';
 
 interface ShieldIconsInfoModalProps {
@@ -115,7 +114,6 @@ function ShieldIconsInfoModal({ visible, onClose }: ShieldIconsInfoModalProps) {
 
                 {/* Don't show again checkbox */}
                 <TouchableOpacity
-                  onPressIn={lightTap}
                   onPress={() => setDontShowAgain(!dontShowAgain)}
                   activeOpacity={0.7}
                   className="flex-row items-center justify-center mt-6"
@@ -150,7 +148,6 @@ function ShieldIconsInfoModal({ visible, onClose }: ShieldIconsInfoModalProps) {
               {/* Button */}
               <View style={{ borderTopWidth: 1, borderTopColor: colors.divider }}>
                 <TouchableOpacity
-                  onPressIn={lightTap}
                   onPress={handleClose}
                   activeOpacity={0.7}
                   className="py-4 items-center"

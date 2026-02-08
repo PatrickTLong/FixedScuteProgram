@@ -9,7 +9,7 @@ import {
   NativeScrollEvent,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { lightTap } from '../utils/haptics';
+
 import { useTheme , textSize, fontFamily, radius, shadow, iconSize, buttonPadding } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import Svg, { Path } from 'react-native-svg';
@@ -77,7 +77,6 @@ interface TimeWheelProps {
 
 const TimeWheel = memo(({ values, selectedValue, onValueChange, padZero = true, textColor, textMutedColor, itemHeight, wheelWidth, selectedFontSize, unselectedFontSize }: TimeWheelProps) => {
   const scrollRef = useRef<ScrollView>(null);
-  const lastHapticIndex = useRef(-1);
   const scrolledByUser = useRef(false);
 
   const selectedIndex = values.indexOf(selectedValue);
@@ -113,10 +112,6 @@ const TimeWheel = memo(({ values, selectedValue, onValueChange, padZero = true, 
     const currentIndex = Math.round(offsetY / itemHeight);
     const clampedIndex = Math.max(0, Math.min(currentIndex, values.length - 1));
 
-    if (lastHapticIndex.current !== clampedIndex && lastHapticIndex.current !== -1) {
-      lightTap();
-    }
-    lastHapticIndex.current = clampedIndex;
     updateWindow(clampedIndex);
   }, [values.length, itemHeight, updateWindow]);
 
@@ -189,7 +184,6 @@ const DayCell = memo(({ day, selectable, selected, isToday: todayDay, textColor,
   const { colors } = useTheme();
   return (
   <TouchableOpacity
-    onPressIn={lightTap}
     onPress={() => onSelect(day)}
     disabled={!selectable}
     style={{ width: '14.28%', height: cellHeight }}
@@ -234,7 +228,6 @@ const AmPmSelector = memo(({ value, onChange, greenColor, cardColor, textMutedCo
   return (
   <View className="ml-2">
     <TouchableOpacity
-      onPressIn={lightTap}
       onPress={() => onChange('AM')}
       style={{ backgroundColor: value === 'AM' ? colors.green : cardColor, borderWidth: 1, borderColor: value === 'AM' ? colors.green : colors.border, ...shadow.card }}
       className={`px-3 py-2 ${radius.lg}`}
@@ -244,7 +237,6 @@ const AmPmSelector = memo(({ value, onChange, greenColor, cardColor, textMutedCo
       </Text>
     </TouchableOpacity>
     <TouchableOpacity
-      onPressIn={lightTap}
       onPress={() => onChange('PM')}
       style={{ backgroundColor: value === 'PM' ? colors.green : cardColor, borderWidth: 1, borderColor: value === 'PM' ? colors.green : colors.border, ...shadow.card }}
       className={`px-3 py-2 ${radius.lg} mt-1`}
@@ -465,12 +457,11 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
           <SafeAreaView style={{ flex: 1 }}>
           {/* Header */}
           <View style={{ borderBottomWidth: 1, borderBottomColor: colors.divider }} className="flex-row items-center justify-between px-4 py-3">
-            <TouchableOpacity onPressIn={lightTap} onPress={handleClose} className="px-2">
+            <TouchableOpacity onPress={handleClose} className="px-2">
               <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.regular}`}>Cancel</Text>
             </TouchableOpacity>
             <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.semibold}`}>Pick Date and Time</Text>
             <TouchableOpacity
-              onPressIn={lightTap}
               onPress={handleConfirm}
               disabled={!isFutureDateTime}
               className="px-2"
@@ -594,7 +585,6 @@ function DatePickerModal({ visible, selectedDate, onClose, onSelect, minimumDate
               {/* Clear Button - centered with text block */}
               {tempSelectedDate && (
                 <TouchableOpacity
-                  onPressIn={lightTap}
                   onPress={handleClear}
                   style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
                   className={`ml-4 px-4 py-2 ${radius.full}`}

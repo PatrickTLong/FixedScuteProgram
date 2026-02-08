@@ -13,7 +13,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import { useTheme , textSize, fontFamily, radius, shadow, iconSize } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
-import { lightTap } from '../utils/haptics';
 import HeaderIconButton from '../components/HeaderIconButton';
 
 interface InstalledApp {
@@ -97,7 +96,6 @@ const AppItem = memo(({ item, isSelected, onToggle, cardColor, cardLightColor, t
 
   return (
     <TouchableOpacity
-      onPressIn={lightTap}
       onPress={handlePress}
       activeOpacity={0.7}
       style={{ backgroundColor: cardColor, borderWidth: 1, borderColor: borderColor, ...shadow.card }}
@@ -202,7 +200,6 @@ function SelectAppsScreen({
       {/* Tabs */}
       <View className="flex-row mx-4 my-4">
         <TouchableOpacity
-          onPressIn={lightTap}
           onPress={() => setActiveTab('apps')}
           style={{ backgroundColor: activeTab === 'apps' ? colors.text : colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
           className={`flex-1 py-2 ${radius.full} items-center`}
@@ -213,7 +210,6 @@ function SelectAppsScreen({
         </TouchableOpacity>
         <View className="w-2" />
         <TouchableOpacity
-          onPressIn={lightTap}
           onPress={() => setActiveTab('websites')}
           style={{ backgroundColor: activeTab === 'websites' ? colors.text : colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
           className={`flex-1 py-2 ${radius.full} items-center`}
@@ -239,7 +235,7 @@ function SelectAppsScreen({
                 className={`flex-1 ${textSize.base} ${fontFamily.regular} ml-3`}
               />
               {searchQuery.length > 0 && (
-                <TouchableOpacity onPressIn={lightTap} onPress={() => setSearchQuery('')}>
+                <TouchableOpacity onPress={() => setSearchQuery('')}>
                   <Text style={{ color: colors.textSecondary }} className={`${textSize.large}`}>✕</Text>
                 </TouchableOpacity>
               )}
@@ -252,8 +248,8 @@ function SelectAppsScreen({
                 source={require('../frontassets/Loading Dots Blue.json')}
                 autoPlay
                 loop
-                speed={2}
-                style={{ width: s(250), height: s(250) }}
+                speed={3.5}
+                style={{ width: s(150), height: s(150) }}
               />
               <Text style={{ color: colors.textSecondary }} className={`${textSize.base} ${fontFamily.regular} mt-4`}>
                 Loading apps...
@@ -304,7 +300,7 @@ function SelectAppsScreen({
                 onSubmitEditing={handleAddWebsite}
               />
               {websiteInput.length > 0 && (
-                <TouchableOpacity onPressIn={lightTap} onPress={() => setWebsiteInput('')}>
+                <TouchableOpacity onPress={() => setWebsiteInput('')}>
                   <Text style={{ color: colors.textSecondary }} className={`${textSize.large}`}>✕</Text>
                 </TouchableOpacity>
               )}
@@ -344,7 +340,6 @@ function SelectAppsScreen({
       {/* Save Button */}
       <View style={{ backgroundColor: colors.bg, borderTopWidth: 1, borderTopColor: colors.divider }} className="absolute bottom-0 left-0 right-0 p-4">
         <TouchableOpacity
-          onPressIn={lightTap}
           onPress={() => onSave()}
           activeOpacity={0.8}
           style={{ backgroundColor: colors.text, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
