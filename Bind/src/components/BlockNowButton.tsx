@@ -24,6 +24,7 @@ interface BlockNowButtonProps {
   isLocked?: boolean;
   hasActiveTimer?: boolean; // true when there's a countdown or elapsed time showing
   strictMode?: boolean; // when false, slide-to-unlock is available even for timed presets
+  onInteractionChange?: (interacting: boolean) => void;
 }
 
 function BlockNowButton({
@@ -34,6 +35,7 @@ function BlockNowButton({
   isLocked = false,
   hasActiveTimer = false,
   strictMode = false,
+  onInteractionChange,
 }: BlockNowButtonProps) {
   const { colors } = useTheme();
   const { s } = useResponsive();
@@ -57,6 +59,8 @@ function BlockNowButton({
   onActivateRef.current = onActivate;
   const onSlideUnlockRef = useRef(onSlideUnlock);
   onSlideUnlockRef.current = onSlideUnlock;
+  const onInteractionChangeRef = useRef(onInteractionChange);
+  onInteractionChangeRef.current = onInteractionChange;
   const isUnlockingRef = useRef(isUnlocking);
   isUnlockingRef.current = isUnlocking;
 
@@ -138,9 +142,9 @@ function BlockNowButton({
       PanResponder.create({
         onStartShouldSetPanResponder: () => canActivateRef.current,
         onMoveShouldSetPanResponder: () => false,
-        onPanResponderGrant: () => { startAnimation(); },
-        onPanResponderRelease: () => { cancelAnimation(); },
-        onPanResponderTerminate: () => { cancelAnimation(); },
+        onPanResponderGrant: () => { onInteractionChangeRef.current?.(true); startAnimation(); },
+        onPanResponderRelease: () => { onInteractionChangeRef.current?.(false); cancelAnimation(); },
+        onPanResponderTerminate: () => { onInteractionChangeRef.current?.(false); cancelAnimation(); },
       }),
     [startAnimation, cancelAnimation]
   );
@@ -151,6 +155,7 @@ function BlockNowButton({
       onStartShouldSetPanResponder: () => !isUnlockingRef.current,
       onMoveShouldSetPanResponder: (_, g) => !isUnlockingRef.current && Math.abs(g.dx) > 5,
       onPanResponderGrant: () => {
+          onInteractionChangeRef.current?.(true);
         },
       onPanResponderMove: (_, g) => {
         const maxSlide = buttonWidthRef.current;
@@ -158,6 +163,7 @@ function BlockNowButton({
         slidePosition.setValue(pos);
       },
       onPanResponderRelease: (_, g) => {
+        onInteractionChangeRef.current?.(false);
         const maxSlide = buttonWidthRef.current;
         const pos = Math.max(0, Math.min(g.dx, maxSlide));
         if (pos >= maxSlide * 0.85) {
@@ -166,7 +172,7 @@ function BlockNowButton({
           resetSliderRef.current();
         }
       },
-      onPanResponderTerminate: () => { resetSliderRef.current(); },
+      onPanResponderTerminate: () => { onInteractionChangeRef.current?.(false); resetSliderRef.current(); },
     })
   ).current;
 

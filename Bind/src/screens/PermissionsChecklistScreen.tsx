@@ -318,8 +318,8 @@ function PermissionsChecklistScreen() {
           source={require('../frontassets/Loading Dots Blue.json')}
           autoPlay
           loop
-          speed={3.5}
-          style={{ width: s(150), height: s(150) }}
+          speed={2.5}
+          style={{ width: s(200), height: s(200) }}
         />
         <Text style={{ color: colors.textSecondary }} className={`${textSize.base} ${fontFamily.regular} mt-4`}>
           Checking permissions...

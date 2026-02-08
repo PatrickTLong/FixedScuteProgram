@@ -66,6 +66,8 @@ function HomeScreen() {
 
   // Pull-to-refresh state
   const [refreshing, setRefreshing] = useState(false);
+  const [isNearTop, setIsNearTop] = useState(true);
+  const [buttonInteracting, setButtonInteracting] = useState(false);
 
   // Prevent concurrent loadStats calls (race condition fix)
   const loadStatsInProgressRef = useRef(false);
@@ -922,13 +924,25 @@ function HomeScreen() {
     ) : null;
   }, [getPresetTimingSubtext, colors.textMuted]);
 
+  // Track scroll position to disable pull-to-refresh near bottom (Block Now button area)
+  const handleScroll = useCallback((e: any) => {
+    const offsetY = e.nativeEvent.contentOffset.y;
+    const contentHeight = e.nativeEvent.contentSize.height;
+    const layoutHeight = e.nativeEvent.layoutMeasurement.height;
+    const distanceFromBottom = contentHeight - layoutHeight - offsetY;
+    setIsNearTop(distanceFromBottom > 150);
+  }, []);
+
+  const refreshEnabled = isNearTop && !buttonInteracting;
+
   // Pull-to-refresh handler
   const onRefresh = useCallback(async () => {
+    if (!refreshEnabled) return;
     setRefreshing(true);
     invalidateUserCaches(email);
     await loadStats(true, false);
     setRefreshing(false);
-  }, [email, loadStats]);
+  }, [email, loadStats, refreshEnabled]);
 
   if (loading) {
     return (
@@ -937,8 +951,8 @@ function HomeScreen() {
           source={require('../frontassets/Loading Dots Blue.json')}
           autoPlay
           loop
-          speed={3.5}
-          style={{ width: s(150), height: s(150) }}
+          speed={2.5}
+          style={{ width: s(200), height: s(200) }}
         />
       </View>
     );
@@ -994,13 +1008,17 @@ function HomeScreen() {
       <ScrollView
         className="flex-1 px-6"
         contentContainerStyle={{ flexGrow: 1 }}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
+            enabled={refreshEnabled}
             tintColor={colors.text}
             colors={[colors.text]}
             progressBackgroundColor={colors.card}
+            progressViewOffset={-20}
           />
         }
       >
@@ -1092,6 +1110,7 @@ function HomeScreen() {
             isLocked={isLocked}
             hasActiveTimer={!!timeRemaining}
             strictMode={activePreset?.strictMode ?? false}
+            onInteractionChange={setButtonInteracting}
           />
         </View>
       </ScrollView>

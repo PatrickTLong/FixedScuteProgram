@@ -744,8 +744,8 @@ function PresetsScreen() {
               source={require('../frontassets/Loading Dots Blue.json')}
               autoPlay
               loop
-              speed={3.5}
-              style={{ width: s(150), height: s(150) }}
+              speed={2.5}
+              style={{ width: s(200), height: s(200) }}
             />
           </View>
         )}
@@ -792,7 +792,7 @@ function PresetsScreen() {
             }}
             className=""
           >
-            <PlusIcon size={s(iconSize.lg)} color={colors.text} />
+            <Text style={{ color: '#fff', textAlign: 'center', marginTop: -1 }} className={`${textSize['2xLarge']} ${fontFamily.light}`}>+</Text>
           </HeaderIconButton>
       </View>
 
@@ -814,6 +814,7 @@ function PresetsScreen() {
             tintColor={colors.text}
             colors={[colors.text]}
             progressBackgroundColor={colors.card}
+            progressViewOffset={-20}
           />
         }
       />

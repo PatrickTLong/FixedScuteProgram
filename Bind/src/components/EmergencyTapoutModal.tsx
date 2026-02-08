@@ -167,7 +167,7 @@ function EmergencyTapoutModal({
                       source={require('../frontassets/Loading Dots Blue.json')}
                       autoPlay
                       loop
-                      speed={3.5}
+                      speed={2.5}
                       style={{ width: s(150), height: s(150) }}
                     />
                   </View>
