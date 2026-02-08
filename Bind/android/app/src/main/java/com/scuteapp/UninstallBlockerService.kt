@@ -56,7 +56,7 @@ class UninstallBlockerService : Service() {
                         NotificationManager.IMPORTANCE_HIGH
                     ).apply {
                         description = "Alerts when blocking sessions end"
-                        enableVibration(true)
+                        enableVibration(false)
                         enableLights(true)
                         setShowBadge(true)
                     }

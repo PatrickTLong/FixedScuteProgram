@@ -133,7 +133,7 @@ class TimerPresetReceiver : BroadcastReceiver() {
                     NotificationManager.IMPORTANCE_HIGH
                 ).apply {
                     description = "Alerts when timer-based blocking sessions end"
-                    enableVibration(true)
+                    enableVibration(false)
                     enableLights(true)
                     setShowBadge(true)
                 }

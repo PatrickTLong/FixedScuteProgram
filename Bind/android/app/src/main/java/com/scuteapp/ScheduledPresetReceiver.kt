@@ -424,7 +424,7 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
                     NotificationManager.IMPORTANCE_HIGH
                 ).apply {
                     description = "Alerts when scheduled blocking presets activate or end"
-                    enableVibration(true)
+                    enableVibration(false)
                     enableLights(true)
                 }
                 notificationManager.createNotificationChannel(channel)
@@ -693,7 +693,7 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
                     NotificationManager.IMPORTANCE_HIGH
                 ).apply {
                     description = "Alerts when scheduled blocking presets activate"
-                    enableVibration(true)
+                    enableVibration(false)
                     enableLights(true)
                     setShowBadge(true)
                 }
@@ -750,7 +750,7 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
                     NotificationManager.IMPORTANCE_HIGH
                 ).apply {
                     description = "Alerts when scheduled blocking presets activate or end"
-                    enableVibration(true)
+                    enableVibration(false)
                     enableLights(true)
                     setShowBadge(true)
                 }
