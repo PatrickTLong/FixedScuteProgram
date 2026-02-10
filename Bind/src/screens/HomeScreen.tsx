@@ -324,8 +324,12 @@ function HomeScreen() {
       // Tapout API must succeed before unlocking (decrements tapout count)
       const result = await useEmergencyTapout(email);
       if (result.success) {
-        // 1) Optimistic local + shared state (instant UI)
+        // Unlock UI — clear timer in same render for smooth transition
         setEmergencyTapoutModalVisible(false);
+        setTapoutLoading(false);
+        setLoading(false);
+        setTimeRemaining(null);
+        setElapsedTime(null);
         setSharedLockStatus({ isLocked: false, lockStartedAt: null, lockEndsAt: null });
         setTapoutStatus(tapoutStatus ? { ...tapoutStatus, remaining: result.remaining } : null);
         if (isScheduledPreset) {
@@ -338,20 +342,12 @@ function HomeScreen() {
           }
         }
 
-        // 2) Clear native blocking + minimum 200ms spinner for smooth feel
-        const minSpinner = new Promise<void>(resolve => setTimeout(resolve, 200));
-        if (BlockingModule) {
-          await Promise.all([BlockingModule.forceUnlock(), minSpinner]);
-        } else {
-          await minSpinner;
-        }
-
-        setTapoutLoading(false);
-        setLoading(false);
-
-        // 3) Backend sync + data refresh (fire-and-forget)
+        // Fire-and-forget: native unlock + backend sync
         (async () => {
           try {
+            if (BlockingModule) {
+              await BlockingModule.forceUnlock();
+            }
             await updateLockStatus(email, false, null);
             if (isScheduledPreset) {
               await activatePreset(email, null);
@@ -359,7 +355,6 @@ function HomeScreen() {
               await activatePreset(email, presetIdToKeep);
             }
             invalidateUserCaches(email);
-            loadStats(true);
           } catch {
             // Backend sync failed silently — state will reconcile on next app foreground
           }
@@ -374,7 +369,7 @@ function HomeScreen() {
       setLoading(false);
       showModal('Error', 'Something went wrong. Please try again.');
     }
-  }, [email, tapoutStatus, activePreset, showModal, loadStats]);
+  }, [email, tapoutStatus, activePreset, showModal]);
 
   // Load data on mount
   useEffect(() => {
@@ -407,14 +402,14 @@ function HomeScreen() {
     }
   }, []);
 
-  // Reload when refreshTrigger changes (e.g., after scheduled preset from App.tsx)
+  // Reload when refreshTrigger changes (e.g., after session ended from native)
   useEffect(() => {
     if (refreshTrigger && refreshTrigger > 0) {
       // Close any open modals
       setEmergencyTapoutModalVisible(false);
-      // Fetch fresh data with loading spinner
+      // Fetch fresh data silently (no spinner — AuthContext already refreshed presets)
       invalidateUserCaches(email);
-      loadStats(true, true); // skipCache=true, showLoading=true
+      loadStats(true, false); // skipCache=true, showLoading=false
     }
   }, [refreshTrigger, loadStats, email]);
 
@@ -446,23 +441,27 @@ function HomeScreen() {
   // Auto-unlock when timer expires (called from countdown effect)
   const handleTimerExpired = useCallback(async () => {
     try {
-      // Update database lock status to unlocked
-      await updateLockStatus(email, false, null);
+      // Optimistic UI update — instant unlock, clear timer in same render
+      setTimeRemaining(null);
+      setElapsedTime(null);
+      setSharedLockStatus({ isLocked: false, lockStartedAt: null, lockEndsAt: null });
 
-      // Clear native blocking (native side should already be cleared by TimerPresetReceiver,
-      // but call this to ensure sync)
-      if (BlockingModule) {
-        await BlockingModule.forceUnlock();
-      }
-
-      invalidateUserCaches(email);
-
-      // Refresh to get updated state (same as app launch unlock)
-      await loadStats(true, true); // skipCache=true, showLoading=true
+      // Fire-and-forget: native unlock + backend sync
+      (async () => {
+        try {
+          await updateLockStatus(email, false, null);
+          if (BlockingModule) {
+            await BlockingModule.forceUnlock();
+          }
+          invalidateUserCaches(email);
+        } catch {
+          // Failed to sync — state will reconcile on next app foreground
+        }
+      })();
     } catch (error) {
       // Failed to auto-unlock on timer expiry
     }
-  }, [email, loadStats]);
+  }, [email]);
 
   // Countdown timer effect (for timed locks)
   useEffect(() => {
@@ -589,9 +588,9 @@ function HomeScreen() {
     const isScheduledPreset = activePreset?.isScheduled;
 
     try {
-      setLoading(true);
-
-      // 1) Optimistic local + shared state (instant UI)
+      // Optimistic UI update — instant unlock, clear timer in same render
+      setTimeRemaining(null);
+      setElapsedTime(null);
       setSharedLockStatus({ isLocked: false, lockStartedAt: null, lockEndsAt: null });
       if (isScheduledPreset) {
         setCurrentPreset(null);
@@ -603,19 +602,12 @@ function HomeScreen() {
         }
       }
 
-      // 2) Clear native blocking + minimum 200ms spinner for smooth feel
-      const minSpinner = new Promise<void>(resolve => setTimeout(resolve, 200));
-      if (BlockingModule) {
-        await Promise.all([BlockingModule.forceUnlock(), minSpinner]);
-      } else {
-        await minSpinner;
-      }
-
-      setLoading(false);
-
-      // 3) Backend sync + data refresh (fire-and-forget)
+      // Fire-and-forget: native unlock + backend sync
       (async () => {
         try {
+          if (BlockingModule) {
+            await BlockingModule.forceUnlock();
+          }
           if (isScheduledPreset) {
             await useEmergencyTapout(email, presetIdToKeep, true);
           } else {
@@ -625,17 +617,15 @@ function HomeScreen() {
             }
           }
           invalidateUserCaches(email);
-          loadStats(true);
         } catch {
           // Backend sync failed silently — state will reconcile on next app foreground
         }
       })();
 
     } catch (error) {
-      setLoading(false);
       showModal('Error', 'Failed to unlock. Please try again.');
     }
-  }, [email, loadStats, showModal, activePreset]);
+  }, [email, showModal, activePreset]);
 
   const handleBlockNow = useCallback(async () => {
     try {
@@ -676,9 +666,6 @@ function HomeScreen() {
         }
       }
 
-      // Show loading spinner immediately
-      setLoading(true);
-
       // Calculate lock end time based on preset type
       let calculatedLockEndsAt: string | null = null;
       const now = new Date();
@@ -710,7 +697,6 @@ function HomeScreen() {
 
             // Check if ranges overlap: block starts before schedule ends AND block ends after schedule starts
             if (now < schedEnd && blockEndTime > schedStart) {
-              setLoading(false);
               showModal(
                 'Schedule Conflict',
                 `This would overlap with "${scheduled.name}" (${formatScheduleDate(scheduled.scheduleStartDate!)} - ${formatScheduleDate(scheduled.scheduleEndDate!)}). Please adjust your preset duration or disable the scheduled preset.`
@@ -727,7 +713,6 @@ function HomeScreen() {
         const endDate = new Date(activePreset.scheduleEndDate);
 
         if (now < startDate) {
-          setLoading(false);
           const timeStr = startDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
           const dateStr = startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
           showModal('Not Yet', `"${activePreset.name}" is scheduled to start on ${dateStr} at ${timeStr}.`);
@@ -735,7 +720,6 @@ function HomeScreen() {
         }
 
         if (now >= endDate) {
-          setLoading(false);
           showModal('Schedule Ended', 'This scheduled preset has already ended.');
           return;
         }
@@ -760,44 +744,57 @@ function HomeScreen() {
       }
       // If noTimeLimit is true and not scheduled, calculatedLockEndsAt stays null
 
-      // Update lock status in database
-      await updateLockStatus(email, true, calculatedLockEndsAt);
-
-      // Set shared lock state immediately for instant UI update
+      // Optimistic UI update — instant lock state + initial timer value
+      // Set timeRemaining/elapsedTime in the same render to avoid a frame of just "Locked"
       const nowISO = new Date().toISOString();
+      if (calculatedLockEndsAt) {
+        const diff = new Date(calculatedLockEndsAt).getTime() - Date.now();
+        if (diff > 0) {
+          const d = Math.floor(diff / (24*60*60*1000));
+          const h = Math.floor((diff % (24*60*60*1000)) / (60*60*1000));
+          const m = Math.floor((diff % (60*60*1000)) / (60*1000));
+          const sec = Math.floor((diff % (60*1000)) / 1000);
+          setTimeRemaining(d > 0 ? `${d}d ${h}h ${m}m` : h > 0 ? `${h}h ${m}m ${sec}s` : m > 0 ? `${m}m ${sec}s` : `${sec}s`);
+        }
+      } else {
+        setElapsedTime('0s');
+      }
       setSharedLockStatus({ isLocked: true, lockStartedAt: nowISO, lockEndsAt: calculatedLockEndsAt });
 
-      // Call native blocking module
-      if (BlockingModule) {
+      // Fire-and-forget: backend + native blocking
+      (async () => {
+        try {
+          await updateLockStatus(email, true, calculatedLockEndsAt);
 
-        // Calculate lock end time in milliseconds for native alarm scheduling
-        const lockEndTimeMs = calculatedLockEndsAt
-          ? new Date(calculatedLockEndsAt).getTime()
-          : 0;
+          if (BlockingModule) {
+            const lockEndTimeMs = calculatedLockEndsAt
+              ? new Date(calculatedLockEndsAt).getTime()
+              : 0;
 
-        await BlockingModule.startBlocking({
-          mode: activePreset.mode,
-          selectedApps: activePreset.selectedApps,
-          blockedWebsites: activePreset.blockedWebsites,
-          timerDays: activePreset.timerDays,
-          timerHours: activePreset.timerHours,
-          timerMinutes: activePreset.timerMinutes,
-          lockEndTimeMs: lockEndTimeMs, // Pass exact end time for native alarm scheduling
-          blockSettings: activePreset.blockSettings,
-          noTimeLimit: activePreset.noTimeLimit && !activePreset.isScheduled,
-          presetName: activePreset.name,
-          presetId: activePreset.id,
-          isScheduled: activePreset.isScheduled || false, // Timer presets get timer alarm, scheduled presets don't
-          strictMode: activePreset.strictMode ?? false,
-        });
+            await BlockingModule.startBlocking({
+              mode: activePreset.mode,
+              selectedApps: activePreset.selectedApps,
+              blockedWebsites: activePreset.blockedWebsites,
+              timerDays: activePreset.timerDays,
+              timerHours: activePreset.timerHours,
+              timerMinutes: activePreset.timerMinutes,
+              lockEndTimeMs: lockEndTimeMs,
+              blockSettings: activePreset.blockSettings,
+              noTimeLimit: activePreset.noTimeLimit && !activePreset.isScheduled,
+              presetName: activePreset.name,
+              presetId: activePreset.id,
+              isScheduled: activePreset.isScheduled || false,
+              strictMode: activePreset.strictMode ?? false,
+            });
+          }
 
-      } else {
-      }
+          invalidateUserCaches(email);
+        } catch {
+          // Backend/native sync failed — state will reconcile on next app foreground
+        }
+      })();
 
-      // Local state already set above - no need to call loadStats which would cause a delay
-      setLoading(false);
     } catch (error) {
-      setLoading(false);
       showModal('Error', 'Failed to start blocking session.');
     }
   }, [activePreset, email, showModal, scheduledPresets, formatScheduleDate, loadStats]);
