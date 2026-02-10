@@ -148,7 +148,7 @@ class UninstallBlockerService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Log.d(TAG, "UninstallBlockerService started")
+        Log.d(TAG, "UninstallBlockerService onStartCommand (appMonitor=${if (appMonitor != null) "exists" else "null"})")
 
         // Verify session is actually active before showing the notification
         val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -166,6 +166,28 @@ class UninstallBlockerService : Service() {
             startForeground(NOTIFICATION_ID, emptyNotification)
             stopSelf()
             return START_NOT_STICKY
+        }
+
+        // Ensure monitoring is running — onCreate may not have been called if the service
+        // was restarted by Android (START_STICKY) or wasn't fully destroyed between sessions
+        if (appMonitor == null) {
+            Log.d(TAG, "AppMonitorService was null — starting monitoring now")
+            appMonitor = AppMonitorService(this).apply {
+                onGoHome = {
+                    ScuteAccessibilityService.instance?.goHome()
+                }
+                startMonitoring()
+            }
+        }
+        if (websiteMonitor == null) {
+            Log.d(TAG, "WebsiteMonitorService was null — starting monitoring now")
+            websiteMonitor = WebsiteMonitorService(this).apply {
+                onRedirectToSafeUrl = {
+                    ScuteAccessibilityService.instance?.navigateToUrl("https://google.com")
+                }
+                onDismissed = {}
+                startMonitoring()
+            }
         }
 
         val notification = createNotification()

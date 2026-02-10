@@ -30,6 +30,7 @@ class AppMonitorService(private val context: Context) {
     private var isMonitoring = false
     private var lastForegroundPackage: String? = null
     private var overlayManager: BlockedOverlayManager? = null
+    private var debugPollCount = 0L
 
     // Callback to go home (will be set by whoever starts monitoring)
     var onGoHome: (() -> Unit)? = null
@@ -122,21 +123,31 @@ class AppMonitorService(private val context: Context) {
      */
     private fun getForegroundPackage(): String? {
         val usageStatsManager = context.getSystemService(Context.USAGE_STATS_SERVICE) as? UsageStatsManager
-            ?: return null
+            ?: run {
+                if (debugPollCount % 500 == 0L) Log.w(TAG, "DEBUG UsageStatsManager is null!")
+                return null
+            }
 
         val now = System.currentTimeMillis()
-        // Query last 1 second only (more efficient than 5 seconds)
-        val events = usageStatsManager.queryEvents(now - 1000, now)
+        // Query last 5 seconds to ensure we catch events
+        val events = usageStatsManager.queryEvents(now - 5000, now)
         val event = UsageEvents.Event()
 
         var foregroundPackage: String? = null
+        var eventCount = 0
 
         while (events.hasNextEvent()) {
             events.getNextEvent(event)
+            eventCount++
             if (event.eventType == UsageEvents.Event.MOVE_TO_FOREGROUND ||
                 event.eventType == UsageEvents.Event.ACTIVITY_RESUMED) {
                 foregroundPackage = event.packageName
             }
+        }
+
+        // Log diagnostics periodically
+        if (debugPollCount % 500 == 0L && foregroundPackage == null) {
+            Log.w(TAG, "DEBUG queryEvents(5s window): $eventCount total events, 0 foreground events")
         }
 
         return foregroundPackage
@@ -146,10 +157,19 @@ class AppMonitorService(private val context: Context) {
      * Check foreground app and block if needed
      */
     private fun checkForegroundApp() {
-        val currentPackage = getForegroundPackage() ?: return
+        debugPollCount++
+        val currentPackage = getForegroundPackage()
+
+        // Log every 500 polls (~7.5 seconds) so we can see if monitoring is alive
+        if (debugPollCount % 500 == 0L) {
+            Log.d(TAG, "DEBUG poll #$debugPollCount — foreground=$currentPackage, last=$lastForegroundPackage")
+        }
+
+        if (currentPackage == null) return
 
         // Skip if same as last check
         if (currentPackage == lastForegroundPackage) return
+        Log.d(TAG, "DEBUG foreground changed: $lastForegroundPackage -> $currentPackage")
         lastForegroundPackage = currentPackage
 
         // When user enters Scute app, reset the bubble's hidden state
