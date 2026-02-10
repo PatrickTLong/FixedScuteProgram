@@ -70,8 +70,8 @@ function HomeScreen() {
 
   // Pull-to-refresh state
   const [refreshing, setRefreshing] = useState(false);
-  const [isNearTop, setIsNearTop] = useState(true);
   const [buttonInteracting, setButtonInteracting] = useState(false);
+  const buttonAreaRef = useRef<View>(null);
 
   const showModal = useCallback((title: string, message: string) => {
     setModalTitle(title);
@@ -564,12 +564,12 @@ function HomeScreen() {
       const end = new Date(p.scheduleEndDate!);
       return now >= start && now < end;
     });
-    if (hasActive) return '#22c55e';
+    if (hasActive) return colors.green;
     const hasPending = scheduledPresets.some(p => {
       const start = new Date(p.scheduleStartDate!);
       return now < start;
     });
-    if (hasPending) return '#f59e0b';
+    if (hasPending) return colors.yellow;
     return colors.textSecondary;
   }, [scheduledPresets, colors.textSecondary]);
 
@@ -799,45 +799,6 @@ function HomeScreen() {
     }
   }, [activePreset, email, showModal, scheduledPresets, formatScheduleDate, loadStats]);
 
-  // Helper to get active settings display
-  const getActiveSettingsDisplay = useCallback(() => {
-    if (!activePreset) return [];
-    const settings: string[] = [];
-
-    if (activePreset.mode === 'all') {
-      settings.push('All Apps');
-    } else if (activePreset.selectedApps.length > 0) {
-      settings.push(`${activePreset.selectedApps.length} App${activePreset.selectedApps.length !== 1 ? 's' : ''}`);
-    }
-
-    if (activePreset.blockedWebsites && activePreset.blockedWebsites.length > 0) {
-      settings.push(`${activePreset.blockedWebsites.length} Website${activePreset.blockedWebsites.length !== 1 ? 's' : ''}`);
-    }
-
-    if (activePreset.isScheduled) {
-      settings.push('Scheduled');
-    }
-
-    if (activePreset.repeat_enabled && activePreset.repeat_interval && activePreset.repeat_unit) {
-      const unit = activePreset.repeat_interval === 1 ? activePreset.repeat_unit.replace(/s$/, '') : activePreset.repeat_unit;
-      settings.push(`Recurs every ${activePreset.repeat_interval} ${unit}`);
-    }
-
-    if (activePreset.blockSettings) {
-      settings.push('Blocking Settings');
-    }
-
-    if (activePreset.strictMode) {
-      settings.push('Strict Mode');
-    }
-
-    if (activePreset.allowEmergencyTapout && activePreset.strictMode && !activePreset.noTimeLimit) {
-      settings.push('Emergency Tapout');
-    }
-
-    return settings;
-  }, [activePreset]);
-
   // Get preset timing subtext (for timed and dated presets, not scheduled)
   const getPresetTimingSubtext = useCallback((): string | null => {
     if (!activePreset || activePreset.isScheduled) return null;
@@ -865,25 +826,19 @@ function HomeScreen() {
       if (timerDays > 0) parts.push(`${timerDays}d`);
       if (timerHours > 0) parts.push(`${timerHours}h`);
       if (timerMinutes > 0) parts.push(`${timerMinutes}m`);
-      if (timerSeconds > 0 && parts.length === 0) parts.push(`${timerSeconds}s`);
+      if (timerSeconds > 0) parts.push(`${timerSeconds}s`);
 
       if (parts.length > 0) {
         return parts.join(' ');
       }
     }
 
+    if (activePreset.noTimeLimit) {
+      return 'No Time Limit';
+    }
+
     return null;
   }, [activePreset]);
-
-  // Memoized JSX for active settings display (avoids IIFE in render)
-  const activeSettingsDisplay = useMemo(() => {
-    const settings = getActiveSettingsDisplay();
-    return activePreset && settings.length > 0 ? (
-      <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular} mt-2 text-center px-4`}>
-        Blocking {settings.join(', ')}
-      </Text>
-    ) : null;
-  }, [getActiveSettingsDisplay, activePreset, colors.textSecondary]);
 
   // Memoized JSX for preset timing subtext (avoids IIFE in render)
   const presetTimingSubtext = useMemo(() => {
@@ -891,23 +846,14 @@ function HomeScreen() {
     return subtext ? (
       <Text
         style={{ color: colors.textMuted }}
-        className={`${textSize.small} ${fontFamily.regular} mt-1 text-center`}
+        className={`${textSize.extraSmall} ${fontFamily.regular} mt-1 text-center`}
       >
         {subtext}
       </Text>
     ) : null;
   }, [getPresetTimingSubtext, colors.textMuted]);
 
-  // Track scroll position to disable pull-to-refresh near bottom (Block Now button area)
-  const handleScroll = useCallback((e: any) => {
-    const offsetY = e.nativeEvent.contentOffset.y;
-    const contentHeight = e.nativeEvent.contentSize.height;
-    const layoutHeight = e.nativeEvent.layoutMeasurement.height;
-    const distanceFromBottom = contentHeight - layoutHeight - offsetY;
-    setIsNearTop(distanceFromBottom > 150);
-  }, []);
-
-  const refreshEnabled = isNearTop && !buttonInteracting;
+  const refreshEnabled = !buttonInteracting;
 
   // Pull-to-refresh handler
   const onRefresh = useCallback(async () => {
@@ -1006,8 +952,6 @@ function HomeScreen() {
       <ScrollView
         className="flex-1 px-6"
         contentContainerStyle={{ flexGrow: 1 }}
-        onScroll={handleScroll}
-        scrollEventThrottle={16}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -1022,37 +966,17 @@ function HomeScreen() {
       >
         {/* Status + Preset + Scheduled - centered in full screen */}
         <View className="flex-1 items-center justify-center">
-          {/* Status section */}
-          <View className="items-center justify-center mb-4">
-            {isLocked && timeRemaining ? (
-              <>
-                <Text style={{ color: colors.textMuted }} className={`${textSize.small} ${fontFamily.regular} mb-1`}>
-                  Will unlock in
-                </Text>
-                <Text style={{ color: colors.text }} className={`${textSize['4xLarge']} ${fontFamily.bold} tracking-tight`}>
-                  {timeRemaining}
-                </Text>
-              </>
-            ) : isLocked && elapsedTime ? (
-              <>
-                <Text style={{ color: colors.textMuted }} className={`${textSize.small} ${fontFamily.regular}`}>
-                  Locked for
-                </Text>
-                <Text style={{ color: colors.text }} className={`${textSize['4xLarge']} ${fontFamily.bold} tracking-tight mt-2`}>
-                  {elapsedTime}
-                </Text>
-              </>
-            ) : isLocked ? (
-              <>
-                <Text style={{ color: colors.text }} className={`${textSize['4xLarge']} ${fontFamily.bold} mb-1`}>
-                  Locked
-                </Text>
-              </>
-            ) : (
-              <Text style={{ color: colors.text }} className={`${textSize['4xLarge']} ${fontFamily.bold}`}>
-                Not Locked
-              </Text>
-            )}
+          {/* Status section - fixed height to prevent layout shift between states */}
+          <View className="items-center justify-center mb-2">
+            <Text
+              style={{ color: isLocked && (timeRemaining || elapsedTime) ? colors.textMuted : 'transparent' }}
+              className={`${textSize.small} ${fontFamily.regular} mb-1`}
+            >
+              {isLocked && timeRemaining ? 'Will unlock in' : isLocked && elapsedTime ? 'Locked for' : ' '}
+            </Text>
+            <Text style={{ color: colors.text, fontSize: s(28) }} className={`${fontFamily.bold} tracking-tight`}>
+              {isLocked && timeRemaining ? timeRemaining : isLocked && elapsedTime ? elapsedTime : isLocked ? 'Locked' : 'Not Locked'}
+            </Text>
           </View>
 
           {/* Preset info - relative container for absolute scheduled button */}
@@ -1065,9 +989,6 @@ function HomeScreen() {
                 Preset: {currentPreset || 'None Selected'}
               </Text>
             </View>
-
-            {/* Active settings display */}
-            {activeSettingsDisplay}
 
             {/* Preset timing subtext (for timed/dated presets) */}
             {presetTimingSubtext}
@@ -1082,7 +1003,7 @@ function HomeScreen() {
                   backgroundColor: colors.card,
                   position: 'absolute',
                   top: '100%',
-                  marginTop: s(24),
+                  marginTop: s(16),
                   borderWidth: 1, borderColor: colors.border, ...shadow.card,
                 }}
               >
@@ -1090,7 +1011,7 @@ function HomeScreen() {
                 <View style={{ marginRight: s(8) }}>
                   <ClockIcon size={s(14)} color={scheduledDotColor} />
                 </View>
-                <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
+                <Text style={{ color: colors.text }} className={`${textSize.extraSmall} ${fontFamily.semibold}`}>
                   {scheduledPresets.length} Scheduled
                 </Text>
               </TouchableOpacity>
@@ -1099,7 +1020,13 @@ function HomeScreen() {
         </View>
 
         {/* Action Button - clean matte style */}
-        <View className="mb-10">
+        <View
+          ref={buttonAreaRef}
+          className="mb-10"
+          onTouchStart={() => setButtonInteracting(true)}
+          onTouchEnd={() => setButtonInteracting(false)}
+          onTouchCancel={() => setButtonInteracting(false)}
+        >
           <BlockNowButton
             onActivate={handleBlockNow}
             onUnlockPress={handleUnlockPress}
@@ -1193,7 +1120,7 @@ function HomeScreen() {
                           <ClockIcon size={14} color={isCurrentlyActive ? colors.green : colors.yellow} />
                         </View>
                         <View className="flex-1">
-                          <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>
+                          <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
                             {preset.name}
                           </Text>
                           <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-0.5`}>
@@ -1204,7 +1131,7 @@ function HomeScreen() {
                       {/* Right side: Timer display */}
                       {timeDisplay && (
                         <View style={{ marginLeft: s(12) }}>
-                          <Text style={{ color: isCurrentlyActive ? colors.green : colors.yellow }} className={`${textSize.small} ${fontFamily.semibold}`}>
+                          <Text style={{ color: isCurrentlyActive ? colors.green : colors.yellow }} className={`${textSize.extraSmall} ${fontFamily.semibold}`}>
                             {timeDisplay}
                           </Text>
                         </View>

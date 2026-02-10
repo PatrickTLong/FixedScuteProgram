@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   ScrollView,
   RefreshControl,
+  Modal,
 } from 'react-native';
 import LottieView from 'lottie-react-native';
 const Lottie = LottieView as any;
@@ -18,6 +19,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import Svg, { Path } from 'react-native-svg';
 import { useTheme, textSize, fontFamily, radius, shadow, buttonPadding, iconSize } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
+import HeaderIconButton from '../components/HeaderIconButton';
 import { useAuth } from '../context/AuthContext';
 import { AnimatedStatsIcon, AnimatedStatsIconRef } from '../components/BottomTabBar';
 
@@ -60,6 +62,17 @@ const PERIOD_EMPTY: Record<StatsPeriod, string> = {
 
 const BAR_CHART_HEIGHT = 340;
 const TOP_APPS_COUNT = 5;
+const EXPANDED_APPS_COUNT = 25;
+
+const ExpandIcon = ({ size = iconSize.sm, color = '#FFFFFF' }: { size?: number; color?: string }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
+    <Path
+      fillRule="evenodd"
+      clipRule="evenodd"
+      d="M15 3.75a.75.75 0 0 1 .75-.75h4.5a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0V5.56l-3.97 3.97a.75.75 0 1 1-1.06-1.06l3.97-3.97h-2.69a.75.75 0 0 1-.75-.75Zm-12 0A.75.75 0 0 1 3.75 3h4.5a.75.75 0 0 1 0 1.5H5.56l3.97 3.97a.75.75 0 0 1-1.06 1.06L4.5 5.56v2.69a.75.75 0 0 1-1.5 0v-4.5Zm11.47 11.78a.75.75 0 1 1 1.06-1.06l3.97 3.97v-2.69a.75.75 0 0 1 1.5 0v4.5a.75.75 0 0 1-.75.75h-4.5a.75.75 0 0 1 0-1.5h2.69l-3.97-3.97Zm-4.94-1.06a.75.75 0 0 1 0 1.06L5.56 19.5h2.69a.75.75 0 0 1 0 1.5h-4.5a.75.75 0 0 1-.75-.75v-4.5a.75.75 0 0 1 1.5 0v2.69l3.97-3.97a.75.75 0 0 1 1.06 0Z"
+    />
+  </Svg>
+);
 
 const AnimatedBar = memo(({ percentage, color, delay, barWidth, maxHeight, label, time, textColor, mutedColor, icon, s, animationKey }: {
   percentage: number;
@@ -168,6 +181,8 @@ function StatsScreen() {
   const [appUsages, setAppUsages] = useState<AppUsage[]>([]);
   const [animationKey, setAnimationKey] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
+  const [expandedVisible, setExpandedVisible] = useState(false);
+  const [expandedAnimKey, setExpandedAnimKey] = useState(0);
 
   // Header stats icon animation
   const headerStatsIconRef = useRef<AnimatedStatsIconRef>(null);
@@ -305,9 +320,20 @@ function StatsScreen() {
 
         {/* SCREEN TIME Card */}
         <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }} className={`${radius['2xl']} mb-6 p-4`}>
-          <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} tracking-wider mb-3`}>
-            {PERIOD_LABELS[activePeriod]}
-          </Text>
+          <View className="flex-row items-center justify-between mb-3">
+            <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} tracking-wider`}>
+              {PERIOD_LABELS[activePeriod]}
+            </Text>
+            {topApps.length > 0 && (
+              <HeaderIconButton
+                onPress={() => { setExpandedVisible(true); setExpandedAnimKey(prev => prev + 1); }}
+                className=""
+                style={{ marginRight: -8 }}
+              >
+                <ExpandIcon size={s(iconSize.forTabs)} color={colors.text} />
+              </HeaderIconButton>
+            )}
+          </View>
 
           {/* Total time */}
           <Text style={{ color: colors.text }} className={`${textSize['2xLarge']} ${fontFamily.bold} mb-3`}>
@@ -355,6 +381,81 @@ function StatsScreen() {
           </View>
         )}
       </ScrollView>
+
+      {/* Expanded Top Apps Modal */}
+      <Modal
+        visible={expandedVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setExpandedVisible(false)}
+      >
+        <View className="flex-1 bg-black/70 justify-center items-center px-4">
+          <View
+            style={{
+              backgroundColor: colors.card,
+              borderWidth: 1,
+              borderColor: colors.border,
+              ...shadow.modal,
+              maxHeight: '85%',
+            }}
+            className={`w-full ${radius['2xl']} overflow-hidden`}
+          >
+            {/* Header */}
+            <View className="flex-row items-center p-4 pb-3">
+              <View style={{ width: s(iconSize.headerNav) }} />
+              <Text style={{ color: colors.text, flex: 1, textAlign: 'center' }} className={`${textSize.base} ${fontFamily.bold}`}>
+                Top Apps
+              </Text>
+              <TouchableOpacity
+                onPress={() => setExpandedVisible(false)}
+                activeOpacity={0.7}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Svg width={s(iconSize.headerNav)} height={s(iconSize.headerNav)} viewBox="0 0 24 24" fill="none">
+                  <Path
+                    d="M7 17L17 7M7 7h10v10"
+                    stroke="#FFFFFF"
+                    strokeWidth={2}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </Svg>
+              </TouchableOpacity>
+            </View>
+
+            <View style={{ height: 1, backgroundColor: colors.divider }} />
+
+            {/* Horizontal scrolling bar chart */}
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ paddingHorizontal: s(16), paddingVertical: s(16), alignItems: 'flex-end' }}
+            >
+              {appUsages.slice(0, EXPANDED_APPS_COUNT).map((app, index) => {
+                const maxTime = appUsages[0]?.timeInForeground || 1;
+                const percentage = (app.timeInForeground / maxTime) * 100;
+                return (
+                  <AnimatedBar
+                    key={`expanded-${app.packageName}-${expandedAnimKey}`}
+                    percentage={percentage}
+                    color={APP_COLORS[index % APP_COLORS.length]}
+                    delay={index * 80}
+                    barWidth={s(32)}
+                    maxHeight={s(BAR_CHART_HEIGHT)}
+                    label={app.appName}
+                    time={formatTime(app.timeInForeground)}
+                    textColor={colors.text}
+                    mutedColor={colors.textMuted}
+                    icon={app.icon}
+                    s={s}
+                    animationKey={expandedAnimKey}
+                  />
+                );
+              })}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }

@@ -264,7 +264,7 @@ class UsageStatsModule(reactContext: ReactApplicationContext) :
                 isLaunchableApp(pkg) && time > 60000
             }.entries.sortedByDescending {
                 it.value
-            }.take(10).forEach { (packageName, totalTime) ->
+            }.take(25).forEach { (packageName, totalTime) ->
                 val appName = try {
                     val appInfo = packageManager.getApplicationInfo(packageName, 0)
                     packageManager.getApplicationLabel(appInfo).toString()
@@ -332,7 +332,7 @@ class UsageStatsModule(reactContext: ReactApplicationContext) :
                 isLaunchableApp(pkg) && time > 60000
             }.entries.sortedByDescending {
                 it.value
-            }.take(10).forEach { (packageName, totalTime) ->
+            }.take(25).forEach { (packageName, totalTime) ->
                 val appName = try {
                     val appInfo = packageManager.getApplicationInfo(packageName, 0)
                     packageManager.getApplicationLabel(appInfo).toString()
