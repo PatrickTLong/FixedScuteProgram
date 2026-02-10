@@ -64,6 +64,9 @@ function HomeScreen() {
   // Scheduled presets expandable modal
   const [scheduledPresetsModalVisible, setScheduledPresetsModalVisible] = useState(false);
 
+  // Silent notifications toggle
+  const [silentNotifications, setSilentNotifications] = useState(false);
+
   // Pull-to-refresh state
   const [refreshing, setRefreshing] = useState(false);
   const [isNearTop, setIsNearTop] = useState(true);
@@ -77,6 +80,15 @@ function HomeScreen() {
     setModalMessage(message);
     setModalVisible(true);
   }, []);
+
+  const toggleSilentNotifications = useCallback(async () => {
+    if (!BlockingModule) return;
+    const newValue = !silentNotifications;
+    setSilentNotifications(newValue);
+    try {
+      await BlockingModule.setSilentNotifications(newValue);
+    } catch {}
+  }, [silentNotifications]);
 
   // Track which scheduled preset we're currently activating to prevent duplicates
   const activatingPresetRef = useRef<string | null>(null);
@@ -423,6 +435,15 @@ function HomeScreen() {
       subscription.remove();
     };
   }, [loadStats, email]);
+
+  // Load silent notifications preference on mount
+  useEffect(() => {
+    if (BlockingModule) {
+      BlockingModule.getSilentNotifications().then((silent: boolean) => {
+        setSilentNotifications(silent);
+      }).catch(() => {});
+    }
+  }, []);
 
   // Reload when refreshTrigger changes (e.g., after scheduled preset from App.tsx)
   useEffect(() => {
@@ -969,6 +990,32 @@ function HomeScreen() {
 
         {/* Right side buttons */}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: s(8) }}>
+          {/* Silent Notifications Toggle */}
+          <HeaderIconButton
+            onPress={toggleSilentNotifications}
+            style={{
+              backgroundColor: silentNotifications ? colors.cyan : colors.card,
+              borderWidth: 1, borderColor: silentNotifications ? colors.cyan : colors.border, ...shadow.card,
+              width: s(44), height: s(44), borderRadius: 9999, alignItems: 'center', justifyContent: 'center',
+            }}
+            className=""
+          >
+            {silentNotifications ? (
+              <Svg width={s(18)} height={s(18)} viewBox="0 0 24 24" fill="none">
+                <Path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="#FFFFFF" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                <Path d="M18.63 13A17.89 17.89 0 0 1 18 8" stroke="#FFFFFF" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                <Path d="M6.26 6.26A5.86 5.86 0 0 0 6 8c0 7-3 9-3 9h17" stroke="#FFFFFF" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                <Path d="M18 8a6 6 0 0 0-9.33-5" stroke="#FFFFFF" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                <Path d="M1 1l22 22" stroke="#FFFFFF" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+              </Svg>
+            ) : (
+              <Svg width={s(18)} height={s(18)} viewBox="0 0 24 24" fill="none">
+                <Path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="#FFFFFF" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                <Path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="#FFFFFF" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+              </Svg>
+            )}
+          </HeaderIconButton>
+
           {/* WiFi Settings */}
           <HeaderIconButton
             onPress={() => { Linking.sendIntent('android.settings.WIFI_SETTINGS').catch(() => {}); }}

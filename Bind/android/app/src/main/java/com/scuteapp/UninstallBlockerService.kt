@@ -76,6 +76,10 @@ class UninstallBlockerService : Service() {
 
                 val displayName = presetName ?: "Session"
 
+                // Check if user wants silent notifications
+                val silentPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                val isSilent = silentPrefs.getBoolean("silent_notifications", false)
+
                 // Build the notification with high priority for heads-up display
                 val notification = NotificationCompat.Builder(context, ALERT_CHANNEL_ID)
                     .setContentTitle("Session Ended")
@@ -85,7 +89,8 @@ class UninstallBlockerService : Service() {
                     .setCategory(NotificationCompat.CATEGORY_ALARM)
                     .setAutoCancel(true)
                     .setContentIntent(pendingIntent)
-                    .setDefaults(NotificationCompat.DEFAULT_SOUND or NotificationCompat.DEFAULT_LIGHTS)
+                    .setDefaults(if (isSilent) NotificationCompat.DEFAULT_LIGHTS else NotificationCompat.DEFAULT_SOUND or NotificationCompat.DEFAULT_LIGHTS)
+                    .apply { if (isSilent) setSilent(true) }
                     .build()
 
                 notificationManager.notify(SESSION_END_NOTIFICATION_ID, notification)

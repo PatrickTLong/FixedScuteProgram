@@ -1,5 +1,6 @@
 import React, { memo, useCallback, useEffect, useRef } from 'react';
 import { Animated, Pressable, View } from 'react-native';
+import { useIsFocused } from '@react-navigation/native';
 import { useResponsive } from '../utils/responsive';
 import { shadow } from '../context/ThemeContext';
 
@@ -42,9 +43,19 @@ function AnimatedSwitch({
   const thumbSize = s(dims.thumbSize);
   const thumbOffset = s(dims.thumbOffset);
 
+  const isFocused = useIsFocused();
+
   const animatedValue = useRef(new Animated.Value(value ? 1 : 0)).current;
   const pulseProgress = useRef(new Animated.Value(0)).current;
   const pressedRef = useRef(false);
+
+  // Reset pulse when screen loses focus so it doesn't freeze mid-animation
+  useEffect(() => {
+    if (!isFocused) {
+      pulseProgress.stopAnimation();
+      pulseProgress.setValue(0);
+    }
+  }, [isFocused, pulseProgress]);
 
   useEffect(() => {
     if (animate) {

@@ -377,6 +377,43 @@ class BlockingModule(reactContext: ReactApplicationContext) :
     }
 
     /**
+     * Set whether high-priority notifications should be silent (no sound).
+     */
+    @ReactMethod
+    fun setSilentNotifications(silent: Boolean, promise: Promise) {
+        try {
+            val prefs = reactApplicationContext.getSharedPreferences(
+                UninstallBlockerService.PREFS_NAME,
+                Context.MODE_PRIVATE
+            )
+            prefs.edit().putBoolean("silent_notifications", silent).apply()
+            Log.d(TAG, "Silent notifications set to: $silent")
+            promise.resolve(true)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error setting silent notifications", e)
+            promise.reject("ERROR", "Failed to set silent notifications: ${e.message}")
+        }
+    }
+
+    /**
+     * Get whether high-priority notifications are set to silent.
+     */
+    @ReactMethod
+    fun getSilentNotifications(promise: Promise) {
+        try {
+            val prefs = reactApplicationContext.getSharedPreferences(
+                UninstallBlockerService.PREFS_NAME,
+                Context.MODE_PRIVATE
+            )
+            val silent = prefs.getBoolean("silent_notifications", false)
+            promise.resolve(silent)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting silent notifications", e)
+            promise.reject("ERROR", "Failed to get silent notifications: ${e.message}")
+        }
+    }
+
+    /**
      * Deactivate a preset in ScheduleManager's local storage.
      * This prevents scheduled presets from re-activating after emergency tapout.
      */
