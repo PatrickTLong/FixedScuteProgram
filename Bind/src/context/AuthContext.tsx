@@ -643,9 +643,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Will be refreshed via refreshTrigger below
       }
 
-      if (navigationRef.isReady()) {
-        (navigationRef as any).navigate('MainTabs', { screen: 'Home' });
-      }
       setRefreshTrigger(prev => prev + 1);
     });
 
