@@ -38,7 +38,8 @@ export const iconSize = {
   sm: 18,      // Tab icons in PresetEditModal (apps, globe, android)
   md: 24,      // Settings row icons, search icons, eye icons, alert icons
   lg: 24,      // Navigation arrows, action icons, tab bar icons
-  xl: 28,      // Info modal display icons
+  xl: 28,
+  exl: 36,      // Info modal display icons
   headerNav: 24, // Header navigation icons (close X, chevron next/back)
   chevron: 20,   // Chevrons in settings rows (settings, preset settings)
   forTabs: 24,   // Icons for tabs in preset settings (calendar, flag, etc.)

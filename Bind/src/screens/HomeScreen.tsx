@@ -10,6 +10,8 @@ import {
   Platform,
   Linking,
   RefreshControl,
+  Animated,
+  Image,
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import LottieView from 'lottie-react-native';
@@ -21,12 +23,12 @@ import BlockNowButton from '../components/BlockNowButton';
 import InfoModal from '../components/InfoModal';
 import EmergencyTapoutModal from '../components/EmergencyTapoutModal';
 import { updateLockStatus, Preset, useEmergencyTapout, activatePreset, invalidateUserCaches } from '../services/cardApi';
-import { useTheme , textSize, fontFamily, radius, shadow, iconSize } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius, shadow, iconSize, buttonPadding } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { useAuth } from '../context/AuthContext';
 
 
-const { BlockingModule, PermissionsModule } = NativeModules;
+const { BlockingModule, PermissionsModule, InstalledAppsModule } = NativeModules;
 
 // Clock icon for schedule badges
 const ClockIcon = ({ size = 12, color = '#FFFFFF' }: { size?: number; color?: string }) => (
@@ -38,6 +40,36 @@ const ClockIcon = ({ size = 12, color = '#FFFFFF' }: { size?: number; color?: st
     />
   </Svg>
 );
+
+const GlobeIcon = ({ size = iconSize.sm, color = "#FFFFFF" }: { size?: number; color?: string }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0 1 12 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 0 1 3 12c0-1.605.42-3.113 1.157-4.418"
+      stroke={color}
+      strokeWidth={1.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+const ChevronDownIcon = ({ size = iconSize.chevron, color = "#9CA3AF" }: { size?: number; color?: string }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M6 9l6 6 6-6"
+      stroke={color}
+      strokeWidth={2.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+interface InstalledApp {
+  id: string;
+  name: string;
+  icon?: string;
+}
 
 function HomeScreen() {
   const { userEmail: email, refreshTrigger, sharedPresets, setSharedPresets, sharedPresetsLoaded, sharedLockStatus, setSharedLockStatus, tapoutStatus, setTapoutStatus, refreshAll } = useAuth();
@@ -68,10 +100,36 @@ function HomeScreen() {
   // Silent notifications toggle
   const [silentNotifications, setSilentNotifications] = useState(false);
 
+  // Blocked apps/sites modal
+  const [blockedVisible, setBlockedVisible] = useState(false);
+  const [installedApps, setInstalledApps] = useState<InstalledApp[]>([]);
+
+  // Lock/unlock toast — two separate native-driven animated values, no state changes
+  const lockIconOpacity = useRef(new Animated.Value(0)).current;
+  const unlockIconOpacity = useRef(new Animated.Value(0)).current;
+
   // Pull-to-refresh state
   const [refreshing, setRefreshing] = useState(false);
   const [buttonInteracting, setButtonInteracting] = useState(false);
   const buttonAreaRef = useRef<View>(null);
+
+  // Load installed apps for blocked apps display
+  useEffect(() => {
+    if (Platform.OS === 'android' && InstalledAppsModule) {
+      InstalledAppsModule.getInstalledApps().then((apps: InstalledApp[]) => {
+        setInstalledApps(apps);
+      }).catch(() => {});
+    }
+  }, []);
+
+  // Blocked apps and sites from active preset
+  const blockedApps = useMemo(() => {
+    if (!activePreset) return [];
+    const ids = new Set(activePreset.mode === 'all' ? installedApps.map(a => a.id) : activePreset.selectedApps);
+    return installedApps.filter(app => ids.has(app.id));
+  }, [activePreset, installedApps]);
+
+  const blockedWebsites = activePreset?.blockedWebsites ?? [];
 
   const showModal = useCallback((title: string, message: string) => {
     setModalTitle(title);
@@ -582,6 +640,18 @@ function HomeScreen() {
   // Handle slide to unlock (called directly from BlockNowButton)
   // For scheduled/recurring presets: call backend endpoint (same as emergency tapout but without decrementing tapout count)
   // For regular presets: just unlock but keep preset active
+  // Show lock/unlock toast with fade animation
+  const showLockToastAnimation = useCallback((type: 'lock' | 'unlock') => {
+    const target = type === 'lock' ? lockIconOpacity : unlockIconOpacity;
+    target.setValue(1);
+    Animated.timing(target, {
+      toValue: 0,
+      duration: 250,
+      delay: 0,
+      useNativeDriver: true,
+    }).start();
+  }, [lockIconOpacity, unlockIconOpacity]);
+
   const handleSlideUnlock = useCallback(async () => {
     // Store preset info before starting
     const presetIdToKeep = activePreset?.id;
@@ -592,6 +662,7 @@ function HomeScreen() {
       setTimeRemaining(null);
       setElapsedTime(null);
       setSharedLockStatus({ isLocked: false, lockStartedAt: null, lockEndsAt: null });
+      showLockToastAnimation('unlock');
       if (isScheduledPreset) {
         setCurrentPreset(null);
         setActivePreset(null);
@@ -625,7 +696,7 @@ function HomeScreen() {
     } catch (error) {
       showModal('Error', 'Failed to unlock. Please try again.');
     }
-  }, [email, showModal, activePreset]);
+  }, [email, showModal, activePreset, showLockToastAnimation]);
 
   const handleBlockNow = useCallback(async () => {
     try {
@@ -760,6 +831,7 @@ function HomeScreen() {
         setElapsedTime('0s');
       }
       setSharedLockStatus({ isLocked: true, lockStartedAt: nowISO, lockEndsAt: calculatedLockEndsAt });
+      showLockToastAnimation('lock');
 
       // Fire-and-forget: backend + native blocking
       (async () => {
@@ -797,7 +869,7 @@ function HomeScreen() {
     } catch (error) {
       showModal('Error', 'Failed to start blocking session.');
     }
-  }, [activePreset, email, showModal, scheduledPresets, formatScheduleDate, loadStats]);
+  }, [activePreset, email, showModal, scheduledPresets, formatScheduleDate, loadStats, showLockToastAnimation]);
 
   // Get preset timing subtext (for timed and dated presets, not scheduled)
   const getPresetTimingSubtext = useCallback((): string | null => {
@@ -981,14 +1053,23 @@ function HomeScreen() {
 
           {/* Preset info - relative container for absolute scheduled button */}
           <View className="items-center" style={{ position: 'relative' }}>
-            <View className="items-center justify-center">
+            <TouchableOpacity
+              onPress={activePreset && (blockedApps.length > 0 || blockedWebsites.length > 0) ? () => setBlockedVisible(true) : undefined}
+              activeOpacity={activePreset && (blockedApps.length > 0 || blockedWebsites.length > 0) ? 0.7 : 1}
+              className="flex-row items-center justify-center"
+            >
               <Text
                 style={{ color: colors.text }}
                 className={`${textSize.large} ${fontFamily.semibold} text-center`}
               >
                 Preset: {currentPreset || 'None Selected'}
               </Text>
-            </View>
+              {activePreset && (blockedApps.length > 0 || blockedWebsites.length > 0) && (
+                <View style={{ position: 'absolute', right: -s(iconSize.chevron + 4), top: '50%', transform: [{ translateY: -s(iconSize.chevron) / 2 }] }}>
+                  <ChevronDownIcon size={s(iconSize.chevron)} color={colors.textMuted} />
+                </View>
+              )}
+            </TouchableOpacity>
 
             {/* Preset timing subtext (for timed/dated presets) */}
             {presetTimingSubtext}
@@ -1023,10 +1104,51 @@ function HomeScreen() {
         <View
           ref={buttonAreaRef}
           className="mb-10"
+          style={{ position: 'relative' }}
           onTouchStart={() => setButtonInteracting(true)}
           onTouchEnd={() => setButtonInteracting(false)}
           onTouchCancel={() => setButtonInteracting(false)}
         >
+          {/* Lock icon toast */}
+          <Animated.View
+            pointerEvents="none"
+            style={{
+              position: 'absolute',
+              bottom: '100%',
+              left: 0,
+              right: 0,
+              alignItems: 'center',
+              marginBottom: s(16),
+              opacity: lockIconOpacity,
+            }}
+          >
+            <Svg width={s(48)} height={s(48)} viewBox="0 0 24 24" fill={colors.text}>
+              <Path
+                fillRule="evenodd"
+                clipRule="evenodd"
+                d="M12 1.5a5.25 5.25 0 0 0-5.25 5.25v3a3 3 0 0 0-3 3v6.75a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3v-6.75a3 3 0 0 0-3-3v-3c0-2.9-2.35-5.25-5.25-5.25Zm3.75 8.25v-3a3.75 3.75 0 1 0-7.5 0v3h7.5Z"
+              />
+            </Svg>
+          </Animated.View>
+          {/* Unlock icon toast */}
+          <Animated.View
+            pointerEvents="none"
+            style={{
+              position: 'absolute',
+              bottom: '100%',
+              left: 0,
+              right: 0,
+              alignItems: 'center',
+              marginBottom: s(16),
+              opacity: unlockIconOpacity,
+            }}
+          >
+            <Svg width={s(48)} height={s(48)} viewBox="0 0 24 24" fill={colors.text}>
+              <Path
+                d="M18 1.5c2.9 0 5.25 2.35 5.25 5.25v3.75a.75.75 0 0 1-1.5 0V6.75a3.75 3.75 0 1 0-7.5 0v3a3 3 0 0 1 3 3v6.75a3 3 0 0 1-3 3H3.75a3 3 0 0 1-3-3v-6.75a3 3 0 0 1 3-3h9v-3c0-2.9 2.35-5.25 5.25-5.25Z"
+              />
+            </Svg>
+          </Animated.View>
           <BlockNowButton
             onActivate={handleBlockNow}
             onUnlockPress={handleUnlockPress}
@@ -1154,6 +1276,96 @@ function HomeScreen() {
                 </Text>
               </TouchableOpacity>
             </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Blocked Apps & Sites Modal */}
+      <Modal
+        visible={blockedVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setBlockedVisible(false)}
+      >
+        <View className="flex-1 bg-black/70 justify-center items-center px-4">
+          <View
+            style={{
+              backgroundColor: colors.card,
+              borderWidth: 1,
+              borderColor: colors.border,
+              ...shadow.modal,
+              maxHeight: '80%',
+            }}
+            className={`w-full ${radius['2xl']} overflow-hidden`}
+          >
+            {/* Header */}
+            <View className="flex-row items-center p-4 pb-3">
+              <View style={{ width: s(iconSize.headerNav) }} />
+              <Text style={{ color: colors.text, flex: 1, textAlign: 'center' }} className={`${textSize.base} ${fontFamily.bold}`}>
+                Blocked Apps & Sites
+              </Text>
+              <TouchableOpacity
+                onPress={() => setBlockedVisible(false)}
+                activeOpacity={0.7}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Svg width={s(iconSize.headerNav)} height={s(iconSize.headerNav)} viewBox="0 0 24 24" fill="none">
+                  <Path
+                    d="M7 17L17 7M7 7h10v10"
+                    stroke="#FFFFFF"
+                    strokeWidth={2}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </Svg>
+              </TouchableOpacity>
+            </View>
+
+            <View style={{ height: 1, backgroundColor: colors.divider }} />
+
+            {/* Scroll list */}
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ padding: s(16) }}
+            >
+              {/* Blocked Apps */}
+              {blockedApps.map((app) => (
+                <View
+                  key={app.id}
+                  style={{ backgroundColor: colors.cardLight, borderWidth: 1, borderColor: colors.divider, paddingVertical: s(buttonPadding.standard), ...shadow.card }}
+                  className={`flex-row items-center px-4 ${radius.xl} mb-2`}
+                >
+                  {app.icon ? (
+                    <Image
+                      source={{ uri: app.icon }}
+                      style={{ width: s(48), height: s(48), marginRight: s(12) }}
+                      resizeMode="contain"
+                    />
+                  ) : (
+                    <View style={{ width: s(48), height: s(48), marginRight: s(12), backgroundColor: colors.cardLight, borderRadius: s(12), alignItems: 'center', justifyContent: 'center' }}>
+                      <Text style={{ color: colors.textSecondary, fontSize: s(18), fontWeight: 'bold' }}>
+                        {app.name.charAt(0)}
+                      </Text>
+                    </View>
+                  )}
+                  <Text style={{ color: colors.text }} className={`flex-1 ${textSize.small} ${fontFamily.regular}`}>{app.name}</Text>
+                </View>
+              ))}
+
+              {/* Blocked Websites */}
+              {blockedWebsites.map((site) => (
+                <View
+                  key={site}
+                  style={{ backgroundColor: colors.cardLight, borderWidth: 1, borderColor: colors.divider, paddingVertical: s(buttonPadding.standard), ...shadow.card }}
+                  className={`flex-row items-center px-4 ${radius.xl} mb-2`}
+                >
+                  <View style={{ width: s(48), height: s(48), marginRight: s(12), alignItems: 'center', justifyContent: 'center' }}>
+                    <GlobeIcon size={s(iconSize.exl)} color={colors.textSecondary} />
+                  </View>
+                  <Text style={{ color: colors.text }} className={`flex-1 ${textSize.small} ${fontFamily.regular}`}>{site}</Text>
+                </View>
+              ))}
+            </ScrollView>
           </View>
         </View>
       </Modal>

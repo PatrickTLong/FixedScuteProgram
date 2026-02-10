@@ -276,7 +276,8 @@ function StatsScreen() {
 
       <ScrollView
         className="flex-1"
-        contentContainerStyle={{ paddingHorizontal: s(16), paddingBottom: s(24) }}
+        scrollEnabled={false}
+        contentContainerStyle={{ flex: 1, paddingHorizontal: s(16) }}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -456,6 +457,7 @@ function StatsScreen() {
           </View>
         </View>
       </Modal>
+
     </View>
   );
 }
