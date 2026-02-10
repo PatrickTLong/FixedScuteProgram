@@ -20,7 +20,7 @@ import HeaderIconButton from '../components/HeaderIconButton';
 import BlockNowButton from '../components/BlockNowButton';
 import InfoModal from '../components/InfoModal';
 import EmergencyTapoutModal from '../components/EmergencyTapoutModal';
-import { getPresets, getLockStatus, updateLockStatus, Preset, getEmergencyTapoutStatus, useEmergencyTapout, activatePreset, invalidateUserCaches, isFirstLoad, markInitialLoadComplete, clearAllCaches } from '../services/cardApi';
+import { updateLockStatus, Preset, useEmergencyTapout, activatePreset, invalidateUserCaches } from '../services/cardApi';
 import { useTheme , textSize, fontFamily, radius, shadow, iconSize } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { useAuth } from '../context/AuthContext';
@@ -40,16 +40,17 @@ const ClockIcon = ({ size = 12, color = '#FFFFFF' }: { size?: number; color?: st
 );
 
 function HomeScreen() {
-  const { userEmail: email, refreshTrigger, sharedPresets, setSharedPresets, sharedPresetsLoaded, setSharedPresetsLoaded, setSharedIsLocked, tapoutStatus, setTapoutStatus } = useAuth();
+  const { userEmail: email, refreshTrigger, sharedPresets, setSharedPresets, sharedPresetsLoaded, sharedLockStatus, setSharedLockStatus, tapoutStatus, setTapoutStatus, refreshAll } = useAuth();
   const { colors } = useTheme();
   const { s } = useResponsive();
   const insets = useSafeAreaInsets();
   const [currentPreset, setCurrentPreset] = useState<string | null>(null);
   const [activePreset, setActivePreset] = useState<Preset | null>(null);
   const [scheduledPresets, setScheduledPresets] = useState<Preset[]>([]);
-  const [isLocked, setIsLocked] = useState(false);
-  const [lockEndsAt, setLockEndsAt] = useState<string | null>(null);
-  const [lockStartedAt, setLockStartedAt] = useState<string | null>(null);
+  // Derived from shared lock status (single source of truth in AuthContext)
+  const isLocked = sharedLockStatus.isLocked;
+  const lockEndsAt = sharedLockStatus.lockEndsAt;
+  const lockStartedAt = sharedLockStatus.lockStartedAt;
   const [timeRemaining, setTimeRemaining] = useState<string | null>(null);
   const [elapsedTime, setElapsedTime] = useState<string | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
@@ -72,9 +73,6 @@ function HomeScreen() {
   const [isNearTop, setIsNearTop] = useState(true);
   const [buttonInteracting, setButtonInteracting] = useState(false);
 
-  // Prevent concurrent loadStats calls (race condition fix)
-  const loadStatsInProgressRef = useRef(false);
-
   const showModal = useCallback((title: string, message: string) => {
     setModalTitle(title);
     setModalMessage(message);
@@ -82,7 +80,7 @@ function HomeScreen() {
   }, []);
 
   const toggleSilentNotifications = useCallback(async () => {
-    if (!BlockingModule) return;
+    if (!BlockingModule?.setSilentNotifications) return;
     const newValue = !silentNotifications;
     setSilentNotifications(newValue);
     try {
@@ -148,9 +146,7 @@ function HomeScreen() {
       // Update lock status in database
       await updateLockStatus(email, true, lockEndsAtDate);
 
-      setIsLocked(true);
-      setSharedIsLocked(true);
-      setLockEndsAt(lockEndsAtDate ?? null);
+      setSharedLockStatus({ isLocked: true, lockStartedAt: new Date().toISOString(), lockEndsAt: lockEndsAtDate ?? null });
       setCurrentPreset(preset.name);
       setActivePreset(preset);
 
@@ -183,35 +179,19 @@ function HomeScreen() {
   }, [email]);
 
   const loadStats = useCallback(async (skipCache = false, showLoading = false) => {
-    // Prevent concurrent calls (race condition fix)
-    if (loadStatsInProgressRef.current) {
-      return;
-    }
-    loadStatsInProgressRef.current = true;
-
     if (showLoading) setLoading(true);
     const hideLoading = () => {
       if (showLoading) setTimeout(() => setLoading(false), 100);
     };
     try {
-      // Always fetch presets, lock status, and tapout status in parallel
-      // loadStats needs consistent presets+lock data to determine correct state
-      const [presets, lockStatus, tapout] = await Promise.all([
-        getPresets(email, skipCache),
-        getLockStatus(email, skipCache),
-        getEmergencyTapoutStatus(email, skipCache),
-      ]);
-
-      // Update shared state immediately so other screens see fresh data
-      // This must happen before any early returns below
-      setSharedPresets(presets);
-      setSharedPresetsLoaded(true);
+      // Fetch all data via AuthContext (single source of truth)
+      const { presets, lockStatus, tapoutStatus: tapout } = await refreshAll(skipCache);
 
       // Find active scheduled presets (sorted by start date) - only non-expired ones for the list
       const activeScheduled = presets
-        .filter(p => p.isScheduled && p.isActive && p.scheduleEndDate)
-        .filter(p => new Date(p.scheduleEndDate!) > new Date()) // Not expired
-        .sort((a, b) => new Date(a.scheduleStartDate!).getTime() - new Date(b.scheduleStartDate!).getTime());
+        .filter((p: Preset) => p.isScheduled && p.isActive && p.scheduleEndDate)
+        .filter((p: Preset) => new Date(p.scheduleEndDate!) > new Date()) // Not expired
+        .sort((a: Preset, b: Preset) => new Date(a.scheduleStartDate!).getTime() - new Date(b.scheduleStartDate!).getTime());
 
       // Check for scheduled presets that should activate
       const scheduledResult = await checkScheduledPresets(presets, lockStatus);
@@ -234,14 +214,13 @@ function HomeScreen() {
         setScheduledPresets(activeScheduled);
         setTapoutStatus(tapout);
         hideLoading();
-        loadStatsInProgressRef.current = false;
         return; // State will be updated by activateScheduledPreset
       }
 
       setScheduledPresets(activeScheduled);
 
       // Find active non-scheduled preset
-      const active = presets.find(p => p.isActive && !p.isScheduled);
+      const active = presets.find((p: Preset) => p.isActive && !p.isScheduled);
 
       // Determine currently blocking preset
       const now = new Date();
@@ -261,10 +240,7 @@ function HomeScreen() {
             invalidateUserCaches(email);
 
             // Set unlocked state but keep the preset showing
-            setIsLocked(false);
-            setSharedIsLocked(false);
-            setLockEndsAt(null);
-            setLockStartedAt(null);
+            setSharedLockStatus({ isLocked: false, lockStartedAt: null, lockEndsAt: null });
             // Keep preset active - set it from the active preset found
             if (active) {
               setCurrentPreset(active.name);
@@ -273,7 +249,6 @@ function HomeScreen() {
             setScheduledPresets(activeScheduled);
             setTapoutStatus(tapout);
             hideLoading();
-            loadStatsInProgressRef.current = false;
             return; // Exit early, state is set
           } catch (error) {
             // Continue with normal flow if auto-unlock fails
@@ -285,7 +260,7 @@ function HomeScreen() {
       // This keeps the preset showing until user unlocks
       if (lockStatus.isLocked) {
         // First check for a currently active scheduled preset
-        const currentlyBlockingScheduled = activeScheduled.find(p => {
+        const currentlyBlockingScheduled = activeScheduled.find((p: Preset) => {
           const start = new Date(p.scheduleStartDate!);
           const end = new Date(p.scheduleEndDate!);
           return now >= start && now < end;
@@ -315,18 +290,14 @@ function HomeScreen() {
         }
       }
 
-      setIsLocked(lockStatus.isLocked);
-      setSharedIsLocked(lockStatus.isLocked);
-      setLockEndsAt(lockStatus.lockEndsAt);
-      setLockStartedAt(lockStatus.lockStartedAt);
+      // Sync lock status to shared state (refreshAll already set it, but ensure consistency after early returns)
+      setSharedLockStatus(lockStatus);
       setTapoutStatus(tapout);
       hideLoading();
     } catch (error) {
       hideLoading();
-    } finally {
-      loadStatsInProgressRef.current = false;
     }
-  }, [email, checkScheduledPresets, activateScheduledPreset, setSharedPresets, setSharedPresetsLoaded]);
+  }, [email, checkScheduledPresets, activateScheduledPreset, refreshAll]);
 
   // Handle using emergency tapout
   const handleUseEmergencyTapout = useCallback(async () => {
@@ -355,10 +326,7 @@ function HomeScreen() {
       if (result.success) {
         // 1) Optimistic local + shared state (instant UI)
         setEmergencyTapoutModalVisible(false);
-        setIsLocked(false);
-        setSharedIsLocked(false);
-        setLockEndsAt(null);
-        setLockStartedAt(null);
+        setSharedLockStatus({ isLocked: false, lockStartedAt: null, lockEndsAt: null });
         setTapoutStatus(tapoutStatus ? { ...tapoutStatus, remaining: result.remaining } : null);
         if (isScheduledPreset) {
           setCurrentPreset(null);
@@ -411,14 +379,8 @@ function HomeScreen() {
   // Load data on mount
   useEffect(() => {
     async function init() {
-      // On first app load (app was killed/restarted), clear all caches for fresh data
-      // On subsequent navigations, only invalidate user-specific caches
-      if (isFirstLoad()) {
-        clearAllCaches();
-        markInitialLoadComplete();
-      } else {
-        invalidateUserCaches(email);
-      }
+      // First-load cache clearing is now handled in AuthContext
+      invalidateUserCaches(email);
       await loadStats(true, true); // skipCache=true, showLoading=true
     }
     init();
@@ -438,7 +400,7 @@ function HomeScreen() {
 
   // Load silent notifications preference on mount
   useEffect(() => {
-    if (BlockingModule) {
+    if (BlockingModule?.getSilentNotifications) {
       BlockingModule.getSilentNotifications().then((silent: boolean) => {
         setSilentNotifications(silent);
       }).catch(() => {});
@@ -630,10 +592,7 @@ function HomeScreen() {
       setLoading(true);
 
       // 1) Optimistic local + shared state (instant UI)
-      setIsLocked(false);
-      setSharedIsLocked(false);
-      setLockEndsAt(null);
-      setLockStartedAt(null);
+      setSharedLockStatus({ isLocked: false, lockStartedAt: null, lockEndsAt: null });
       if (isScheduledPreset) {
         setCurrentPreset(null);
         setActivePreset(null);
@@ -804,12 +763,9 @@ function HomeScreen() {
       // Update lock status in database
       await updateLockStatus(email, true, calculatedLockEndsAt);
 
-      // Set local state immediately for instant UI update
+      // Set shared lock state immediately for instant UI update
       const nowISO = new Date().toISOString();
-      setIsLocked(true);
-      setSharedIsLocked(true);
-      setLockEndsAt(calculatedLockEndsAt);
-      setLockStartedAt(nowISO);
+      setSharedLockStatus({ isLocked: true, lockStartedAt: nowISO, lockEndsAt: calculatedLockEndsAt });
 
       // Call native blocking module
       if (BlockingModule) {
@@ -991,14 +947,15 @@ function HomeScreen() {
         {/* Right side buttons */}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: s(8) }}>
           {/* Silent Notifications Toggle */}
-          <HeaderIconButton
+          <TouchableOpacity
             onPress={toggleSilentNotifications}
+            activeOpacity={0.7}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             style={{
-              backgroundColor: silentNotifications ? colors.cyan : colors.card,
-              borderWidth: 1, borderColor: silentNotifications ? colors.cyan : colors.border, ...shadow.card,
+              backgroundColor: silentNotifications ? colors.green : colors.card,
+              borderWidth: 1, borderColor: silentNotifications ? colors.green : colors.border, ...shadow.card,
               width: s(44), height: s(44), borderRadius: 9999, alignItems: 'center', justifyContent: 'center',
             }}
-            className=""
           >
             {silentNotifications ? (
               <Svg width={s(18)} height={s(18)} viewBox="0 0 24 24" fill="none">
@@ -1014,7 +971,7 @@ function HomeScreen() {
                 <Path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="#FFFFFF" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
               </Svg>
             )}
-          </HeaderIconButton>
+          </TouchableOpacity>
 
           {/* WiFi Settings */}
           <HeaderIconButton

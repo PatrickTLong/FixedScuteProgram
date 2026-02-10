@@ -19,7 +19,7 @@ import Svg, { Path } from 'react-native-svg';
 import ConfirmationModal from '../components/ConfirmationModal';
 import HeaderIconButton from '../components/HeaderIconButton';
 import EmailConfirmationModal from '../components/EmailConfirmationModal';
-import { getLockStatus, getEmergencyTapoutStatus, getCachedLockStatus, getCachedTapoutStatus, getMembershipStatus, MembershipStatus, getCachedMembershipStatus } from '../services/cardApi';
+import { getMembershipStatus, MembershipStatus, getCachedMembershipStatus } from '../services/cardApi';
 import { useTheme , textSize, fontFamily, radius, shadow, iconSize, buttonPadding } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { useAuth } from '../context/AuthContext';
@@ -189,14 +189,12 @@ const SettingsRow = memo(({
 ));
 
 function SettingsScreen() {
-  const { userEmail: email, handleLogout: onLogout, handleResetAccount: onResetAccount, handleDeleteAccount: onDeleteAccount, sharedIsLocked, setSharedIsLocked, tapoutStatus, setTapoutStatus } = useAuth();
+  const { userEmail: email, handleLogout: onLogout, handleResetAccount: onResetAccount, handleDeleteAccount: onDeleteAccount, sharedIsLocked, sharedLockStatus, tapoutStatus, refreshLockStatus, refreshTapoutStatus } = useAuth();
   const { s } = useResponsive();
 
-  // Check cache synchronously for initial render - avoids flash if cache exists
-  const cachedLockStatus = getCachedLockStatus(email);
-  const cachedTapoutStatus = getCachedTapoutStatus(email);
+  // Check if AuthContext already has data (e.g. HomeScreen pre-populated it)
   const cachedMembership = getCachedMembershipStatus(email);
-  const hasCache = cachedLockStatus !== null && cachedTapoutStatus !== null;
+  const hasCache = sharedLockStatus.isLocked !== undefined && tapoutStatus !== null;
 
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
   const [resetModalVisible, setResetModalVisible] = useState(false);
@@ -238,23 +236,21 @@ function SettingsScreen() {
   // Membership state - initialize from cache if available
   const [membershipStatus, setMembershipStatus] = useState<MembershipStatus | null>(cachedMembership);
 
-  // Load data on mount - seed shared state from cache or fetch if cache miss
+  // Load data on mount - use AuthContext refreshes or skip if already populated
   useEffect(() => {
     if (hasCache) {
-      setSharedIsLocked(cachedLockStatus.isLocked);
-      if (cachedTapoutStatus) setTapoutStatus(cachedTapoutStatus);
+      setLockChecked(true);
+      setLoading(false);
       return;
     }
 
     async function init() {
-      const [status, tapout, membership] = await Promise.all([
-        getLockStatus(email, false),
-        getEmergencyTapoutStatus(email, false),
+      const [, , membership] = await Promise.all([
+        refreshLockStatus(false),
+        refreshTapoutStatus(false),
         getMembershipStatus(email, false),
       ]);
 
-      setSharedIsLocked(status.isLocked);
-      setTapoutStatus(tapout);
       setMembershipStatus(membership);
       setLockChecked(true);
       setLoading(false);
@@ -386,16 +382,14 @@ function SettingsScreen() {
   // Pull-to-refresh handler
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    const [status, tapout, membership] = await Promise.all([
-      getLockStatus(email, true),
-      getEmergencyTapoutStatus(email, true),
+    const [, , membership] = await Promise.all([
+      refreshLockStatus(true),
+      refreshTapoutStatus(true),
       getMembershipStatus(email, true),
     ]);
-    setSharedIsLocked(status.isLocked);
-    setTapoutStatus(tapout);
     setMembershipStatus(membership);
     setRefreshing(false);
-  }, [email, setSharedIsLocked, setTapoutStatus]);
+  }, [email, refreshLockStatus, refreshTapoutStatus]);
 
   // Memoize icon JSX so SettingsRow memo isn't defeated by new element references
   const mailIcon = useMemo(() => <MailIcon />, []);

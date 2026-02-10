@@ -31,6 +31,7 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
 
         // Notification channel for schedule alerts (high priority, heads-up)
         private const val ALERT_CHANNEL_ID = "scute_schedule_alerts"
+        private const val SILENT_ALERT_CHANNEL_ID = "scute_schedule_alerts_silent"
         private const val ACTIVATION_NOTIFICATION_ID = 2001
         private const val DEACTIVATION_NOTIFICATION_ID = 2002
     }

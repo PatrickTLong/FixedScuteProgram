@@ -19,11 +19,9 @@ import HeaderIconButton from '../components/HeaderIconButton';
 import PresetCard, { Preset } from '../components/PresetCard';
 import ConfirmationModal from '../components/ConfirmationModal';
 import {
-  getPresets,
   savePreset,
   deletePreset as deletePresetApi,
   activatePreset,
-  getLockStatus,
   invalidateUserCaches,
 } from '../services/cardApi';
 import { AnimatedPresetsIcon, AnimatedPresetsIconRef } from '../components/BottomTabBar';
@@ -96,31 +94,13 @@ function PresetsScreen() {
   const { s } = useResponsive();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NativeStackNavigationProp<MainStackParamList>>();
-  const { userEmail, sharedPresets, setSharedPresets, setSharedPresetsLoaded, sharedIsLocked, setSharedIsLocked } = useAuth();
+  const { userEmail, sharedPresets, setSharedPresets, sharedIsLocked, refreshPresets, refreshLockStatus } = useAuth();
   const userEmail_safe = userEmail || '';
   const { setOnSave, setEditingPreset: setContextEditingPreset, setExistingPresets, setEmail } = usePresetSave();
-  const [presets, setPresetsLocal] = useState<Preset[]>(sharedPresets);
 
-  // Track whether local code is updating to prevent circular sync
-  const localUpdateRef = useRef(false);
-
-  // Sync local presets to shared state whenever they change
-  useEffect(() => {
-    localUpdateRef.current = true;
-    setSharedPresets(presets);
-  }, [presets, setSharedPresets]);
-
-  // Sync local state from shared state when it changes externally (e.g. after reset)
-  useEffect(() => {
-    if (localUpdateRef.current) {
-      localUpdateRef.current = false;
-      return;
-    }
-    setPresetsLocal(sharedPresets);
-  }, [sharedPresets]);
-
-  // Wrapper that updates local state (shared state syncs automatically via useEffect above)
-  const setPresets = setPresetsLocal;
+  // Read directly from shared state (single source of truth in AuthContext)
+  const presets = sharedPresets;
+  const setPresets = setSharedPresets;
 
   const [activePresetId, setActivePresetId] = useState<string | null>(null);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
@@ -179,12 +159,6 @@ function PresetsScreen() {
     navigation.getParent()?.navigate('EditPresetApps');
   }, [presets, userEmail_safe, navigation, setContextEditingPreset, setExistingPresets, setEmail]);
 
-  const checkLockStatus = useCallback(async () => {
-    const status = await getLockStatus(userEmail_safe);
-    setSharedIsLocked(status.isLocked);
-    setLockChecked(true);
-  }, [userEmail_safe, setSharedIsLocked]);
-
   // Background orphan cleanup - doesn't block UI
   const runOrphanCleanup = useCallback(async (fetchedPresets: Preset[]) => {
     try {
@@ -222,14 +196,17 @@ function PresetsScreen() {
     }
   }, [userEmail_safe]);
 
-  const loadPresets = useCallback(async (forceRefresh = false) => {
-    try {
-      // Fetch presets from Supabase - use cache unless force refresh
-      const fetchedPresets = await getPresets(userEmail_safe, forceRefresh);
+  // Check lock status and load presets in parallel on initial mount
+  useEffect(() => {
+    let spinnerTimeout: NodeJS.Timeout;
 
-      // Show presets immediately - don't wait for orphan cleanup
-      setPresets(fetchedPresets);
-      setSharedPresetsLoaded(true);
+    async function init() {
+      setLoading(true);
+      // Only show spinner if loading takes more than 50ms (avoids flash)
+      spinnerTimeout = setTimeout(() => setShowSpinner(true), 50);
+
+      // Fetch via AuthContext (single source of truth)
+      const [, fetchedPresets] = await Promise.all([refreshLockStatus(), refreshPresets()]);
 
       // Find active NON-SCHEDULED preset
       const activeNonScheduled = fetchedPresets.find(p => p.isActive && !p.isScheduled);
@@ -244,23 +221,8 @@ function PresetsScreen() {
 
       // Run orphan cleanup in background (non-blocking)
       runOrphanCleanup(fetchedPresets);
-    } catch (error) {
-      // Failed to load presets
-    }
-  }, [userEmail_safe, runOrphanCleanup]);
 
-  // Check lock status and load presets in parallel on initial mount
-  useEffect(() => {
-    let spinnerTimeout: NodeJS.Timeout;
-
-    async function init() {
-      setLoading(true);
-      // Only show spinner if loading takes more than 50ms (avoids flash)
-      spinnerTimeout = setTimeout(() => setShowSpinner(true), 50);
-
-      // Load presets with cache on first render - HomeScreen handles cache invalidation on app restart
-      await Promise.all([checkLockStatus(), loadPresets(false)]);
-
+      setLockChecked(true);
       clearTimeout(spinnerTimeout);
       setShowSpinner(false);
       setLoading(false);
@@ -270,7 +232,7 @@ function PresetsScreen() {
     return () => {
       clearTimeout(spinnerTimeout);
     };
-  }, [checkLockStatus, loadPresets, userEmail_safe]);
+  }, [refreshLockStatus, refreshPresets, userEmail_safe, runOrphanCleanup]);
 
   // Note: Expiration checking is handled globally in AuthContext
   useFocusEffect(useCallback(() => {}, []));
@@ -730,9 +692,9 @@ function PresetsScreen() {
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     invalidateUserCaches(userEmail_safe);
-    await Promise.all([checkLockStatus(), loadPresets(true)]);
+    await Promise.all([refreshLockStatus(true), refreshPresets(true)]);
     setRefreshing(false);
-  }, [userEmail_safe, checkLockStatus, loadPresets]);
+  }, [userEmail_safe, refreshLockStatus, refreshPresets]);
 
   // Show loading state until initial data is loaded - prevents flash of incomplete content
   if (loading) {

@@ -6,15 +6,21 @@ import {
   deleteAccount,
   updateLockStatus,
   getPresets,
+  getLockStatus,
+  getEmergencyTapoutStatus,
   resetPresets,
   deactivateAllPresets,
   useEmergencyTapout,
   savePreset,
   Preset,
+  LockStatus,
   EmergencyTapoutStatus,
   invalidateUserCaches,
   clearAuthToken,
   getMembershipStatus,
+  isFirstLoad,
+  clearAllCaches,
+  markInitialLoadComplete,
 } from '../services/cardApi';
 import type { RootStackParamList } from '../navigation/types';
 
@@ -65,10 +71,15 @@ interface AuthContextValue {
   sharedPresets: Preset[];
   setSharedPresets: React.Dispatch<React.SetStateAction<Preset[]>>;
   sharedPresetsLoaded: boolean;
-  setSharedPresetsLoaded: (v: boolean) => void;
   // Shared lock status across all mounted screens
-  sharedIsLocked: boolean;
-  setSharedIsLocked: (v: boolean) => void;
+  sharedLockStatus: LockStatus;
+  setSharedLockStatus: React.Dispatch<React.SetStateAction<LockStatus>>;
+  sharedIsLocked: boolean; // derived read-only from sharedLockStatus.isLocked
+  // Centralized refresh functions
+  refreshPresets: (skipCache?: boolean) => Promise<Preset[]>;
+  refreshLockStatus: (skipCache?: boolean) => Promise<LockStatus>;
+  refreshTapoutStatus: (skipCache?: boolean) => Promise<EmergencyTapoutStatus>;
+  refreshAll: (skipCache?: boolean) => Promise<{ presets: Preset[]; lockStatus: LockStatus; tapoutStatus: EmergencyTapoutStatus }>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -92,7 +103,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [sharedPresetsLoaded, setSharedPresetsLoaded] = useState(false);
 
   // Shared lock status - single source of truth across all mounted screens
-  const [sharedIsLocked, setSharedIsLocked] = useState(false);
+  const [sharedLockStatus, setSharedLockStatus] = useState<LockStatus>({
+    isLocked: false, lockStartedAt: null, lockEndsAt: null,
+  });
 
   // Info modal
   const [modalState, setModalState] = useState<ModalState>({ visible: false, title: '', message: '' });
@@ -115,6 +128,65 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const triggerRefresh = useCallback(() => {
     setRefreshTrigger(prev => prev + 1);
   }, []);
+
+  // Centralized data refresh functions - single source of truth for all data fetching
+  const refreshInProgressRef = useRef(false);
+  // Refs to track current state for the refreshAll early-return guard
+  // (avoids putting state in refreshAll's dependency array, which causes infinite loops)
+  const sharedPresetsRef = useRef(sharedPresets);
+  const sharedLockStatusRef = useRef(sharedLockStatus);
+  const tapoutStatusRef = useRef(tapoutStatus);
+  sharedPresetsRef.current = sharedPresets;
+  sharedLockStatusRef.current = sharedLockStatus;
+  tapoutStatusRef.current = tapoutStatus;
+
+  const refreshPresets = useCallback(async (skipCache = false): Promise<Preset[]> => {
+    if (!userEmail) return [];
+    const presets = await getPresets(userEmail, skipCache);
+    setSharedPresets(presets);
+    setSharedPresetsLoaded(true);
+    return presets;
+  }, [userEmail]);
+
+  const refreshLockStatus = useCallback(async (skipCache = false): Promise<LockStatus> => {
+    if (!userEmail) return { isLocked: false, lockStartedAt: null, lockEndsAt: null };
+    const status = await getLockStatus(userEmail, skipCache);
+    setSharedLockStatus(status);
+    return status;
+  }, [userEmail]);
+
+  const refreshTapoutStatus = useCallback(async (skipCache = false): Promise<EmergencyTapoutStatus> => {
+    if (!userEmail) return { remaining: 0, nextRefillDate: null };
+    const tapout = await getEmergencyTapoutStatus(userEmail, skipCache);
+    setTapoutStatus(tapout);
+    return tapout;
+  }, [userEmail]);
+
+  const refreshAll = useCallback(async (skipCache = false): Promise<{ presets: Preset[]; lockStatus: LockStatus; tapoutStatus: EmergencyTapoutStatus }> => {
+    if (refreshInProgressRef.current) {
+      // Already refreshing — return current state via refs (stable, no re-render loop)
+      return {
+        presets: sharedPresetsRef.current,
+        lockStatus: sharedLockStatusRef.current,
+        tapoutStatus: tapoutStatusRef.current ?? { remaining: 0, nextRefillDate: null },
+      };
+    }
+    refreshInProgressRef.current = true;
+    try {
+      const [presets, lockStatus, tapout] = await Promise.all([
+        getPresets(userEmail, skipCache),
+        getLockStatus(userEmail, skipCache),
+        getEmergencyTapoutStatus(userEmail, skipCache),
+      ]);
+      setSharedPresets(presets);
+      setSharedPresetsLoaded(true);
+      setSharedLockStatus(lockStatus);
+      setTapoutStatus(tapout);
+      return { presets, lockStatus, tapoutStatus: tapout };
+    } finally {
+      refreshInProgressRef.current = false;
+    }
+  }, [userEmail]);
 
   // Emergency tapout handler
   const handleUseEmergencyTapout = useCallback(async () => {
@@ -331,10 +403,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       // Clear caches, then re-fetch so shared state has fresh data before spinner dismisses
       invalidateUserCaches(userEmail);
-      const freshPresets = await getPresets(userEmail, true);
-      setSharedPresets(freshPresets);
-      setSharedPresetsLoaded(true);
-      setSharedIsLocked(false);
+      await refreshPresets(true);
+      setSharedLockStatus({ isLocked: false, lockStartedAt: null, lockEndsAt: null });
       return { success: true };
     } catch (error) {
       return { success: false, error: 'Failed to reset account' };
@@ -352,7 +422,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       invalidateUserCaches(userEmail);
       setSharedPresets([]);
       setSharedPresetsLoaded(false);
-      setSharedIsLocked(false);
+      setSharedLockStatus({ isLocked: false, lockStartedAt: null, lockEndsAt: null });
       await AsyncStorage.clear();
       await clearAuthToken();
       setUserEmail('');
@@ -368,10 +438,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!userEmail || authState !== 'main') return;
 
     try {
-      const presets = await getPresets(userEmail);
-      // Update shared state so all screens see fresh preset data
-      setSharedPresets(presets);
-      setSharedPresetsLoaded(true);
+      const presets = await refreshPresets();
 
       const now = Date.now();
 
@@ -462,8 +529,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [userEmail, authState]);
 
-  // Initial check
+  // Initial check — also clear caches on fresh app launch
   useEffect(() => {
+    if (isFirstLoad()) {
+      clearAllCaches();
+      markInitialLoadComplete();
+    }
     checkLoginStatus();
     checkScheduledPresetLaunch();
     checkBlockedOverlayLaunch();
@@ -482,10 +553,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return () => subscription.remove();
   }, [checkPermissionsOnForeground, checkScheduledPresetLaunch, checkBlockedOverlayLaunch, checkActiveScheduledPreset]);
-
-  // Ref to track current sharedPresets for use in timeout callbacks
-  const sharedPresetsRef = useRef(sharedPresets);
-  sharedPresetsRef.current = sharedPresets;
 
   // Global expiration check - runs whenever sharedPresets changes AND sets a timer for next expiration
   // This ensures expired presets are marked inactive regardless of which screen is active
@@ -571,11 +638,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // Fetch fresh presets and update shared state immediately
       try {
-        const freshPresets = await getPresets(userEmail, true);
-        setSharedPresets(freshPresets);
-        setSharedPresetsLoaded(true);
+        await refreshPresets(true);
       } catch (e) {
-        // Will be refreshed by loadStats via refreshTrigger below
+        // Will be refreshed via refreshTrigger below
       }
 
       if (navigationRef.isReady()) {
@@ -617,9 +682,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     sharedPresets,
     setSharedPresets,
     sharedPresetsLoaded,
-    setSharedPresetsLoaded,
-    sharedIsLocked,
-    setSharedIsLocked,
+    sharedLockStatus,
+    setSharedLockStatus,
+    sharedIsLocked: sharedLockStatus.isLocked,
+    refreshPresets,
+    refreshLockStatus,
+    refreshTapoutStatus,
+    refreshAll,
   };
 
   return (
