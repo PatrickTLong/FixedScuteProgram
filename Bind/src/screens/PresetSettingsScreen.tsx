@@ -777,7 +777,9 @@ function PresetSettingsScreen() {
       setExpandedInfo({});
 
       // Save form state to context when screen loses focus (user taps back)
+      // Skip if preset was already saved — refs were cleared by handleSave
       return () => {
+        if (hasSaved.current) return;
         setFinalSettingsState({
           blockSettings: blockSettingsRef.current,
           noTimeLimit: noTimeLimitRef.current,
