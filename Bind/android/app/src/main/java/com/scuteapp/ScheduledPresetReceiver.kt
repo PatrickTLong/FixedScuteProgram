@@ -332,6 +332,46 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
     }
 
     /**
+     * Deactivate a preset in the backend by saving it with isActive=false.
+     * Used when overlap resolution removes the shorter preset.
+     */
+    private fun deactivatePresetInBackend(context: Context, preset: JSONObject) {
+        thread {
+            try {
+                val token = getAuthTokenFromAsyncStorage(context)
+                if (token == null) {
+                    Log.e(TAG, "[OVERLAP] No auth token, cannot deactivate preset in backend")
+                    return@thread
+                }
+
+                val apiUrl = "${BuildConfig.API_URL}/api/presets"
+                val url = URL(apiUrl)
+                val connection = url.openConnection() as HttpURLConnection
+                connection.requestMethod = "POST"
+                connection.setRequestProperty("Content-Type", "application/json")
+                connection.setRequestProperty("Authorization", "Bearer $token")
+                connection.doOutput = true
+                connection.connectTimeout = 10000
+                connection.readTimeout = 10000
+
+                val presetCopy = JSONObject(preset.toString())
+                presetCopy.put("isActive", false)
+                val body = JSONObject().apply { put("preset", presetCopy) }
+
+                connection.outputStream.use { os ->
+                    os.write(body.toString().toByteArray(Charsets.UTF_8))
+                }
+
+                val responseCode = connection.responseCode
+                Log.d(TAG, "[OVERLAP] Deactivate preset backend response: $responseCode")
+                connection.disconnect()
+            } catch (e: Exception) {
+                Log.e(TAG, "[OVERLAP] Error deactivating preset in backend", e)
+            }
+        }
+    }
+
+    /**
      * Call backend API to update the preset's schedule dates
      */
     private fun updateBackendSchedule(
@@ -546,11 +586,13 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
 
             val presetsArray = org.json.JSONArray(presetsJson)
             var targetPreset: JSONObject? = null
+            var targetIndex = -1
 
             for (i in 0 until presetsArray.length()) {
                 val preset = presetsArray.getJSONObject(i)
                 if (preset.getString("id") == presetId) {
                     targetPreset = preset
+                    targetIndex = i
                     break
                 }
             }
@@ -579,6 +621,52 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
                     Log.d(TAG, "Current time is outside schedule window")
                     return
                 }
+
+                // --- Overlap resolution: longer preset wins, shorter gets deactivated ---
+                val targetDuration = endTime - startTime
+                var presetsModified = false
+
+                for (i in 0 until presetsArray.length()) {
+                    val other = presetsArray.getJSONObject(i)
+                    val otherId = other.getString("id")
+                    if (otherId == presetId) continue
+                    if (!other.optBoolean("isActive", false)) continue
+
+                    val otherStart = other.optString("scheduleStartDate", null) ?: continue
+                    val otherEnd = other.optString("scheduleEndDate", null) ?: continue
+                    val otherStartTime = parseIsoDate(otherStart)
+                    val otherEndTime = parseIsoDate(otherEnd)
+
+                    // Check overlap: start1 < end2 && start2 < end1
+                    if (startTime < otherEndTime && otherStartTime < endTime) {
+                        val otherDuration = otherEndTime - otherStartTime
+                        Log.d(TAG, "[OVERLAP] Detected overlap between '$presetId' (${targetDuration}ms) and '$otherId' (${otherDuration}ms)")
+
+                        if (otherDuration > targetDuration) {
+                            // Other is longer — deactivate THIS (target) preset
+                            Log.d(TAG, "[OVERLAP] Deactivating shorter preset (target): $presetId")
+                            targetPreset.put("isActive", false)
+                            presetsArray.put(targetIndex, targetPreset)
+                            prefs.edit().putString(ScheduleManager.KEY_SCHEDULED_PRESETS, presetsArray.toString()).apply()
+                            ScheduleManager.cancelPresetAlarm(context, presetId)
+                            deactivatePresetInBackend(context, targetPreset)
+                            return
+                        } else {
+                            // Target is longer (or equal) — deactivate the OTHER preset
+                            Log.d(TAG, "[OVERLAP] Deactivating shorter preset (other): $otherId")
+                            other.put("isActive", false)
+                            presetsArray.put(i, other)
+                            presetsModified = true
+                            ScheduleManager.cancelPresetAlarm(context, otherId)
+                            deactivatePresetInBackend(context, other)
+                        }
+                    }
+                }
+
+                if (presetsModified) {
+                    prefs.edit().putString(ScheduleManager.KEY_SCHEDULED_PRESETS, presetsArray.toString()).apply()
+                }
+                // --- End overlap resolution ---
             }
 
             // Extract preset config
