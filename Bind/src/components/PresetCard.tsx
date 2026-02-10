@@ -294,13 +294,15 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, onExpire
       <View className="flex-row items-center">
         <View className="flex-1">
           {/* Preset Name with Badges */}
-          <View className="mb-1">
-            <Text style={{ color: isExpired ? colors.textMuted : colors.text }} className={`${textSize.large} ${fontFamily.semibold}`}>
+          <View className="flex-row items-center mb-1">
+            <Text style={{ color: isExpired ? colors.textMuted : colors.text, flexShrink: 1 }} className={`${textSize.large} ${fontFamily.semibold}`}>
               {preset.name}
-              {status !== null && (
-                <Text>{' '}<ClockIcon color={getClockColor()} size={iconSize.sm} /></Text>
-              )}
             </Text>
+            {status !== null && (
+              <View className="ml-2">
+                <ClockIcon color={getClockColor()} size={iconSize.sm} />
+              </View>
+            )}
           </View>
 
           {/* Settings Description */}

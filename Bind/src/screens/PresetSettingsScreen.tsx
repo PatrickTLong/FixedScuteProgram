@@ -660,6 +660,7 @@ function PresetSettingsScreen() {
   const [recurringUnit, setRecurringUnit] = useState<RecurringUnit>('hours');
   const [recurrenceInfoVisible, setRecurrenceInfoVisible] = useState(false);
   const [svgKey, setSvgKey] = useState(0);
+  const [skipSwitchAnimation, setSkipSwitchAnimation] = useState(false);
 
   // ============ Inline Date Picker State ============
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -775,6 +776,10 @@ function PresetSettingsScreen() {
       setShowDatePicker(false);
       setDatePickerTarget(null);
       setExpandedInfo({});
+      setSkipSwitchAnimation(true);
+      requestAnimationFrame(() => {
+        setSkipSwitchAnimation(false);
+      });
 
       // Save form state to context when screen loses focus (user taps back)
       // Skip if preset was already saved — refs were cleared by handleSave
@@ -1300,6 +1305,7 @@ function PresetSettingsScreen() {
             <AnimatedSwitch
               size="small"
               value={noTimeLimit}
+              animate={!skipSwitchAnimation}
               onValueChange={(value: boolean) => {
                 setNoTimeLimit(value);
                 requestAnimationFrame(() => {
@@ -1339,6 +1345,7 @@ function PresetSettingsScreen() {
               <AnimatedSwitch
                 size="small"
                 value={isScheduled}
+                animate={!skipSwitchAnimation}
                 onValueChange={(value: boolean) => {
                   setIsScheduled(value);
                   requestAnimationFrame(() => {
@@ -1486,6 +1493,7 @@ function PresetSettingsScreen() {
                     <AnimatedSwitch
                       size="small"
                       value={isRecurring}
+                      animate={!skipSwitchAnimation}
                       onValueChange={(value: boolean) => {
                         setIsRecurring(value);
                         if (value) {
@@ -1699,6 +1707,7 @@ function PresetSettingsScreen() {
             <AnimatedSwitch
               size="small"
               value={blockSettings}
+              animate={!skipSwitchAnimation}
               onValueChange={(value: boolean) => {
                 setBlockSettings(value);
                 if (value) {
@@ -1733,6 +1742,7 @@ function PresetSettingsScreen() {
               <AnimatedSwitch
                 size="small"
                 value={strictMode}
+                animate={!skipSwitchAnimation}
                 onValueChange={(value: boolean) => {
                   setStrictMode(value);
                   if (value) {
@@ -1769,6 +1779,7 @@ function PresetSettingsScreen() {
               <AnimatedSwitch
                 size="small"
                 value={allowEmergencyTapout}
+                animate={!skipSwitchAnimation}
                 onValueChange={handleEmergencyTapoutToggle}
               />
             </View>
