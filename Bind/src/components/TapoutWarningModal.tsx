@@ -1,4 +1,4 @@
-import React, { memo, useState } from 'react';
+import React, { memo } from 'react';
 import {
   View,
   Text,
@@ -7,7 +7,6 @@ import {
   Pressable,
 } from 'react-native';
 import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
-import { useResponsive } from '../utils/responsive';
 
 interface TapoutWarningModalProps {
   visible: boolean;
@@ -16,17 +15,13 @@ interface TapoutWarningModalProps {
 
 function TapoutWarningModal({ visible, onClose }: TapoutWarningModalProps) {
   const { colors } = useTheme();
-  const { s } = useResponsive();
-  const [dontShowAgain, setDontShowAgain] = useState(false);
 
   const handleConfirm = () => {
-    onClose(dontShowAgain, true);
-    setDontShowAgain(false); // Reset for next time
+    onClose(true, true);
   };
 
   const handleCancel = () => {
-    onClose(false, false);
-    setDontShowAgain(false); // Reset for next time
+    onClose(true, false);
   };
 
   return (
@@ -49,38 +44,6 @@ function TapoutWarningModal({ visible, onClose }: TapoutWarningModalProps) {
                 <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular}`}>
                   Without tapouts, you cannot unlock early. You must wait for the timer to expire or the scheduled end time.
                 </Text>
-
-                {/* Don't show again checkbox */}
-                <TouchableOpacity
-                  onPress={() => setDontShowAgain(!dontShowAgain)}
-                  activeOpacity={0.7}
-                  className="flex-row items-center justify-center mt-6"
-                >
-                  <View
-                    style={{
-                      backgroundColor: dontShowAgain ? colors.green : 'transparent',
-                      borderColor: dontShowAgain ? colors.green : colors.textSecondary,
-                    }}
-                    className="w-5 h-5 rounded border-2 items-center justify-center mr-3"
-                  >
-                    {dontShowAgain && (
-                      <View
-                        style={{
-                          width: s(8),
-                          height: s(13),
-                          borderRightWidth: 2.5,
-                          borderBottomWidth: 2.5,
-                          borderColor: colors.text,
-                          transform: [{ rotate: '45deg' }],
-                          marginTop: s(-2),
-                        }}
-                      />
-                    )}
-                  </View>
-                  <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular}`}>
-                    Don't show this again
-                  </Text>
-                </TouchableOpacity>
               </View>
 
               {/* Buttons */}

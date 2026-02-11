@@ -1,4 +1,4 @@
-import React, { memo, useState } from 'react';
+import React, { memo } from 'react';
 import {
   View,
   Text,
@@ -7,7 +7,6 @@ import {
   Pressable,
 } from 'react-native';
 import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
-import AnimatedCheckbox from './AnimatedCheckbox';
 
 interface RecurrenceInfoModalProps {
   visible: boolean;
@@ -16,11 +15,9 @@ interface RecurrenceInfoModalProps {
 
 function RecurrenceInfoModal({ visible, onClose }: RecurrenceInfoModalProps) {
   const { colors } = useTheme();
-  const [dontShowAgain, setDontShowAgain] = useState(false);
 
   const handleClose = () => {
-    onClose(dontShowAgain);
-    setDontShowAgain(false); // Reset for next time
+    onClose(true);
   };
 
   return (
@@ -43,20 +40,6 @@ function RecurrenceInfoModal({ visible, onClose }: RecurrenceInfoModalProps) {
                 <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular} text-center`}>
                   Set your block to repeat automatically. Choose intervals from minutes to months.
                 </Text>
-
-                {/* Don't show again checkbox */}
-                <TouchableOpacity
-                  onPress={() => setDontShowAgain(!dontShowAgain)}
-                  activeOpacity={0.7}
-                  className="flex-row items-center justify-center mt-6"
-                >
-                  <View className="mr-3">
-                    <AnimatedCheckbox checked={dontShowAgain} size={20} />
-                  </View>
-                  <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular}`}>
-                    Don't show this again
-                  </Text>
-                </TouchableOpacity>
               </View>
 
               {/* Button */}

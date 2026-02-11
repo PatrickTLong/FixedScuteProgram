@@ -1,4 +1,4 @@
-import React, { memo, useState } from 'react';
+import React, { memo } from 'react';
 import {
   View,
   Text,
@@ -8,8 +8,6 @@ import {
 } from 'react-native';
 import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
 
-import AnimatedCheckbox from './AnimatedCheckbox';
-
 interface BlockSettingsWarningModalProps {
   visible: boolean;
   onConfirm: (dontShowAgain: boolean) => void;
@@ -18,16 +16,13 @@ interface BlockSettingsWarningModalProps {
 
 function BlockSettingsWarningModal({ visible, onConfirm, onCancel }: BlockSettingsWarningModalProps) {
   const { colors } = useTheme();
-  const [dontShowAgain, setDontShowAgain] = useState(false);
 
   const handleConfirm = () => {
-    onConfirm(dontShowAgain);
-    setDontShowAgain(false); // Reset for next time
+    onConfirm(true);
   };
 
   const handleCancel = () => {
     onCancel();
-    setDontShowAgain(false); // Reset for next time
   };
 
   return (
@@ -50,20 +45,6 @@ function BlockSettingsWarningModal({ visible, onConfirm, onCancel }: BlockSettin
                 <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular} text-center`}>
                   The Settings app will be blocked when this preset is active. Basic toggles like WiFi and Bluetooth remain accessible via quick settings.
                 </Text>
-
-                {/* Don't show again checkbox */}
-                <TouchableOpacity
-                  onPress={() => setDontShowAgain(!dontShowAgain)}
-                  activeOpacity={0.7}
-                  className="flex-row items-center justify-center mt-6"
-                >
-                  <View className="mr-3">
-                    <AnimatedCheckbox checked={dontShowAgain} size={20} />
-                  </View>
-                  <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular}`}>
-                    Don't show this again
-                  </Text>
-                </TouchableOpacity>
               </View>
 
               {/* Buttons */}

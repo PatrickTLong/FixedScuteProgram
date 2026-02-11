@@ -1,4 +1,4 @@
-import React, { memo, useState } from 'react';
+import React, { memo } from 'react';
 import {
   View,
   Text,
@@ -8,7 +8,6 @@ import {
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { useTheme , textSize, fontFamily, radius, shadow, iconSize } from '../context/ThemeContext';
-import { useResponsive } from '../utils/responsive';
 
 interface ShieldIconsInfoModalProps {
   visible: boolean;
@@ -50,12 +49,9 @@ const RotateCwIcon = ({ color, size = iconSize.lg }: { color: string; size?: num
 
 function ShieldIconsInfoModal({ visible, onClose }: ShieldIconsInfoModalProps) {
   const { colors } = useTheme();
-  const { s } = useResponsive();
-  const [dontShowAgain, setDontShowAgain] = useState(false);
 
   const handleClose = () => {
-    onClose(dontShowAgain);
-    setDontShowAgain(false); // Reset for next time
+    onClose(true);
   };
 
   return (
@@ -111,38 +107,6 @@ function ShieldIconsInfoModal({ visible, onClose }: ShieldIconsInfoModalProps) {
                     </Text>
                   </View>
                 </View>
-
-                {/* Don't show again checkbox */}
-                <TouchableOpacity
-                  onPress={() => setDontShowAgain(!dontShowAgain)}
-                  activeOpacity={0.7}
-                  className="flex-row items-center justify-center mt-6"
-                >
-                  <View
-                    style={{
-                      backgroundColor: dontShowAgain ? colors.green : 'transparent',
-                      borderColor: dontShowAgain ? colors.green : colors.textSecondary,
-                    }}
-                    className="w-5 h-5 rounded border-2 items-center justify-center mr-3"
-                  >
-                    {dontShowAgain && (
-                      <View
-                        style={{
-                          width: s(8),
-                          height: s(13),
-                          borderRightWidth: 2.5,
-                          borderBottomWidth: 2.5,
-                          borderColor: colors.text,
-                          transform: [{ rotate: '45deg' }],
-                          marginTop: s(-2),
-                        }}
-                      />
-                    )}
-                  </View>
-                  <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular}`}>
-                    Don't show this again
-                  </Text>
-                </TouchableOpacity>
               </View>
 
               {/* Button */}

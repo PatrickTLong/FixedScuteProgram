@@ -7,64 +7,106 @@
     android:clipChildren="false"
     android:clipToPadding="false">
 
-    <!-- Main bubble container -->
-    <FrameLayout
-        android:id="@+id/bubble_main"
+    <!-- Content wrapper (vertical stack: pill + app list) -->
+    <LinearLayout
         android:layout_width="wrap_content"
-        android:layout_height="52dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
         android:layout_marginTop="16dp">
 
-        <!-- Collapsed state: Circle with Scute logo -->
+        <!-- Main bubble container -->
         <FrameLayout
-            android:id="@+id/bubble_collapsed"
-            android:layout_width="52dp"
-            android:layout_height="52dp"
-            android:background="@drawable/bubble_circle_background"
-            android:visibility="visible">
+            android:id="@+id/bubble_main"
+            android:layout_width="wrap_content"
+            android:layout_height="52dp">
 
-            <ImageView
-                android:id="@+id/bubble_logo"
-                android:layout_width="65dp"
-                android:layout_height="65dp"
-                android:layout_gravity="center"
-                android:src="@drawable/scute_logo"
-                android:scaleType="fitCenter" />
+            <!-- Collapsed state: Circle with Scute logo -->
+            <FrameLayout
+                android:id="@+id/bubble_collapsed"
+                android:layout_width="52dp"
+                android:layout_height="52dp"
+                android:background="@drawable/bubble_circle_background"
+                android:visibility="visible">
+
+                <ImageView
+                    android:id="@+id/bubble_logo"
+                    android:layout_width="65dp"
+                    android:layout_height="65dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/scute_logo"
+                    android:scaleType="fitCenter" />
+
+            </FrameLayout>
+
+            <!-- Expanded state: Pill with chevron + timer -->
+            <LinearLayout
+                android:id="@+id/bubble_expanded"
+                android:layout_width="wrap_content"
+                android:layout_height="52dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:background="@drawable/bubble_background"
+                android:paddingStart="14dp"
+                android:paddingEnd="18dp"
+                android:visibility="gone">
+
+                <!-- Chevron icon (rotated -90 = points right, 0 = points down) -->
+                <ImageView
+                    android:id="@+id/bubble_chevron"
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:src="@drawable/ic_chevron"
+                    android:layout_marginEnd="10dp"
+                    android:rotation="-90" />
+
+                <!-- Countdown Timer -->
+                <TextView
+                    android:id="@+id/bubble_timer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0:00"
+                    android:textSize="17sp"
+                    android:textColor="#FFFFFF"
+                    android:fontFamily="@font/nunito_semibold" />
+
+            </LinearLayout>
 
         </FrameLayout>
 
-        <!-- Expanded state: Pill with Android icon + timer -->
+        <!-- App list panel (shown when chevron is tapped in expanded state) -->
         <LinearLayout
-            android:id="@+id/bubble_expanded"
-            android:layout_width="wrap_content"
-            android:layout_height="52dp"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:background="@drawable/bubble_background"
-            android:paddingStart="14dp"
-            android:paddingEnd="18dp"
-            android:visibility="gone">
+            android:id="@+id/bubble_app_list"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bubble_app_list_background"
+            android:layout_marginTop="6dp"
+            android:visibility="gone"
+            android:clickable="true"
+            android:focusable="true">
 
-            <!-- Android icon -->
-            <ImageView
-                android:id="@+id/bubble_android_icon"
-                android:layout_width="26dp"
-                android:layout_height="26dp"
-                android:src="@drawable/ic_android"
-                android:layout_marginEnd="10dp" />
-
-            <!-- Countdown Timer -->
-            <TextView
-                android:id="@+id/bubble_timer"
-                android:layout_width="wrap_content"
+            <ScrollView
+                android:id="@+id/bubble_app_list_scroll"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="0:00"
-                android:textSize="17sp"
-                android:textColor="#FFFFFF"
-                android:fontFamily="@font/nunito_semibold" />
+                android:scrollbars="none"
+                android:overScrollMode="never"
+                android:nestedScrollingEnabled="true"
+                android:isScrollContainer="true">
+
+                <LinearLayout
+                    android:id="@+id/bubble_app_list_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingTop="8dp"
+                    android:paddingBottom="8dp" />
+
+            </ScrollView>
 
         </LinearLayout>
 
-    </FrameLayout>
+    </LinearLayout>
 
     <!-- Hide button (shown on long press, top center of bubble) -->
     <FrameLayout

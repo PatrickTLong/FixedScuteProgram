@@ -57,7 +57,7 @@ function AnimatedCheckbox({
           position: 'absolute',
           width: size,
           height: size,
-          borderRadius: size * 0.17,
+          borderRadius: size / 2,
           backgroundColor: checkedColor,
           opacity: checkedOpacity,
         }}
@@ -69,7 +69,7 @@ function AnimatedCheckbox({
           position: 'absolute',
           width: size,
           height: size,
-          borderRadius: size * 0.17,
+          borderRadius: size / 2,
           borderWidth: 2,
           borderColor: borderBump,
           opacity: uncheckedOpacity,
@@ -88,8 +88,8 @@ function AnimatedCheckbox({
           transform: [{ scale: checkmarkScale }],
         }}
       >
-        <Svg width={size * 0.85} height={size * 0.85} viewBox="0 0 24 24" fill="none">
-          <Path d="M20 6L9 17l-5-5" stroke="#FFFFFF" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
+        <Svg width={size * 0.55} height={size * 0.55} viewBox="0 0 24 24" fill="none">
+          <Path d="M20 6L9 17l-5-5" stroke="#FFFFFF" strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round" />
         </Svg>
       </Animated.View>
     </View>

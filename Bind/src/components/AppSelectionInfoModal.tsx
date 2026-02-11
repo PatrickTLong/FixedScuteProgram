@@ -1,4 +1,4 @@
-import React, { memo, useState } from 'react';
+import React, { memo } from 'react';
 import {
   View,
   Text,
@@ -8,8 +8,6 @@ import {
 } from 'react-native';
 import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
 
-import AnimatedCheckbox from './AnimatedCheckbox';
-
 interface AppSelectionInfoModalProps {
   visible: boolean;
   onClose: (dontShowAgain: boolean) => void;
@@ -17,11 +15,9 @@ interface AppSelectionInfoModalProps {
 
 function AppSelectionInfoModal({ visible, onClose }: AppSelectionInfoModalProps) {
   const { colors } = useTheme();
-  const [dontShowAgain, setDontShowAgain] = useState(false);
 
   const handleConfirm = () => {
-    onClose(dontShowAgain);
-    setDontShowAgain(false); // Reset for next time
+    onClose(true);
   };
 
   return (
@@ -44,20 +40,6 @@ function AppSelectionInfoModal({ visible, onClose }: AppSelectionInfoModalProps)
                 <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular}`}>
                   For your safety, essential apps like Phone, Messages, and Camera cannot be blocked.
                 </Text>
-
-                {/* Don't show again checkbox */}
-                <TouchableOpacity
-                  onPress={() => setDontShowAgain(!dontShowAgain)}
-                  activeOpacity={0.7}
-                  className="flex-row items-center justify-center mt-5"
-                >
-                  <View className="mr-3">
-                    <AnimatedCheckbox checked={dontShowAgain} size={20} />
-                  </View>
-                  <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular}`}>
-                    Don't show this again
-                  </Text>
-                </TouchableOpacity>
               </View>
 
               {/* Button */}

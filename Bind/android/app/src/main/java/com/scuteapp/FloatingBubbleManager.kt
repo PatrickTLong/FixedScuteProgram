@@ -20,15 +20,18 @@ import android.view.animation.DecelerateInterpolator
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.ScrollView
 import android.widget.TextView
+import android.text.TextUtils
 
 /**
- * Manages a floating bubble like Screen Zen:
+ * Manages a floating bubble:
  * - Default: Circle with Scute logo
- * - Tap: Expands to pill showing Android icon + timer
+ * - Tap: Expands to pill showing chevron + timer
+ * - Tap again: Shows minimalistic blocked app list below the pill
+ * - Tap again: Collapses back to circle
  * - Auto-collapses back to circle after a few seconds
  * - Long press: Shows hide button in top-right corner
- * - Fixed position on left side (not movable)
  */
 class FloatingBubbleManager(private val context: Context) {
 
@@ -38,6 +41,7 @@ class FloatingBubbleManager(private val context: Context) {
         private const val AUTO_COLLAPSE_DELAY = 3000L  // 3 seconds
         private const val LONG_PRESS_DURATION = 500L   // 0.5 seconds for long press
         private const val HIDE_BUTTON_TIMEOUT = 3000L  // Hide button disappears after 3 seconds
+        private const val APP_LIST_COLLAPSE_DELAY = 8000L  // Longer delay when app list is shown
 
         @Volatile
         private var instance: FloatingBubbleManager? = null
@@ -54,6 +58,7 @@ class FloatingBubbleManager(private val context: Context) {
     private var layoutParams: WindowManager.LayoutParams? = null
     private var isShowing = false
     private var isExpanded = false  // false = circle with logo, true = pill with timer
+    private var isAppListShown = false  // true = app list panel is visible
     private var isHidden = false    // User manually hid the bubble
     private var endTime: Long = 0
     private var startTime: Long = 0  // For no-time-limit mode (counting up)
@@ -63,6 +68,10 @@ class FloatingBubbleManager(private val context: Context) {
     private var bubbleExpanded: LinearLayout? = null
     private var bubbleHideButton: FrameLayout? = null
     private var bubbleMain: FrameLayout? = null
+    private var bubbleChevron: ImageView? = null
+    private var bubbleAppList: LinearLayout? = null
+    private var bubbleAppListContainer: LinearLayout? = null
+    private var bubbleAppListScroll: ScrollView? = null
     private var density: Float = 1f
 
     private val handler = Handler(Looper.getMainLooper())
@@ -187,6 +196,14 @@ class FloatingBubbleManager(private val context: Context) {
             bubbleExpanded = bubbleView?.findViewById(R.id.bubble_expanded)
             bubbleHideButton = bubbleView?.findViewById(R.id.bubble_hide_button)
             bubbleMain = bubbleView?.findViewById(R.id.bubble_main)
+            bubbleChevron = bubbleView?.findViewById(R.id.bubble_chevron)
+            bubbleAppList = bubbleView?.findViewById(R.id.bubble_app_list)
+            bubbleAppListContainer = bubbleView?.findViewById(R.id.bubble_app_list_container)
+            bubbleAppListScroll = bubbleView?.findViewById(R.id.bubble_app_list_scroll)
+
+            // Populate the app list from blocked apps
+            populateAppList()
+
             // Set up window parameters - LEFT side, fixed position
             layoutParams = WindowManager.LayoutParams().apply {
                 width = WindowManager.LayoutParams.WRAP_CONTENT
@@ -227,6 +244,7 @@ class FloatingBubbleManager(private val context: Context) {
             bubbleCollapsed?.visibility = View.VISIBLE
             bubbleExpanded?.visibility = View.GONE
             bubbleHideButton?.visibility = View.GONE
+            bubbleAppList?.visibility = View.GONE
 
             // Add to window manager
             windowManager?.addView(bubbleView, layoutParams)
@@ -301,6 +319,14 @@ class FloatingBubbleManager(private val context: Context) {
             bubbleExpanded = bubbleView?.findViewById(R.id.bubble_expanded)
             bubbleHideButton = bubbleView?.findViewById(R.id.bubble_hide_button)
             bubbleMain = bubbleView?.findViewById(R.id.bubble_main)
+            bubbleChevron = bubbleView?.findViewById(R.id.bubble_chevron)
+            bubbleAppList = bubbleView?.findViewById(R.id.bubble_app_list)
+            bubbleAppListContainer = bubbleView?.findViewById(R.id.bubble_app_list_container)
+            bubbleAppListScroll = bubbleView?.findViewById(R.id.bubble_app_list_scroll)
+
+            // Populate the app list from blocked apps
+            populateAppList()
+
             // Set up window parameters - LEFT side, fixed position
             layoutParams = WindowManager.LayoutParams().apply {
                 width = WindowManager.LayoutParams.WRAP_CONTENT
@@ -337,6 +363,7 @@ class FloatingBubbleManager(private val context: Context) {
             bubbleCollapsed?.visibility = View.VISIBLE
             bubbleExpanded?.visibility = View.GONE
             bubbleHideButton?.visibility = View.GONE
+            bubbleAppList?.visibility = View.GONE
 
             // Add to window manager
             windowManager?.addView(bubbleView, layoutParams)
@@ -535,7 +562,7 @@ class FloatingBubbleManager(private val context: Context) {
     }
 
     /**
-     * Toggle between collapsed (circle) and expanded (pill)
+     * Toggle between states: collapsed -> expanded -> app list -> collapsed
      */
     private fun toggleExpanded() {
         // Hide the hide button if visible
@@ -543,10 +570,18 @@ class FloatingBubbleManager(private val context: Context) {
             hideHideButton()
         }
 
-        if (isExpanded) {
-            collapse()
-        } else {
+        if (!isExpanded) {
+            // Collapsed -> Expanded (pill with chevron + timer)
             expand()
+        } else if (!isAppListShown) {
+            // Expanded -> Show app list
+            showAppList()
+        } else {
+            // App list shown -> Hide app list, stay on pill
+            hideAppList(animate = true)
+            // Reschedule auto-collapse from the pill state
+            handler.removeCallbacks(autoCollapseRunnable)
+            handler.postDelayed(autoCollapseRunnable, AUTO_COLLAPSE_DELAY)
         }
     }
 
@@ -607,6 +642,11 @@ class FloatingBubbleManager(private val context: Context) {
         // Cancel any pending auto-collapse
         handler.removeCallbacks(autoCollapseRunnable)
 
+        // Hide app list if visible
+        if (isAppListShown) {
+            hideAppList(animate = false)
+        }
+
         // Hide the X button if it's visible
         if (bubbleHideButton?.visibility == View.VISIBLE) {
             hideHideButton()
@@ -644,6 +684,217 @@ class FloatingBubbleManager(private val context: Context) {
         }
 
         Log.d(TAG, "Bubble collapsed")
+    }
+
+    /**
+     * Populate the app list panel with blocked apps from SharedPreferences
+     */
+    private fun populateAppList() {
+        val container = bubbleAppListContainer ?: return
+        container.removeAllViews()
+
+        val prefs = context.getSharedPreferences(
+            UninstallBlockerService.PREFS_NAME,
+            Context.MODE_PRIVATE
+        )
+        val blockedApps = prefs.getStringSet(UninstallBlockerService.KEY_BLOCKED_APPS, emptySet()) ?: emptySet()
+        val blockedWebsites = prefs.getStringSet("blocked_websites", emptySet()) ?: emptySet()
+        val pm = context.packageManager
+
+        // Add all blocked apps (ScrollView handles overflow)
+        for (packageName in blockedApps.sorted()) {
+            try {
+                val appInfo = pm.getApplicationInfo(packageName, 0)
+                val appName = pm.getApplicationLabel(appInfo).toString()
+                val appIcon = pm.getApplicationIcon(appInfo)
+
+                val entryView = LinearLayout(context).apply {
+                    orientation = LinearLayout.HORIZONTAL
+                    gravity = Gravity.CENTER_VERTICAL
+                    setPadding(
+                        (12 * density).toInt(),
+                        (5 * density).toInt(),
+                        (12 * density).toInt(),
+                        (5 * density).toInt()
+                    )
+                }
+
+                val iconView = ImageView(context).apply {
+                    layoutParams = LinearLayout.LayoutParams(
+                        (22 * density).toInt(),
+                        (22 * density).toInt()
+                    ).apply {
+                        marginEnd = (10 * density).toInt()
+                    }
+                    setImageDrawable(appIcon)
+                    scaleType = ImageView.ScaleType.FIT_CENTER
+                }
+
+                val nameView = TextView(context).apply {
+                    text = appName
+                    setTextColor(0xFFFFFFFF.toInt())
+                    textSize = 12f
+                    maxLines = 1
+                    ellipsize = TextUtils.TruncateAt.END
+                    layoutParams = LinearLayout.LayoutParams(
+                        0,
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                        1f
+                    )
+                }
+
+                entryView.addView(iconView)
+                entryView.addView(nameView)
+                container.addView(entryView)
+            } catch (e: Exception) {
+                // Package not found, skip
+            }
+        }
+
+        // Add all blocked websites
+        for (website in blockedWebsites.sorted()) {
+            val entryView = LinearLayout(context).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER_VERTICAL
+                setPadding(
+                    (12 * density).toInt(),
+                    (5 * density).toInt(),
+                    (12 * density).toInt(),
+                    (5 * density).toInt()
+                )
+            }
+
+            val iconView = ImageView(context).apply {
+                layoutParams = LinearLayout.LayoutParams(
+                    (22 * density).toInt(),
+                    (22 * density).toInt()
+                ).apply {
+                    marginEnd = (10 * density).toInt()
+                }
+                setImageDrawable(context.getDrawable(R.drawable.ic_globe))
+                scaleType = ImageView.ScaleType.FIT_CENTER
+            }
+
+            val nameView = TextView(context).apply {
+                text = website
+                setTextColor(0xFFFFFFFF.toInt())
+                textSize = 12f
+                maxLines = 1
+                ellipsize = TextUtils.TruncateAt.END
+                layoutParams = LinearLayout.LayoutParams(
+                    0,
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    1f
+                )
+            }
+
+            entryView.addView(iconView)
+            entryView.addView(nameView)
+            container.addView(entryView)
+        }
+
+        // Constrain ScrollView height programmatically after layout pass
+        bubbleAppListScroll?.post {
+            val maxH = (200 * density).toInt()
+            bubbleAppListScroll?.let { scroll ->
+                val contentHeight = scroll.getChildAt(0)?.height ?: 0
+                if (contentHeight > maxH) {
+                    scroll.layoutParams = scroll.layoutParams.apply {
+                        height = maxH
+                    }
+                    scroll.requestLayout()
+                }
+            }
+        }
+    }
+
+    /**
+     * Show the app list panel below the expanded pill
+     */
+    private fun showAppList() {
+        isAppListShown = true
+
+        // Extend auto-collapse delay while viewing app list
+        handler.removeCallbacks(autoCollapseRunnable)
+
+        // Rotate chevron from right (-90) to down (0)
+        bubbleChevron?.animate()
+            ?.rotation(0f)
+            ?.setDuration(ANIMATION_DURATION)
+            ?.setInterpolator(DecelerateInterpolator())
+            ?.start()
+
+        // Slide in the app list panel
+        bubbleAppList?.let { list ->
+            list.visibility = View.VISIBLE
+            list.alpha = 0f
+            list.translationY = -10 * density
+            list.animate()
+                ?.alpha(1f)
+                ?.translationY(0f)
+                ?.setDuration(ANIMATION_DURATION)
+                ?.setInterpolator(DecelerateInterpolator())
+                ?.start()
+        }
+
+        // Make the overlay focusable so the ScrollView can receive touch/scroll events
+        layoutParams?.let { params ->
+            params.flags = params.flags and WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE.inv()
+            try {
+                windowManager?.updateViewLayout(bubbleView, params)
+            } catch (e: Exception) {
+                Log.e(TAG, "Error updating layout for app list", e)
+            }
+        }
+
+        // Schedule auto-collapse with longer delay
+        handler.postDelayed(autoCollapseRunnable, APP_LIST_COLLAPSE_DELAY)
+
+        Log.d(TAG, "App list shown")
+    }
+
+    /**
+     * Hide the app list panel
+     */
+    private fun hideAppList(animate: Boolean = true) {
+        isAppListShown = false
+
+        // Restore FLAG_NOT_FOCUSABLE so touches pass through to the app below
+        layoutParams?.let { params ->
+            params.flags = params.flags or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+            try {
+                windowManager?.updateViewLayout(bubbleView, params)
+            } catch (e: Exception) {
+                Log.e(TAG, "Error restoring layout flags", e)
+            }
+        }
+
+        if (animate) {
+            // Rotate chevron back to right
+            bubbleChevron?.animate()
+                ?.rotation(-90f)
+                ?.setDuration(ANIMATION_DURATION)
+                ?.setInterpolator(DecelerateInterpolator())
+                ?.start()
+
+            bubbleAppList?.animate()
+                ?.alpha(0f)
+                ?.translationY(-10 * density)
+                ?.setDuration(ANIMATION_DURATION)
+                ?.setInterpolator(AccelerateDecelerateInterpolator())
+                ?.withEndAction {
+                    bubbleAppList?.visibility = View.GONE
+                    bubbleAppList?.translationY = 0f
+                }
+                ?.start()
+        } else {
+            bubbleChevron?.rotation = -90f
+            bubbleAppList?.visibility = View.GONE
+            bubbleAppList?.alpha = 1f
+            bubbleAppList?.translationY = 0f
+        }
+
+        Log.d(TAG, "App list hidden")
     }
 
     /**
@@ -718,10 +969,15 @@ class FloatingBubbleManager(private val context: Context) {
         bubbleExpanded = null
         bubbleHideButton = null
         bubbleMain = null
+        bubbleChevron = null
+        bubbleAppList = null
+        bubbleAppListContainer = null
+        bubbleAppListScroll = null
         windowManager = null
         layoutParams = null
         isShowing = false
         isExpanded = false
+        isAppListShown = false
         isHidden = false  // Reset for next session
         isNoTimeLimit = false  // Reset mode for next session
         startTime = 0

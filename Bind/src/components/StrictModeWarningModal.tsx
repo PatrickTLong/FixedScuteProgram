@@ -1,4 +1,4 @@
-import React, { memo, useState } from 'react';
+import React, { memo } from 'react';
 import {
   View,
   Text,
@@ -7,7 +7,6 @@ import {
   Pressable,
 } from 'react-native';
 import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
-import AnimatedCheckbox from './AnimatedCheckbox';
 
 interface StrictModeWarningModalProps {
   visible: boolean;
@@ -17,16 +16,13 @@ interface StrictModeWarningModalProps {
 
 function StrictModeWarningModal({ visible, onConfirm, onCancel }: StrictModeWarningModalProps) {
   const { colors } = useTheme();
-  const [dontShowAgain, setDontShowAgain] = useState(false);
 
   const handleConfirm = () => {
-    onConfirm(dontShowAgain);
-    setDontShowAgain(false); // Reset for next time
+    onConfirm(true);
   };
 
   const handleCancel = () => {
     onCancel();
-    setDontShowAgain(false); // Reset for next time
   };
 
   return (
@@ -49,20 +45,6 @@ function StrictModeWarningModal({ visible, onConfirm, onCancel }: StrictModeWarn
                 <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular} text-center`}>
                   Strict Mode prevents easy unlocking. For timed presets, the lock stays active until the timer ends. For all presets, blocked apps won't show the "Continue anyway" button.
                 </Text>
-
-                {/* Don't show again checkbox */}
-                <TouchableOpacity
-                  onPress={() => setDontShowAgain(!dontShowAgain)}
-                  activeOpacity={0.7}
-                  className="flex-row items-center justify-center mt-6"
-                >
-                  <View className="mr-3">
-                    <AnimatedCheckbox checked={dontShowAgain} size={20} />
-                  </View>
-                  <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular}`}>
-                    Don't show this again
-                  </Text>
-                </TouchableOpacity>
               </View>
 
               {/* Buttons */}

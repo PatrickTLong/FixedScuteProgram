@@ -1,6 +1,7 @@
 package com.scuteapp
 
 import android.app.usage.UsageEvents
+import android.app.usage.UsageStats
 import android.app.usage.UsageStatsManager
 import android.content.Context
 import android.content.Intent
@@ -130,6 +131,31 @@ class UsageStatsModule(reactContext: ReactApplicationContext) :
             if (now > start) {
                 val duration = now - start
                 foregroundTimes[pkg] = (foregroundTimes[pkg] ?: 0L) + duration
+            }
+        }
+
+        return foregroundTimes
+    }
+
+    /**
+     * Get per-app foreground times using queryUsageStats with INTERVAL_DAILY.
+     * Less precise than event-based tracking but retains data for months,
+     * making it suitable for 30-day queries where queryEvents data is purged.
+     */
+    private fun getAppForegroundTimesAggregated(startTime: Long, endTime: Long): HashMap<String, Long> {
+        val usageStatsManager = reactApplicationContext.getSystemService(Context.USAGE_STATS_SERVICE) as? UsageStatsManager
+            ?: return HashMap()
+
+        val stats: List<UsageStats> = usageStatsManager.queryUsageStats(
+            UsageStatsManager.INTERVAL_DAILY, startTime, endTime
+        )
+
+        val foregroundTimes = HashMap<String, Long>()
+        for (stat in stats) {
+            val pkg = stat.packageName ?: continue
+            val time = stat.totalTimeInForeground
+            if (time > 0) {
+                foregroundTimes[pkg] = (foregroundTimes[pkg] ?: 0L) + time
             }
         }
 
@@ -303,7 +329,12 @@ class UsageStatsModule(reactContext: ReactApplicationContext) :
     fun getScreenTime(period: String, promise: Promise) {
         try {
             val (startTime, endTime) = getTimeRange(period)
-            val foregroundTimes = getAppForegroundTimes(startTime, endTime)
+            // Use aggregated stats for month (queryEvents only retains ~7-10 days)
+            val foregroundTimes = if (period == "month") {
+                getAppForegroundTimesAggregated(startTime, endTime)
+            } else {
+                getAppForegroundTimes(startTime, endTime)
+            }
 
             var totalTime = 0L
             foregroundTimes.forEach { (pkg, time) ->
@@ -323,7 +354,12 @@ class UsageStatsModule(reactContext: ReactApplicationContext) :
     fun getAllAppsUsage(period: String, promise: Promise) {
         try {
             val (startTime, endTime) = getTimeRange(period)
-            val foregroundTimes = getAppForegroundTimes(startTime, endTime)
+            // Use aggregated stats for month (queryEvents only retains ~7-10 days)
+            val foregroundTimes = if (period == "month") {
+                getAppForegroundTimesAggregated(startTime, endTime)
+            } else {
+                getAppForegroundTimes(startTime, endTime)
+            }
 
             val packageManager = reactApplicationContext.packageManager
             val appsArray = Arguments.createArray()
