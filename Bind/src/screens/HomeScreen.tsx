@@ -104,9 +104,11 @@ function HomeScreen() {
   const [blockedVisible, setBlockedVisible] = useState(false);
   const [installedApps, setInstalledApps] = useState<InstalledApp[]>([]);
 
-  // Lock/unlock toast — two separate native-driven animated values, no state changes
-  const lockIconOpacity = useRef(new Animated.Value(0)).current;
-  const unlockIconOpacity = useRef(new Animated.Value(0)).current;
+  // Lottie lock animation ref
+  const lockLottieRef = useRef<any>(null);
+  const lockLottieOpacity = useRef(new Animated.Value(0)).current;
+  const isInitialMountRef = useRef(true);
+  const prevIsLockedRef = useRef(isLocked);
 
   // Pull-to-refresh state
   const [refreshing, setRefreshing] = useState(false);
@@ -601,6 +603,34 @@ function HomeScreen() {
     };
   }, [isLocked, lockEndsAt, lockStartedAt]);
 
+  // Sync Lottie lock animation with lock state (fade in, play, fade out)
+  useEffect(() => {
+    if (isInitialMountRef.current) {
+      isInitialMountRef.current = false;
+      if (isLocked) {
+        lockLottieRef.current?.play(50, 50);
+      }
+      prevIsLockedRef.current = isLocked;
+      return;
+    }
+    if (prevIsLockedRef.current !== isLocked) {
+      const animDuration = isLocked ? 600 : 400;
+
+      lockLottieRef.current?.play(isLocked ? 45 : 105, isLocked ? 63 : 117);
+
+      // Fully native-driven: instant show → hold → fade out
+      const anim = Animated.sequence([
+        Animated.timing(lockLottieOpacity, { toValue: 1, duration: 0, useNativeDriver: true }),
+        Animated.delay(animDuration),
+        Animated.timing(lockLottieOpacity, { toValue: 0, duration: 250, useNativeDriver: true }),
+      ]);
+      anim.start();
+
+      prevIsLockedRef.current = isLocked;
+      return () => anim.stop();
+    }
+  }, [isLocked, lockLottieOpacity]);
+
   const formatScheduleDate = useCallback((dateStr: string): string => {
     const date = new Date(dateStr);
     return date.toLocaleDateString('en-US', {
@@ -640,18 +670,6 @@ function HomeScreen() {
   // Handle slide to unlock (called directly from BlockNowButton)
   // For scheduled/recurring presets: call backend endpoint (same as emergency tapout but without decrementing tapout count)
   // For regular presets: just unlock but keep preset active
-  // Show lock/unlock toast with fade animation
-  const showLockToastAnimation = useCallback((type: 'lock' | 'unlock') => {
-    const target = type === 'lock' ? lockIconOpacity : unlockIconOpacity;
-    target.setValue(1);
-    Animated.timing(target, {
-      toValue: 0,
-      duration: 250,
-      delay: 0,
-      useNativeDriver: true,
-    }).start();
-  }, [lockIconOpacity, unlockIconOpacity]);
-
   const handleSlideUnlock = useCallback(async () => {
     // Store preset info before starting
     const presetIdToKeep = activePreset?.id;
@@ -662,7 +680,6 @@ function HomeScreen() {
       setTimeRemaining(null);
       setElapsedTime(null);
       setSharedLockStatus({ isLocked: false, lockStartedAt: null, lockEndsAt: null });
-      showLockToastAnimation('unlock');
       if (isScheduledPreset) {
         setCurrentPreset(null);
         setActivePreset(null);
@@ -696,7 +713,7 @@ function HomeScreen() {
     } catch (error) {
       showModal('Error', 'Failed to unlock. Please try again.');
     }
-  }, [email, showModal, activePreset, showLockToastAnimation]);
+  }, [email, showModal, activePreset]);
 
   const handleBlockNow = useCallback(async () => {
     try {
@@ -831,7 +848,6 @@ function HomeScreen() {
         setElapsedTime('0s');
       }
       setSharedLockStatus({ isLocked: true, lockStartedAt: nowISO, lockEndsAt: calculatedLockEndsAt });
-      showLockToastAnimation('lock');
 
       // Fire-and-forget: backend + native blocking
       (async () => {
@@ -869,7 +885,7 @@ function HomeScreen() {
     } catch (error) {
       showModal('Error', 'Failed to start blocking session.');
     }
-  }, [activePreset, email, showModal, scheduledPresets, formatScheduleDate, loadStats, showLockToastAnimation]);
+  }, [activePreset, email, showModal, scheduledPresets, formatScheduleDate, loadStats]);
 
   // Get preset timing subtext (for timed and dated presets, not scheduled)
   const getPresetTimingSubtext = useCallback((): string | null => {
@@ -1109,45 +1125,27 @@ function HomeScreen() {
           onTouchEnd={() => setButtonInteracting(false)}
           onTouchCancel={() => setButtonInteracting(false)}
         >
-          {/* Lock icon toast */}
+          {/* Lottie lock animation — fades in on lock/unlock, then fades out */}
           <Animated.View
             pointerEvents="none"
+            renderToHardwareTextureAndroid={true}
             style={{
               position: 'absolute',
               bottom: '100%',
               left: 0,
               right: 0,
               alignItems: 'center',
-              marginBottom: s(16),
-              opacity: lockIconOpacity,
+              marginBottom: s(-50),
+              opacity: lockLottieOpacity,
             }}
           >
-            <Svg width={s(48)} height={s(48)} viewBox="0 0 24 24" fill={colors.text}>
-              <Path
-                fillRule="evenodd"
-                clipRule="evenodd"
-                d="M12 1.5a5.25 5.25 0 0 0-5.25 5.25v3a3 3 0 0 0-3 3v6.75a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3v-6.75a3 3 0 0 0-3-3v-3c0-2.9-2.35-5.25-5.25-5.25Zm3.75 8.25v-3a3.75 3.75 0 1 0-7.5 0v3h7.5Z"
-              />
-            </Svg>
-          </Animated.View>
-          {/* Unlock icon toast */}
-          <Animated.View
-            pointerEvents="none"
-            style={{
-              position: 'absolute',
-              bottom: '100%',
-              left: 0,
-              right: 0,
-              alignItems: 'center',
-              marginBottom: s(16),
-              opacity: unlockIconOpacity,
-            }}
-          >
-            <Svg width={s(48)} height={s(48)} viewBox="0 0 24 24" fill={colors.text}>
-              <Path
-                d="M18 1.5c2.9 0 5.25 2.35 5.25 5.25v3.75a.75.75 0 0 1-1.5 0V6.75a3.75 3.75 0 1 0-7.5 0v3a3 3 0 0 1 3 3v6.75a3 3 0 0 1-3 3H3.75a3 3 0 0 1-3-3v-6.75a3 3 0 0 1 3-3h9v-3c0-2.9 2.35-5.25 5.25-5.25Z"
-              />
-            </Svg>
+            <Lottie
+              ref={lockLottieRef}
+              source={require('../frontassets/Lock.json')}
+              autoPlay={false}
+              loop={false}
+              style={{ width: s(220), height: s(165) }}
+            />
           </Animated.View>
           <BlockNowButton
             onActivate={handleBlockNow}
