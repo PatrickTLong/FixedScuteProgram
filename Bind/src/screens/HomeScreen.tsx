@@ -11,9 +11,9 @@ import {
   Linking,
   RefreshControl,
   Animated,
-  Image,
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import LottieView from 'lottie-react-native';
 const Lottie = LottieView as any;
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -23,53 +23,18 @@ import BlockNowButton from '../components/BlockNowButton';
 import InfoModal from '../components/InfoModal';
 import EmergencyTapoutModal from '../components/EmergencyTapoutModal';
 import { updateLockStatus, Preset, useEmergencyTapout, activatePreset, invalidateUserCaches } from '../services/cardApi';
-import { useTheme , textSize, fontFamily, radius, shadow, iconSize, buttonPadding } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { useAuth } from '../context/AuthContext';
 
 
-const { BlockingModule, PermissionsModule, InstalledAppsModule } = NativeModules;
+const { BlockingModule, PermissionsModule } = NativeModules;
 
-// Clock icon for schedule badges
+// Clock icon for schedule badges (using MaterialCommunityIcons)
 const ClockIcon = ({ size = 12, color = '#FFFFFF' }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
-    <Path
-      fillRule="evenodd"
-      clipRule="evenodd"
-      d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25ZM12.75 6a.75.75 0 0 0-1.5 0v6c0 .414.336.75.75.75h4.5a.75.75 0 0 0 0-1.5h-3.75V6Z"
-    />
-  </Svg>
+  <MaterialCommunityIcons name="clock" size={size} color={color} />
 );
 
-const GlobeIcon = ({ size = iconSize.sm, color = "#FFFFFF" }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0 1 12 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 0 1 3 12c0-1.605.42-3.113 1.157-4.418"
-      stroke={color}
-      strokeWidth={1.5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </Svg>
-);
-
-const ChevronDownIcon = ({ size = iconSize.chevron, color = "#9CA3AF" }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M6 9l6 6 6-6"
-      stroke={color}
-      strokeWidth={2.5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </Svg>
-);
-
-interface InstalledApp {
-  id: string;
-  name: string;
-  icon?: string;
-}
 
 function HomeScreen() {
   const { userEmail: email, refreshTrigger, sharedPresets, setSharedPresets, sharedPresetsLoaded, sharedLockStatus, setSharedLockStatus, tapoutStatus, setTapoutStatus, refreshAll } = useAuth();
@@ -100,9 +65,6 @@ function HomeScreen() {
   // Silent notifications toggle
   const [silentNotifications, setSilentNotifications] = useState(false);
 
-  // Blocked apps/sites modal
-  const [blockedVisible, setBlockedVisible] = useState(false);
-  const [installedApps, setInstalledApps] = useState<InstalledApp[]>([]);
 
   // Lottie lock animation ref
   const lockLottieRef = useRef<any>(null);
@@ -115,23 +77,6 @@ function HomeScreen() {
   const [buttonInteracting, setButtonInteracting] = useState(false);
   const buttonAreaRef = useRef<View>(null);
 
-  // Load installed apps for blocked apps display
-  useEffect(() => {
-    if (Platform.OS === 'android' && InstalledAppsModule) {
-      InstalledAppsModule.getInstalledApps().then((apps: InstalledApp[]) => {
-        setInstalledApps(apps);
-      }).catch(() => {});
-    }
-  }, []);
-
-  // Blocked apps and sites from active preset
-  const blockedApps = useMemo(() => {
-    if (!activePreset) return [];
-    const ids = new Set(activePreset.mode === 'all' ? installedApps.map(a => a.id) : activePreset.selectedApps);
-    return installedApps.filter(app => ids.has(app.id));
-  }, [activePreset, installedApps]);
-
-  const blockedWebsites = activePreset?.blockedWebsites ?? [];
 
   const showModal = useCallback((title: string, message: string) => {
     setModalTitle(title);
@@ -1069,23 +1014,12 @@ function HomeScreen() {
 
           {/* Preset info - relative container for absolute scheduled button */}
           <View className="items-center" style={{ position: 'relative' }}>
-            <TouchableOpacity
-              onPress={activePreset && (blockedApps.length > 0 || blockedWebsites.length > 0) ? () => setBlockedVisible(true) : undefined}
-              activeOpacity={activePreset && (blockedApps.length > 0 || blockedWebsites.length > 0) ? 0.7 : 1}
-              className="flex-row items-center justify-center"
+            <Text
+              style={{ color: colors.text }}
+              className={`${textSize.large} ${fontFamily.semibold} text-center`}
             >
-              <Text
-                style={{ color: colors.text }}
-                className={`${textSize.large} ${fontFamily.semibold} text-center`}
-              >
-                Preset: {currentPreset || 'None Selected'}
-              </Text>
-              {activePreset && (blockedApps.length > 0 || blockedWebsites.length > 0) && (
-                <View style={{ position: 'absolute', right: -s(iconSize.chevron + 4), top: '50%', transform: [{ translateY: -s(iconSize.chevron) / 2 }] }}>
-                  <ChevronDownIcon size={s(iconSize.chevron)} color={colors.textMuted} />
-                </View>
-              )}
-            </TouchableOpacity>
+              Preset: {currentPreset || 'None Selected'}
+            </Text>
 
             {/* Preset timing subtext (for timed/dated presets) */}
             {presetTimingSubtext}
@@ -1278,95 +1212,6 @@ function HomeScreen() {
         </View>
       </Modal>
 
-      {/* Blocked Apps & Sites Modal */}
-      <Modal
-        visible={blockedVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setBlockedVisible(false)}
-      >
-        <View className="flex-1 bg-black/70 justify-center items-center px-4">
-          <View
-            style={{
-              backgroundColor: colors.card,
-              borderWidth: 1,
-              borderColor: colors.border,
-              ...shadow.modal,
-              maxHeight: '80%',
-            }}
-            className={`w-full ${radius['2xl']} overflow-hidden`}
-          >
-            {/* Header */}
-            <View className="flex-row items-center p-4 pb-3">
-              <View style={{ width: s(iconSize.headerNav) }} />
-              <Text style={{ color: colors.text, flex: 1, textAlign: 'center' }} className={`${textSize.base} ${fontFamily.bold}`}>
-                Blocked Apps & Sites
-              </Text>
-              <TouchableOpacity
-                onPress={() => setBlockedVisible(false)}
-                activeOpacity={0.7}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              >
-                <Svg width={s(iconSize.headerNav)} height={s(iconSize.headerNav)} viewBox="0 0 24 24" fill="none">
-                  <Path
-                    d="M7 17L17 7M7 7h10v10"
-                    stroke="#FFFFFF"
-                    strokeWidth={2}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </Svg>
-              </TouchableOpacity>
-            </View>
-
-            <View style={{ height: 1, backgroundColor: colors.divider }} />
-
-            {/* Scroll list */}
-            <ScrollView
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={{ padding: s(16) }}
-            >
-              {/* Blocked Apps */}
-              {blockedApps.map((app) => (
-                <View
-                  key={app.id}
-                  style={{ backgroundColor: colors.cardLight, borderWidth: 1, borderColor: colors.divider, paddingVertical: s(buttonPadding.standard), ...shadow.card }}
-                  className={`flex-row items-center px-4 ${radius.xl} mb-2`}
-                >
-                  {app.icon ? (
-                    <Image
-                      source={{ uri: app.icon }}
-                      style={{ width: s(48), height: s(48), marginRight: s(12) }}
-                      resizeMode="contain"
-                    />
-                  ) : (
-                    <View style={{ width: s(48), height: s(48), marginRight: s(12), backgroundColor: colors.cardLight, borderRadius: s(12), alignItems: 'center', justifyContent: 'center' }}>
-                      <Text style={{ color: colors.textSecondary, fontSize: s(18), fontWeight: 'bold' }}>
-                        {app.name.charAt(0)}
-                      </Text>
-                    </View>
-                  )}
-                  <Text style={{ color: colors.text }} className={`flex-1 ${textSize.small} ${fontFamily.regular}`}>{app.name}</Text>
-                </View>
-              ))}
-
-              {/* Blocked Websites */}
-              {blockedWebsites.map((site) => (
-                <View
-                  key={site}
-                  style={{ backgroundColor: colors.cardLight, borderWidth: 1, borderColor: colors.divider, paddingVertical: s(buttonPadding.standard), ...shadow.card }}
-                  className={`flex-row items-center px-4 ${radius.xl} mb-2`}
-                >
-                  <View style={{ width: s(48), height: s(48), marginRight: s(12), alignItems: 'center', justifyContent: 'center' }}>
-                    <GlobeIcon size={s(iconSize.exl)} color={colors.textSecondary} />
-                  </View>
-                  <Text style={{ color: colors.text }} className={`flex-1 ${textSize.small} ${fontFamily.regular}`}>{site}</Text>
-                </View>
-              ))}
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 }

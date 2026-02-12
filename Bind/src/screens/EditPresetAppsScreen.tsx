@@ -18,6 +18,7 @@ import AnimatedCheckbox from '../components/AnimatedCheckbox';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Svg, { Path, Rect } from 'react-native-svg';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import ExcludedAppsInfoModal from '../components/ExcludedAppsInfoModal';
 import { Preset } from '../components/PresetCard';
 import HeaderIconButton from '../components/HeaderIconButton';
@@ -72,15 +73,7 @@ const EditIcon = ({ size = iconSize.lg, color = '#FFFFFF' }: { size?: number; co
 );
 
 const SearchIcon = ({ size = iconSize.lg, color = '#FFFFFF' }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.35-4.35"
-      stroke={color}
-      strokeWidth={2.5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </Svg>
+  <MaterialCommunityIcons name="magnify" size={size} color={color} />
 );
 
 const PlusIcon = ({ size = iconSize.lg, color = '#FFFFFF' }: { size?: number; color?: string }) => (
@@ -608,7 +601,7 @@ function EditPresetAppsScreen() {
                     style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
                     className={`${radius.xl} px-4 h-12 flex-row items-center`}
                   >
-                    <SearchIcon size={s(iconSize.sm)} color={colors.textSecondary} />
+                    <SearchIcon size={s(iconSize.lg)} color={colors.textSecondary} />
                     <TextInput
                       placeholder="Search apps..."
                       placeholderTextColor={colors.textSecondary}
@@ -704,7 +697,7 @@ function EditPresetAppsScreen() {
                   style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card, flex: 1 }}
                   className={`${radius.xl} px-4 h-12 flex-row items-center mr-2`}
                 >
-                  <GlobeIcon size={s(iconSize.md)} color={colors.textSecondary} />
+                  <MaterialCommunityIcons name="search-web" size={s(iconSize.md)} color={colors.textSecondary} />
                   <TextInput
                     placeholder="e.g. instagram.com"
                     placeholderTextColor={colors.textSecondary}

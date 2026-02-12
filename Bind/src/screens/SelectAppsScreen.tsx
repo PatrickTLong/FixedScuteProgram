@@ -11,6 +11,7 @@ import LottieView from 'lottie-react-native';
 const Lottie = LottieView as any;
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useTheme , textSize, fontFamily, radius, shadow, iconSize } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import HeaderIconButton from '../components/HeaderIconButton';
@@ -36,15 +37,7 @@ interface Props {
 
 // Search Icon
 const SearchIcon = ({ color }: { color: string }) => (
-  <Svg width={iconSize.md} height={iconSize.md} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M11 19a8 8 0 100-16 8 8 0 000 16zM21 21l-4.35-4.35"
-      stroke={color}
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </Svg>
+  <MaterialCommunityIcons name="magnify" size={iconSize.md} color={color} />
 );
 
 // Arrow left icon (Feather arrow-left)

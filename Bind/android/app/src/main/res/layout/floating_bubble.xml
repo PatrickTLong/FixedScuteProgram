@@ -67,7 +67,7 @@
                     android:text="0:00"
                     android:textSize="17sp"
                     android:textColor="#FFFFFF"
-                    android:fontFamily="@font/nunito_semibold" />
+                    android:fontFamily="@font/nunito_bold" />
 
             </LinearLayout>
 

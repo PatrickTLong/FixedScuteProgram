@@ -23,6 +23,7 @@ import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
 import android.text.TextUtils
+import androidx.core.content.res.ResourcesCompat
 
 /**
  * Manages a floating bubble:
@@ -734,6 +735,7 @@ class FloatingBubbleManager(private val context: Context) {
                     text = appName
                     setTextColor(0xFFFFFFFF.toInt())
                     textSize = 12f
+                    typeface = ResourcesCompat.getFont(context, R.font.nunito_bold)
                     maxLines = 1
                     ellipsize = TextUtils.TruncateAt.END
                     layoutParams = LinearLayout.LayoutParams(
@@ -779,6 +781,7 @@ class FloatingBubbleManager(private val context: Context) {
                 text = website
                 setTextColor(0xFFFFFFFF.toInt())
                 textSize = 12f
+                typeface = ResourcesCompat.getFont(context, R.font.nunito_bold)
                 maxLines = 1
                 ellipsize = TextUtils.TruncateAt.END
                 layoutParams = LinearLayout.LayoutParams(
