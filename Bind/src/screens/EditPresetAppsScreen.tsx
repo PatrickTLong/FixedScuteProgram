@@ -11,6 +11,7 @@ import {
   NativeEventEmitter,
   FlatList,
   Image,
+  StyleSheet,
 } from 'react-native';
 import LottieView from 'lottie-react-native';
 const Lottie = LottieView as any;
@@ -561,8 +562,8 @@ function EditPresetAppsScreen() {
         </View>
 
         <View style={{ flex: 1 }}>
-          {/* Apps tab - stays mounted, hidden when inactive */}
-          <View style={{ flex: 1, display: activeTab === 'apps' ? 'flex' : 'none' }}>
+          {/* Apps tab - stays mounted, hidden via opacity to avoid layout recomputation */}
+          <View style={{ ...StyleSheet.absoluteFillObject, opacity: activeTab === 'apps' ? 1 : 0, zIndex: activeTab === 'apps' ? 1 : 0 }} pointerEvents={activeTab === 'apps' ? 'auto' : 'none'}>
             {Platform.OS === 'ios' ? (
               // iOS: Show button to open native FamilyActivityPicker
               <View className="flex-1 px-6 pt-4">
@@ -688,8 +689,8 @@ function EditPresetAppsScreen() {
             )}
           </View>
 
-          {/* Websites tab - stays mounted, hidden when inactive */}
-          <View style={{ flex: 1, display: activeTab === 'websites' ? 'flex' : 'none' }}>
+          {/* Websites tab - stays mounted, hidden via opacity to avoid layout recomputation */}
+          <View style={{ ...StyleSheet.absoluteFillObject, opacity: activeTab === 'websites' ? 1 : 0, zIndex: activeTab === 'websites' ? 1 : 0 }} pointerEvents={activeTab === 'websites' ? 'auto' : 'none'}>
             <ScrollView className="flex-1 px-6" contentContainerStyle={{ paddingBottom: s(24) + insets.bottom }}>
               {/* Website Input */}
               <View className="flex-row items-center mb-4">
