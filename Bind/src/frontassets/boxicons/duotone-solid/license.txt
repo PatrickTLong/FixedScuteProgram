@@ -1,0 +1,89 @@
+Boxicons Pro License
+Updated at 5th May, 2025
+
+This Licensing Agreement ("Agreement") is a legally binding contract between you ("Licensee", "Customer", "you") and Boxicons ("Licensor", "Company", "we", "us", "our"). By purchasing the Boxicons Pro License, you agree to the terms of this Agreement. If you do not agree to these terms, do not use Boxicons Pro.
+
+----------------------------------------------------------------------------------------------
+
+# License
+
+License Type
+
+- Individual : Grants access to a single user. The Customer will receive access to the Icons Library, including all Pro Icons, as well as all future updates and additions to the library, for the duration of the License Period.
+
+- Team : Permits access for up to eight users. All authorized users under the Team license will receive access to the Icons Library, including all Pro Icons, as well as all future updates and additions to the library, for the duration of the License Period.
+
+- Enterprise : Permits access for up to thirty users. All authorized users under the Enterprise license will receive access to the Icons Library, including all Pro Icons, as well as all future updates and additions to the library, for the duration of the License Period
+
+License Period
+
+- Yearly : The Customer will receive access to all Pro Icons, fonts, API keys, files, and updates for one year from the subscription start date. The Customer retains lifetime access to any Pro Icons, fonts, and files downloaded/offline during that period, provided such use remains compliant with the terms of this Agreement. This Agreement will expire one year from the subscription start date.
+
+- Lifetime: The Customer will receive indefinite access to all Pro Icons, fonts, API keys, files, and updates. This includes continued use of any downloaded/offline Pro Icons or files. The availability of online services is subject to the continued operation of the Company and may be affected by future events, conditions, or circumstances beyond the Company’s control. All use must remain compliant with the terms set forth in this Agreement.
+
+License Grant
+
+In consideration of the fees paid by the Customer as specified under the Payment section, the Company hereby grants the Customer a non-exclusive, non-transferable license, under all copyrights and applicable patent rights held by the Company during the term of this Agreement, to use Boxicons Pro as described in the sections "Permitted Uses" and "Usage Restrictions"
+
+----------------------------------------------------------------------------------------------
+
+#Usage Restrictions
+
+- You may not share or publish the API key, SVG icon files, or fonts on the internet or distribute them to unauthorized users or in public domains.
+- You may not redistribute the Pro Icons, in original or modified form, including embedding them in open-source projects or stock libraries.
+- You may not provide access to or permit use of the Pro Icons by individuals or parties not covered by your license.
+- You may not claim authorship of the icons, whether modified or unmodified.
+- You may not include the Pro Icons in any product, service, or platform intended for resale or distribution where the icons are the primary value, even if modified.
+- You may not use the Pro Icons in templates, themes, design systems, or UI kits for third-party platforms (e.g., Shopify, Webflow, Adobe XD, etc.), unless expressly permitted.
+- You may not exceed the number of users authorized under your license type. Sharing API keys, fonts, or files beyond that limit is prohibited.
+- You may not use the Pro Icons, in whole or in part, to train, fine-tune, or serve as input data for any machine learning or artificial intelligence models or systems.
+- You may not use the Pro Icons in violation of any applicable laws or regulations, including international sanctions and U.S. export laws.
+
+----------------------------------------------------------------------------------------------
+
+# Permitted Uses
+
+- You may use the Pro Icons in an unlimited number of personal or commercial projects during the License Period.
+- You may modify the Pro Icons to suit your specific needs.
+- You may embed the Pro Icons in UI kits, templates, and design systems for internal use or for free or paid distribution, provided the icons are not the primary value and such use complies with this Agreement.
+- You may use the Pro Icons in the development of websites, web applications, internal design systems, SaaS products, or mobile applications, for yourself or clients.
+- Team and Enterprise Customers may grant access to the number of users allowed under their respective license tier and revoke access, provided former users delete all associated licensed files.
+- You may download and create backups of licensed materials during the License Period.
+
+----------------------------------------------------------------------------------------------
+
+# Ownership and Auditing
+
+This license is non-transferable and does not confer any ownership rights to the Customer. All rights not expressly granted herein remain with the Company. The Company reserves the right to audit the Customer's use of the Pro Icons to verify compliance with this Agreement. The Customer agrees to cooperate with any such audit and to provide reasonable assistance and access to relevant information.
+Indemnification
+You agree to indemnify, defend, and hold harmless the Company, its employees, from and against any and all claims, liabilities, losses, damages, and expenses (including legal fees) arising out of or in connection with your breach of this Agreement or misuse of the Pro Icons.
+
+----------------------------------------------------------------------------------------------
+
+# Limitation of Liability
+
+To the maximum extent permitted by applicable law, the Company shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including but not limited to loss of profits, revenue, data, goodwill, or other intangible losses arising out of or in connection with your use of Boxicons Pro.
+In no event shall the Company’s total aggregate liability for any claims relating to this Agreement exceed the total fees paid by the Customer to the Company under this Agreement in the ix (6) months preceding the claim.
+
+----------------------------------------------------------------------------------------------
+
+# Guarantee
+
+The Company represents and warrants that it possesses all necessary legal rights, title, and authority to grant the licenses described in this Agreement for the use of the Pro Icons and associated software.
+
+----------------------------------------------------------------------------------------------
+
+# Termination
+
+This Agreement remains in force until terminated. We reserve the right to terminate your license immediately, without prior notice, under the following circumstances:
+- You breach any of the terms or conditions set forth in this Agreement. 
+- The Company, in its sole discretion, determines that your use of the Pro Icons may expose the Company to legal liability or adversely impact its business interests.
+Upon termination, you must immediately cease all use of the Pro Icons and destroy or delete all copies, including any derivatives, in your possession or control.
+
+----------------------------------------------------------------------------------------------
+
+# Access to Downloads
+
+During the term of this Agreement, the Company shall provide the Customer with access to download the current versions of Pro Icons as they become available.
+
+Copyright 2025 Boxicons
