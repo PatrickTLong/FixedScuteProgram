@@ -15,6 +15,7 @@ import LottieView from 'lottie-react-native';
 const Lottie = LottieView as any;
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
+import BoxiconsFilled from '../components/BoxiconsFilled';
 import HeaderIconButton from '../components/HeaderIconButton';
 import PresetCard, { Preset } from '../components/PresetCard';
 import ConfirmationModal from '../components/ConfirmationModal';
@@ -754,7 +755,7 @@ function PresetsScreen() {
             }}
             className=""
           >
-            <Text style={{ color: '#fff', textAlign: 'center', marginTop: -1 }} className={`${textSize['2xLarge']} ${fontFamily.light}`}>+</Text>
+            <BoxiconsFilled name="bx-plus" size={iconSize.xs} color="#fff" />
           </HeaderIconButton>
       </View>
 
@@ -835,14 +836,7 @@ function PresetsScreen() {
           }}
         >
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Svg width={24} height={24} viewBox="0 0 24 24" fill={colors.text}>
-              <Path
-                fillRule="evenodd"
-                clipRule="evenodd"
-                d="M6.32 2.577a49.255 49.255 0 0 1 11.36 0c1.497.174 2.57 1.46 2.57 2.93V21a.75.75 0 0 1-1.085.67L12 18.089l-7.165 3.583A.75.75 0 0 1 3.75 21V5.507c0-1.47 1.073-2.756 2.57-2.93Z"
-                fill={colors.text}
-              />
-            </Svg>
+            <BoxiconsFilled name="bx-bookmark-plus" size={24} color={colors.text} />
             <Text style={{ color: colors.text, marginLeft: s(8) }} className={`${textSize.large} ${fontFamily.semibold}`}>
               Preset Saved
             </Text>

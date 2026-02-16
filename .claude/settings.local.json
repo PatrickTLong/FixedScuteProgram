@@ -57,7 +57,8 @@
       "Bash(cmd /c \"rmdir /s /q \"\"c:\\\\Users\\\\Shado\\\\OneDrive\\\\Desktop\\\\ScuteProgram\\\\Bind\\\\android\\\\app\\\\.cxx\"\" 2>&1 & echo DONE\")",
       "Bash(npm ls:*)",
       "Bash(del:*)",
-      "Bash(/tmp/edit_preset.py:*)"
+      "Bash(/tmp/edit_preset.py:*)",
+      "WebFetch(domain:thelinuxcode.com)"
     ],
     "additionalDirectories": [
       "c:\\Users\\Shado\\OneDrive\\Desktop\\ScuteProgram\\Bind\\src"

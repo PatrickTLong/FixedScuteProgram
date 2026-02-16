@@ -17,8 +17,7 @@ import LottieView from 'lottie-react-native';
 const Lottie = LottieView as any;
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
-import Svg, { Path } from 'react-native-svg';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import BoxiconsFilled from '../components/BoxiconsFilled';
 import { useTheme, textSize, fontFamily, radius, shadow, buttonPadding, iconSize } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import HeaderIconButton from '../components/HeaderIconButton';
@@ -69,16 +68,18 @@ const EXPANDED_APPS_COUNT = 25;
 const SpinningRefresh = memo(({ size, color }: { size: number; color: string }) => {
   const spin = useRef(new Animated.Value(0)).current;
   useEffect(() => {
-    const loop = Animated.loop(
+    const runSpin = () => {
+      spin.setValue(0);
       Animated.timing(spin, {
         toValue: 1,
-        duration: 2000,
-        easing: Easing.linear,
+        duration: 600,
+        easing: Easing.out(Easing.cubic),
         useNativeDriver: true,
-      })
-    );
-    loop.start();
-    return () => loop.stop();
+      }).start();
+    };
+    runSpin();
+    const interval = setInterval(runSpin, 1000);
+    return () => clearInterval(interval);
   }, [spin]);
   const rotate = spin.interpolate({
     inputRange: [0, 1],
@@ -86,19 +87,13 @@ const SpinningRefresh = memo(({ size, color }: { size: number; color: string }) 
   });
   return (
     <Animated.View style={{ transform: [{ rotate }], marginLeft: size * 0.4 }}>
-      <MaterialCommunityIcons name="refresh" size={size} color={color} />
+      <BoxiconsFilled name="bx-refresh-cw" size={size} color={color} />
     </Animated.View>
   );
 });
 
 const ExpandIcon = ({ size = iconSize.sm, color = '#FFFFFF' }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
-    <Path
-      fillRule="evenodd"
-      clipRule="evenodd"
-      d="M15 3.75a.75.75 0 0 1 .75-.75h4.5a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0V5.56l-3.97 3.97a.75.75 0 1 1-1.06-1.06l3.97-3.97h-2.69a.75.75 0 0 1-.75-.75Zm-12 0A.75.75 0 0 1 3.75 3h4.5a.75.75 0 0 1 0 1.5H5.56l3.97 3.97a.75.75 0 0 1-1.06 1.06L4.5 5.56v2.69a.75.75 0 0 1-1.5 0v-4.5Zm11.47 11.78a.75.75 0 1 1 1.06-1.06l3.97 3.97v-2.69a.75.75 0 0 1 1.5 0v4.5a.75.75 0 0 1-.75.75h-4.5a.75.75 0 0 1 0-1.5h2.69l-3.97-3.97Zm-4.94-1.06a.75.75 0 0 1 0 1.06L5.56 19.5h2.69a.75.75 0 0 1 0 1.5h-4.5a.75.75 0 0 1-.75-.75v-4.5a.75.75 0 0 1 1.5 0v2.69l3.97-3.97a.75.75 0 0 1 1.06 0Z"
-    />
-  </Svg>
+  <BoxiconsFilled name="bx-maximize" size={size} color={color} />
 );
 
 const AnimatedBar = memo(({ percentage, color, delay, barWidth, maxHeight, label, time, textColor, mutedColor, icon, s, animationKey }: {
@@ -443,7 +438,7 @@ function StatsScreen() {
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 style={{ width: s(40), alignItems: 'flex-end' }}
               >
-                <MaterialCommunityIcons name="arrow-collapse" size={s(iconSize.headerNav)} color="#FFFFFF" />
+                <BoxiconsFilled name="bx-minimize" size={s(iconSize.headerNav)} color="#FFFFFF" />
               </TouchableOpacity>
             </View>
 

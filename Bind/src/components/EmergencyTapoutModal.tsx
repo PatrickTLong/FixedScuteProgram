@@ -8,6 +8,7 @@ import {
 import LottieView from 'lottie-react-native';
 const Lottie = LottieView as any;
 import Svg, { Path } from 'react-native-svg';
+import BoxiconsFilled from './BoxiconsFilled';
 import { useTheme , textSize, fontFamily, radius, shadow, iconSize, buttonPadding } from '../context/ThemeContext';
 
 import { useResponsive } from '../utils/responsive';
@@ -114,16 +115,7 @@ function EmergencyTapoutModal({
           <View className="justify-center p-6">
             <View className="items-center">
               <View className="flex-row items-center mb-3">
-                <Svg width={iconSize.md} height={iconSize.md} viewBox="0 0 24 24">
-                  <Path
-                    d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12Z"
-                    fill={canUseTapout ? '#f59e0b' : colors.textMuted}
-                  />
-                  <Path
-                    d="M12 8.25a.75.75 0 0 1 .75.75v3.75a.75.75 0 0 1-1.5 0V9a.75.75 0 0 1 .75-.75Zm0 8.25a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z"
-                    fill="#FFFFFF"
-                  />
-                </Svg>
+                <BoxiconsFilled name="bx-siren" size={iconSize.md} color={canUseTapout ? '#FF5C5C' : colors.textMuted} />
                 <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold} ml-2`}>
                   Emergency Tapout
                 </Text>
@@ -137,7 +129,6 @@ function EmergencyTapoutModal({
 
               <View
                 style={{
-                  backgroundColor: colors.card,
                   ...shadow.card,
                   borderRadius: 9999,
                   overflow: 'hidden',
@@ -149,10 +140,10 @@ function EmergencyTapoutModal({
                 disabled={!canUseTapout || isLoading}
                 activeOpacity={0.7}
                 style={{
-                  backgroundColor: canUseTapout ? '#f59e0b' : colors.cardLight,
+                  backgroundColor: canUseTapout ? colors.green : colors.cardLight,
                   paddingVertical: s(buttonPadding.standard),
                   borderWidth: 1,
-                  borderColor: colors.border,
+                  borderColor: canUseTapout ? colors.green : colors.border,
                   borderRadius: 9999,
                   opacity: canUseTapout ? 1 : 0.5,
                 }}

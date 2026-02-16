@@ -20,6 +20,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Svg, { Path, Rect } from 'react-native-svg';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import BoxiconsFilled from '../components/BoxiconsFilled';
 import ExcludedAppsInfoModal from '../components/ExcludedAppsInfoModal';
 import { Preset } from '../components/PresetCard';
 import HeaderIconButton from '../components/HeaderIconButton';
@@ -35,34 +36,15 @@ const EXCLUDED_APPS_INFO_DISMISSED_KEY = 'excluded_apps_info_dismissed';
 // ============ Icon Components ============
 
 const XIcon = ({ size = iconSize.headerNav, color = "#FFFFFF" }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path d="M18 6L6 18" stroke={color} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
-    <Path d="M6 6l12 12" stroke={color} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
-  </Svg>
+  <BoxiconsFilled name="bx-x-circle" size={size} color={color} />
 );
 
-const ChevronRightIcon = ({ size = iconSize.lg, color = "#9CA3AF" }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M9 18l6-6-6-6"
-      stroke={color}
-      strokeWidth={2.5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </Svg>
+const ChevronRightIcon = ({ size = iconSize.chevron, color = "#9CA3AF" }: { size?: number; color?: string }) => (
+  <BoxiconsFilled name="bx-caret-big-right" size={size} color={color} />
 );
 
-const ArrowRightIcon = ({ size = iconSize.lg, color = "#FFFFFF" }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M5 12h14M12 5l7 7-7 7"
-      stroke={color}
-      strokeWidth={2.5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </Svg>
+const ForwardIcon = ({ size = iconSize.lg, color = "#FFFFFF" }: { size?: number; color?: string }) => (
+  <BoxiconsFilled name="bx-reply-big" size={size} color={color} style={{ transform: [{ scaleX: -1 }] }} />
 );
 
 const EditIcon = ({ size = iconSize.lg, color = '#FFFFFF' }: { size?: number; color?: string }) => (
@@ -88,15 +70,7 @@ const PlusIcon = ({ size = iconSize.lg, color = '#FFFFFF' }: { size?: number; co
 );
 
 const GlobeIcon = ({ size = iconSize.sm, color = "#FFFFFF" }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0 1 12 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 0 1 3 12c0-1.605.42-3.113 1.157-4.418"
-      stroke={color}
-      strokeWidth={1.5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </Svg>
+  <BoxiconsFilled name="bx-globe" size={size} color={color} />
 );
 
 const AndroidIcon = ({ size = iconSize.sm, color = "#FFFFFF" }: { size?: number; color?: string }) => (
@@ -507,7 +481,7 @@ function EditPresetAppsScreen() {
           {getEditingPreset() ? 'Edit Preset' : 'New Preset'}
         </Text>
         <HeaderIconButton onPress={handleContinue} disabled={!canContinue}>
-          <ArrowRightIcon size={s(iconSize.headerNav)} color={canContinue ? '#FFFFFF' : colors.textMuted} />
+          <ForwardIcon size={s(iconSize.headerNav)} color={canContinue ? '#FFFFFF' : colors.textMuted} />
         </HeaderIconButton>
       </View>
 
@@ -586,7 +560,7 @@ function EditPresetAppsScreen() {
                         : 'Tap to choose apps'}
                     </Text>
                   </View>
-                  <ChevronRightIcon size={s(iconSize.lg)} color={colors.textSecondary} />
+                  <ChevronRightIcon size={s(iconSize.chevron)} color={colors.textSecondary} />
                 </TouchableOpacity>
 
                 <Text style={{ color: colors.textMuted }} className={`${textSize.small} ${fontFamily.regular} text-center px-4`}>
@@ -719,7 +693,7 @@ function EditPresetAppsScreen() {
                   }}
                   className=""
                 >
-                  <Text style={{ color: '#fff', textAlign: 'center', marginTop: -1 }} className={`${textSize['2xLarge']} ${fontFamily.light}`}>+</Text>
+                  <BoxiconsFilled name="bx-plus" size={iconSize.xs} color="#fff" />
                 </HeaderIconButton>
               </View>
 

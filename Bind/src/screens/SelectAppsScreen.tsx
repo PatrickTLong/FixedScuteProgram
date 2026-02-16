@@ -15,6 +15,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import { useTheme , textSize, fontFamily, radius, shadow, iconSize } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import HeaderIconButton from '../components/HeaderIconButton';
+import BoxiconsFilled from '../components/BoxiconsFilled';
 
 interface InstalledApp {
   id: string;
@@ -40,17 +41,9 @@ const SearchIcon = ({ color }: { color: string }) => (
   <MaterialCommunityIcons name="magnify" size={iconSize.md} color={color} />
 );
 
-// Arrow left icon (Feather arrow-left)
+// Back arrow icon (Boxicons reply-big)
 const BackIcon = ({ color, size = iconSize.headerNav }: { color: string; size?: number }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M19 12H5M12 19l-7-7 7-7"
-      stroke={color}
-      strokeWidth={2.5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </Svg>
+  <BoxiconsFilled name="bx-reply-big" size={size} color={color} />
 );
 
 // Globe Icon for websites

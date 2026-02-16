@@ -23,6 +23,7 @@ import RecurrenceInfoModal from '../components/RecurrenceInfoModal';
 import StrictModeWarningModal from '../components/StrictModeWarningModal';
 import { Preset } from '../components/PresetCard';
 import HeaderIconButton from '../components/HeaderIconButton';
+import BoxiconsFilled from '../components/BoxiconsFilled';
 import { useAuth } from '../context/AuthContext';
 import { useTheme, textSize, fontFamily, radius, shadow, iconSize, buttonPadding } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
@@ -51,50 +52,23 @@ type RecurringUnit = 'minutes' | 'hours' | 'days' | 'weeks' | 'months';
 
 // ============ Icon Components ============
 const ChevronLeftIcon = ({ size = iconSize.chevron, color = "#FFFFFF" }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M15 18l-6-6 6-6"
-      stroke={color}
-      strokeWidth={2.5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </Svg>
+  <BoxiconsFilled name="bx-caret-big-left" size={size} color={color} />
 );
 
-const ArrowLeftIcon = ({ size = iconSize.lg, color = "#FFFFFF" }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M19 12H5M12 19l-7-7 7-7"
-      stroke={color}
-      strokeWidth={2.5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </Svg>
+const BackArrowIcon = ({ size = iconSize.lg, color = "#FFFFFF" }: { size?: number; color?: string }) => (
+  <BoxiconsFilled name="bx-reply-big" size={size} color={color} />
 );
 
 const XIcon = ({ size = iconSize.headerNav, color = "#FFFFFF" }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path d="M18 6L6 18" stroke={color} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
-    <Path d="M6 6l12 12" stroke={color} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
-  </Svg>
+  <BoxiconsFilled name="bx-x-circle" size={size} color={color} />
 );
 
 const FileIcon = ({ size = iconSize.headerNav, color = "#FFFFFF" }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
-    <Path
-      fillRule="evenodd"
-      clipRule="evenodd"
-      d="M6.32 2.577a49.255 49.255 0 0 1 11.36 0c1.497.174 2.57 1.46 2.57 2.93V21a.75.75 0 0 1-1.085.67L12 18.089l-7.165 3.583A.75.75 0 0 1 3.75 21V5.507c0-1.47 1.073-2.756 2.57-2.93Z"
-    />
-  </Svg>
+  <BoxiconsFilled name="bx-bookmark-plus" size={size} color={color} />
 );
 
 const CheckIcon = ({ size = iconSize.headerNav, color = "#FFFFFF" }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path d="M20 6L9 17l-5-5" stroke={color} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
-  </Svg>
+  <BoxiconsFilled name="bx-check-circle" size={size} color={color} />
 );
 
 const CalendarIcon = ({ size = iconSize.forTabs, color = '#FFFFFF' }: { size?: number; color?: string }) => (
@@ -109,25 +83,11 @@ const CalendarIcon = ({ size = iconSize.forTabs, color = '#FFFFFF' }: { size?: n
 );
 
 const FlagIcon = ({ size = iconSize.forTabs, color = '#FFFFFF' }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
-    <Path
-      fillRule="evenodd"
-      clipRule="evenodd"
-      d="M3 2.25a.75.75 0 0 1 .75.75v.54l1.838-.46a9.75 9.75 0 0 1 6.725.738l.108.054a8.25 8.25 0 0 0 5.58.652l3.109-.732a.75.75 0 0 1 .89.75v12.173a.75.75 0 0 1-.579.732l-3.474.819a9.75 9.75 0 0 1-6.591-.77l-.108-.054a8.25 8.25 0 0 0-5.69-.625l-1.808.452V21a.75.75 0 0 1-1.5 0V3a.75.75 0 0 1 .75-.75Z"
-    />
-  </Svg>
+  <BoxiconsFilled name="bx-flag-chequered" size={size} color={color} />
 );
 
 const ChevronRightIcon = ({ size = iconSize.chevron, color = "#9CA3AF" }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M9 18l6-6-6-6"
-      stroke={color}
-      strokeWidth={2.5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </Svg>
+  <BoxiconsFilled name="bx-caret-big-right" size={size} color={color} />
 );
 
 const SunIcon = ({ size = 18, color = '#FFFFFF' }: { size?: number; color?: string }) => (
@@ -1279,7 +1239,7 @@ function PresetSettingsScreen() {
       {/* Header — key forces SVG remount on focus to fix react-freeze stroke color bug */}
       <View key={svgKey} style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight, overflow: 'hidden' }} className="flex-row items-center justify-between px-4 py-3.5">
         <HeaderIconButton onPress={() => navigation.navigate('EditPresetApps')} style={{ width: s(40) }}>
-          <ArrowLeftIcon size={s(iconSize.headerNav)} color="#FFFFFF" />
+          <BackArrowIcon size={s(iconSize.headerNav)} color="#FFFFFF" />
         </HeaderIconButton>
         <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.bold}`}>Final Settings</Text>
         <HeaderIconButton onPress={handleSave} disabled={!canSave} style={{ width: s(40) }}>

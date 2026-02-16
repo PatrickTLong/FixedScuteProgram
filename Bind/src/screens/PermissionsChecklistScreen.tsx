@@ -13,6 +13,7 @@ import LottieView from 'lottie-react-native';
 const Lottie = LottieView as any;
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
+import BoxiconsFilled from '../components/BoxiconsFilled';
 import { useAuth } from '../context/AuthContext';
 import { useTheme , textSize, fontFamily, radius, shadow, iconSize } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
@@ -29,17 +30,9 @@ const AndroidIcon = ({ size = iconSize.lg, color = "#FFFFFF" }: { size?: number;
   </Svg>
 );
 
-// Arrow right icon
+// Forward arrow icon (Boxicons reply-big mirrored)
 const ArrowRightIcon = ({ size = iconSize.lg, color = "#FFFFFF" }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M5 12h14M12 5l7 7-7 7"
-      stroke={color}
-      strokeWidth={2.5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </Svg>
+  <BoxiconsFilled name="bx-reply-big" size={size} color={color} style={{ transform: [{ scaleX: -1 }] }} />
 );
 
 interface Permission {

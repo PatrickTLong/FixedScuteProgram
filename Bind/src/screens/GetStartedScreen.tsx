@@ -7,49 +7,10 @@ import {
   ScrollView,
   TextInput,
 } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
 import LottieView from 'lottie-react-native';
 const Lottie = LottieView as any;
 import { SafeAreaView } from 'react-native-safe-area-context';
-
-// Eye icons for password visibility
-const EyeIcon = ({ color }: { color: string }) => (
-  <Svg width={iconSize.md} height={iconSize.md} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
-      stroke={color}
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <Path
-      d="M12 15a3 3 0 100-6 3 3 0 000 6z"
-      stroke={color}
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </Svg>
-);
-
-const EyeOffIcon = ({ color }: { color: string }) => (
-  <Svg width={iconSize.md} height={iconSize.md} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"
-      stroke={color}
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <Path
-      d="M1 1l22 22"
-      stroke={color}
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </Svg>
-);
+import BoxiconsFilled from '../components/BoxiconsFilled';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ProgressBar from '../components/ProgressBar';
 import InfoModal from '../components/InfoModal';
@@ -251,7 +212,7 @@ function GetStartedScreen() {
                       onPress={() => setShowPassword(!showPassword)}
                       style={{ position: 'absolute', right: s(16), top: 0, bottom: 0, justifyContent: 'center' }}
                     >
-                      {showPassword ? <EyeIcon color={colors.text} /> : <EyeOffIcon color={colors.text} />}
+                      <BoxiconsFilled name={showPassword ? 'bx-eye' : 'bx-eye-slash'} size={iconSize.md} color={colors.text} />
                     </TouchableOpacity>
                   </View>
                 </View>
