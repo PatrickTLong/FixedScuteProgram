@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   Modal,
-  Pressable,
 } from 'react-native';
 import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
 
@@ -32,10 +31,8 @@ function DisableTapoutWarningModal({ visible, onConfirm, onCancel }: DisableTapo
       animationType="fade"
       onRequestClose={handleCancel}
     >
-      <Pressable className="flex-1" onPress={handleCancel}>
-        <View className="flex-1 bg-black/70 justify-center items-center px-6">
-          <Pressable onPress={(e) => e.stopPropagation()}>
-            <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.modal }} className={`w-full ${radius['2xl']} overflow-hidden`}>
+      <View className="flex-1 bg-black/70 justify-center items-center px-6">
+          <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.modal }} className={`w-full ${radius['2xl']} overflow-hidden`}>
               {/* Content */}
               <View className="p-6">
                 <Text style={{ color: colors.text }} className={`${textSize.xLarge} ${fontFamily.bold} text-center mb-4`}>
@@ -70,9 +67,8 @@ function DisableTapoutWarningModal({ visible, onConfirm, onCancel }: DisableTapo
                 </TouchableOpacity>
               </View>
             </View>
-          </Pressable>
-        </View>
-      </Pressable>
+          </View>
+      </View>
     </Modal>
   );
 }

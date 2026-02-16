@@ -43,6 +43,7 @@ export const iconSize = {
   headerNav: 24, // Header navigation icons (close X, chevron next/back)
   chevron: 20,   // Chevrons in settings rows (settings, preset settings)
   forTabs: 24,   // Icons for tabs in preset settings (calendar, flag, etc.)
+  toggleRow: 28, // Toggle row icons in final settings (no time limit, strict mode, etc.)
 } as const;
 
 // Button padding sizes (use inside s() for responsive scaling)

@@ -105,7 +105,7 @@ const FileTextIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
 );
 
 const ChevronRightIcon = ({ size = iconSize.chevron, color = "#FFFFFF" }: { size?: number; color?: string }) => (
-  <BoxiconsFilled name="bx-caret-big-right" size={size} color={color} />
+  <BoxiconsFilled name="bx-caret-right-circle" size={size} color={color} />
 );
 
 const TapoutIcon = ({ color = '#FF5C5C' }: { color?: string }) => (

@@ -646,15 +646,9 @@ function DatePickerScreen() {
               <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.semibold}`}>{selectedDateTimeText}</Text>
             </View>
             {tempSelectedDate && (
-              <TouchableOpacity
-                onPress={handleClear}
-                activeOpacity={0.7}
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
-                className={`ml-4 px-4 py-2 ${radius.full}`}
-              >
-                <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>Clear</Text>
-              </TouchableOpacity>
+              <HeaderIconButton onPress={handleClear}>
+                <BoxiconsFilled name="bx-calendar-x" size={s(iconSize.toggleRow)} color={colors.text} />
+              </HeaderIconButton>
             )}
           </View>
           {tempSelectedDate && !isFutureDateTime && (
