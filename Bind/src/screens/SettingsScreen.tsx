@@ -187,6 +187,26 @@ function SettingsScreen() {
   // Gear spin animation
   const gearRotation = useRef(new Animated.Value(0)).current;
 
+  // Heartbeat animation for tapout icon
+  const heartbeatScale = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    const pulse = Animated.loop(
+      Animated.sequence([
+        // First beat (strong)
+        Animated.timing(heartbeatScale, { toValue: 1.25, duration: 100, easing: Easing.out(Easing.ease), useNativeDriver: true }),
+        Animated.timing(heartbeatScale, { toValue: 1, duration: 100, easing: Easing.in(Easing.ease), useNativeDriver: true }),
+        // Second beat (softer)
+        Animated.timing(heartbeatScale, { toValue: 1.15, duration: 80, easing: Easing.out(Easing.ease), useNativeDriver: true }),
+        Animated.timing(heartbeatScale, { toValue: 1, duration: 100, easing: Easing.in(Easing.ease), useNativeDriver: true }),
+        // Pause between heartbeats
+        Animated.delay(600),
+      ])
+    );
+    pulse.start();
+    return () => pulse.stop();
+  }, [heartbeatScale]);
+
   useFocusEffect(
     React.useCallback(() => {
       // Reset and play gear spin animation on screen focus
@@ -528,9 +548,9 @@ function SettingsScreen() {
             style={getTimeUntilRefill() ? { borderBottomWidth: 1, borderBottomColor: colors.divider, paddingVertical: s(buttonPadding.standard) } : { paddingVertical: s(buttonPadding.standard) }}
             className="flex-row items-center px-4"
           >
-            <View className="mr-4">
+            <Animated.View className="mr-4" style={{ transform: [{ scale: heartbeatScale }] }}>
               <TapoutIcon />
-            </View>
+            </Animated.View>
             <View className="flex-1">
               <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular}`}>Tapouts Remaining</Text>
               <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-0.5`}>

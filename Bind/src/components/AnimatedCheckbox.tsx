@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, memo } from 'react';
-import { Animated, View, Easing } from 'react-native';
+import { Animated, Easing } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { iconSize } from '../context/ThemeContext';
 
@@ -20,11 +20,32 @@ function AnimatedCheckbox({
 }: AnimatedCheckboxProps) {
   const borderBump = '#434346';
   const animatedValue = useRef(new Animated.Value(checked ? 1 : 0)).current;
+  const scaleValue = useRef(new Animated.Value(1)).current;
+  const prevChecked = useRef(checked);
 
   useEffect(() => {
     if (skipAnimation) {
       animatedValue.setValue(checked ? 1 : 0);
+      prevChecked.current = checked;
     } else {
+      // Only pop scale on manual select (not deselect, not bulk)
+      if (!prevChecked.current && checked) {
+        scaleValue.setValue(1);
+        Animated.sequence([
+          Animated.timing(scaleValue, {
+            toValue: 1.2,
+            duration: 100,
+            useNativeDriver: true,
+          }),
+          Animated.timing(scaleValue, {
+            toValue: 1,
+            duration: 100,
+            useNativeDriver: true,
+          }),
+        ]).start();
+      }
+      prevChecked.current = checked;
+
       Animated.timing(animatedValue, {
         toValue: checked ? 1 : 0,
         duration: 90,
@@ -32,7 +53,7 @@ function AnimatedCheckbox({
         useNativeDriver: true,
       }).start();
     }
-  }, [checked, animatedValue, skipAnimation]);
+  }, [checked, animatedValue, skipAnimation, scaleValue]);
 
   // Opacity for checked background (1 when checked, 0 when unchecked)
   const checkedOpacity = animatedValue;
@@ -50,7 +71,7 @@ function AnimatedCheckbox({
   });
 
   return (
-    <View style={{ width: size, height: size, opacity: disabled ? 0.5 : 1 }}>
+    <Animated.View style={{ width: size, height: size, opacity: disabled ? 0.5 : 1, transform: [{ scale: scaleValue }] }}>
       {/* Checked background (green, fades in) */}
       <Animated.View
         style={{
@@ -92,7 +113,7 @@ function AnimatedCheckbox({
           <Path d="M20 6L9 17l-5-5" stroke="#FFFFFF" strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round" />
         </Svg>
       </Animated.View>
-    </View>
+    </Animated.View>
   );
 }
 

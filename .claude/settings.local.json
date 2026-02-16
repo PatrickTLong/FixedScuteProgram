@@ -58,7 +58,8 @@
       "Bash(npm ls:*)",
       "Bash(del:*)",
       "Bash(/tmp/edit_preset.py:*)",
-      "WebFetch(domain:thelinuxcode.com)"
+      "WebFetch(domain:thelinuxcode.com)",
+      "Bash(Select-String \"boxicons\")"
     ],
     "additionalDirectories": [
       "c:\\Users\\Shado\\OneDrive\\Desktop\\ScuteProgram\\Bind\\src"
