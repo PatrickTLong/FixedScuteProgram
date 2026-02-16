@@ -3,7 +3,6 @@ import {
   View,
   Text,
   TouchableOpacity,
-  Modal,
   TextInput,
   ScrollView,
   Platform,
@@ -31,14 +30,6 @@ import { usePresetSave } from '../navigation/PresetsStack';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { MainTabParamList } from '../navigation/types';
-
-// ============ Pure date helpers ============
-function getDaysInMonth(month: number, year: number): number {
-  return new Date(year, month + 1, 0).getDate();
-}
-function getFirstDayOfMonth(month: number, year: number): number {
-  return new Date(year, month, 1).getDay();
-}
 
 // ============ AsyncStorage Keys ============
 const SCHEDULE_INFO_DISMISSED_KEY = 'schedule_info_dismissed';
@@ -90,22 +81,6 @@ const ChevronRightIcon = ({ size = iconSize.chevron, color = "#9CA3AF" }: { size
   <BoxiconsFilled name="bx-caret-big-right" size={size} color={color} />
 );
 
-const SunIcon = ({ size = 18, color = '#FFFFFF' }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
-    <Path d="M12 2.25a.75.75 0 0 1 .75.75v2.25a.75.75 0 0 1-1.5 0V3a.75.75 0 0 1 .75-.75ZM7.5 12a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM18.894 6.166a.75.75 0 0 0-1.06-1.06l-1.591 1.59a.75.75 0 1 0 1.06 1.061l1.591-1.59ZM21.75 12a.75.75 0 0 1-.75.75h-2.25a.75.75 0 0 1 0-1.5H21a.75.75 0 0 1 .75.75ZM17.834 18.894a.75.75 0 0 0 1.06-1.06l-1.59-1.591a.75.75 0 1 0-1.061 1.06l1.59 1.591ZM12 18a.75.75 0 0 1 .75.75V21a.75.75 0 0 1-1.5 0v-2.25A.75.75 0 0 1 12 18ZM7.758 17.303a.75.75 0 0 0-1.061-1.06l-1.591 1.59a.75.75 0 0 0 1.06 1.061l1.591-1.59ZM6 12a.75.75 0 0 1-.75.75H3a.75.75 0 0 1 0-1.5h2.25A.75.75 0 0 1 6 12ZM6.697 7.757a.75.75 0 0 0 1.06-1.06l-1.59-1.591a.75.75 0 0 0-1.061 1.06l1.59 1.591Z" />
-  </Svg>
-);
-
-const MoonIcon = ({ size = 18, color = '#FFFFFF' }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
-    <Path
-      fillRule="evenodd"
-      clipRule="evenodd"
-      d="M9.528 1.718a.75.75 0 0 1 .162.819A8.97 8.97 0 0 0 9 6a9 9 0 0 0 9 9 8.97 8.97 0 0 0 3.463-.69.75.75 0 0 1 .981.98 10.503 10.503 0 0 1-9.694 6.46c-5.799 0-10.5-4.7-10.5-10.5 0-4.368 2.667-8.112 6.46-9.694a.75.75 0 0 1 .818.162Z"
-    />
-  </Svg>
-);
-
 const RotateCwIcon = ({ size = iconSize.lg, color = '#FFFFFF' }: { size?: number; color?: string }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Path
@@ -147,219 +122,6 @@ const ClockIcon = ({ size = iconSize.lg, color = '#FFFFFF' }: { size?: number; c
 const SendIcon = ({ size = iconSize.forTabs, color = '#FFFFFF' }: { size?: number; color?: string }) => (
   <BoxiconsFilled name="bx-paper-plane" size={size} color={color} />
 );
-
-// ============ Date Picker Constants ============
-const MONTHS = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December',
-];
-
-const DAYS_OF_WEEK = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
-const BASE_TIME_ITEM_HEIGHT = 40;
-const TIME_VISIBLE_ITEMS = 3;
-const TIME_WINDOW_BUFFER = 8;
-const HOURS_12 = Array.from({ length: 12 }, (_, i) => i + 1);
-const MINUTES = Array.from({ length: 60 }, (_, i) => i);
-
-// ============ TimeWheel Component ============
-interface TimeWheelProps {
-  values: number[];
-  selectedValue: number;
-  onValueChange: (value: number) => void;
-  padZero?: boolean;
-  textColor: string;
-  textMutedColor: string;
-  itemHeight: number;
-  wheelWidth: number;
-  selectedFontSize: number;
-  unselectedFontSize: number;
-}
-
-const TimeWheel = memo(({ values, selectedValue, onValueChange, padZero = true, textColor, textMutedColor, itemHeight, wheelWidth, selectedFontSize, unselectedFontSize }: TimeWheelProps) => {
-  const scrollRef = useRef<ScrollView>(null);
-
-  const selectedIndex = values.indexOf(selectedValue);
-  const [windowStart, setWindowStart] = useState(() => Math.max(0, selectedIndex - TIME_WINDOW_BUFFER));
-  const [windowEnd, setWindowEnd] = useState(() => Math.min(values.length - 1, selectedIndex + TIME_WINDOW_BUFFER));
-
-  const windowedValues = useMemo(() => values.slice(windowStart, windowEnd + 1), [values, windowStart, windowEnd]);
-  const topSpacerHeight = windowStart * itemHeight;
-  const bottomSpacerHeight = (values.length - 1 - windowEnd) * itemHeight;
-
-  useEffect(() => {
-    const index = values.indexOf(selectedValue);
-    if (index >= 0 && scrollRef.current) {
-      setTimeout(() => {
-        scrollRef.current?.scrollTo({ y: index * itemHeight, animated: false });
-      }, 10);
-    }
-  }, [selectedValue, values, itemHeight]);
-
-  const updateWindow = useCallback((centerIndex: number) => {
-    const newStart = Math.max(0, centerIndex - TIME_WINDOW_BUFFER);
-    const newEnd = Math.min(values.length - 1, centerIndex + TIME_WINDOW_BUFFER);
-    setWindowStart(prev => prev !== newStart ? newStart : prev);
-    setWindowEnd(prev => prev !== newEnd ? newEnd : prev);
-  }, [values.length]);
-
-  const handleScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const offsetY = event.nativeEvent.contentOffset.y;
-    const currentIndex = Math.round(offsetY / itemHeight);
-    const clampedIndex = Math.max(0, Math.min(currentIndex, values.length - 1));
-
-    updateWindow(clampedIndex);
-  }, [values.length, itemHeight, updateWindow]);
-
-  const handleScrollEnd = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const offsetY = event.nativeEvent.contentOffset.y;
-    const index = Math.round(offsetY / itemHeight);
-    const clampedIndex = Math.max(0, Math.min(index, values.length - 1));
-
-    if (values[clampedIndex] !== selectedValue) {
-      onValueChange(values[clampedIndex]);
-    }
-  }, [values, selectedValue, onValueChange, itemHeight]);
-
-  const paddingVertical = (itemHeight * (TIME_VISIBLE_ITEMS - 1)) / 2;
-
-  return (
-    <View style={{ height: itemHeight * TIME_VISIBLE_ITEMS, width: wheelWidth, overflow: 'hidden' }}>
-      <ScrollView
-        ref={scrollRef}
-        showsVerticalScrollIndicator={false}
-        snapToInterval={itemHeight}
-        decelerationRate="fast"
-        onScroll={handleScroll}
-        scrollEventThrottle={16}
-        onMomentumScrollEnd={handleScrollEnd}
-        onScrollEndDrag={(e) => {
-          if (e.nativeEvent.velocity?.y === 0) handleScrollEnd(e);
-        }}
-        contentContainerStyle={{ paddingVertical }}
-        nestedScrollEnabled={false}
-        overScrollMode="never"
-      >
-        {topSpacerHeight > 0 && <View style={{ height: topSpacerHeight }} />}
-        {windowedValues.map((value) => {
-          const isSelected = value === selectedValue;
-          return (
-            <View key={value} style={{ height: itemHeight, justifyContent: 'center', alignItems: 'center' }}>
-              <Text
-                style={{
-                  fontSize: isSelected ? selectedFontSize : unselectedFontSize,
-                  fontFamily: isSelected ? 'Nunito-Bold' : 'Nunito-Regular',
-                  color: isSelected ? textColor : textMutedColor,
-                }}
-              >
-                {padZero ? String(value).padStart(2, '0') : value}
-              </Text>
-            </View>
-          );
-        })}
-        {bottomSpacerHeight > 0 && <View style={{ height: bottomSpacerHeight }} />}
-      </ScrollView>
-    </View>
-  );
-});
-
-// ============ DayCell Component ============
-interface DayCellProps {
-  day: number;
-  selectable: boolean;
-  selected: boolean;
-  isToday: boolean;
-  textColor: string;
-  textMutedColor: string;
-  onSelect: (day: number) => void;
-  cellHeight: number;
-}
-
-const DayCell = memo(({ day, selectable, selected, isToday: todayDay, textColor, textMutedColor, onSelect, cellHeight }: DayCellProps) => {
-  const { colors } = useTheme();
-
-  return (
-    <View style={{ width: '14.28%', height: cellHeight }}>
-      <TouchableOpacity
-        onPress={() => onSelect(day)}
-        disabled={!selectable}
-        activeOpacity={0.7}
-        style={{ flex: 1 }}
-        className="items-center justify-center"
-      >
-        <View
-          style={{
-            backgroundColor: selected ? colors.green : 'transparent',
-            borderColor: todayDay && !selected ? colors.green : 'transparent',
-            borderWidth: todayDay && !selected ? 1 : 0,
-          }}
-          className={`w-9 h-9 ${radius.full} items-center justify-center`}
-        >
-          <Text
-            style={{
-              color: selected ? colors.text : selectable ? textColor : textMutedColor,
-            }}
-            className={`${textSize.base} ${fontFamily.regular} ${selected ? fontFamily.bold : ''}`}
-          >
-            {day}
-          </Text>
-        </View>
-      </TouchableOpacity>
-    </View>
-  );
-});
-
-const EmptyCell = memo(({ cellHeight }: { cellHeight: number }) => (
-  <View style={{ width: '14.28%', height: cellHeight }} />
-));
-
-// ============ AmPmSelector Component ============
-interface AmPmSelectorProps {
-  value: 'AM' | 'PM';
-  onChange: (value: 'AM' | 'PM') => void;
-  cardColor: string;
-}
-
-const AmPmSelector = memo(({ value, onChange, cardColor }: AmPmSelectorProps) => {
-  const { colors } = useTheme();
-
-  return (
-    <View className="ml-2">
-      {/* AM button with sun icon */}
-      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-        <TouchableOpacity
-          onPress={() => onChange('AM')}
-          activeOpacity={0.7}
-          style={{ backgroundColor: value === 'AM' ? colors.green : cardColor, borderWidth: 1, borderColor: value === 'AM' ? colors.green : colors.border, ...shadow.card }}
-          className={`px-3 py-2 ${radius.AMPM}`}
-        >
-          <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
-            AM
-          </Text>
-        </TouchableOpacity>
-        <View style={{ position: 'absolute', right: -26 }}>
-          <SunIcon size={18} color={value === 'AM' ? colors.yellow : colors.textMuted} />
-        </View>
-      </View>
-      {/* PM button with moon icon */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
-        <TouchableOpacity
-          onPress={() => onChange('PM')}
-          activeOpacity={0.7}
-          style={{ backgroundColor: value === 'PM' ? colors.green : cardColor, borderWidth: 1, borderColor: value === 'PM' ? colors.green : colors.border, ...shadow.card }}
-          className={`px-3 py-2 ${radius.AMPM}`}
-        >
-          <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
-            PM
-          </Text>
-        </TouchableOpacity>
-        <View style={{ position: 'absolute', right: -26 }}>
-          <MoonIcon size={18} color={value === 'PM' ? colors.text : colors.textMuted} />
-        </View>
-      </View>
-    </View>
-  );
-});
 
 // ============ Recurrence Wheel Picker Component ============
 const RECURRENCE_ITEM_HEIGHT = 40;
@@ -549,7 +311,7 @@ type PresetSettingsNavigationProp = BottomTabNavigationProp<MainTabParamList, 'P
 // ============ Main Screen Component ============
 function PresetSettingsScreen() {
   const navigation = useNavigation<PresetSettingsNavigationProp>();
-  const { onSave, getEditingPreset, getExistingPresets, getEmail, getPresetSettingsParams, setPresetSettingsParams, getFinalSettingsState, setFinalSettingsState } = usePresetSave();
+  const { onSave, getEditingPreset, getExistingPresets, getEmail, getPresetSettingsParams, setPresetSettingsParams, getFinalSettingsState, setFinalSettingsState, setDatePickerParams, setDatePickerResult, getDatePickerResult } = usePresetSave();
   const paramsSnapshot = getPresetSettingsParams();
   const name = paramsSnapshot?.name ?? '';
   const selectedApps = paramsSnapshot?.selectedApps ?? [];
@@ -560,12 +322,6 @@ function PresetSettingsScreen() {
   const { colors } = useTheme();
   const { s } = useResponsive();
   const insets = useSafeAreaInsets();
-
-  const timeItemHeight = s(BASE_TIME_ITEM_HEIGHT);
-  const wheelWidth = s(50);
-  const timeSelectedFontSize = s(24);
-  const timeUnselectedFontSize = s(18);
-  const dayCellHeight = s(44);
 
   // ============ Toggle/Timer/Schedule State ============
   const [blockSettings, setBlockSettings] = useState(false);
@@ -614,19 +370,8 @@ function PresetSettingsScreen() {
   const [svgKey, setSvgKey] = useState(0);
   const [skipSwitchAnimation, setSkipSwitchAnimation] = useState(false);
 
-  // ============ Inline Date Picker State ============
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [datePickerTarget, setDatePickerTarget] = useState<'targetDate' | 'scheduleStart' | 'scheduleEnd' | null>(null);
-  const [dpViewMonth, setDpViewMonth] = useState(new Date().getMonth());
-  const [dpViewYear, setDpViewYear] = useState(new Date().getFullYear());
-  const [dpTempSelectedDate, setDpTempSelectedDate] = useState<Date | null>(null);
-  const [dpSelectedHour, setDpSelectedHour] = useState(12);
-  const [dpSelectedMinute, setDpSelectedMinute] = useState(0);
-  const [dpSelectedAmPm, setDpSelectedAmPm] = useState<'AM' | 'PM'>('PM');
-
   // Refs
   const mainScrollRef = useRef<ScrollView>(null);
-  const dpScrollRef = useRef<ScrollView>(null);
 
   // Refs to track current form state for saving on blur
   const blockSettingsRef = useRef(blockSettings);
@@ -723,10 +468,30 @@ function PresetSettingsScreen() {
           setRecurringUnit('hours');
         }
       }
+      // Apply date picker result if returning from DatePicker screen
+      const dpResult = getDatePickerResult();
+      if (dpResult) {
+        const finalDate = new Date(dpResult.selectedDate);
+        if (dpResult.target === 'targetDate') {
+          setTargetDate(finalDate);
+          setTimerDays(0);
+          setTimerHours(0);
+          setTimerMinutes(0);
+          setTimerSeconds(0);
+        } else if (dpResult.target === 'scheduleStart') {
+          setScheduleStartDate(finalDate);
+          const currentEnd = savedState?.scheduleEndDate ? new Date(savedState.scheduleEndDate) : null;
+          if (currentEnd && currentEnd <= finalDate) {
+            setScheduleEndDate(null);
+          }
+        } else if (dpResult.target === 'scheduleEnd') {
+          setScheduleEndDate(finalDate);
+        }
+        setDatePickerResult(null);
+      }
+
       // Reset UI state
       hasSaved.current = false;
-      setShowDatePicker(false);
-      setDatePickerTarget(null);
       setExpandedInfo({});
       setSkipSwitchAnimation(true);
       requestAnimationFrame(() => {
@@ -755,7 +520,7 @@ function PresetSettingsScreen() {
           recurringUnit: recurringUnitRef.current,
         });
       };
-    }, [getEditingPreset, getFinalSettingsState, setFinalSettingsState])
+    }, [getEditingPreset, getFinalSettingsState, setFinalSettingsState, getDatePickerResult, setDatePickerResult])
   );
 
   // ============ Emergency Tapout Handler ============
@@ -776,194 +541,22 @@ function PresetSettingsScreen() {
     }
   }, [tapoutStatus]);
 
-  // ============ Date Picker Logic ============
-  const dpToday = useMemo(() => new Date(), []);
-  const dpMaxDate = useMemo(() => {
-    const max = new Date(dpToday);
-    max.setFullYear(max.getFullYear() + 1);
-    return max;
-  }, [dpToday]);
-
-  const dpEffectiveMinDate = useMemo(() => {
-    if (datePickerTarget === 'scheduleEnd' && scheduleStartDate) {
-      return scheduleStartDate > dpToday ? scheduleStartDate : dpToday;
-    }
-    return dpToday;
-  }, [datePickerTarget, scheduleStartDate, dpToday]);
-
-  const dpHandlePrevMonth = useCallback(() => {
-    if (dpViewMonth === 0) {
-      setDpViewMonth(11);
-      setDpViewYear(y => y - 1);
-    } else {
-      setDpViewMonth(m => m - 1);
-    }
-  }, [dpViewMonth]);
-
-  const dpHandleNextMonth = useCallback(() => {
-    if (dpViewMonth === 11) {
-      setDpViewMonth(0);
-      setDpViewYear(y => y + 1);
-    } else {
-      setDpViewMonth(m => m + 1);
-    }
-  }, [dpViewMonth]);
-
-  const dpCanGoPrev = useMemo(() => {
-    const prevDate = new Date(dpViewYear, dpViewMonth - 1, 1);
-    return prevDate >= new Date(dpEffectiveMinDate.getFullYear(), dpEffectiveMinDate.getMonth(), 1);
-  }, [dpViewYear, dpViewMonth, dpEffectiveMinDate]);
-
-  const dpCanGoNext = useMemo(() => {
-    const nextDate = new Date(dpViewYear, dpViewMonth + 1, 1);
-    return nextDate <= dpMaxDate;
-  }, [dpViewYear, dpViewMonth, dpMaxDate]);
-
-  const dpHandleSelectDay = useCallback((day: number) => {
-    const selected = new Date(dpViewYear, dpViewMonth, day);
-    setDpTempSelectedDate(selected);
-  }, [dpViewYear, dpViewMonth]);
-
-  const dpIsFutureDateTime = useMemo(() => {
-    if (!dpTempSelectedDate) return false;
-
-    let hours24 = dpSelectedHour;
-    if (dpSelectedAmPm === 'PM' && dpSelectedHour !== 12) {
-      hours24 = dpSelectedHour + 12;
-    } else if (dpSelectedAmPm === 'AM' && dpSelectedHour === 12) {
-      hours24 = 0;
-    }
-
-    const selectedDateTime = new Date(
-      dpTempSelectedDate.getFullYear(),
-      dpTempSelectedDate.getMonth(),
-      dpTempSelectedDate.getDate(),
-      hours24,
-      dpSelectedMinute,
-      0
-    );
-
-    const now = new Date();
-    return selectedDateTime > now && selectedDateTime > dpEffectiveMinDate;
-  }, [dpTempSelectedDate, dpSelectedHour, dpSelectedMinute, dpSelectedAmPm, dpEffectiveMinDate]);
-
-  // Open date picker inline
+  // ============ Open Date Picker (navigates to DatePicker screen) ============
   const openDatePicker = useCallback((target: 'targetDate' | 'scheduleStart' | 'scheduleEnd') => {
-    setDatePickerTarget(target);
-
     let existingDate: Date | null = null;
     if (target === 'targetDate') existingDate = targetDate;
     else if (target === 'scheduleStart') existingDate = scheduleStartDate;
     else if (target === 'scheduleEnd') existingDate = scheduleEndDate;
 
-    const dateToUse = existingDate || dpToday;
-    setDpViewMonth(dateToUse.getMonth());
-    setDpViewYear(dateToUse.getFullYear());
-    setDpTempSelectedDate(existingDate);
-
-    if (existingDate) {
-      const hours = existingDate.getHours();
-      const minutes = existingDate.getMinutes();
-      setDpSelectedAmPm(hours >= 12 ? 'PM' : 'AM');
-      setDpSelectedHour(hours % 12 === 0 ? 12 : hours % 12);
-      setDpSelectedMinute(minutes);
-    } else {
-      const now = new Date();
-      const hours = now.getHours();
-      setDpSelectedAmPm(hours >= 12 ? 'PM' : 'AM');
-      setDpSelectedHour(hours % 12 === 0 ? 12 : hours % 12);
-      setDpSelectedMinute(now.getMinutes());
-    }
-
-    setShowDatePicker(true);
-  }, [targetDate, scheduleStartDate, scheduleEndDate, dpToday]);
-
-  const dpHandleConfirm = useCallback(() => {
-    if (dpTempSelectedDate && dpIsFutureDateTime) {
-      let hours24 = dpSelectedHour;
-      if (dpSelectedAmPm === 'PM' && dpSelectedHour !== 12) {
-        hours24 = dpSelectedHour + 12;
-      } else if (dpSelectedAmPm === 'AM' && dpSelectedHour === 12) {
-        hours24 = 0;
-      }
-
-      const finalDate = new Date(
-        dpTempSelectedDate.getFullYear(),
-        dpTempSelectedDate.getMonth(),
-        dpTempSelectedDate.getDate(),
-        hours24,
-        dpSelectedMinute,
-        0
-      );
-
-      if (datePickerTarget === 'targetDate') {
-        setTargetDate(finalDate);
-        setTimerDays(0);
-        setTimerHours(0);
-        setTimerMinutes(0);
-        setTimerSeconds(0);
-      } else if (datePickerTarget === 'scheduleStart') {
-        setScheduleStartDate(finalDate);
-        if (scheduleEndDate && scheduleEndDate <= finalDate) {
-          setScheduleEndDate(null);
-        }
-      } else if (datePickerTarget === 'scheduleEnd') {
-        setScheduleEndDate(finalDate);
-      }
-
-      setShowDatePicker(false);
-      setDatePickerTarget(null);
-    }
-  }, [dpTempSelectedDate, dpIsFutureDateTime, dpSelectedHour, dpSelectedAmPm, dpSelectedMinute, datePickerTarget, scheduleEndDate]);
-
-  const dpHandleCancel = useCallback(() => {
-    setShowDatePicker(false);
-    setDatePickerTarget(null);
-  }, []);
-
-  const dpHandleClear = useCallback(() => {
-    setDpTempSelectedDate(null);
-  }, []);
-
-  const dpDaysInMonth = useMemo(() => getDaysInMonth(dpViewMonth, dpViewYear), [dpViewMonth, dpViewYear]);
-  const dpFirstDay = useMemo(() => getFirstDayOfMonth(dpViewMonth, dpViewYear), [dpViewMonth, dpViewYear]);
-
-  const dpCalendarDays = useMemo(() => {
-    const days: ({ type: 'empty' } | { type: 'day'; day: number; selectable: boolean; selected: boolean; isToday: boolean })[] = [];
-    for (let i = 0; i < dpFirstDay; i++) {
-      days.push({ type: 'empty' });
-    }
-    const todayDate = dpToday.getDate();
-    const todayMonth = dpToday.getMonth();
-    const todayYear = dpToday.getFullYear();
-    const selectedDay = dpTempSelectedDate?.getDate();
-    const selectedMonth = dpTempSelectedDate?.getMonth();
-    const selectedYear = dpTempSelectedDate?.getFullYear();
-
-    for (let i = 1; i <= dpDaysInMonth; i++) {
-      const date = new Date(dpViewYear, dpViewMonth, i, 23, 59, 59, 999);
-      days.push({
-        type: 'day',
-        day: i,
-        selectable: date >= dpEffectiveMinDate && date <= dpMaxDate,
-        selected: selectedDay === i && selectedMonth === dpViewMonth && selectedYear === dpViewYear,
-        isToday: todayDate === i && todayMonth === dpViewMonth && todayYear === dpViewYear,
-      });
-    }
-    return days;
-  }, [dpDaysInMonth, dpFirstDay, dpViewMonth, dpViewYear, dpTempSelectedDate, dpEffectiveMinDate, dpMaxDate, dpToday]);
-
-  const dpSelectedDateTimeText = useMemo(() => {
-    if (!dpTempSelectedDate) return 'No date selected';
-    const dateStr = dpTempSelectedDate.toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
+    setDatePickerParams({
+      target,
+      existingDate: existingDate ? existingDate.toISOString() : null,
+      minimumDate: target === 'scheduleEnd' && scheduleStartDate
+        ? scheduleStartDate.toISOString() : null,
     });
-    const timeStr = `${dpSelectedHour}:${String(dpSelectedMinute).padStart(2, '0')} ${dpSelectedAmPm}`;
-    return `${dateStr} at ${timeStr}`;
-  }, [dpTempSelectedDate, dpSelectedHour, dpSelectedMinute, dpSelectedAmPm]);
+    setDatePickerResult(null);
+    navigation.navigate('DatePicker');
+  }, [targetDate, scheduleStartDate, scheduleEndDate, navigation, setDatePickerParams, setDatePickerResult]);
 
   // ============ Validation Logic ============
   const hasTimerValue = useMemo(() =>
@@ -1046,174 +639,6 @@ function PresetSettingsScreen() {
     onSave(newPreset);
   }, [name, canSave, getEditingPreset, getExistingPresets, installedSelectedApps, blockedWebsites, blockSettings, noTimeLimit, timerDays, timerHours, timerMinutes, timerSeconds, targetDate, onSave, allowEmergencyTapout, strictMode, isScheduled, scheduleStartDate, scheduleEndDate, isRecurring, recurringValue, recurringUnit, navigation, setFinalSettingsState]);
 
-  // ============ Full-Screen Date Picker Overlay ============
-  const renderDatePickerOverlay = () => {
-    return (
-      <Modal
-        visible={showDatePicker}
-        animationType="none"
-        presentationStyle="fullScreen"
-        statusBarTranslucent={true}
-        onRequestClose={dpHandleCancel}
-      >
-      <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
-        {/* Date Picker Header */}
-        <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight, overflow: 'hidden' }} className="flex-row items-center justify-between px-4 py-3.5">
-          <HeaderIconButton onPress={dpHandleCancel} style={{ width: s(40) }}>
-            <XIcon size={s(iconSize.headerNav)} color="#FFFFFF" />
-          </HeaderIconButton>
-          <View className="flex-row items-center">
-            <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.bold}`}>
-              {datePickerTarget === 'scheduleStart' ? 'Start Date' : datePickerTarget === 'scheduleEnd' ? 'End Date' : 'Date and Time'}
-            </Text>
-          </View>
-          <HeaderIconButton
-            onPress={dpHandleConfirm}
-            disabled={!dpIsFutureDateTime}
-            style={{ width: s(40) }}
-            className="px-2 items-end"
-          >
-            <CheckIcon size={s(iconSize.headerNav)} color={dpIsFutureDateTime ? '#FFFFFF' : colors.textMuted} />
-          </HeaderIconButton>
-        </View>
-
-        <ScrollView
-          ref={dpScrollRef}
-          className="flex-1"
-          contentContainerStyle={{ paddingTop: s(16), paddingBottom: s(40), paddingHorizontal: s(24) }}
-        >
-          {/* Month/Year Navigation */}
-          <View className="flex-row items-center justify-between mb-4">
-            <TouchableOpacity
-              onPress={dpHandlePrevMonth}
-              disabled={!dpCanGoPrev}
-              activeOpacity={0.7}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              className="w-10 h-10 items-center justify-center"
-            >
-              <ChevronLeftIcon size={s(iconSize.chevron)} color={dpCanGoPrev ? colors.text : colors.textMuted} />
-            </TouchableOpacity>
-
-            <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>
-              {MONTHS[dpViewMonth]} {dpViewYear}
-            </Text>
-
-            <TouchableOpacity
-              onPress={dpHandleNextMonth}
-              disabled={!dpCanGoNext}
-              activeOpacity={0.7}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              className="w-10 h-10 items-center justify-center"
-            >
-              <ChevronRightIcon size={s(iconSize.chevron)} color={dpCanGoNext ? colors.text : colors.textMuted} />
-            </TouchableOpacity>
-          </View>
-
-          {/* Days of Week Header */}
-          <View className="flex-row mb-1">
-            {DAYS_OF_WEEK.map((day) => (
-              <View key={day} className="flex-1 items-center py-1">
-                <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular}`}>{day}</Text>
-              </View>
-            ))}
-          </View>
-
-          {/* Calendar Grid */}
-          <View className="flex-row flex-wrap">
-            {dpCalendarDays.map((cell, index) => {
-              if (cell.type === 'empty') {
-                return <EmptyCell key={`empty-${index}`} cellHeight={dayCellHeight} />;
-              }
-              return (
-                <DayCell
-                  key={cell.day}
-                  day={cell.day}
-                  selectable={cell.selectable}
-                  selected={cell.selected}
-                  isToday={cell.isToday}
-                  textColor={colors.text}
-                  textMutedColor={colors.textMuted}
-                  onSelect={dpHandleSelectDay}
-                  cellHeight={dayCellHeight}
-                />
-              );
-            })}
-          </View>
-
-          {/* Time Picker */}
-          {dpTempSelectedDate && (
-            <View style={{ borderTopWidth: 1, borderTopColor: colors.dividerLight, marginHorizontal: s(-24), paddingHorizontal: s(24), paddingVertical: s(buttonPadding.standard) }} className="mt-6">
-              <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} tracking-wider mb-3`}>
-                Time
-              </Text>
-              <View className="flex-row items-center justify-center">
-                <TimeWheel
-                  values={HOURS_12}
-                  selectedValue={dpSelectedHour}
-                  onValueChange={setDpSelectedHour}
-                  padZero={false}
-                  textColor={colors.text}
-                  textMutedColor={colors.text === '#ffffff' ? 'rgba(255,255,255,0.3)' : 'rgba(26,26,26,0.3)'}
-                  itemHeight={timeItemHeight}
-                  wheelWidth={wheelWidth}
-                  selectedFontSize={timeSelectedFontSize}
-                  unselectedFontSize={timeUnselectedFontSize}
-                />
-                <View style={{ height: timeItemHeight, justifyContent: 'center', marginHorizontal: s(4), marginTop: -timeItemHeight * 0.15 }}>
-                  <Text style={{ color: colors.text, fontSize: s(24) }} className={fontFamily.regular}>:</Text>
-                </View>
-                <TimeWheel
-                  values={MINUTES}
-                  selectedValue={dpSelectedMinute}
-                  onValueChange={setDpSelectedMinute}
-                  padZero={true}
-                  textColor={colors.text}
-                  textMutedColor={colors.text === '#ffffff' ? 'rgba(255,255,255,0.3)' : 'rgba(26,26,26,0.3)'}
-                  itemHeight={timeItemHeight}
-                  wheelWidth={wheelWidth}
-                  selectedFontSize={timeSelectedFontSize}
-                  unselectedFontSize={timeUnselectedFontSize}
-                />
-                <AmPmSelector
-                  value={dpSelectedAmPm}
-                  onChange={setDpSelectedAmPm}
-                  cardColor={colors.card}
-                />
-              </View>
-            </View>
-          )}
-
-          {/* Selected Date/Time Display */}
-          <View style={{ borderTopWidth: 1, borderTopColor: colors.dividerLight, marginHorizontal: s(-24), paddingHorizontal: s(24), paddingVertical: s(buttonPadding.standard) }} className="mt-6">
-            <View className="flex-row justify-between items-center">
-              <View>
-                <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.regular} mb-1`}>Selected</Text>
-                <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.semibold}`}>{dpSelectedDateTimeText}</Text>
-              </View>
-              {dpTempSelectedDate && (
-                <TouchableOpacity
-                  onPress={dpHandleClear}
-                  activeOpacity={0.7}
-                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                  style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
-                  className={`ml-4 px-4 py-2 ${radius.full}`}
-                >
-                  <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>Clear</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-            {dpTempSelectedDate && !dpIsFutureDateTime && (
-              <Text style={{ color: colors.red }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-2`}>
-                Please select a future date and time
-              </Text>
-            )}
-          </View>
-
-        </ScrollView>
-      </View>
-      </Modal>
-    );
-  };
 
   // ============ Render ============
   return (
@@ -1315,8 +740,6 @@ function PresetSettingsScreen() {
                     } else {
                       setScheduleStartDate(null);
                       setScheduleEndDate(null);
-                      setShowDatePicker(false);
-                      setDatePickerTarget(null);
                     }
                   });
                 }}
@@ -1760,9 +1183,6 @@ function PresetSettingsScreen() {
         <View style={{ height: s(40) }} />
 
       </ScrollView>
-
-      {/* Full-screen date picker overlay */}
-      {renderDatePickerOverlay()}
 
       {/* ============ Modals ============ */}
 

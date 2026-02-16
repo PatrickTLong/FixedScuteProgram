@@ -34,6 +34,19 @@ export interface FinalSettingsState {
   recurringUnit: 'minutes' | 'hours' | 'days' | 'weeks' | 'months';
 }
 
+// Params passed to the DatePicker screen
+export interface DatePickerParams {
+  target: 'targetDate' | 'scheduleStart' | 'scheduleEnd';
+  existingDate: string | null;
+  minimumDate: string | null;
+}
+
+// Result returned from the DatePicker screen
+export interface DatePickerResult {
+  target: 'targetDate' | 'scheduleStart' | 'scheduleEnd';
+  selectedDate: string;
+}
+
 // Context for sharing save callback and edit state between preset screens
 interface PresetSaveContextValue {
   onSave: (preset: Preset) => Promise<void>;
@@ -48,6 +61,10 @@ interface PresetSaveContextValue {
   setPresetSettingsParams: (p: PresetSettingsParams | null) => void;
   getFinalSettingsState: () => FinalSettingsState | null;
   setFinalSettingsState: (s: FinalSettingsState | null) => void;
+  getDatePickerParams: () => DatePickerParams | null;
+  setDatePickerParams: (p: DatePickerParams | null) => void;
+  getDatePickerResult: () => DatePickerResult | null;
+  setDatePickerResult: (r: DatePickerResult | null) => void;
 }
 
 const PresetSaveContext = createContext<PresetSaveContextValue | null>(null);
@@ -66,6 +83,8 @@ export function PresetSaveProvider({ children }: { children: React.ReactNode }) 
   const emailRef = useRef<string>('');
   const presetSettingsParamsRef = useRef<PresetSettingsParams | null>(null);
   const finalSettingsStateRef = useRef<FinalSettingsState | null>(null);
+  const datePickerParamsRef = useRef<DatePickerParams | null>(null);
+  const datePickerResultRef = useRef<DatePickerResult | null>(null);
 
   const setOnSave = useCallback((fn: (preset: Preset) => Promise<void>) => {
     onSaveRef.current = fn;
@@ -91,11 +110,21 @@ export function PresetSaveProvider({ children }: { children: React.ReactNode }) 
     finalSettingsStateRef.current = s;
   }, []);
 
+  const setDatePickerParams = useCallback((p: DatePickerParams | null) => {
+    datePickerParamsRef.current = p;
+  }, []);
+
+  const setDatePickerResult = useCallback((r: DatePickerResult | null) => {
+    datePickerResultRef.current = r;
+  }, []);
+
   const getEditingPreset = useCallback(() => editingPresetRef.current, []);
   const getExistingPresets = useCallback(() => existingPresetsRef.current, []);
   const getEmail = useCallback(() => emailRef.current, []);
   const getPresetSettingsParams = useCallback(() => presetSettingsParamsRef.current, []);
   const getFinalSettingsState = useCallback(() => finalSettingsStateRef.current, []);
+  const getDatePickerParams = useCallback(() => datePickerParamsRef.current, []);
+  const getDatePickerResult = useCallback(() => datePickerResultRef.current, []);
 
   const contextValue = React.useMemo<PresetSaveContextValue>(() => ({
     onSave: async (preset: Preset) => onSaveRef.current(preset),
@@ -110,7 +139,11 @@ export function PresetSaveProvider({ children }: { children: React.ReactNode }) 
     setPresetSettingsParams,
     getFinalSettingsState,
     setFinalSettingsState,
-  }), [setOnSave, getEditingPreset, setEditingPreset, getExistingPresets, setExistingPresets, getEmail, setEmail, getPresetSettingsParams, setPresetSettingsParams, getFinalSettingsState, setFinalSettingsState]);
+    getDatePickerParams,
+    setDatePickerParams,
+    getDatePickerResult,
+    setDatePickerResult,
+  }), [setOnSave, getEditingPreset, setEditingPreset, getExistingPresets, setExistingPresets, getEmail, setEmail, getPresetSettingsParams, setPresetSettingsParams, getFinalSettingsState, setFinalSettingsState, getDatePickerParams, setDatePickerParams, getDatePickerResult, setDatePickerResult]);
 
   return (
     <PresetSaveContext.Provider value={contextValue}>

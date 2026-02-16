@@ -29,6 +29,7 @@ export type MainTabParamList = {
   Settings: undefined;
   EditPresetApps: undefined;
   PresetSettings: undefined;
+  DatePicker: undefined;
 };
 
 // Main stack wraps tabs

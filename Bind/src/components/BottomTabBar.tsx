@@ -440,7 +440,7 @@ const styles = StyleSheet.create({
 });
 
 // Route names for hidden preset editing tabs
-const HIDDEN_ROUTES = ['EditPresetApps', 'PresetSettings'];
+const HIDDEN_ROUTES = ['EditPresetApps', 'PresetSettings', 'DatePicker'];
 
 function BottomTabBar({ state, navigation }: RNBottomTabBarProps) {
   const insets = useSafeAreaInsets();
