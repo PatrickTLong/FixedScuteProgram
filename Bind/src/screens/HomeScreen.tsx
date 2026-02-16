@@ -13,6 +13,7 @@ import {
   Animated,
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
+import BoxiconsFilled from '../components/BoxiconsFilled';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import LottieView from 'lottie-react-native';
 const Lottie = LottieView as any;
@@ -955,12 +956,7 @@ function HomeScreen() {
               width: s(44), height: s(44), borderRadius: 9999, alignItems: 'center', justifyContent: 'center',
             }}
           >
-            <Svg width={s(18)} height={s(18)} viewBox="0 0 24 24" fill="none">
-              <Path d="M5 12.55a11 11 0 0 1 14.08 0" stroke="#FFFFFF" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-              <Path d="M1.42 9a16 16 0 0 1 21.16 0" stroke="#FFFFFF" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-              <Path d="M8.53 16.11a6 6 0 0 1 6.95 0" stroke="#FFFFFF" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-              <Path d="M12 20h.01" stroke="#FFFFFF" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-            </Svg>
+            <BoxiconsFilled name="bx-wifi" size={s(18)} color="#FFFFFF" />
           </TouchableOpacity>
 
           {/* Support @ icon */}
@@ -973,10 +969,7 @@ function HomeScreen() {
               width: s(44), height: s(44), borderRadius: 9999, alignItems: 'center', justifyContent: 'center',
             }}
           >
-            <Svg width={s(18)} height={s(18)} viewBox="0 0 24 24" fill="none">
-              <Path d="M12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" stroke="#FFFFFF" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-              <Path d="M16 8v5a3 3 0 0 0 6 0V12a10 10 0 1 0-3.92 7.94" stroke="#FFFFFF" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-            </Svg>
+            <BoxiconsFilled name="bx-send" size={s(18)} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
       </View>
