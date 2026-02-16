@@ -745,18 +745,18 @@ function PresetsScreen() {
         </View>
 
         {/* Add Button - stays green but disabled when locked */}
-          <HeaderIconButton
+          <TouchableOpacity
             onPress={handleAddPresetWithFlag}
             disabled={isDisabled}
+            activeOpacity={0.7}
             style={{
               backgroundColor: colors.card,
               borderWidth: 1, borderColor: colors.border, ...shadow.card,
               width: s(44), height: s(44), borderRadius: 9999, alignItems: 'center', justifyContent: 'center',
             }}
-            className=""
           >
             <BoxiconsFilled name="bx-plus" size={iconSize.xs} color="#fff" />
-          </HeaderIconButton>
+          </TouchableOpacity>
       </View>
 
       {/* Presets List */}

@@ -646,7 +646,7 @@ function DatePickerScreen() {
               <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.semibold}`}>{selectedDateTimeText}</Text>
             </View>
             {tempSelectedDate && (
-              <HeaderIconButton onPress={handleClear}>
+              <HeaderIconButton onPress={handleClear} flashSize={46}>
                 <BoxiconsFilled name="bx-calendar-x" size={s(iconSize.toggleRow)} color={colors.text} />
               </HeaderIconButton>
             )}

@@ -33,11 +33,11 @@ function ExcludedAppsInfoModal({ visible, onClose }: ExcludedAppsInfoModalProps)
             <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.modal }} className={`w-full ${radius['2xl']} overflow-hidden`}>
               {/* Content */}
               <View className="p-6">
-                <Text style={{ color: colors.text }} className={`${textSize.xLarge} ${fontFamily.bold} text-center mb-4`}>
+                <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.bold} text-center mb-4`}>
                   Some Apps Are Hidden
                 </Text>
 
-                <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular} text-center`}>
+                <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular} text-center`}>
                   For your safety, essential apps like Phone and Emergency services cannot be blocked. Settings has a separate toggle in preset options.
                 </Text>
               </View>
@@ -50,7 +50,7 @@ function ExcludedAppsInfoModal({ visible, onClose }: ExcludedAppsInfoModalProps)
                   className="py-4 items-center"
                 >
                   <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
-                    Got it
+                    Dismiss
                   </Text>
                 </TouchableOpacity>
               </View>

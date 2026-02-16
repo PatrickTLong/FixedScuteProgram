@@ -33,11 +33,11 @@ function ScheduleInfoModal({ visible, onClose }: ScheduleInfoModalProps) {
             <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.modal }} className={`w-full ${radius['2xl']} overflow-hidden`}>
               {/* Content */}
               <View className="p-6">
-                <Text style={{ color: colors.text }} className={`${textSize.xLarge} ${fontFamily.bold} text-center mb-4`}>
+                <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.bold} text-center mb-4`}>
                   Scheduled Blocking
                 </Text>
 
-                <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular} text-center`}>
+                <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular} text-center`}>
                   Schedule presets to automatically activate and deactivate at set times. Multiple scheduled presets can run alongside your active preset.
                 </Text>
               </View>
@@ -50,7 +50,7 @@ function ScheduleInfoModal({ visible, onClose }: ScheduleInfoModalProps) {
                   className="py-4 items-center"
                 >
                   <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
-                    Got it
+                    Dismiss
                   </Text>
                 </TouchableOpacity>
               </View>

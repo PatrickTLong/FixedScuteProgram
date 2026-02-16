@@ -37,11 +37,11 @@ function TapoutWarningModal({ visible, onClose }: TapoutWarningModalProps) {
             <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.modal }} className={`w-full ${radius['2xl']} overflow-hidden`}>
               {/* Content */}
               <View className="p-6">
-                <Text style={{ color: colors.text }} className={`${textSize.xLarge} ${fontFamily.bold} text-center mb-4`}>
+                <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.bold} text-center mb-4`}>
                   Disable Emergency Tapout?
                 </Text>
 
-                <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular}`}>
+                <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>
                   Without tapouts, you cannot unlock early. You must wait for the timer to expire or the scheduled end time.
                 </Text>
               </View>

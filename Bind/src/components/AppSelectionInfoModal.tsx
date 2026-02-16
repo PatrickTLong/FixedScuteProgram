@@ -33,11 +33,11 @@ function AppSelectionInfoModal({ visible, onClose }: AppSelectionInfoModalProps)
             <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.modal }} className={`w-full ${radius['2xl']} overflow-hidden`}>
               {/* Content */}
               <View className="p-6">
-                <Text style={{ color: colors.text }} className={`${textSize.xLarge} ${fontFamily.bold} text-center mb-4`}>
+                <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.bold} text-center mb-4`}>
                   App Selection
                 </Text>
 
-                <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular}`}>
+                <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>
                   For your safety, essential apps like Phone, Messages, and Camera cannot be blocked.
                 </Text>
               </View>
@@ -50,7 +50,7 @@ function AppSelectionInfoModal({ visible, onClose }: AppSelectionInfoModalProps)
                   className="py-4 items-center"
                 >
                   <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
-                    Got it
+                    Dismiss
                   </Text>
                 </TouchableOpacity>
               </View>

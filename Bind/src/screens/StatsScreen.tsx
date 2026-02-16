@@ -426,27 +426,21 @@ function StatsScreen() {
             }}
             className={`w-full ${radius['2xl']} overflow-hidden`}
           >
-            {/* Header */}
-            <View style={{ borderBottomWidth: 1, borderBottomColor: colors.divider, overflow: 'hidden' }} className="flex-row items-center justify-between px-4 py-3.5">
-              <View style={{ width: s(40) }} />
-              <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.bold}`}>
-                Top Apps
-              </Text>
-              <TouchableOpacity
+            {/* Minimize button */}
+            <View style={{ position: 'absolute', top: s(16), right: s(16), zIndex: 1 }}>
+              <HeaderIconButton
                 onPress={() => setExpandedVisible(false)}
-                activeOpacity={0.7}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                style={{ width: s(40), alignItems: 'flex-end' }}
+                className="p-3"
               >
                 <BoxiconsFilled name="bx-minimize" size={s(iconSize.headerNav)} color="#FFFFFF" />
-              </TouchableOpacity>
+              </HeaderIconButton>
             </View>
 
             {/* Horizontal scrolling bar chart */}
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ paddingHorizontal: s(16), paddingVertical: s(16), alignItems: 'flex-end' }}
+              contentContainerStyle={{ padding: s(16), paddingTop: s(48), alignItems: 'flex-end' }}
             >
               {appUsages.slice(0, EXPANDED_APPS_COUNT).map((app, index) => {
                 const maxTime = appUsages[0]?.timeInForeground || 1;

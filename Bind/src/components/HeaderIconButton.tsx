@@ -1,9 +1,9 @@
 import React, { memo, useCallback, useRef } from 'react';
-import { Animated, TouchableOpacity, View } from 'react-native';
+import { Animated, TouchableOpacity, View, StyleSheet } from 'react-native';
 import { useResponsive } from '../utils/responsive';
 
-const PULSE_SIZE = 24;
-const PULSE_DURATION = 100;
+const DEFAULT_FLASH_SIZE = 40;
+const FLASH_DURATION = 300;
 
 interface HeaderIconButtonProps {
   onPress: () => void;
@@ -11,37 +11,28 @@ interface HeaderIconButtonProps {
   children: React.ReactNode;
   style?: any;
   className?: string;
+  flashSize?: number;
 }
 
-function HeaderIconButton({ onPress, disabled = false, children, style, className }: HeaderIconButtonProps) {
+function HeaderIconButton({ onPress, disabled = false, children, style, className, flashSize = DEFAULT_FLASH_SIZE }: HeaderIconButtonProps) {
   const { s } = useResponsive();
-  const pulseProgress = useRef(new Animated.Value(1)).current;
+  const flashOpacity = useRef(new Animated.Value(0)).current;
 
-  const pulseScale = pulseProgress.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0.8, 2.2],
-  });
-
-  const pulseOpacity = pulseProgress.interpolate({
-    inputRange: [0, 0.4, 1],
-    outputRange: [0.6, 0.3, 0],
-  });
-
-  const triggerPulse = useCallback(() => {
+  const triggerFlash = useCallback(() => {
     if (disabled) return;
-    pulseProgress.setValue(0);
-    Animated.timing(pulseProgress, {
-      toValue: 1,
-      duration: PULSE_DURATION,
+    flashOpacity.setValue(0.3);
+    Animated.timing(flashOpacity, {
+      toValue: 0,
+      duration: FLASH_DURATION,
       useNativeDriver: true,
     }).start();
-  }, [disabled, pulseProgress]);
+  }, [disabled, flashOpacity]);
 
-  const scaledSize = s(PULSE_SIZE);
+  const scaledSize = s(flashSize);
 
   return (
     <TouchableOpacity
-      onPressIn={triggerPulse}
+      onPressIn={triggerFlash}
       onPress={disabled ? undefined : onPress}
       disabled={disabled}
       activeOpacity={0.7}
@@ -49,7 +40,7 @@ function HeaderIconButton({ onPress, disabled = false, children, style, classNam
       style={style}
       className={className || 'px-2'}
     >
-      <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+      <View style={styles.container}>
         <Animated.View
           style={{
             position: 'absolute',
@@ -57,8 +48,7 @@ function HeaderIconButton({ onPress, disabled = false, children, style, classNam
             height: scaledSize,
             borderRadius: scaledSize / 2,
             backgroundColor: '#ffffff',
-            opacity: pulseOpacity,
-            transform: [{ scale: pulseScale }],
+            opacity: flashOpacity,
           }}
         />
         {children}
@@ -66,5 +56,12 @@ function HeaderIconButton({ onPress, disabled = false, children, style, classNam
     </TouchableOpacity>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});
 
 export default memo(HeaderIconButton);

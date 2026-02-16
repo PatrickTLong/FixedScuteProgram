@@ -74,7 +74,7 @@ function ShieldIconsInfoModal({ visible, onClose }: ShieldIconsInfoModalProps) {
             >
               {/* Content */}
               <View className="p-6">
-                <Text style={{ color: colors.text }} className={`${textSize.xLarge} ${fontFamily.bold} text-center mb-4`}>
+                <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.bold} text-center mb-4`}>
                   Preset Icons
                 </Text>
 
@@ -87,7 +87,7 @@ function ShieldIconsInfoModal({ visible, onClose }: ShieldIconsInfoModalProps) {
                     <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>
                       Scheduled
                     </Text>
-                    <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular}`}>
+                    <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>
                       This preset has a scheduled start and end time.
                     </Text>
                   </View>
@@ -102,7 +102,7 @@ function ShieldIconsInfoModal({ visible, onClose }: ShieldIconsInfoModalProps) {
                     <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>
                       Recurring
                     </Text>
-                    <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular}`}>
+                    <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>
                       This preset repeats automatically on a schedule.
                     </Text>
                   </View>
@@ -117,7 +117,7 @@ function ShieldIconsInfoModal({ visible, onClose }: ShieldIconsInfoModalProps) {
                   className="py-4 items-center"
                 >
                   <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
-                    Got it
+                    Dismiss
                   </Text>
                 </TouchableOpacity>
               </View>

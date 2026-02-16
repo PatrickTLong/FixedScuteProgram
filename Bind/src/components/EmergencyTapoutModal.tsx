@@ -100,10 +100,10 @@ function EmergencyTapoutModal({
         >
           {/* Header */}
           <View className="p-6 pb-4 items-center">
-            <Text style={{ color: colors.text }} className={`${textSize['2xLarge']} ${fontFamily.bold} text-center`}>
+            <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.bold} text-center`}>
               Phone is Locked
             </Text>
-            <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular} text-center mt-2`}>
+            <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular} text-center mt-2`}>
               Wait for the timer to finish, or unlock now by using an emergency tapout.
             </Text>
           </View>
@@ -115,7 +115,7 @@ function EmergencyTapoutModal({
           <View className="justify-center p-6">
             <View className="items-center">
               <View className="flex-row items-center mb-3">
-                <BoxiconsFilled name="bx-siren" size={iconSize.md} color={canUseTapout ? '#FF5C5C' : colors.textMuted} />
+                <BoxiconsFilled name="bx-heart" size={iconSize.md} color={canUseTapout ? '#FF5C5C' : colors.textMuted} />
                 <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold} ml-2`}>
                   Emergency Tapout
                 </Text>

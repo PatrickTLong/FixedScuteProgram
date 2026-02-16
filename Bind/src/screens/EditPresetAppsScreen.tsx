@@ -684,17 +684,17 @@ function EditPresetAppsScreen() {
                     className={`${textSize.small} ${fontFamily.semibold}`}
                   />
                 </View>
-                <HeaderIconButton
+                <TouchableOpacity
                   onPress={addWebsite}
+                  activeOpacity={0.7}
                   style={{
                     backgroundColor: colors.card,
                     borderWidth: 1, borderColor: colors.border, ...shadow.card,
                     width: s(44), height: s(44), borderRadius: 9999, alignItems: 'center', justifyContent: 'center',
                   }}
-                  className=""
                 >
                   <BoxiconsFilled name="bx-plus" size={iconSize.xs} color="#fff" />
-                </HeaderIconButton>
+                </TouchableOpacity>
               </View>
 
               <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} mb-4`}>

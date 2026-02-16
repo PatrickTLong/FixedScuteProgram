@@ -109,7 +109,7 @@ const ChevronRightIcon = ({ size = iconSize.chevron, color = "#FFFFFF" }: { size
 );
 
 const TapoutIcon = ({ color = '#FF5C5C' }: { color?: string }) => (
-  <BoxiconsFilled name="bx-siren" size={iconSize.forTabs} color={color} />
+  <BoxiconsFilled name="bx-heart" size={iconSize.forTabs} color={color} />
 );
 
 interface SettingsRowProps {

@@ -51,10 +51,10 @@ function EmailConfirmationModal({ visible, userEmail, onConfirm, onCancel }: Ema
         >
           {/* Content */}
           <View className="p-6">
-            <Text style={{ color: colors.text }} className={`${textSize.xLarge} ${fontFamily.bold} text-center mb-2`}>
+            <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.bold} text-center mb-2`}>
               Confirm Account Deletion
             </Text>
-            <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular} text-center mb-6`}>
+            <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular} text-center mb-6`}>
               To permanently delete your account, please re-type your email address below:
             </Text>
 
