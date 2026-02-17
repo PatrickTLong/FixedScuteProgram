@@ -441,8 +441,12 @@ class FloatingBubbleManager(private val context: Context) {
                     Choreographer.getInstance().removeFrameCallback(dragFrameCallback)
                     hasPendingDragUpdate = false
                     if (!isDragging && !longPressTriggered) {
-                        // Regular tap - toggle expand/collapse
-                        toggleExpanded()
+                        // Check if tap was on the chevron area
+                        if (isExpanded && isTapOnChevron(event)) {
+                            toggleAppList()
+                        } else {
+                            toggleExpanded()
+                        }
                     } else if (isExpanded) {
                         // Reschedule auto-collapse after drag/long-press ends
                         handler.postDelayed(autoCollapseRunnable, AUTO_COLLAPSE_DELAY)
@@ -467,7 +471,24 @@ class FloatingBubbleManager(private val context: Context) {
     }
 
     /**
-     * Show the hide button in the top-right corner
+     * Check if a touch event landed on the chevron area (with generous padding)
+     */
+    private fun isTapOnChevron(event: MotionEvent): Boolean {
+        val chevron = bubbleChevron ?: return false
+        val loc = IntArray(2)
+        chevron.getLocationOnScreen(loc)
+        // Add generous touch padding around the chevron
+        val padding = (12 * density).toInt()
+        val left = loc[0] - padding
+        val top = loc[1] - padding
+        val right = loc[0] + chevron.width + padding
+        val bottom = loc[1] + chevron.height + padding
+        return event.rawX >= left && event.rawX <= right &&
+               event.rawY >= top && event.rawY <= bottom
+    }
+
+    /**
+     * Show the hide button centered above the pill
      */
     private fun showHideButton() {
         bubbleHideButton?.let { button ->
@@ -563,7 +584,8 @@ class FloatingBubbleManager(private val context: Context) {
     }
 
     /**
-     * Toggle between states: collapsed -> expanded -> app list -> collapsed
+     * Toggle between collapsed and expanded states.
+     * App list is only toggled via the chevron tap.
      */
     private fun toggleExpanded() {
         // Hide the hide button if visible
@@ -574,11 +596,19 @@ class FloatingBubbleManager(private val context: Context) {
         if (!isExpanded) {
             // Collapsed -> Expanded (pill with chevron + timer)
             expand()
-        } else if (!isAppListShown) {
-            // Expanded -> Show app list
+        } else {
+            // Expanded (with or without app list) -> Collapse back to circle
+            collapse()
+        }
+    }
+
+    /**
+     * Toggle the app list via chevron tap
+     */
+    private fun toggleAppList() {
+        if (!isAppListShown) {
             showAppList()
         } else {
-            // App list shown -> Hide app list, stay on pill
             hideAppList(animate = true)
             // Reschedule auto-collapse from the pill state
             handler.removeCallbacks(autoCollapseRunnable)
@@ -840,9 +870,10 @@ class FloatingBubbleManager(private val context: Context) {
                 ?.start()
         }
 
-        // Make the overlay focusable so the ScrollView can receive touch/scroll events
+        // Allow touches outside the bubble to pass through to the screen below
+        // while still letting the ScrollView scroll within the overlay
         layoutParams?.let { params ->
-            params.flags = params.flags and WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE.inv()
+            params.flags = params.flags or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
             try {
                 windowManager?.updateViewLayout(bubbleView, params)
             } catch (e: Exception) {
@@ -862,9 +893,9 @@ class FloatingBubbleManager(private val context: Context) {
     private fun hideAppList(animate: Boolean = true) {
         isAppListShown = false
 
-        // Restore FLAG_NOT_FOCUSABLE so touches pass through to the app below
+        // Remove FLAG_NOT_TOUCH_MODAL since the app list is no longer shown
         layoutParams?.let { params ->
-            params.flags = params.flags or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+            params.flags = params.flags and WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL.inv()
             try {
                 windowManager?.updateViewLayout(bubbleView, params)
             } catch (e: Exception) {

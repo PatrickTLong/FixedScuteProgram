@@ -29,15 +29,15 @@ const { UsageStatsModule } = NativeModules;
 // Predefined colors for app usage bars
 const APP_COLORS = [
   '#22d3ee', // cyan
-  '#3b82f6', // blue
-  '#8b5cf6', // purple
-  '#ec4899', // pink
-  '#f59e0b', // amber
-  '#22c55e', // green
-  '#ef4444', // red
-  '#f97316', // orange
-  '#14b8a6', // teal
-  '#6366f1', // indigo
+  '#60a5fa', // blue (lighter)
+  '#a78bfa', // purple (lighter)
+  '#f472b6', // pink (lighter)
+  '#fbbf24', // amber (lighter)
+  '#34d399', // green (lighter)
+  '#f87171', // red (lighter)
+  '#fb923c', // orange (lighter)
+  '#2dd4bf', // teal (lighter)
+  '#818cf8', // indigo (lighter)
 ];
 
 interface AppUsage {
@@ -72,13 +72,13 @@ const SpinningRefresh = memo(({ size, color }: { size: number; color: string }) 
       spin.setValue(0);
       Animated.timing(spin, {
         toValue: 1,
-        duration: 600,
+        duration: 350,
         easing: Easing.out(Easing.cubic),
         useNativeDriver: true,
       }).start();
     };
     runSpin();
-    const interval = setInterval(runSpin, 1000);
+    const interval = setInterval(runSpin, 800);
     return () => clearInterval(interval);
   }, [spin]);
   const rotate = spin.interpolate({
@@ -96,7 +96,7 @@ const ExpandIcon = ({ size = iconSize.sm, color = '#FFFFFF' }: { size?: number; 
   <BoxiconsFilled name="bx-maximize" size={size} color={color} />
 );
 
-const AnimatedBar = memo(({ percentage, color, delay, barWidth, maxHeight, label, time, textColor, mutedColor, icon, s, animationKey }: {
+const AnimatedBar = memo(({ percentage, color, delay, barWidth, maxHeight, label, time, mutedColor, icon, s, animationKey, glintKey }: {
   percentage: number;
   color: string;
   delay: number;
@@ -104,68 +104,153 @@ const AnimatedBar = memo(({ percentage, color, delay, barWidth, maxHeight, label
   maxHeight: number;
   label: string;
   time: string;
-  textColor: string;
   mutedColor: string;
   icon?: string;
   s: (size: number) => number;
   animationKey: number;
+  glintKey?: number;
 }) => {
-  const iconSz = barWidth * 0.7;
+  const iconSz = barWidth * 0.6;
+  const fontSize = barWidth * 0.24;
   // Reserve space for icon + time so bar doesn't overflow
-  const headerSpace = (icon ? iconSz + s(4) : 0) + barWidth * 0.26 + s(4);
+  const headerSpace = (icon ? iconSz + s(6) : 0) + fontSize + s(6);
   const barMaxHeight = maxHeight - headerSpace;
 
   const heightAnim = useRef(new Animated.Value(0)).current;
+  const opacityAnim = useRef(new Animated.Value(0)).current;
+  const glintAnim = useRef(new Animated.Value(0)).current;
   const isMounted = useRef(true);
+  const hasGrown = useRef(false);
 
   useEffect(() => {
     isMounted.current = true;
+    hasGrown.current = false;
 
-    // Small delay to ensure layout is complete before animating
     const timeout = setTimeout(() => {
       if (!isMounted.current) return;
       heightAnim.setValue(0);
-      Animated.timing(heightAnim, {
-        toValue: (percentage / 100) * barMaxHeight,
-        duration: 700,
-        delay,
-        useNativeDriver: false,
-      }).start();
+      opacityAnim.setValue(0);
+      Animated.parallel([
+        Animated.spring(heightAnim, {
+          toValue: (percentage / 100) * barMaxHeight,
+          delay,
+          useNativeDriver: false,
+          tension: 50,
+          friction: 8,
+        }),
+        Animated.timing(opacityAnim, {
+          toValue: 1,
+          duration: 400,
+          delay,
+          useNativeDriver: false,
+        }),
+      ]).start(() => { hasGrown.current = true; });
     }, 50);
 
     return () => {
       isMounted.current = false;
       clearTimeout(timeout);
     };
-  }, [percentage, delay, barMaxHeight, heightAnim, animationKey]);
+  }, [percentage, delay, barMaxHeight, heightAnim, opacityAnim, animationKey]);
+
+  // Glint triggered by parent on each refresh spin
+  useEffect(() => {
+    if (glintKey === undefined || glintKey === 0 || !hasGrown.current) return;
+    glintAnim.setValue(0);
+    Animated.timing(glintAnim, {
+      toValue: 1,
+      duration: 800,
+      easing: Easing.inOut(Easing.ease),
+      useNativeDriver: false,
+    }).start();
+  }, [glintKey, glintAnim]);
+
+  const glintTranslate = glintAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [barMaxHeight, -barMaxHeight * 0.3],
+  });
+
+  const glintOpacity = glintAnim.interpolate({
+    inputRange: [0, 0.3, 0.7, 1],
+    outputRange: [0, 0.6, 0.6, 0],
+  });
 
   return (
     <View style={{ alignItems: 'center', flex: 1 }}>
       <View style={{ height: maxHeight, justifyContent: 'flex-end' }}>
-        <Animated.View style={{ alignItems: 'center' }}>
+        <Animated.View style={{ alignItems: 'center', opacity: opacityAnim }}>
           {icon ? (
             <Image
               source={{ uri: icon }}
-              style={{ width: iconSz, height: iconSz, borderRadius: iconSz * 0.2, marginBottom: s(4) }}
+              style={{ width: iconSz, height: iconSz, borderRadius: iconSz * 0.22, marginBottom: s(6) }}
               resizeMode="contain"
             />
           ) : null}
-          <Text style={{ color: textColor, fontSize: barWidth * 0.26, marginBottom: s(4) }} className={fontFamily.semibold}>
+          <Text style={{ color: mutedColor, fontSize, marginBottom: s(6), letterSpacing: 0.2 }} className={fontFamily.semibold}>
             {time}
           </Text>
           <Animated.View
             style={{
-              width: barWidth,
+              width: barWidth * 0.6,
               height: heightAnim,
+              borderRadius: barWidth * 0.12,
               backgroundColor: color,
-              borderRadius: barWidth * 0.2,
+              overflow: 'hidden',
             }}
-          />
+          >
+            {/* Highlight strip for depth */}
+            <View
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '40%',
+                height: '100%',
+                backgroundColor: 'rgba(255,255,255,0.15)',
+                borderTopLeftRadius: barWidth * 0.12,
+                borderBottomLeftRadius: barWidth * 0.12,
+              }}
+            />
+            {/* Glint sweep */}
+            {glintKey !== undefined && (
+              <Animated.View
+                style={{
+                  position: 'absolute',
+                  left: 0,
+                  right: 0,
+                  height: barMaxHeight * 0.25,
+                  transform: [{ translateY: glintTranslate }],
+                  opacity: glintOpacity,
+                }}
+              >
+                <View style={{
+                  width: 0,
+                  height: 0,
+                  borderLeftWidth: barWidth * 0.6,
+                  borderBottomWidth: barMaxHeight * 0.06,
+                  borderLeftColor: 'transparent',
+                  borderBottomColor: 'rgba(255,255,255,0.4)',
+                }} />
+                <View style={{
+                  flex: 1,
+                  backgroundColor: 'rgba(255,255,255,0.4)',
+                }} />
+                <View style={{
+                  width: 0,
+                  height: 0,
+                  borderRightWidth: barWidth * 0.6,
+                  borderTopWidth: barMaxHeight * 0.06,
+                  borderRightColor: 'transparent',
+                  borderTopColor: 'rgba(255,255,255,0.4)',
+                }} />
+              </Animated.View>
+            )}
+          </Animated.View>
         </Animated.View>
       </View>
-      <View style={{ height: barWidth * 0.22 * 4, marginTop: s(8), justifyContent: 'flex-start' }}>
+      <View style={{ height: fontSize * 4, marginTop: s(8), justifyContent: 'flex-start' }}>
         <Text
-          style={{ color: textColor, fontSize: barWidth * 0.22, textAlign: 'center', width: barWidth * 1.6 }}
+          style={{ color: mutedColor, fontSize: fontSize * 0.9, textAlign: 'center', width: barWidth * 1.5, letterSpacing: 0.1 }}
           className={fontFamily.regular}
           numberOfLines={2}
         >
@@ -205,6 +290,15 @@ function StatsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [expandedVisible, setExpandedVisible] = useState(false);
   const [expandedAnimKey, setExpandedAnimKey] = useState(0);
+  const [glintKey, setGlintKey] = useState(0);
+
+  // Glint synced to refresh spin interval
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setGlintKey(prev => prev + 1);
+    }, 800);
+    return () => clearInterval(interval);
+  }, []);
 
   // Header stats icon animation
   const headerStatsIconRef = useRef<AnimatedStatsIconRef>(null);
@@ -383,11 +477,11 @@ function StatsScreen() {
                     maxHeight={s(BAR_CHART_HEIGHT)}
                     label={app.appName}
                     time={formatTime(app.timeInForeground)}
-                    textColor={colors.text}
                     mutedColor={colors.textMuted}
                     icon={app.icon}
                     s={s}
                     animationKey={animationKey}
+                    glintKey={glintKey}
                   />
                 );
               })}
@@ -455,7 +549,6 @@ function StatsScreen() {
                     maxHeight={s(BAR_CHART_HEIGHT)}
                     label={app.appName}
                     time={formatTime(app.timeInForeground)}
-                    textColor={colors.text}
                     mutedColor={colors.textMuted}
                     icon={app.icon}
                     s={s}

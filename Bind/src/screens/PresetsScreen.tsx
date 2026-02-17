@@ -836,7 +836,7 @@ function PresetsScreen() {
           }}
         >
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <BoxiconsFilled name="bx-bookmark-plus" size={24} color={colors.text} />
+            <BoxiconsFilled name="bx-save" size={24} color={colors.text} />
             <Text style={{ color: colors.text, marginLeft: s(8) }} className={`${textSize.large} ${fontFamily.semibold}`}>
               Preset Saved
             </Text>

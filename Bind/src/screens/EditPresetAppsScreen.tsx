@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import LottieView from 'lottie-react-native';
 const Lottie = LottieView as any;
-import AnimatedCheckbox from '../components/AnimatedCheckbox';
+import AnimatedCheckbox, { AnimatedCheckboxRef } from '../components/AnimatedCheckbox';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Svg, { Path, Rect } from 'react-native-svg';
@@ -193,18 +193,27 @@ async function loadInstalledAppsOnce(): Promise<InstalledApp[]> {
 
 type TabType = 'apps' | 'websites';
 
-const AppItemRow = memo(({ item, isSelected, onToggle, onPressIn, colors, s, skipCheckboxAnimation }: {
+const AppItemRow = memo(({ item, isSelected, onToggle, colors, s, skipCheckboxAnimation }: {
   item: InstalledApp;
   isSelected: boolean;
   onToggle: (id: string) => void;
-  onPressIn?: () => void;
   colors: any;
   s: (v: number) => number;
   skipCheckboxAnimation: boolean;
 }) => {
+  const checkboxRef = useRef<AnimatedCheckboxRef>(null);
+
+  const handlePressIn = useCallback(() => {
+    if (!isSelected) {
+      checkboxRef.current?.pop();
+    } else {
+      checkboxRef.current?.shrink();
+    }
+  }, [isSelected]);
+
   return (
       <TouchableOpacity
-        onPressIn={onPressIn}
+        onPressIn={handlePressIn}
         onPress={() => onToggle(item.id)}
         activeOpacity={0.7}
         style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, paddingVertical: s(buttonPadding.standard), ...shadow.card }}
@@ -224,7 +233,7 @@ const AppItemRow = memo(({ item, isSelected, onToggle, onPressIn, colors, s, ski
           </View>
         )}
         <Text style={{ color: colors.text }} className={`flex-1 ${textSize.small} ${fontFamily.regular}`}>{item.name}</Text>
-        <AnimatedCheckbox checked={isSelected} size={s(iconSize.lg)} skipAnimation={skipCheckboxAnimation} />
+        <AnimatedCheckbox ref={checkboxRef} checked={isSelected} size={s(iconSize.lg)} skipAnimation={skipCheckboxAnimation} />
       </TouchableOpacity>
   );
 });

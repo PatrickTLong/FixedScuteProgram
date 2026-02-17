@@ -14,62 +14,91 @@
         android:orientation="vertical"
         android:layout_marginTop="16dp">
 
-        <!-- Main bubble container -->
+        <!-- Main bubble container + hide button wrapper -->
         <FrameLayout
-            android:id="@+id/bubble_main"
             android:layout_width="wrap_content"
-            android:layout_height="52dp">
+            android:layout_height="wrap_content"
+            android:clipChildren="false"
+            android:clipToPadding="false">
 
-            <!-- Collapsed state: Circle with Scute logo -->
+            <!-- Main bubble container -->
             <FrameLayout
-                android:id="@+id/bubble_collapsed"
-                android:layout_width="52dp"
+                android:id="@+id/bubble_main"
+                android:layout_width="wrap_content"
                 android:layout_height="52dp"
-                android:background="@drawable/bubble_circle_background"
-                android:visibility="visible">
+                android:layout_marginTop="13dp">
 
-                <ImageView
-                    android:id="@+id/bubble_logo"
-                    android:layout_width="65dp"
-                    android:layout_height="65dp"
-                    android:layout_gravity="center"
-                    android:src="@drawable/scute_logo"
-                    android:scaleType="fitCenter" />
+                <!-- Collapsed state: Circle with Scute logo -->
+                <FrameLayout
+                    android:id="@+id/bubble_collapsed"
+                    android:layout_width="52dp"
+                    android:layout_height="52dp"
+                    android:background="@drawable/bubble_circle_background"
+                    android:visibility="visible">
+
+                    <ImageView
+                        android:id="@+id/bubble_logo"
+                        android:layout_width="65dp"
+                        android:layout_height="65dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/scute_logo"
+                        android:scaleType="fitCenter" />
+
+                </FrameLayout>
+
+                <!-- Expanded state: Pill with chevron + timer -->
+                <LinearLayout
+                    android:id="@+id/bubble_expanded"
+                    android:layout_width="wrap_content"
+                    android:layout_height="52dp"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:background="@drawable/bubble_background"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="18dp"
+                    android:visibility="gone">
+
+                    <!-- Chevron icon (rotated -90 = points right, 0 = points down) -->
+                    <ImageView
+                        android:id="@+id/bubble_chevron"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:src="@drawable/ic_chevron"
+                        android:layout_marginEnd="10dp"
+                        android:rotation="-90" />
+
+                    <!-- Countdown Timer -->
+                    <TextView
+                        android:id="@+id/bubble_timer"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0:00"
+                        android:textSize="17sp"
+                        android:textColor="#FFFFFF"
+                        android:fontFamily="@font/nunito_bold" />
+
+                </LinearLayout>
 
             </FrameLayout>
 
-            <!-- Expanded state: Pill with chevron + timer -->
-            <LinearLayout
-                android:id="@+id/bubble_expanded"
-                android:layout_width="wrap_content"
-                android:layout_height="52dp"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:background="@drawable/bubble_background"
-                android:paddingStart="14dp"
-                android:paddingEnd="18dp"
-                android:visibility="gone">
+            <!-- Hide button (shown on long press, centered above the pill) -->
+            <FrameLayout
+                android:id="@+id/bubble_hide_button"
+                android:layout_width="26dp"
+                android:layout_height="26dp"
+                android:layout_gravity="top|center_horizontal"
+                android:background="@drawable/bubble_hide_button"
+                android:visibility="gone"
+                android:elevation="4dp">
 
-                <!-- Chevron icon (rotated -90 = points right, 0 = points down) -->
                 <ImageView
-                    android:id="@+id/bubble_chevron"
-                    android:layout_width="18dp"
-                    android:layout_height="18dp"
-                    android:src="@drawable/ic_chevron"
-                    android:layout_marginEnd="10dp"
-                    android:rotation="-90" />
+                    android:layout_width="14dp"
+                    android:layout_height="14dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_close"
+                    android:scaleType="fitCenter" />
 
-                <!-- Countdown Timer -->
-                <TextView
-                    android:id="@+id/bubble_timer"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="0:00"
-                    android:textSize="17sp"
-                    android:textColor="#FFFFFF"
-                    android:fontFamily="@font/nunito_bold" />
-
-            </LinearLayout>
+            </FrameLayout>
 
         </FrameLayout>
 
@@ -107,25 +136,5 @@
         </LinearLayout>
 
     </LinearLayout>
-
-    <!-- Hide button (shown on long press, top center of bubble) -->
-    <FrameLayout
-        android:id="@+id/bubble_hide_button"
-        android:layout_width="26dp"
-        android:layout_height="26dp"
-        android:layout_gravity="top|center_horizontal"
-        android:layout_marginTop="3dp"
-        android:background="@drawable/bubble_hide_button"
-        android:visibility="gone"
-        android:elevation="4dp">
-
-        <ImageView
-            android:layout_width="14dp"
-            android:layout_height="14dp"
-            android:layout_gravity="center"
-            android:src="@drawable/ic_close"
-            android:scaleType="fitCenter" />
-
-    </FrameLayout>
 
 </FrameLayout>

@@ -55,7 +55,7 @@ const XIcon = ({ size = iconSize.headerNav, color = "#FFFFFF" }: { size?: number
 );
 
 const FileIcon = ({ size = iconSize.headerNav, color = "#FFFFFF" }: { size?: number; color?: string }) => (
-  <BoxiconsFilled name="bx-bookmark-plus" size={size} color={color} />
+  <BoxiconsFilled name="bx-save" size={size} color={color} />
 );
 
 const CheckIcon = ({ size = iconSize.headerNav, color = "#FFFFFF" }: { size?: number; color?: string }) => (

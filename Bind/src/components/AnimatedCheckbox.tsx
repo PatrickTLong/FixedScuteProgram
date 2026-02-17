@@ -1,7 +1,12 @@
-import React, { useEffect, useRef, memo } from 'react';
+import React, { useEffect, useRef, useCallback, useImperativeHandle, forwardRef, memo } from 'react';
 import { Animated, Easing } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { iconSize } from '../context/ThemeContext';
+
+export interface AnimatedCheckboxRef {
+  pop: () => void;
+  shrink: () => void;
+}
 
 interface AnimatedCheckboxProps {
   checked: boolean;
@@ -11,49 +16,66 @@ interface AnimatedCheckboxProps {
   skipAnimation?: boolean;
 }
 
-function AnimatedCheckbox({
+const AnimatedCheckbox = forwardRef<AnimatedCheckboxRef, AnimatedCheckboxProps>(({
   checked,
   size = iconSize.lg,
   checkedColor = '#22c55e',
   disabled = false,
   skipAnimation = false,
-}: AnimatedCheckboxProps) {
+}, ref) => {
   const borderBump = '#434346';
   const animatedValue = useRef(new Animated.Value(checked ? 1 : 0)).current;
   const scaleValue = useRef(new Animated.Value(1)).current;
-  const prevChecked = useRef(checked);
 
+  // Imperative pop - called from onPressIn for instant feedback
+  const pop = useCallback(() => {
+    scaleValue.setValue(1);
+    Animated.sequence([
+      Animated.timing(scaleValue, {
+        toValue: 1.2,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleValue, {
+        toValue: 1,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [scaleValue]);
+
+  // Imperative shrink - called from onPressIn on deselect
+  const shrink = useCallback(() => {
+    scaleValue.setValue(1);
+    Animated.sequence([
+      Animated.timing(scaleValue, {
+        toValue: 0.8,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleValue, {
+        toValue: 1,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [scaleValue]);
+
+  useImperativeHandle(ref, () => ({ pop, shrink }), [pop, shrink]);
+
+  // Check/uncheck animation - reactive to prop changes
   useEffect(() => {
     if (skipAnimation) {
       animatedValue.setValue(checked ? 1 : 0);
-      prevChecked.current = checked;
     } else {
-      // Only pop scale on manual select (not deselect, not bulk)
-      if (!prevChecked.current && checked) {
-        scaleValue.setValue(1);
-        Animated.sequence([
-          Animated.timing(scaleValue, {
-            toValue: 1.2,
-            duration: 100,
-            useNativeDriver: true,
-          }),
-          Animated.timing(scaleValue, {
-            toValue: 1,
-            duration: 100,
-            useNativeDriver: true,
-          }),
-        ]).start();
-      }
-      prevChecked.current = checked;
-
       Animated.timing(animatedValue, {
         toValue: checked ? 1 : 0,
-        duration: 90,
+        duration: 150,
         easing: Easing.out(Easing.ease),
         useNativeDriver: true,
       }).start();
     }
-  }, [checked, animatedValue, skipAnimation, scaleValue]);
+  }, [checked, animatedValue, skipAnimation]);
 
   // Opacity for checked background (1 when checked, 0 when unchecked)
   const checkedOpacity = animatedValue;
@@ -115,6 +137,6 @@ function AnimatedCheckbox({
       </Animated.View>
     </Animated.View>
   );
-}
+});
 
 export default memo(AnimatedCheckbox);

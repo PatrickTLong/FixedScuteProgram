@@ -78,7 +78,7 @@ const MessageIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
 );
 
 const BugIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
-  <BoxiconsFilled name="bx-bacteria" size={iconSize.forTabs} color={color} />
+  <BoxiconsFilled name="bx-bug-alt" size={iconSize.forTabs} color={color} />
 );
 
 const ShieldIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
@@ -317,7 +317,7 @@ function SettingsScreen() {
 
   const handleBugReport = () => {
     if (sharedIsLocked) return;
-    Linking.openURL('mailto:info@scuteapp.com?subject=Scute%20Bug%20Report');
+    Linking.openURL('googlegmail:///co?to=bugs@scuteapp.com&subject=Scute%20Bug%20Report');
   };
 
   const handleLogout = () => {

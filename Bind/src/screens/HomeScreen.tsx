@@ -13,6 +13,7 @@ import {
   Animated,
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
+const AnimatedPath = Animated.createAnimatedComponent(Path);
 import BoxiconsFilled from '../components/BoxiconsFilled';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import LottieView from 'lottie-react-native';
@@ -66,10 +67,11 @@ function HomeScreen() {
   const [silentNotifications, setSilentNotifications] = useState(false);
 
 
-  // Lottie lock animation ref
-  const lockLottieRef = useRef<any>(null);
-  const lockLottieOpacity = useRef(new Animated.Value(0)).current;
-  const isInitialMountRef = useRef(true);
+  // Success checkmark animation
+  const checkmarkOpacity = useRef(new Animated.Value(0)).current;
+  const checkmarkScale = useRef(new Animated.Value(0)).current;
+  const checkmarkStroke = useRef(new Animated.Value(100)).current;
+  const checkmarkAnimRef = useRef<{ popIn: Animated.CompositeAnimation; fadeOut: Animated.CompositeAnimation } | null>(null);
   const prevIsLockedRef = useRef(isLocked);
 
   // Pull-to-refresh state
@@ -548,33 +550,43 @@ function HomeScreen() {
     };
   }, [isLocked, lockEndsAt, lockStartedAt]);
 
-  // Sync Lottie lock animation with lock state (fade in, play, fade out)
+  // Success checkmark animation with lock state (pop in, draw stroke, hold, fade out)
   useEffect(() => {
-    if (isInitialMountRef.current) {
-      isInitialMountRef.current = false;
-      if (isLocked) {
-        lockLottieRef.current?.play(50, 50);
-      }
-      prevIsLockedRef.current = isLocked;
-      return;
-    }
     if (prevIsLockedRef.current !== isLocked) {
-      const animDuration = isLocked ? 600 : 400;
+      // Stop any running animations first
+      if (checkmarkAnimRef.current) {
+        checkmarkAnimRef.current.popIn.stop();
+        checkmarkAnimRef.current.fadeOut.stop();
+      }
 
-      lockLottieRef.current?.play(isLocked ? 45 : 105, isLocked ? 63 : 117);
+      // Reset scale and stroke first (invisible state)
+      checkmarkScale.setValue(0);
+      checkmarkStroke.setValue(100);
+      checkmarkOpacity.setValue(0);
 
-      // Fully native-driven: instant show → hold → fade out
-      const anim = Animated.sequence([
-        Animated.timing(lockLottieOpacity, { toValue: 1, duration: 0, useNativeDriver: true }),
-        Animated.delay(animDuration),
-        Animated.timing(lockLottieOpacity, { toValue: 0, duration: 250, useNativeDriver: true }),
-      ]);
-      anim.start();
+      // Show after one frame so reset values have applied
+      requestAnimationFrame(() => {
+        checkmarkOpacity.setValue(1);
 
-      prevIsLockedRef.current = isLocked;
-      return () => anim.stop();
+        // Pop in + draw (circle + stroke appear together)
+        const popIn = Animated.parallel([
+          Animated.spring(checkmarkScale, { toValue: 1, speed: 16, bounciness: 18, useNativeDriver: false }),
+          Animated.timing(checkmarkStroke, { toValue: 0, duration: 350, delay: 80, useNativeDriver: false }),
+        ]);
+
+        // Fade out after fixed delay
+        const fadeOut = Animated.sequence([
+          Animated.delay(900),
+          Animated.timing(checkmarkOpacity, { toValue: 0, duration: 200, useNativeDriver: false }),
+        ]);
+
+        checkmarkAnimRef.current = { popIn, fadeOut };
+        popIn.start();
+        fadeOut.start();
+      });
     }
-  }, [isLocked, lockLottieOpacity]);
+    prevIsLockedRef.current = isLocked;
+  }, [isLocked, checkmarkOpacity, checkmarkScale, checkmarkStroke]);
 
   const formatScheduleDate = useCallback((dateStr: string): string => {
     const date = new Date(dateStr);
@@ -1051,27 +1063,40 @@ function HomeScreen() {
           onTouchEnd={() => setButtonInteracting(false)}
           onTouchCancel={() => setButtonInteracting(false)}
         >
-          {/* Lottie lock animation — fades in on lock/unlock, then fades out */}
+          {/* Success checkmark — pops in on lock/unlock, then fades out */}
           <Animated.View
             pointerEvents="none"
-            renderToHardwareTextureAndroid={true}
             style={{
               position: 'absolute',
               bottom: '100%',
               left: 0,
               right: 0,
               alignItems: 'center',
-              marginBottom: s(-50),
-              opacity: lockLottieOpacity,
+              marginBottom: s(16),
+              opacity: checkmarkOpacity,
+              transform: [{ scale: checkmarkScale }],
             }}
           >
-            <Lottie
-              ref={lockLottieRef}
-              source={require('../frontassets/Lock.json')}
-              autoPlay={false}
-              loop={false}
-              style={{ width: s(220), height: s(165) }}
-            />
+            <View style={{
+              width: s(28),
+              height: s(28),
+              borderRadius: s(14),
+              backgroundColor: colors.green,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+              <Svg width={s(16)} height={s(16)} viewBox="0 0 24 24" fill="none">
+                <AnimatedPath
+                  d="M4 12l5 5L20 6"
+                  stroke="#FFFFFF"
+                  strokeWidth={3.5}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeDasharray={100}
+                  strokeDashoffset={checkmarkStroke}
+                />
+              </Svg>
+            </View>
           </Animated.View>
           <BlockNowButton
             onActivate={handleBlockNow}
