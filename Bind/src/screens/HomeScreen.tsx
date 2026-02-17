@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo, memo } from 'react';
+import { useIsFocused } from '@react-navigation/native';
 import {
   Text,
   View,
@@ -42,6 +43,7 @@ function HomeScreen() {
   const { colors } = useTheme();
   const { s } = useResponsive();
   const insets = useSafeAreaInsets();
+  const isFocused = useIsFocused();
   const [currentPreset, setCurrentPreset] = useState<string | null>(null);
   const [activePreset, setActivePreset] = useState<Preset | null>(null);
   const [scheduledPresets, setScheduledPresets] = useState<Preset[]>([]);
@@ -73,6 +75,20 @@ function HomeScreen() {
   const checkmarkStroke = useRef(new Animated.Value(100)).current;
   const checkmarkAnimRef = useRef<{ popIn: Animated.CompositeAnimation; fadeOut: Animated.CompositeAnimation } | null>(null);
   const prevIsLockedRef = useRef(isLocked);
+
+  // Reset checkmark when screen loses focus so it doesn't freeze mid-animation
+  useEffect(() => {
+    if (!isFocused) {
+      if (checkmarkAnimRef.current) {
+        checkmarkAnimRef.current.popIn.stop();
+        checkmarkAnimRef.current.fadeOut.stop();
+        checkmarkAnimRef.current = null;
+      }
+      checkmarkOpacity.setValue(0);
+      checkmarkScale.setValue(0);
+      checkmarkStroke.setValue(100);
+    }
+  }, [isFocused, checkmarkOpacity, checkmarkScale, checkmarkStroke]);
 
   // Pull-to-refresh state
   const [refreshing, setRefreshing] = useState(false);

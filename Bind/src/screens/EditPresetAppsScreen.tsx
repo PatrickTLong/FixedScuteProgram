@@ -48,15 +48,11 @@ const ForwardIcon = ({ size = iconSize.lg, color = "#FFFFFF" }: { size?: number;
 );
 
 const EditIcon = ({ size = iconSize.lg, color = '#FFFFFF' }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
-    <Path
-      d="M21.731 2.269a2.625 2.625 0 0 0-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 0 0 0-3.712ZM19.513 8.199l-3.712-3.712-12.15 12.15a5.25 5.25 0 0 0-1.32 2.214l-.8 2.685a.75.75 0 0 0 .933.933l2.685-.8a5.25 5.25 0 0 0 2.214-1.32L19.513 8.2Z"
-    />
-  </Svg>
+  <BoxiconsFilled name="bx-magic-wand" size={size} color={color} />
 );
 
 const SearchIcon = ({ size = iconSize.lg, color = '#FFFFFF' }: { size?: number; color?: string }) => (
-  <MaterialCommunityIcons name="magnify" size={size} color={color} />
+  <MaterialCommunityIcons name="compass" size={size} color={color} />
 );
 
 const PlusIcon = ({ size = iconSize.lg, color = '#FFFFFF' }: { size?: number; color?: string }) => (
@@ -70,7 +66,7 @@ const PlusIcon = ({ size = iconSize.lg, color = '#FFFFFF' }: { size?: number; co
 );
 
 const GlobeIcon = ({ size = iconSize.sm, color = "#FFFFFF" }: { size?: number; color?: string }) => (
-  <BoxiconsFilled name="bx-globe" size={size} color={color} />
+  <BoxiconsFilled name="bx-globe-alt" size={size} color={color} />
 );
 
 const AndroidIcon = ({ size = iconSize.sm, color = "#FFFFFF" }: { size?: number; color?: string }) => (
@@ -504,7 +500,7 @@ function EditPresetAppsScreen() {
             style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
             className={`${radius.xl} px-4 h-12 flex-row items-center`}
           >
-            <EditIcon size={s(iconSize.sm)} color={colors.textSecondary} />
+            <EditIcon size={s(iconSize.headerNav)} color={colors.textSecondary} />
             <TextInput
               placeholder="Preset Name"
               placeholderTextColor={colors.textSecondary}
@@ -585,7 +581,7 @@ function EditPresetAppsScreen() {
                     style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
                     className={`${radius.xl} px-4 h-12 flex-row items-center`}
                   >
-                    <SearchIcon size={s(iconSize.lg)} color={colors.textSecondary} />
+                    <SearchIcon size={s(iconSize.headerNav)} color={colors.textSecondary} />
                     <TextInput
                       placeholder="Search apps..."
                       placeholderTextColor={colors.textSecondary}
@@ -681,7 +677,7 @@ function EditPresetAppsScreen() {
                   style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card, flex: 1 }}
                   className={`${radius.xl} px-4 h-12 flex-row items-center mr-2`}
                 >
-                  <MaterialCommunityIcons name="search-web" size={s(iconSize.md)} color={colors.textSecondary} />
+                  <BoxiconsFilled name="bx-cursor-add" size={s(iconSize.headerNav)} color={colors.textSecondary} />
                   <TextInput
                     placeholder="e.g. instagram.com"
                     placeholderTextColor={colors.textSecondary}
