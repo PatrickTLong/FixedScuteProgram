@@ -61,7 +61,6 @@ class FloatingBubbleManager(private val context: Context) {
     private var isExpanded = false  // false = circle with logo, true = pill with timer
     private var isAppListShown = false  // true = app list panel is visible
     private var isHidden = false    // User manually hid the bubble
-    private var isTemporarilyHidden = false  // Bubble hidden while inside Scute app
     private var endTime: Long = 0
     private var startTime: Long = 0  // For no-time-limit mode (counting up)
     private var isNoTimeLimit = false  // true = count up (elapsed), false = count down (remaining)
@@ -1014,7 +1013,6 @@ class FloatingBubbleManager(private val context: Context) {
         isExpanded = false
         isAppListShown = false
         isHidden = false  // Reset for next session
-        isTemporarilyHidden = false  // Reset for next session
         isNoTimeLimit = false  // Reset mode for next session
         startTime = 0
         endTime = 0
@@ -1026,46 +1024,6 @@ class FloatingBubbleManager(private val context: Context) {
      * Check if bubble is currently showing
      */
     fun isShowing(): Boolean = isShowing
-
-    /**
-     * Temporarily hide the bubble while the user is inside the Scute app.
-     * The bubble view is hidden but not dismissed - it will be restored
-     * when temporaryShow() is called.
-     */
-    fun temporaryHide() {
-        if (!isShowing) return
-        isTemporarilyHidden = true
-
-        handler.removeCallbacks(autoCollapseRunnable)
-        handler.removeCallbacks(hideButtonTimeoutRunnable)
-
-        bubbleView?.post {
-            bubbleView?.visibility = View.GONE
-        }
-
-        Log.d(TAG, "Bubble temporarily hidden (inside Scute app)")
-    }
-
-    /**
-     * Restore the bubble after leaving the Scute app.
-     * Only restores if the bubble was temporarily hidden.
-     */
-    fun temporaryShow() {
-        if (!isShowing || !isTemporarilyHidden) return
-        isTemporarilyHidden = false
-
-        bubbleView?.post {
-            bubbleView?.visibility = View.VISIBLE
-        }
-
-        // Reschedule auto-collapse if expanded
-        if (isExpanded) {
-            handler.removeCallbacks(autoCollapseRunnable)
-            handler.postDelayed(autoCollapseRunnable, AUTO_COLLAPSE_DELAY)
-        }
-
-        Log.d(TAG, "Bubble restored (left Scute app)")
-    }
 
     /**
      * Reset the isHidden flag so the bubble can be re-shown.

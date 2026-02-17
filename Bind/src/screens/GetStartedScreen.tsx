@@ -16,7 +16,6 @@ import ProgressBar from '../components/ProgressBar';
 import InfoModal from '../components/InfoModal';
 import OTPInput from '../components/OTPInput';
 import GoogleSignInBtn from '../components/GoogleSignInButton';
-import ScreenTransition from '../components/ScreenTransition';
 import { useTheme , textSize, fontFamily, radius, shadow, iconSize } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { useNavigation } from '@react-navigation/native';
@@ -154,7 +153,6 @@ function GetStartedScreen() {
   }
 
   return (
-    <ScreenTransition>
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
       {/* Progress Bar */}
       <ProgressBar currentStep={step === 'form' ? 1 : 2} totalSteps={3} />
@@ -308,7 +306,6 @@ function GetStartedScreen() {
         onClose={() => setModalVisible(false)}
       />
     </SafeAreaView>
-    </ScreenTransition>
   );
 }
 

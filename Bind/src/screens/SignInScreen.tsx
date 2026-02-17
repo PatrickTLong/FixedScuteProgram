@@ -19,7 +19,6 @@ import BackButton from '../components/BackButton';
 import InfoModal from '../components/InfoModal';
 import OTPInput from '../components/OTPInput';
 import GoogleSignInBtn from '../components/GoogleSignInButton';
-import ScreenTransition from '../components/ScreenTransition';
 import { useTheme , textSize, fontFamily, radius, shadow, iconSize } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { useAuth } from '../context/AuthContext';
@@ -160,7 +159,6 @@ function SignInScreen() {
   }
 
   return (
-    <ScreenTransition>
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
       {/* Back Button */}
       <View className="absolute top-12 left-0 z-10">
@@ -316,7 +314,6 @@ function SignInScreen() {
         onClose={() => setModalVisible(false)}
       />
     </SafeAreaView>
-    </ScreenTransition>
   );
 }
 
