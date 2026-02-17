@@ -15,6 +15,7 @@ import ProgressBar from '../components/ProgressBar';
 import BackButton from '../components/BackButton';
 import InfoModal from '../components/InfoModal';
 import OTPInput from '../components/OTPInput';
+import ScreenTransition from '../components/ScreenTransition';
 import { useTheme , textSize, fontFamily, radius, shadow, iconSize } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { API_URL } from '../config/api';
@@ -172,6 +173,7 @@ function ForgotPasswordScreen() {
   }
 
   return (
+    <ScreenTransition>
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
       {/* Back Button */}
       <View className="absolute top-12 left-0 z-10">
@@ -352,6 +354,7 @@ function ForgotPasswordScreen() {
         onClose={() => setModalVisible(false)}
       />
     </SafeAreaView>
+    </ScreenTransition>
   );
 }
 

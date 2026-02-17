@@ -170,15 +170,17 @@ class AppMonitorService(private val context: Context) {
         // Skip if same as last check
         if (currentPackage == lastForegroundPackage) return
         Log.d(TAG, "DEBUG foreground changed: $lastForegroundPackage -> $currentPackage")
+        val previousPackage = lastForegroundPackage
         lastForegroundPackage = currentPackage
 
-        // When user enters Scute app, reset the bubble's hidden state
-        // so it reappears if they X'd it earlier
-        if (currentPackage == "com.scuteapp") {
+        // When user leaves Scute app, restore the bubble and reset hidden state
+        if (previousPackage == "com.scuteapp" && currentPackage != "com.scuteapp") {
             val bubbleManager = FloatingBubbleManager.getInstance(context)
             bubbleManager.resetHidden()
-            // Re-show bubble if there's an active session and it's not already showing
-            if (!bubbleManager.isShowing()) {
+            // Restore temporarily hidden bubble, or re-show if it wasn't showing
+            if (bubbleManager.isShowing()) {
+                bubbleManager.temporaryShow()
+            } else {
                 val prefs = context.getSharedPreferences(UninstallBlockerService.PREFS_NAME, Context.MODE_PRIVATE)
                 val isSessionActive = prefs.getBoolean(UninstallBlockerService.KEY_SESSION_ACTIVE, false)
                 if (isSessionActive) {
@@ -194,10 +196,16 @@ class AppMonitorService(private val context: Context) {
                             }
                         }
                     } catch (e: Exception) {
-                        Log.e(TAG, "Failed to re-show bubble on app enter", e)
+                        Log.e(TAG, "Failed to re-show bubble on app leave", e)
                     }
                 }
             }
+        }
+
+        // When user enters Scute app, temporarily hide the bubble
+        if (currentPackage == "com.scuteapp") {
+            val bubbleManager = FloatingBubbleManager.getInstance(context)
+            bubbleManager.temporaryHide()
             return
         }
 
