@@ -5,8 +5,11 @@ import {
   TouchableOpacity,
   Modal,
   TextInput,
+  Dimensions,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
+import { useResponsive } from '../utils/responsive';
 
 interface EmailConfirmationModalProps {
   visible: boolean;
@@ -17,6 +20,8 @@ interface EmailConfirmationModalProps {
 
 function EmailConfirmationModal({ visible, userEmail, onConfirm, onCancel }: EmailConfirmationModalProps) {
   const { colors } = useTheme();
+  const { s } = useResponsive();
+  const insets = useSafeAreaInsets();
   const [inputEmail, setInputEmail] = useState('');
 
   const handleConfirm = useCallback(() => {
@@ -40,7 +45,20 @@ function EmailConfirmationModal({ visible, userEmail, onConfirm, onCancel }: Ema
       animationType="fade"
       onRequestClose={handleCancel}
     >
-      <View className="flex-1 bg-black/70 justify-center items-center px-6">
+      <View
+        pointerEvents="box-none"
+        style={{
+          position: 'absolute',
+          top: -insets.top,
+          left: 0,
+          right: 0,
+          height: Dimensions.get('screen').height,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: 'rgba(0,0,0,0.7)',
+          paddingHorizontal: s(24),
+        }}
+      >
         <View
           style={{
             backgroundColor: colors.card,
@@ -70,21 +88,33 @@ function EmailConfirmationModal({ visible, userEmail, onConfirm, onCancel }: Ema
             <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} mb-2`}>
               Re-type your email:
             </Text>
-            <TextInput
-              value={inputEmail}
-              onChangeText={setInputEmail}
-              placeholder="Enter your email"
-              placeholderTextColor={colors.textSecondary}
-              autoCapitalize="none"
-              autoCorrect={false}
-              keyboardType="email-address"
+            <View
               style={{
-                backgroundColor: colors.bg,
-                color: colors.text,
-
+                backgroundColor: colors.cardLight,
+                borderWidth: 1,
+                borderColor: colors.divider,
+                ...shadow.card,
               }}
-              className={`${radius.xl} px-4 ${textSize.small} py-3 ${fontFamily.regular} mb-2`}
-            />
+              className={`${radius.xl} px-4 h-12 flex-row items-center mb-2`}
+            >
+              <TextInput
+                value={inputEmail}
+                onChangeText={setInputEmail}
+                placeholder="Enter your email"
+                placeholderTextColor={colors.textSecondary}
+                autoCapitalize="none"
+                autoCorrect={false}
+                keyboardType="email-address"
+                style={{
+                  color: colors.text,
+                  flex: 1,
+                  paddingVertical: 0,
+                  includeFontPadding: false,
+                  textAlignVertical: 'center',
+                }}
+                className={`${textSize.small} ${fontFamily.semibold}`}
+              />
+            </View>
           </View>
 
           {/* Buttons - Side by Side */}

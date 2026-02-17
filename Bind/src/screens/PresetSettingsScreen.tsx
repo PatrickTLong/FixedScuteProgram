@@ -13,6 +13,7 @@ import AnimatedSwitch from '../components/AnimatedSwitch';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Svg, { Path } from 'react-native-svg';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import TimerPicker from '../components/TimerPicker';
 import ScheduleInfoModal from '../components/ScheduleInfoModal';
 import InfoModal from '../components/InfoModal';
@@ -62,19 +63,16 @@ const CheckIcon = ({ size = iconSize.headerNav, color = "#FFFFFF" }: { size?: nu
   <BoxiconsFilled name="bx-check-circle" size={size} color={color} />
 );
 
-const CalendarIcon = ({ size = iconSize.forTabs, color = '#FFFFFF' }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
-    <Path d="M12.75 12.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM7.5 15.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5ZM8.25 17.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM9.75 15.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5ZM10.5 17.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12 15.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5ZM12.75 17.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM14.25 15.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5ZM15 17.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM16.5 15.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5ZM15 12.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM16.5 13.5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z" />
-    <Path
-      fillRule="evenodd"
-      clipRule="evenodd"
-      d="M6.75 2.25A.75.75 0 0 1 7.5 3v1.5h9V3a.75.75 0 0 1 1.5 0v1.5h.75a3 3 0 0 1 3 3v11.25a3 3 0 0 1-3 3H5.25a3 3 0 0 1-3-3V7.5a3 3 0 0 1 3-3H6V3a.75.75 0 0 1 .75-.75Zm13.5 9a1.5 1.5 0 0 0-1.5-1.5H5.25a1.5 1.5 0 0 0-1.5 1.5v7.5a1.5 1.5 0 0 0 1.5 1.5h13.5a1.5 1.5 0 0 0 1.5-1.5v-7.5Z"
-    />
-  </Svg>
+const PickDateIcon = ({ size = iconSize.forTabs, color = '#FFFFFF' }: { size?: number; color?: string }) => (
+  <MaterialCommunityIcons name="calendar-clock" size={size} color={color} />
 );
 
-const FlagIcon = ({ size = iconSize.forTabs, color = '#FFFFFF' }: { size?: number; color?: string }) => (
-  <BoxiconsFilled name="bx-flag-chequered" size={size} color={color} />
+const StartDateIcon = ({ size = iconSize.forTabs, color = '#FFFFFF' }: { size?: number; color?: string }) => (
+  <MaterialCommunityIcons name="calendar-start" size={size} color={color} />
+);
+
+const EndDateIcon = ({ size = iconSize.forTabs, color = '#FFFFFF' }: { size?: number; color?: string }) => (
+  <MaterialCommunityIcons name="calendar-end" size={size} color={color} />
 );
 
 const ChevronRightIcon = ({ size = iconSize.chevron, color = "#9CA3AF" }: { size?: number; color?: string }) => (
@@ -771,7 +769,7 @@ function PresetSettingsScreen() {
               className={`flex-row items-center px-4 ${radius.xl} mb-3`}
             >
                 <View className={`w-10 h-10 ${radius.lg} items-center justify-center mr-3`}>
-                  <CalendarIcon size={s(iconSize.lg)} />
+                  <StartDateIcon size={s(iconSize.lg)} />
                 </View>
                 <View className="flex-1">
                   <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
@@ -813,7 +811,7 @@ function PresetSettingsScreen() {
                 className={`flex-row items-center px-4 ${radius.xl}`}
               >
                 <View className={`w-10 h-10 ${radius.lg} items-center justify-center mr-3`}>
-                  <FlagIcon size={s(iconSize.lg)} />
+                  <EndDateIcon size={s(iconSize.lg)} />
                 </View>
                 <View className="flex-1">
                   <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
@@ -1035,7 +1033,7 @@ function PresetSettingsScreen() {
               className={`flex-row items-center px-4 ${radius.xl}`}
             >
               <View className={`w-10 h-10 ${radius.lg} items-center justify-center mr-3`}>
-                <CalendarIcon size={s(iconSize.lg)} />
+                <PickDateIcon size={s(iconSize.lg)} />
               </View>
               <View className="flex-1">
                 <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
