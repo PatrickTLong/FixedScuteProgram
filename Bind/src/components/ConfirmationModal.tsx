@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   Modal,
-  Pressable,
 } from 'react-native';
 
 import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
@@ -41,9 +40,8 @@ function ConfirmationModal({
       animationType="fade"
       onRequestClose={onCancel}
     >
-      <Pressable className="flex-1" onPress={onCancel}>
-        <View className="flex-1 bg-black/70 justify-center items-center px-8">
-          <Pressable onPress={(e) => e.stopPropagation()}>
+      <View className="flex-1 bg-black/70 justify-center items-center px-8">
+          <View>
             <View
               style={{
                 backgroundColor: colors.card,
@@ -90,9 +88,8 @@ function ConfirmationModal({
                 </TouchableOpacity>
               </View>
             </View>
-          </Pressable>
-        </View>
-      </Pressable>
+          </View>
+      </View>
     </Modal>
   );
 }

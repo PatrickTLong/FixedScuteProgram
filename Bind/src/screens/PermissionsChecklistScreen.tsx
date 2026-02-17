@@ -11,23 +11,13 @@ import {
 } from 'react-native';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Svg, { Path } from 'react-native-svg';
 import BoxiconsFilled from '../components/BoxiconsFilled';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useAuth } from '../context/AuthContext';
 import { useTheme , textSize, fontFamily, radius, shadow, iconSize } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 
 const { PermissionsModule } = NativeModules;
-
-// Android icon
-const AndroidIcon = ({ size = iconSize.lg, color = "#FFFFFF" }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M17.6 9.48l1.84-3.18c.16-.31.04-.69-.26-.85a.637.637 0 0 0-.83.22l-1.88 3.24a11.46 11.46 0 0 0-8.94 0L5.65 5.67a.643.643 0 0 0-.87-.2c-.28.18-.37.54-.22.83L6.4 9.48C3.3 11.25 1.28 14.44 1 18h22c-.28-3.56-2.3-6.75-5.4-8.52M7 15.25a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5m10 0a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5"
-      fill={color}
-    />
-  </Svg>
-);
 
 const ChevronRightIcon = ({ size = iconSize.chevron, color = "#FFFFFF" }: { size?: number; color?: string }) => (
   <BoxiconsFilled name="bx-caret-right-circle" size={size} color={color} />
@@ -37,6 +27,7 @@ interface Permission {
   id: string;
   title: string;
   description: string;
+  icon: string;
   isGranted: boolean;
   androidIntent?: string;
   iosAction?: 'screenTime' | 'notifications' | 'openSettings';
@@ -49,6 +40,7 @@ const ANDROID_PERMISSIONS: Permission[] = [
     id: 'notification',
     title: 'Notification Access',
     description: 'Block notifications from restricted apps and send you updates about blocking sessions.',
+    icon: 'bx-bell-ring',
     isGranted: false,
     androidIntent: 'android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS',
   },
@@ -56,6 +48,7 @@ const ANDROID_PERMISSIONS: Permission[] = [
     id: 'accessibility',
     title: 'Accessibility Service',
     description: 'Monitor and block distracting apps.',
+    icon: 'bx-universal-access',
     isGranted: false,
     androidIntent: 'android.settings.ACCESSIBILITY_SETTINGS',
   },
@@ -63,6 +56,7 @@ const ANDROID_PERMISSIONS: Permission[] = [
     id: 'usageAccess',
     title: 'Usage Access',
     description: 'Monitor app usage and enforce blocking rules.',
+    icon: 'bx-chart-area',
     isGranted: false,
     androidIntent: 'android.settings.USAGE_ACCESS_SETTINGS',
   },
@@ -70,6 +64,7 @@ const ANDROID_PERMISSIONS: Permission[] = [
     id: 'displayOverlay',
     title: 'Display Overlay',
     description: 'Display blocking screens over restricted apps.',
+    icon: 'bx-screen-light',
     isGranted: false,
     androidIntent: 'android.settings.action.MANAGE_OVERLAY_PERMISSION',
   },
@@ -77,6 +72,7 @@ const ANDROID_PERMISSIONS: Permission[] = [
     id: 'postNotifications',
     title: 'Show Notifications',
     description: 'Display blocking status and alerts.',
+    icon: 'bx-message-circle-notification',
     isGranted: false,
     androidIntent: 'android.settings.APP_NOTIFICATION_SETTINGS',
   },
@@ -84,6 +80,7 @@ const ANDROID_PERMISSIONS: Permission[] = [
     id: 'batteryOptimization',
     title: 'Unrestricted Battery',
     description: 'Ensure scheduled presets work reliably even when the app is closed.',
+    icon: 'bx-battery',
     isGranted: false,
     androidIntent: 'battery_optimization_request',
   },
@@ -91,6 +88,7 @@ const ANDROID_PERMISSIONS: Permission[] = [
     id: 'deviceAdmin',
     title: 'Device Admin',
     description: 'Prevent Scute from being uninstalled during active blocking sessions.',
+    icon: 'bx-shield',
     isGranted: false,
     androidIntent: 'device_admin_request',
   },
@@ -102,6 +100,7 @@ const IOS_PERMISSIONS: Permission[] = [
     id: 'screenTime',
     title: 'Screen Time Access',
     description: 'Block apps and websites during focus sessions.',
+    icon: 'bx-timer',
     isGranted: false,
     iosAction: 'screenTime',
   },
@@ -109,6 +108,7 @@ const IOS_PERMISSIONS: Permission[] = [
     id: 'notifications',
     title: 'Notifications',
     description: 'Receive alerts when blocking sessions start and end.',
+    icon: 'bx-bell',
     isGranted: false,
     iosAction: 'notifications',
   },
@@ -319,15 +319,13 @@ function PermissionsChecklistScreen() {
         className="flex-1"
         contentContainerStyle={{ paddingHorizontal: s(24), paddingTop: s(32), paddingBottom: s(16) }}
       >
-        {/* Android Icon */}
-        <View className="items-center justify-center mb-6">
-          <AndroidIcon size={80} color={colors.text} />
-        </View>
-
         {/* Title */}
-        <Text style={{ color: colors.text }} className={`${textSize['2xLarge']} ${fontFamily.bold} text-center mb-3`}>
-          {missingCount} permission{missingCount !== 1 ? 's' : ''} missing
-        </Text>
+        <View className="flex-row items-center justify-center mb-3">
+          <MaterialCommunityIcons name="hammer-wrench" size={s(28)} color={colors.text} style={{ marginRight: s(10) }} />
+          <Text style={{ color: colors.text }} className={`${textSize['2xLarge']} ${fontFamily.bold}`}>
+            {missingCount} permission{missingCount !== 1 ? 's' : ''} missing
+          </Text>
+        </View>
 
         {/* Subtitle */}
         <Text style={{ color: colors.textSecondary }} className={`text-center ${textSize.small} ${fontFamily.regular} mb-8 px-4`}>
@@ -343,24 +341,30 @@ function PermissionsChecklistScreen() {
             style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
             className={`flex-row items-center p-4 ${radius['2xl']} mb-3`}
           >
-            <View className="flex-1">
-              <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold} mb-1`}>
+            <BoxiconsFilled
+              name={permission.icon}
+              size={s(iconSize.toggleRow)}
+              color={colors.text}
+              style={{ marginRight: s(14) }}
+            />
+            <View className="flex-1 mr-4">
+              <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>
                 {permission.title}
               </Text>
-              <Text style={{ color: colors.textSecondary }} className={`${permission.descriptionStyle || textSize.extraSmall} ${textSize.extraSmall} ${fontFamily.regular}`}>
+              <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-1`}>
                 {permission.description}
               </Text>
             </View>
 
-            <ArrowRightIcon size={s(iconSize.md)} color={colors.text} />
+            <ChevronRightIcon size={s(iconSize.chevron)} color={colors.text} />
           </TouchableOpacity>
         ))}
 
         {/* Granted permissions (collapsed) */}
         {grantedCount > 0 && (
           <View className="mt-4">
-            <Text style={{ color: colors.textMuted }} className={`${textSize.small} ${fontFamily.regular} mb-2`}>
-              Enabled
+            <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} mb-2`}>
+              Enabled:
             </Text>
             {permissions.filter(p => p.isGranted).map((permission) => (
               <View
@@ -368,8 +372,13 @@ function PermissionsChecklistScreen() {
                 style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
                 className={`flex-row items-center py-3 px-4 ${radius.xl} mb-2`}
               >
-                <AndroidIcon size={28} color={colors.green} />
-                <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular} ml-3`}>
+                <BoxiconsFilled
+                  name={permission.icon}
+                  size={s(iconSize.toggleRow)}
+                  color={colors.green}
+                  style={{ marginRight: s(14) }}
+                />
+                <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular}`}>
                   {permission.title}
                 </Text>
               </View>

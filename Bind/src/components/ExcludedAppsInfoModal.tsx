@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   Modal,
-  Pressable,
 } from 'react-native';
 import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
 
@@ -27,9 +26,8 @@ function ExcludedAppsInfoModal({ visible, onClose }: ExcludedAppsInfoModalProps)
       animationType="fade"
       onRequestClose={handleClose}
     >
-      <Pressable className="flex-1" onPress={handleClose}>
-        <View className="flex-1 bg-black/70 justify-center items-center px-6">
-          <Pressable onPress={(e) => e.stopPropagation()}>
+      <View className="flex-1 bg-black/70 justify-center items-center px-6">
+          <View>
             <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.modal }} className={`w-full ${radius['2xl']} overflow-hidden`}>
               {/* Content */}
               <View className="p-6">
@@ -55,9 +53,8 @@ function ExcludedAppsInfoModal({ visible, onClose }: ExcludedAppsInfoModalProps)
                 </TouchableOpacity>
               </View>
             </View>
-          </Pressable>
-        </View>
-      </Pressable>
+          </View>
+      </View>
     </Modal>
   );
 }
