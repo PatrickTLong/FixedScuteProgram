@@ -9,8 +9,7 @@ import {
   NativeModules,
   AppState,
 } from 'react-native';
-import LottieView from 'lottie-react-native';
-const Lottie = LottieView as any;
+import LoadingSpinner from '../components/LoadingSpinner';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import BoxiconsFilled from '../components/BoxiconsFilled';
@@ -307,13 +306,7 @@ function PermissionsChecklistScreen() {
   if (isLoading) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }} className="justify-center items-center">
-        <Lottie
-          source={require('../frontassets/Loading Dots Blue.json')}
-          autoPlay
-          loop
-          speed={2.5}
-          style={{ width: s(200), height: s(200) }}
-        />
+        <LoadingSpinner size={s(32)} />
         <Text style={{ color: colors.textSecondary }} className={`${textSize.base} ${fontFamily.regular} mt-4`}>
           Checking permissions...
         </Text>

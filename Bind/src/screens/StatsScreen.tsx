@@ -13,8 +13,7 @@ import {
   RefreshControl,
   Modal,
 } from 'react-native';
-import LottieView from 'lottie-react-native';
-const Lottie = LottieView as any;
+import LoadingSpinner from '../components/LoadingSpinner';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import BoxiconsFilled from '../components/BoxiconsFilled';
@@ -365,13 +364,7 @@ function StatsScreen() {
   if (loading) {
     return (
       <View style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center', paddingTop: insets.top }}>
-        <Lottie
-          source={require('../frontassets/Loading Dots Blue.json')}
-          autoPlay
-          loop
-          speed={2.5}
-          style={{ width: s(200), height: s(200) }}
-        />
+        <LoadingSpinner size={s(32)} />
       </View>
     );
   }

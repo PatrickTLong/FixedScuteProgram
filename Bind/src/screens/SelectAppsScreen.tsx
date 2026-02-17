@@ -7,8 +7,7 @@ import {
   TextInput,
   Image,
 } from 'react-native';
-import LottieView from 'lottie-react-native';
-const Lottie = LottieView as any;
+import LoadingSpinner from '../components/LoadingSpinner';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -222,13 +221,7 @@ function SelectAppsScreen({
 
           {loading ? (
             <View className="flex-1 items-center justify-center">
-              <Lottie
-                source={require('../frontassets/Loading Dots Blue.json')}
-                autoPlay
-                loop
-                speed={2.5}
-                style={{ width: s(200), height: s(200) }}
-              />
+              <LoadingSpinner size={s(32)} />
               <Text style={{ color: colors.textSecondary }} className={`${textSize.base} ${fontFamily.regular} mt-4`}>
                 Loading apps...
               </Text>

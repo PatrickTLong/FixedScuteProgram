@@ -5,8 +5,7 @@ import {
   statusCodes,
 } from '@react-native-google-signin/google-signin';
 import Svg, { Path } from 'react-native-svg';
-import LottieView from 'lottie-react-native';
-const Lottie = LottieView as any;
+import LoadingSpinner from './LoadingSpinner';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { setAuthToken } from '../services/cardApi';
 import { API_URL } from '../config/api';
@@ -129,13 +128,7 @@ function GoogleSignInBtn({ onSuccess, onError, disabled }: Props) {
       </View>
       {loading && (
         <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center' }}>
-          <Lottie
-            source={require('../frontassets/Loading Dots Blue.json')}
-            autoPlay
-            loop
-            speed={2.5}
-            style={{ width: s(150), height: s(150) }}
-          />
+          <LoadingSpinner size={s(22)} color={colors.textMuted} />
         </View>
       )}
     </TouchableOpacity>

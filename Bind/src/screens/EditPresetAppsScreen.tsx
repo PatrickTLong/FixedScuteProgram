@@ -13,8 +13,7 @@ import {
   Image,
   StyleSheet,
 } from 'react-native';
-import LottieView from 'lottie-react-native';
-const Lottie = LottieView as any;
+import LoadingSpinner from '../components/LoadingSpinner';
 import AnimatedCheckbox, { AnimatedCheckboxRef } from '../components/AnimatedCheckbox';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -47,11 +46,11 @@ const ForwardIcon = ({ size = iconSize.lg, color = "#FFFFFF" }: { size?: number;
   <BoxiconsFilled name="bx-reply-big" size={size} color={color} style={{ transform: [{ scaleX: -1 }] }} />
 );
 
-const EditIcon = ({ size = iconSize.lg, color = '#FFFFFF' }: { size?: number; color?: string }) => (
-  <BoxiconsFilled name="bx-magic-wand" size={size} color={color} />
+const EditIcon = ({ size = iconSize.md, color = '#FFFFFF' }: { size?: number; color?: string }) => (
+  <BoxiconsFilled name="bx-feather-plus" size={size} color={color} />
 );
 
-const SearchIcon = ({ size = iconSize.lg, color = '#FFFFFF' }: { size?: number; color?: string }) => (
+const SearchIcon = ({ size = iconSize.md, color = '#FFFFFF' }: { size?: number; color?: string }) => (
   <MaterialCommunityIcons name="compass" size={size} color={color} />
 );
 
@@ -641,13 +640,7 @@ function EditPresetAppsScreen() {
                 {/* Apps List - loading dots on first load, then persists */}
                 {loadingApps ? (
                   <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }} pointerEvents="none">
-                    <Lottie
-                      source={require('../frontassets/Loading Dots Blue.json')}
-                      autoPlay
-                      loop
-                      speed={2.5}
-                      style={{ width: s(200), height: s(200) }}
-                    />
+                    <LoadingSpinner size={s(32)} />
                   </View>
                 ) : (
                   <FlatList
@@ -677,7 +670,7 @@ function EditPresetAppsScreen() {
                   style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card, flex: 1 }}
                   className={`${radius.xl} px-4 h-12 flex-row items-center mr-2`}
                 >
-                  <BoxiconsFilled name="bx-cursor-add" size={s(iconSize.headerNav)} color={colors.textSecondary} />
+                  <BoxiconsFilled name="bx-cursor-add" size={s(iconSize.md)} color={colors.textSecondary} />
                   <TextInput
                     placeholder="e.g. instagram.com"
                     placeholderTextColor={colors.textSecondary}

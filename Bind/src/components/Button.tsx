@@ -1,7 +1,6 @@
 import React, { memo } from 'react';
 import { TouchableOpacity, Text, View } from 'react-native';
-import LottieView from 'lottie-react-native';
-const Lottie = LottieView as any;
+import LoadingSpinner from './LoadingSpinner';
 
 import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
@@ -74,13 +73,7 @@ function Button({
       <Text style={[getTextStyle(), loading && { opacity: 0 }]} className={`${textSize.base} ${fontFamily.semibold}`}>{title}</Text>
       {loading && (
         <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center', overflow: 'hidden' }}>
-          <Lottie
-            source={require('../frontassets/Loading Dots Blue.json')}
-            autoPlay
-            loop
-            speed={2.5}
-            style={{ width: s(150), height: s(150) }}
-          />
+          <LoadingSpinner size={s(22)} color={getTextStyle().color} />
         </View>
       )}
     </TouchableOpacity>

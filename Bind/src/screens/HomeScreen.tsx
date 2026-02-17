@@ -17,8 +17,7 @@ import Svg, { Path } from 'react-native-svg';
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 import BoxiconsFilled from '../components/BoxiconsFilled';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import LottieView from 'lottie-react-native';
-const Lottie = LottieView as any;
+import LoadingSpinner from '../components/LoadingSpinner';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import BlockNowButton from '../components/BlockNowButton';
@@ -928,13 +927,7 @@ function HomeScreen() {
   if (loading) {
     return (
       <View style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center', paddingTop: insets.top }}>
-        <Lottie
-          source={require('../frontassets/Loading Dots Blue.json')}
-          autoPlay
-          loop
-          speed={2.5}
-          style={{ width: s(200), height: s(200) }}
-        />
+        <LoadingSpinner size={s(32)} />
       </View>
     );
   }

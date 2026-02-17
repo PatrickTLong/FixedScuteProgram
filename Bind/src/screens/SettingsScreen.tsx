@@ -12,8 +12,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import LottieView from 'lottie-react-native';
-const Lottie = LottieView as any;
+import LoadingSpinner from '../components/LoadingSpinner';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import BoxiconsFilled from '../components/BoxiconsFilled';
@@ -402,13 +401,7 @@ function SettingsScreen() {
 
     return (
       <View style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center', paddingTop: insets.top }}>
-        <Lottie
-          source={require('../frontassets/Loading Dots Blue.json')}
-          autoPlay
-          loop
-          speed={2.5}
-          style={{ width: s(200), height: s(200) }}
-        />
+        <LoadingSpinner size={s(32)} />
         <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.semibold} mt-4`}>{loadingMessage}</Text>
       </View>
     );
@@ -418,13 +411,7 @@ function SettingsScreen() {
   if (loading) {
     return (
       <View style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center', paddingTop: insets.top }}>
-        <Lottie
-          source={require('../frontassets/Loading Dots Blue.json')}
-          autoPlay
-          loop
-          speed={2.5}
-          style={{ width: s(200), height: s(200) }}
-        />
+        <LoadingSpinner size={s(32)} />
       </View>
     );
   }
