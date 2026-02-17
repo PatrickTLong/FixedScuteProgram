@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useCallback, useImperativeHandle, forwardRef, memo } from 'react';
 import { Animated, Easing } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import { iconSize } from '../context/ThemeContext';
+import { iconSize, colors } from '../context/ThemeContext';
 
 export interface AnimatedCheckboxRef {
   pop: () => void;
@@ -19,7 +19,7 @@ interface AnimatedCheckboxProps {
 const AnimatedCheckbox = forwardRef<AnimatedCheckboxRef, AnimatedCheckboxProps>(({
   checked,
   size = iconSize.lg,
-  checkedColor = '#22c55e',
+  checkedColor = colors.green,
   disabled = false,
   skipAnimation = false,
 }, ref) => {

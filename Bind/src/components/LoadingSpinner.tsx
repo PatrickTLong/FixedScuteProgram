@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, Easing, View } from 'react-native';
+import { Animated, AppState, Easing, View } from 'react-native';
 import BoxiconsFilledRounded from './BoxiconsFilledRounded';
 import { colors } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
@@ -10,13 +10,17 @@ interface LoadingSpinnerProps {
   fullScreen?: boolean;
 }
 
-export default function LoadingSpinner({ size, color = colors.spinnerBlue, fullScreen = false }: LoadingSpinnerProps) {
+export default function LoadingSpinner({ size, color = colors.spinner, fullScreen = false }: LoadingSpinnerProps) {
   const { s } = useResponsive();
   const spinValue = useRef(new Animated.Value(0)).current;
   const iconSize = size ?? s(32);
 
-  useEffect(() => {
-    const spin = Animated.loop(
+  const spinRef = useRef<Animated.CompositeAnimation | null>(null);
+
+  const startSpin = () => {
+    spinRef.current?.stop();
+    spinValue.setValue(0);
+    spinRef.current = Animated.loop(
       Animated.timing(spinValue, {
         toValue: 1,
         duration: 700,
@@ -24,8 +28,20 @@ export default function LoadingSpinner({ size, color = colors.spinnerBlue, fullS
         useNativeDriver: true,
       }),
     );
-    spin.start();
-    return () => spin.stop();
+    spinRef.current.start();
+  };
+
+  useEffect(() => {
+    startSpin();
+
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') startSpin();
+    });
+
+    return () => {
+      spinRef.current?.stop();
+      sub.remove();
+    };
   }, [spinValue]);
 
   const rotate = spinValue.interpolate({

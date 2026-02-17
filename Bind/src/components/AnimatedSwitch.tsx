@@ -2,7 +2,7 @@ import React, { memo, useCallback, useEffect, useRef } from 'react';
 import { Animated, Pressable, View } from 'react-native';
 import { useIsFocused } from '@react-navigation/native';
 import { useResponsive } from '../utils/responsive';
-import { shadow } from '../context/ThemeContext';
+import { shadow, colors } from '../context/ThemeContext';
 
 interface AnimatedSwitchProps {
   value: boolean;
@@ -29,7 +29,7 @@ function AnimatedSwitch({
   onValueChange,
   disabled = false,
   trackColorFalse,
-  trackColorTrue = '#22c55e',
+  trackColorTrue = colors.green,
   size = 'medium',
   animate = true,
 }: AnimatedSwitchProps) {

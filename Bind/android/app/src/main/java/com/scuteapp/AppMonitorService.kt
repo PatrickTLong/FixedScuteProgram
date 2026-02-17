@@ -55,8 +55,6 @@ class AppMonitorService(private val context: Context) {
         // Create overlay manager
         overlayManager = BlockedOverlayManager(context).apply {
             onDismissed = {
-                // Resume bubble when overlay is dismissed
-                FloatingBubbleManager.getInstance(context).resumeFromOverlay()
                 onGoHome?.invoke()
             }
         }
@@ -172,19 +170,34 @@ class AppMonitorService(private val context: Context) {
         // Skip if same as last check
         if (currentPackage == lastForegroundPackage) return
         Log.d(TAG, "DEBUG foreground changed: $lastForegroundPackage -> $currentPackage")
-        val previousPackage = lastForegroundPackage
         lastForegroundPackage = currentPackage
 
-        // When user leaves Scute app, resume the bubble
-        if (previousPackage == "com.scuteapp" && currentPackage != "com.scuteapp") {
-            FloatingBubbleManager.getInstance(context).resumeFromScute()
-        }
-
-        // When user enters Scute app, reset hidden state and pause the bubble
+        // When user enters Scute app, reset the bubble's hidden state
+        // so it reappears if they X'd it earlier
         if (currentPackage == "com.scuteapp") {
             val bubbleManager = FloatingBubbleManager.getInstance(context)
             bubbleManager.resetHidden()
-            bubbleManager.pauseForScute()
+            // Re-show bubble if there's an active session and it's not already showing
+            if (!bubbleManager.isShowing()) {
+                val prefs = context.getSharedPreferences(UninstallBlockerService.PREFS_NAME, Context.MODE_PRIVATE)
+                val isSessionActive = prefs.getBoolean(UninstallBlockerService.KEY_SESSION_ACTIVE, false)
+                if (isSessionActive) {
+                    val noTimeLimit = prefs.getBoolean("no_time_limit", false)
+                    try {
+                        if (noTimeLimit) {
+                            val sessionStartTime = prefs.getLong("session_start_time", System.currentTimeMillis())
+                            bubbleManager.showNoTimeLimit(sessionStartTime)
+                        } else {
+                            val sessionEndTime = prefs.getLong(UninstallBlockerService.KEY_SESSION_END_TIME, 0)
+                            if (sessionEndTime > System.currentTimeMillis()) {
+                                bubbleManager.show(sessionEndTime)
+                            }
+                        }
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Failed to re-show bubble on app enter", e)
+                    }
+                }
+            }
             return
         }
 
@@ -244,9 +257,6 @@ class AppMonitorService(private val context: Context) {
 
         // Pause media
         pauseMedia()
-
-        // Hide bubble while overlay is showing
-        FloatingBubbleManager.getInstance(context).pauseForOverlay()
 
         // Show overlay instantly with app name
         val shown = overlayManager?.show(blockedType, packageName, appName, strictMode) ?: false

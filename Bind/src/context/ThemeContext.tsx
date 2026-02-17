@@ -106,7 +106,7 @@ export const colors = {
   yellow: '#fbbf24',
   red: '#FF5C5C',
   // Loading spinner
-  spinnerBlue: '#8E99A4',
+  spinner: '#7B9AB8',
   // Logo tint
   logoTint: '#ffffff',
 } as const;

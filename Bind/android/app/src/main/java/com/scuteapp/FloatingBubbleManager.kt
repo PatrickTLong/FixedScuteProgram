@@ -61,8 +61,6 @@ class FloatingBubbleManager(private val context: Context) {
     private var isExpanded = false  // false = circle with logo, true = pill with timer
     private var isAppListShown = false  // true = app list panel is visible
     private var isHidden = false    // User manually hid the bubble
-    private var isPausedForScute = false  // Temporarily hidden while Scute app is in foreground
-    private var isPausedForOverlay = false  // Temporarily hidden while block overlay is showing
     private var endTime: Long = 0
     private var startTime: Long = 0  // For no-time-limit mode (counting up)
     private var isNoTimeLimit = false  // true = count up (elapsed), false = count down (remaining)
@@ -968,7 +966,6 @@ class FloatingBubbleManager(private val context: Context) {
             handler.removeCallbacks(autoCollapseRunnable)
             handler.removeCallbacks(longPressRunnable)
             handler.removeCallbacks(hideButtonTimeoutRunnable)
-            handler.removeCallbacks(resumeFromScuteRunnable)
 
             if (isShowing) {
                 // Animate out with scale
@@ -1016,8 +1013,6 @@ class FloatingBubbleManager(private val context: Context) {
         isExpanded = false
         isAppListShown = false
         isHidden = false  // Reset for next session
-        isPausedForScute = false  // Reset for next session
-        isPausedForOverlay = false  // Reset for next session
         isNoTimeLimit = false  // Reset mode for next session
         startTime = 0
         endTime = 0
@@ -1040,123 +1035,5 @@ class FloatingBubbleManager(private val context: Context) {
         Log.d(TAG, "isHidden reset")
     }
 
-    /**
-     * Temporarily hide the bubble while the Scute app is in the foreground.
-     * The bubble view is removed but all state is preserved so it can be restored.
-     */
-    fun pauseForScute() {
-        if (!isShowing || isPausedForScute) return
-        isPausedForScute = true
-
-        handler.removeCallbacks(resumeFromScuteRunnable)
-        handler.removeCallbacks(autoCollapseRunnable)
-        handler.removeCallbacks(timerRunnable)
-        handler.removeCallbacks(longPressRunnable)
-        handler.removeCallbacks(hideButtonTimeoutRunnable)
-
-        try {
-            windowManager?.removeView(bubbleView)
-        } catch (e: Exception) {
-            Log.e(TAG, "Error removing bubble for Scute pause", e)
-        }
-
-        Log.d(TAG, "Bubble paused for Scute foreground")
-    }
-
-    /**
-     * Re-show the bubble after leaving the Scute app.
-     * Restores the bubble in collapsed state.
-     */
-    private val resumeFromScuteRunnable = Runnable {
-        // Check again — may have been paused for overlay or hidden in the meantime
-        if (isPausedForScute || isPausedForOverlay || isHidden || !isShowing) return@Runnable
-
-        // For countdown mode, check if session already ended
-        if (!isNoTimeLimit && endTime > 0 && endTime <= System.currentTimeMillis()) {
-            Log.d(TAG, "Session ended while paused, dismissing")
-            isShowing = false
-            cleanupViews()
-            return@Runnable
-        }
-
-        try {
-            // Reset to collapsed state
-            isExpanded = false
-            isAppListShown = false
-            bubbleCollapsed?.visibility = View.VISIBLE
-            bubbleCollapsed?.alpha = 1f
-            bubbleCollapsed?.scaleX = 1f
-            bubbleCollapsed?.scaleY = 1f
-            bubbleExpanded?.visibility = View.GONE
-            bubbleHideButton?.visibility = View.GONE
-            bubbleAppList?.visibility = View.GONE
-            bubbleChevron?.rotation = -90f
-
-            windowManager?.addView(bubbleView, layoutParams)
-
-            // Resume timer
-            handler.post(timerRunnable)
-
-            Log.d(TAG, "Bubble resumed from Scute foreground")
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to resume bubble", e)
-            isShowing = false
-            cleanupViews()
-        }
-    }
-
-    fun resumeFromScute() {
-        if (!isPausedForScute || !isShowing) return
-        isPausedForScute = false
-
-        // Don't re-show if user had manually hidden it
-        if (isHidden) {
-            Log.d(TAG, "Bubble not resumed - user had hidden it")
-            return
-        }
-
-        // Delay resume so overlay/block checks can run first and avoid a brief flash
-        handler.removeCallbacks(resumeFromScuteRunnable)
-        handler.postDelayed(resumeFromScuteRunnable, 300)
-    }
-
-    /**
-     * Temporarily hide the bubble while a block overlay is showing.
-     */
-    fun pauseForOverlay() {
-        if (!isShowing || isPausedForOverlay || isPausedForScute) return
-        isPausedForOverlay = true
-
-        // Just hide the view without removing it
-        bubbleMain?.animate()
-            ?.alpha(0f)
-            ?.setDuration(150)
-            ?.withEndAction {
-                bubbleView?.visibility = View.GONE
-            }
-            ?.start()
-
-        Log.d(TAG, "Bubble hidden for overlay")
-    }
-
-    /**
-     * Re-show the bubble after a block overlay is dismissed.
-     */
-    fun resumeFromOverlay() {
-        if (!isPausedForOverlay) return
-        isPausedForOverlay = false
-
-        // Don't re-show if paused for Scute or user hidden
-        if (isPausedForScute || isHidden || !isShowing) return
-
-        bubbleView?.visibility = View.VISIBLE
-        bubbleMain?.alpha = 0f
-        bubbleMain?.animate()
-            ?.alpha(1f)
-            ?.setDuration(150)
-            ?.start()
-
-        Log.d(TAG, "Bubble restored after overlay dismiss")
-    }
 
 }

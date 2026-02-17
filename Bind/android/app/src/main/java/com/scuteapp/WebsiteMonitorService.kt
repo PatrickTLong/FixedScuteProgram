@@ -57,8 +57,6 @@ class WebsiteMonitorService(private val context: Context) {
             onDismissed = {
                 // Reset last checked URL so monitoring will check again immediately
                 lastCheckedUrl = null
-                // Resume bubble when overlay is dismissed
-                FloatingBubbleManager.getInstance(context).resumeFromOverlay()
                 this@WebsiteMonitorService.onDismissed?.invoke()
             }
         }
@@ -168,9 +166,6 @@ class WebsiteMonitorService(private val context: Context) {
 
         // Redirect to Google BEFORE showing overlay (so it appears underneath)
         redirectToGoogle()
-
-        // Hide bubble while overlay is showing
-        FloatingBubbleManager.getInstance(context).pauseForOverlay()
 
         // Show overlay instantly with website name (use the blocked site as the display name)
         val shown = overlayManager?.show(BlockedOverlayManager.TYPE_WEBSITE, blockedSite, blockedSite, strictMode) ?: false

@@ -8,13 +8,13 @@ import {
   Dimensions,
 } from 'react-native';
 
-import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius, shadow, colors } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 
 const HOLD_DURATION = 1000; // 1 second
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const BASE_BUTTON_HORIZONTAL_PADDING = 48; // px-6 = 24px * 2 from parent
-const FILL_COLOR = '#22c55e';
+const FILL_COLOR = colors.green;
 
 interface BlockNowButtonProps {
   onActivate: () => void;

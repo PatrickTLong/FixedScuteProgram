@@ -29,9 +29,8 @@ const AndroidIcon = ({ size = iconSize.lg, color = "#FFFFFF" }: { size?: number;
   </Svg>
 );
 
-// Forward arrow icon (Boxicons reply-big mirrored)
-const ArrowRightIcon = ({ size = iconSize.lg, color = "#FFFFFF" }: { size?: number; color?: string }) => (
-  <BoxiconsFilled name="bx-reply-big" size={size} color={color} style={{ transform: [{ scaleX: -1 }] }} />
+const ChevronRightIcon = ({ size = iconSize.chevron, color = "#FFFFFF" }: { size?: number; color?: string }) => (
+  <BoxiconsFilled name="bx-caret-right-circle" size={size} color={color} />
 );
 
 interface Permission {
@@ -360,8 +359,8 @@ function PermissionsChecklistScreen() {
         {/* Granted permissions (collapsed) */}
         {grantedCount > 0 && (
           <View className="mt-4">
-            <Text style={{ color: colors.textMuted }} className={`${textSize.small} ${fontFamily.regular} mb-2 uppercase tracking-wider`}>
-              Enabled ({grantedCount})
+            <Text style={{ color: colors.textMuted }} className={`${textSize.small} ${fontFamily.regular} mb-2`}>
+              Enabled
             </Text>
             {permissions.filter(p => p.isGranted).map((permission) => (
               <View
