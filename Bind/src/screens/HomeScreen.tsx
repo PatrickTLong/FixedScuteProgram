@@ -688,7 +688,7 @@ function HomeScreen() {
     }
   }, [email, showModal, activePreset]);
 
-  const handleBlockNow = useCallback(async () => {
+  const handleBlockNow = useCallback(() => {
     try {
       if (!activePreset) {
         showModal(
@@ -698,42 +698,12 @@ function HomeScreen() {
         return;
       }
 
-      // Check permissions before starting blocking (platform-specific)
-      if (PermissionsModule) {
-        try {
-          if (Platform.OS === 'ios') {
-            // iOS: Check Screen Time authorization
-            const isScreenTimeAuthorized = await PermissionsModule.isScreenTimeAuthorized();
-            if (!isScreenTimeAuthorized) {
-              showModal(
-                'Permission Required',
-                'Screen Time access is not enabled. Please enable it to block apps.'
-              );
-              return;
-            }
-          } else {
-            // Android: Check Accessibility Service
-            const isAccessibilityEnabled = await PermissionsModule.isAccessibilityServiceEnabled();
-            if (!isAccessibilityEnabled) {
-              showModal(
-                'Permission Required',
-                'Accessibility Service is not enabled. Please enable it in Settings to block apps.'
-              );
-              return;
-            }
-          }
-        } catch (permError) {
-          // Continue anyway if we can't check - native module might still work
-        }
-      }
-
-      // Calculate lock end time based on preset type
+      // Synchronous validation — no await, no lag
       let calculatedLockEndsAt: string | null = null;
       const now = new Date();
 
       // For non-scheduled presets, check if they would overlap with any active scheduled preset
       if (!activePreset.isScheduled && scheduledPresets.length > 0) {
-        // Calculate when this block would end
         let blockEndTime: Date | null = null;
 
         if (activePreset.noTimeLimit) {
@@ -750,13 +720,11 @@ function HomeScreen() {
           blockEndTime = new Date(now.getTime() + durationMs);
         }
 
-        // Check for overlap with each scheduled preset
         if (blockEndTime) {
           for (const scheduled of scheduledPresets) {
             const schedStart = new Date(scheduled.scheduleStartDate!);
             const schedEnd = new Date(scheduled.scheduleEndDate!);
 
-            // Check if ranges overlap: block starts before schedule ends AND block ends after schedule starts
             if (now < schedEnd && blockEndTime > schedStart) {
               showModal(
                 'Schedule Conflict',
@@ -769,7 +737,6 @@ function HomeScreen() {
       }
 
       if (activePreset.isScheduled && activePreset.scheduleStartDate && activePreset.scheduleEndDate) {
-        // Scheduled preset - check if we're within the schedule window
         const startDate = new Date(activePreset.scheduleStartDate);
         const endDate = new Date(activePreset.scheduleEndDate);
 
@@ -785,28 +752,22 @@ function HomeScreen() {
           return;
         }
 
-        // Use scheduleEndDate as lock end time
         calculatedLockEndsAt = activePreset.scheduleEndDate;
       } else if (!activePreset.noTimeLimit) {
-        // Non-scheduled preset with time limit
         if (activePreset.targetDate) {
-          // Target date set - use it directly
           calculatedLockEndsAt = activePreset.targetDate;
         } else {
-          // Calculate from timer values
-          const now = new Date();
+          const nowCalc = new Date();
           const durationMs =
             (activePreset.timerDays * 24 * 60 * 60 * 1000) +
             (activePreset.timerHours * 60 * 60 * 1000) +
             (activePreset.timerMinutes * 60 * 1000) +
             ((activePreset.timerSeconds ?? 0) * 1000);
-          calculatedLockEndsAt = new Date(now.getTime() + durationMs).toISOString();
+          calculatedLockEndsAt = new Date(nowCalc.getTime() + durationMs).toISOString();
         }
       }
-      // If noTimeLimit is true and not scheduled, calculatedLockEndsAt stays null
 
-      // Optimistic UI update — instant lock state + initial timer value
-      // Set timeRemaining/elapsedTime in the same render to avoid a frame of just "Locked"
+      // Optimistic UI update — fires immediately, no awaits above
       const nowISO = new Date().toISOString();
       if (calculatedLockEndsAt) {
         const diff = new Date(calculatedLockEndsAt).getTime() - Date.now();
@@ -822,9 +783,32 @@ function HomeScreen() {
       }
       setSharedLockStatus({ isLocked: true, lockStartedAt: nowISO, lockEndsAt: calculatedLockEndsAt });
 
-      // Fire-and-forget: backend + native blocking
+      // Fire-and-forget: permissions, backend, and native blocking all run after UI is updated
       (async () => {
         try {
+          // Permission check — if it fails, roll back the optimistic UI
+          if (PermissionsModule) {
+            try {
+              if (Platform.OS === 'ios') {
+                const isScreenTimeAuthorized = await PermissionsModule.isScreenTimeAuthorized();
+                if (!isScreenTimeAuthorized) {
+                  setSharedLockStatus({ isLocked: false, lockStartedAt: null, lockEndsAt: null });
+                  showModal('Permission Required', 'Screen Time access is not enabled. Please enable it to block apps.');
+                  return;
+                }
+              } else {
+                const isAccessibilityEnabled = await PermissionsModule.isAccessibilityServiceEnabled();
+                if (!isAccessibilityEnabled) {
+                  setSharedLockStatus({ isLocked: false, lockStartedAt: null, lockEndsAt: null });
+                  showModal('Permission Required', 'Accessibility Service is not enabled. Please enable it in Settings to block apps.');
+                  return;
+                }
+              }
+            } catch {
+              // Continue anyway if we can't check - native module might still work
+            }
+          }
+
           await updateLockStatus(email, true, calculatedLockEndsAt);
 
           if (BlockingModule) {

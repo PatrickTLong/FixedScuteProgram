@@ -5,12 +5,12 @@ import { interpolate } from 'flubber';
 import { colors } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 
-// SVG paths from boxicons filled rounded 400
+// SVG paths from boxicons filled regular 400
 const CERTIFICATION_PATH =
-  'm21.65,9.41c-.12-.45-.41-.83-.81-1.06l-1.26-.73v-1.45c0-.96-.79-1.75-1.75-1.75h-1.45l-.73-1.26c-.23-.4-.61-.69-1.06-.82-.45-.12-.92-.06-1.33.17l-1.26.73-1.26-.73c-.41-.23-.88-.29-1.33-.17-.45.12-.83.41-1.06.81l-.73,1.26h-1.45c-.96,0-1.75.79-1.75,1.75v1.45l-1.26.73c-.41.23-.7.61-.82,1.06s-.06.92.18,1.33l.73,1.26-.73,1.26c-.23.4-.3.88-.18,1.33s.41.83.82,1.06l1.26.73v1.45c0,.96.79,1.75,1.75,1.75h1.45l.73,1.26c.23.4.61.69,1.06.82.45.12.92.06,1.33-.18l1.26-.73,1.26.73c.27.16.57.24.87.24.15,0,.3-.02.46-.06.45-.12.83-.41,1.06-.82l.73-1.26h1.45c.96,0,1.75-.79,1.75-1.75v-1.45l1.26-.73c.41-.23.7-.61.82-1.06.12-.45.06-.92-.18-1.33l-.73-1.26.73-1.26c.23-.41.3-.88.17-1.33Z';
+  'm21.49,8.72l-1.91-1.1v-2.2c0-.55-.45-1-1-1h-2.2l-.41-.71h0s-.7-1.2-.7-1.2c-.13-.23-.35-.4-.61-.47-.25-.07-.53-.03-.76.1l-1.91,1.1-1.91-1.1c-.48-.28-1.09-.11-1.37.37l-.7,1.2h0s-.41.7-.41.7h-2.2c-.55,0-1,.45-1,1v2.2l-1.91,1.1c-.23.13-.4.35-.47.61-.07.26-.03.53.1.76l.7,1.2h0l.41.7-.41.7h0s-.7,1.21-.7,1.21c-.13.23-.17.5-.1.76.07.26.24.48.47.61l1.91,1.1v2.2c0,.55.45,1,1,1h2.2l.41.71h0s.7,1.2.7,1.2c.19.32.52.5.87.5.17,0,.34-.04.5-.13l1.91-1.1,1.91,1.1c.23.13.5.17.76.1.26-.07.47-.24.61-.47l.7-1.2h0s.41-.7.41-.7h2.2c.55,0,1-.45,1-1v-2.2l1.91-1.1c.48-.28.64-.89.37-1.37l-1.1-1.91,1.1-1.91c.28-.48.11-1.09-.37-1.37Z';
 
 const SEAL_PATH =
-  'm19,9.09v-1.59c0-1.38-1.12-2.5-2.5-2.5h-1.59l-1.15-1.15c-.97-.97-2.56-.97-3.54,0l-1.15,1.15h-1.59c-1.38,0-2.5,1.12-2.5,2.5v1.59l-1.15,1.15c-.97.97-.97,2.56,0,3.54l1.15,1.15v1.59c0,1.38,1.12,2.5,2.5,2.5h1.59l1.15,1.15c.49.49,1.13.73,1.77.73s1.28-.24,1.77-.73l1.15-1.15h1.59c1.38,0,2.5-1.12,2.5-2.5v-1.59l1.15-1.15c.97-.97.97-2.56,0-3.54l-1.15-1.15Z';
+  'm21.21,11.29l-2.21-2.21v-3.09c0-.55-.45-1-1-1h-3.09l-2.21-2.21c-.39-.39-1.02-.39-1.41,0l-2.21,2.21h-3.09c-.55,0-1,.45-1,1v3.09l-2.21,2.21c-.39.39-.39,1.02,0,1.41l2.21,2.21v3.09c0,.55.45,1,1,1h3.09l2.21,2.21c.2.2.45.29.71.29s.51-.1.71-.29l2.21-2.21h3.09c.55,0,1-.45,1-1v-3.09l2.21-2.21c.39-.39.39-1.02,0-1.41Z';
 
 interface LoadingSpinnerProps {
   size?: number;
@@ -31,7 +31,7 @@ export default function LoadingSpinner({ size, color = colors.spinner, fullScree
 
   // Create the flubber interpolator once
   const morphInterpolator = useMemo(
-    () => interpolate(CERTIFICATION_PATH, SEAL_PATH, { maxSegmentLength: 2 }),
+    () => interpolate(CERTIFICATION_PATH, SEAL_PATH, { maxSegmentLength: 1 }),
     [],
   );
 
@@ -56,14 +56,14 @@ export default function LoadingSpinner({ size, color = colors.spinner, fullScree
       Animated.sequence([
         Animated.timing(morphValue, {
           toValue: 1,
-          duration: 1200,
-          easing: Easing.inOut(Easing.ease),
+          duration: 700,
+          easing: Easing.inOut(Easing.quad),
           useNativeDriver: false,
         }),
         Animated.timing(morphValue, {
           toValue: 0,
-          duration: 1200,
-          easing: Easing.inOut(Easing.ease),
+          duration: 700,
+          easing: Easing.inOut(Easing.quad),
           useNativeDriver: false,
         }),
       ]),
