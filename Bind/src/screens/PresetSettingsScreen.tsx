@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   TextInput,
   ScrollView,
+  Animated,
   Platform,
   NativeSyntheticEvent,
   NativeScrollEvent,
@@ -14,7 +15,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Svg, { Path } from 'react-native-svg';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import TimerPicker from '../components/TimerPicker';
 import ScheduleInfoModal from '../components/ScheduleInfoModal';
 import InfoModal from '../components/InfoModal';
 import DisableTapoutWarningModal from '../components/DisableTapoutWarningModal';
@@ -64,7 +64,7 @@ const CheckIcon = ({ size = iconSize.headerNav, color = "#FFFFFF" }: { size?: nu
 );
 
 const PickDateIcon = ({ size = iconSize.forTabs, color = '#FFFFFF' }: { size?: number; color?: string }) => (
-  <MaterialCommunityIcons name="calendar-clock" size={size} color={color} />
+  <BoxiconsFilled name="bx-calendar-check" size={size} color={color} />
 );
 
 const StartDateIcon = ({ size = iconSize.forTabs, color = '#FFFFFF' }: { size?: number; color?: string }) => (
@@ -120,6 +120,124 @@ const ClockIcon = ({ size = iconSize.lg, color = '#FFFFFF' }: { size?: number; c
 const SendIcon = ({ size = iconSize.forTabs, color = '#FFFFFF' }: { size?: number; color?: string }) => (
   <BoxiconsFilled name="bx-paper-plane" size={size} color={color} />
 );
+
+// ============ Time Preset Circles ============
+const TIME_PRESETS = [
+  { label: '00:00:01', seconds: 1 },
+  { label: '00:00:15', seconds: 15 },
+  { label: '00:00:30', seconds: 30 },
+  { label: '00:01:00', seconds: 60 },
+  { label: '00:05:00', seconds: 300 },
+  { label: '00:10:00', seconds: 600 },
+  { label: '00:15:00', seconds: 900 },
+  { label: '00:30:00', seconds: 1800 },
+  { label: '01:00:00', seconds: 3600 },
+  { label: '02:00:00', seconds: 7200 },
+  { label: '04:00:00', seconds: 14400 },
+  { label: '08:00:00', seconds: 28800 },
+  { label: '12:00:00', seconds: 43200 },
+];
+
+const pad2 = (n: number) => String(n).padStart(2, '0');
+const totalToSeconds = (d: number, h: number, m: number, sec: number) => d * 86400 + h * 3600 + m * 60 + sec;
+const secondsToTimer = (total: number) => {
+  const d = Math.floor(total / 86400);
+  const h = Math.floor((total % 86400) / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const sec = total % 60;
+  return { d, h, m, sec };
+};
+
+const LONG_PRESS_INITIAL_DELAY = 400;
+const LONG_PRESS_START_INTERVAL = 300;
+const LONG_PRESS_MIN_INTERVAL = 50;
+const LONG_PRESS_ACCELERATION = 0.85;
+
+const TimePresetCircle = memo(({ label, onPress, onLongPressAdd }: {
+  label: string;
+  onPress: () => void;
+  onLongPressAdd: () => void;
+}) => {
+  const { colors } = useTheme();
+  const { s } = useResponsive();
+  const repeatRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const onLongPressAddRef = useRef(onLongPressAdd);
+  onLongPressAddRef.current = onLongPressAdd;
+  const didLongPress = useRef(false);
+  const activeRef = useRef(false);
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const [pressed, setPressed] = useState(false);
+
+  const clearTimers = useCallback(() => {
+    activeRef.current = false;
+    if (timeoutRef.current) { clearTimeout(timeoutRef.current); timeoutRef.current = null; }
+    if (repeatRef.current) { clearTimeout(repeatRef.current); repeatRef.current = null; }
+  }, []);
+
+  const scheduleNext = useCallback((interval: number) => {
+    if (!activeRef.current) return;
+    repeatRef.current = setTimeout(() => {
+      if (!activeRef.current) return;
+      onLongPressAddRef.current();
+      scheduleNext(Math.max(LONG_PRESS_MIN_INTERVAL, interval * LONG_PRESS_ACCELERATION));
+    }, interval);
+  }, []);
+
+  const handlePressIn = useCallback(() => {
+    didLongPress.current = false;
+    activeRef.current = true;
+    setPressed(true);
+    Animated.timing(scaleAnim, { toValue: 0.9, useNativeDriver: true, duration: 30 }).start();
+    timeoutRef.current = setTimeout(() => {
+      didLongPress.current = true;
+      onLongPressAddRef.current();
+      scheduleNext(LONG_PRESS_START_INTERVAL);
+    }, LONG_PRESS_INITIAL_DELAY);
+  }, [scheduleNext, scaleAnim]);
+
+  const handlePressOut = useCallback(() => {
+    clearTimers();
+    setPressed(false);
+    Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true, speed: 12, bounciness: 14 }).start();
+  }, [clearTimers, scaleAnim]);
+
+  const handlePress = useCallback(() => {
+    if (!didLongPress.current) onPress();
+  }, [onPress]);
+
+  useEffect(() => clearTimers, [clearTimers]);
+
+  const circleSize = s(90);
+
+  return (
+    <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+      <TouchableOpacity
+        onPress={handlePress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        activeOpacity={1}
+        style={{
+          width: circleSize,
+          height: circleSize,
+          borderRadius: circleSize / 2,
+          backgroundColor: pressed ? 'rgba(255,255,255,0.12)' : colors.card,
+          borderWidth: pressed ? 0 : 1,
+          borderColor: colors.border,
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Text
+          style={{ color: colors.text, fontSize: s(12) }}
+          className={fontFamily.semibold}
+        >
+          {label}
+        </Text>
+      </TouchableOpacity>
+    </Animated.View>
+  );
+});
 
 // ============ Recurrence Wheel Picker Component ============
 const RECURRENCE_ITEM_HEIGHT = 40;
@@ -328,8 +446,10 @@ function PresetSettingsScreen() {
   const [timerHours, setTimerHours] = useState(0);
   const [timerMinutes, setTimerMinutes] = useState(0);
   const [timerSeconds, setTimerSeconds] = useState(0);
+  const [timerEnabled, setTimerEnabled] = useState(false);
   const hasSaved = useRef(false);
   const [targetDate, setTargetDate] = useState<Date | null>(null);
+  const [dateEnabled, setDateEnabled] = useState(false);
 
   // Emergency tapout feature
   const [allowEmergencyTapout, setAllowEmergencyTapout] = useState(false);
@@ -378,7 +498,9 @@ function PresetSettingsScreen() {
   const timerHoursRef = useRef(timerHours);
   const timerMinutesRef = useRef(timerMinutes);
   const timerSecondsRef = useRef(timerSeconds);
+  const timerEnabledRef = useRef(timerEnabled);
   const targetDateRef = useRef(targetDate);
+  const dateEnabledRef = useRef(dateEnabled);
   const allowEmergencyTapoutRef = useRef(allowEmergencyTapout);
   const strictModeRef = useRef(strictMode);
   const isScheduledRef = useRef(isScheduled);
@@ -395,7 +517,9 @@ function PresetSettingsScreen() {
   timerHoursRef.current = timerHours;
   timerMinutesRef.current = timerMinutes;
   timerSecondsRef.current = timerSeconds;
+  timerEnabledRef.current = timerEnabled;
   targetDateRef.current = targetDate;
+  dateEnabledRef.current = dateEnabled;
   allowEmergencyTapoutRef.current = allowEmergencyTapout;
   strictModeRef.current = strictMode;
   isScheduledRef.current = isScheduled;
@@ -420,7 +544,9 @@ function PresetSettingsScreen() {
         setTimerHours(savedState.timerHours);
         setTimerMinutes(savedState.timerMinutes);
         setTimerSeconds(savedState.timerSeconds);
+        setTimerEnabled(savedState.timerEnabled ?? (savedState.timerDays > 0 || savedState.timerHours > 0 || savedState.timerMinutes > 0 || savedState.timerSeconds > 0));
         setTargetDate(savedState.targetDate ? new Date(savedState.targetDate) : null);
+        setDateEnabled(savedState.dateEnabled ?? !!savedState.targetDate);
         setAllowEmergencyTapout(savedState.allowEmergencyTapout);
         setStrictMode(savedState.strictMode);
         setIsScheduled(savedState.isScheduled);
@@ -438,7 +564,9 @@ function PresetSettingsScreen() {
           setTimerHours(editingPreset.timerHours);
           setTimerMinutes(editingPreset.timerMinutes);
           setTimerSeconds(editingPreset.timerSeconds ?? 0);
+          setTimerEnabled(editingPreset.timerDays > 0 || editingPreset.timerHours > 0 || editingPreset.timerMinutes > 0 || (editingPreset.timerSeconds ?? 0) > 0);
           setTargetDate(editingPreset.targetDate ? new Date(editingPreset.targetDate) : null);
+          setDateEnabled(!!editingPreset.targetDate);
           setAllowEmergencyTapout(editingPreset.allowEmergencyTapout ?? false);
           setStrictMode(editingPreset.strictMode ?? false);
           setIsScheduled(editingPreset.isScheduled ?? false);
@@ -455,7 +583,9 @@ function PresetSettingsScreen() {
           setTimerHours(0);
           setTimerMinutes(0);
           setTimerSeconds(0);
+          setTimerEnabled(false);
           setTargetDate(null);
+          setDateEnabled(false);
           setAllowEmergencyTapout(true); // Enabled by default for safety
           setStrictMode(false);
           setIsScheduled(false);
@@ -507,7 +637,9 @@ function PresetSettingsScreen() {
           timerHours: timerHoursRef.current,
           timerMinutes: timerMinutesRef.current,
           timerSeconds: timerSecondsRef.current,
+          timerEnabled: timerEnabledRef.current,
           targetDate: targetDateRef.current ? targetDateRef.current.toISOString() : null,
+          dateEnabled: dateEnabledRef.current,
           allowEmergencyTapout: allowEmergencyTapoutRef.current,
           strictMode: strictModeRef.current,
           isScheduled: isScheduledRef.current,
@@ -683,7 +815,9 @@ function PresetSettingsScreen() {
                     setTimerHours(0);
                     setTimerMinutes(0);
                     setTimerSeconds(0);
+                    setTimerEnabled(false);
                     setTargetDate(null);
+                    setDateEnabled(false);
                     setIsScheduled(false);
                     setScheduleStartDate(null);
                     setScheduleEndDate(null);
@@ -730,7 +864,9 @@ function PresetSettingsScreen() {
                       setTimerHours(0);
                       setTimerMinutes(0);
                       setTimerSeconds(0);
+                      setTimerEnabled(false);
                       setTargetDate(null);
+                      setDateEnabled(false);
                       AsyncStorage.getItem(SCHEDULE_INFO_DISMISSED_KEY).then(dismissed => {
                         if (dismissed !== 'true') {
                           setScheduleInfoVisible(true);
@@ -994,82 +1130,168 @@ function PresetSettingsScreen() {
           </View>
         </ExpandableInfo>
 
-        {/* Timer Picker (if time limit enabled and not scheduled) */}
-        <View style={noTimeLimit || isScheduled ? { height: 0, overflow: 'hidden' } : undefined}>
-          <View className="mt-6 px-6">
-            <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} tracking-wider mb-4`}>
-              Fixed Time
-            </Text>
-            <TimerPicker
-              days={timerDays}
-              hours={timerHours}
-              minutes={timerMinutes}
-              seconds={timerSeconds}
-              onDaysChange={setTimerDays}
-              onHoursChange={setTimerHours}
-              onMinutesChange={setTimerMinutes}
-              onSecondsChange={setTimerSeconds}
-              parentScrollRef={mainScrollRef}
-            />
-
-            {/* Or Pick a Date Divider */}
-            <View className="flex-row items-center my-6 -mx-6">
-              <View style={{ backgroundColor: colors.border }} className="flex-1 h-px" />
-              <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} px-4`}>or</Text>
-              <View style={{ backgroundColor: colors.border }} className="flex-1 h-px" />
-            </View>
-
-            {/* Pick a Date Button */}
-            <TouchableOpacity
-              onPress={() => {
-                setTimerDays(0);
-                setTimerHours(0);
-                setTimerMinutes(0);
-                setTimerSeconds(0);
-                openDatePicker('targetDate');
-              }}
-              activeOpacity={0.7}
-              style={{ backgroundColor: colors.card, paddingVertical: s(buttonPadding.standard), borderWidth: 1, borderColor: colors.border, ...shadow.card }}
-              className={`flex-row items-center px-4 ${radius.xl}`}
-            >
-              <View className={`w-10 h-10 ${radius.lg} items-center justify-center mr-3`}>
-                <PickDateIcon size={s(iconSize.lg)} />
-              </View>
-              <View className="flex-1">
-                <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
-                  {targetDate ? 'Change Date' : 'Pick a Date'}
-                </Text>
-                {targetDate && (
-                  <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>
-                    Until {targetDate.toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      year: 'numeric',
-                    })} at {targetDate.toLocaleTimeString('en-US', {
-                      hour: 'numeric',
-                      minute: '2-digit',
-                      hour12: true,
-                    })}
+        {/* Set Timer Toggle (if time limit enabled and not scheduled) */}
+        <ExpandableInfo expanded={!noTimeLimit && !isScheduled} lazy>
+          <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}>
+            <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
+              <TouchableOpacity onPress={() => toggleInfo('setTimer')} activeOpacity={0.7} style={{ maxWidth: '75%' }} className="flex-row items-center">
+                <BoxiconsFilled name="bx-alarm-check" size={s(iconSize.toggleRow)} color={colors.text} style={{ marginRight: s(14) }} />
+                <View>
+                  <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Set Fixed Time</Text>
+                  <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-1`}>
+                    Set a countdown duration
                   </Text>
-                )}
-              </View>
-              {targetDate ? (
-                <TouchableOpacity
-                  onPress={() => setTargetDate(null)}
-                  hitSlop={{ top: s(10), bottom: s(10), left: s(10), right: s(10) }}
+                </View>
+              </TouchableOpacity>
+              <AnimatedSwitch
+                size="small"
+                value={timerEnabled}
+                animate={!skipSwitchAnimation}
+                onValueChange={(value: boolean) => {
+                  setTimerEnabled(value);
+                  requestAnimationFrame(() => {
+                    if (value) {
+                      setDateEnabled(false);
+                      setTargetDate(null);
+                    } else {
+                      setTimerDays(0);
+                      setTimerHours(0);
+                      setTimerMinutes(0);
+                      setTimerSeconds(0);
+                    }
+                  });
+                }}
+              />
+            </View>
+            <ExpandableInfo expanded={!!expandedInfo.setTimer}>
+              <TouchableOpacity onPress={() => toggleInfo('setTimer')} activeOpacity={0.7} className="px-6 pb-4">
+                <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular} leading-5`}>
+                  Set a fixed countdown timer for how long the block should last. Each bubble is formatted as HH:MM:SS (hours, minutes, seconds).
+                </Text>
+              </TouchableOpacity>
+            </ExpandableInfo>
+            {/* Time preset circles (shown when timer is enabled) */}
+            <ExpandableInfo expanded={timerEnabled}>
+              <View className="pb-4" style={{ paddingTop: s(8) }}>
+                {/* Current total display — fixed DD:HH:MM:SS format */}
+                <View style={{ position: 'relative' }} className="items-center justify-center mb-4 px-6">
+                  <View className="flex-row items-center">
+                    <Text style={{ color: colors.text }} className={`${textSize['2xLarge']} ${fontFamily.bold}`}>
+                      {`${pad2(timerDays)}:${pad2(timerHours)}:${pad2(timerMinutes)}:${pad2(timerSeconds)}`}
+                    </Text>
+                  </View>
+                  <View style={{ position: 'absolute', right: s(85), opacity: (timerDays > 0 || timerHours > 0 || timerMinutes > 0 || timerSeconds > 0) ? 1 : 0 }} pointerEvents={(timerDays > 0 || timerHours > 0 || timerMinutes > 0 || timerSeconds > 0) ? 'auto' : 'none'}>
+                    <HeaderIconButton onPress={() => { setTimerDays(0); setTimerHours(0); setTimerMinutes(0); setTimerSeconds(0); }} flashSize={28}>
+                      <XIcon size={s(iconSize.sm)} color={colors.text} />
+                    </HeaderIconButton>
+                  </View>
+                </View>
+                {/* Scrollable time presets */}
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{ paddingHorizontal: s(24), gap: s(10), paddingVertical: s(8) }}
                 >
-                  <XIcon size={s(iconSize.sm)} color={colors.text} />
-                </TouchableOpacity>
-              ) : (
-                <ChevronRightIcon size={s(iconSize.chevron)} color={colors.text} />
-              )}
-            </TouchableOpacity>
-
-            {/* Date picker rendered as full-screen overlay */}
-
+                  {TIME_PRESETS.map((preset) => (
+                      <TimePresetCircle
+                        key={preset.label}
+                        label={preset.label}
+                        onPress={() => {
+                          const currentTotal = totalToSeconds(timerDaysRef.current, timerHoursRef.current, timerMinutesRef.current, timerSecondsRef.current);
+                          const newTotal = currentTotal + preset.seconds;
+                          const t = secondsToTimer(newTotal);
+                          setTimerDays(t.d);
+                          setTimerHours(t.h);
+                          setTimerMinutes(t.m);
+                          setTimerSeconds(t.sec);
+                        }}
+                        onLongPressAdd={() => {
+                          const currentTotal = totalToSeconds(timerDaysRef.current, timerHoursRef.current, timerMinutesRef.current, timerSecondsRef.current);
+                          const newTotal = currentTotal + preset.seconds;
+                          const t = secondsToTimer(newTotal);
+                          setTimerDays(t.d);
+                          setTimerHours(t.h);
+                          setTimerMinutes(t.m);
+                          setTimerSeconds(t.sec);
+                        }}
+                      />
+                  ))}
+                </ScrollView>
+              </View>
+            </ExpandableInfo>
           </View>
-          <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight, marginTop: s(16) }} />
-        </View>
+        </ExpandableInfo>
+
+        {/* Pick a Date Toggle (if time limit enabled and not scheduled) */}
+        <ExpandableInfo expanded={!noTimeLimit && !isScheduled} lazy>
+          <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}>
+            <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
+              <TouchableOpacity onPress={() => toggleInfo('pickDate')} activeOpacity={0.7} style={{ maxWidth: '75%' }} className="flex-row items-center">
+                <PickDateIcon size={s(iconSize.toggleRow)} color={colors.text} />
+                <View style={{ marginLeft: s(14) }}>
+                  <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Pick a Date</Text>
+                  <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-1`}>
+                    {targetDate
+                      ? `Until ${targetDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} at ${targetDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`
+                      : 'Block until a specific date and time'}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+              <AnimatedSwitch
+                size="small"
+                value={dateEnabled}
+                animate={!skipSwitchAnimation}
+                onValueChange={(value: boolean) => {
+                  setDateEnabled(value);
+                  requestAnimationFrame(() => {
+                    if (value) {
+                      setTimerEnabled(false);
+                      setTimerDays(0);
+                      setTimerHours(0);
+                      setTimerMinutes(0);
+                      setTimerSeconds(0);
+                    } else {
+                      setTargetDate(null);
+                    }
+                  });
+                }}
+              />
+            </View>
+            <ExpandableInfo expanded={!!expandedInfo.pickDate}>
+              <TouchableOpacity onPress={() => toggleInfo('pickDate')} activeOpacity={0.7} className="px-6 pb-4">
+                <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular} leading-5`}>
+                  Choose a specific date and time for the block to end.
+                </Text>
+              </TouchableOpacity>
+            </ExpandableInfo>
+            {/* Date picker button (shown when date is enabled) */}
+            <ExpandableInfo expanded={dateEnabled}>
+              <View className="px-6 pb-4">
+                <TouchableOpacity
+                  onPress={() => openDatePicker('targetDate')}
+                  activeOpacity={0.7}
+                  style={{ backgroundColor: colors.card, paddingVertical: s(buttonPadding.standard), borderWidth: 1, borderColor: colors.border, ...shadow.card }}
+                  className={`flex-row items-center px-4 ${radius.xl}`}
+                >
+                  <View className={`w-10 h-10 ${radius.lg} items-center justify-center mr-3`}>
+                    <PickDateIcon size={s(iconSize.lg)} />
+                  </View>
+                  <View className="flex-1">
+                    <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
+                      {targetDate ? 'Change Date' : 'Pick a Date'}
+                    </Text>
+                    {targetDate && (
+                      <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>
+                        Until {targetDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} at {targetDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                      </Text>
+                    )}
+                  </View>
+                  <ChevronRightIcon size={s(iconSize.chevron)} color={colors.text} />
+                </TouchableOpacity>
+              </View>
+            </ExpandableInfo>
+          </View>
+        </ExpandableInfo>
 
         {/* ── Block Behavior ── */}
 
@@ -1285,6 +1507,7 @@ function PresetSettingsScreen() {
           setAllowEmergencyTapout(false);
         }}
       />
+
 
     </View>
   );

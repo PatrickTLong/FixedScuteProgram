@@ -11,11 +11,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 function TermsAcceptScreen() {
   const { colors } = useTheme();
   const { handleTermsAccepted } = useAuth();
   const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false);
+  const [isAccepting, setIsAccepting] = useState(false);
 
   const handleScroll = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
     if (hasScrolledToBottom) return;
@@ -25,7 +27,8 @@ function TermsAcceptScreen() {
   }, [hasScrolledToBottom]);
 
   async function handleAcceptTerms() {
-    if (!hasScrolledToBottom) return;
+    if (!hasScrolledToBottom || isAccepting) return;
+    setIsAccepting(true);
     await AsyncStorage.setItem('tos_accepted', 'true');
     handleTermsAccepted();
   }
@@ -153,14 +156,18 @@ function TermsAcceptScreen() {
         </Text>
         <TouchableOpacity
           onPress={() => handleAcceptTerms()}
-          disabled={!hasScrolledToBottom}
+          disabled={!hasScrolledToBottom || isAccepting}
           activeOpacity={0.8}
           style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
           className={`${radius.full} py-4 items-center`}
         >
-          <Text style={{ color: hasScrolledToBottom ? colors.text : colors.textMuted }} className={`${textSize.small} ${fontFamily.semibold}`}>
-            I Accept
-          </Text>
+          {isAccepting ? (
+            <LoadingSpinner size={20} />
+          ) : (
+            <Text style={{ color: hasScrolledToBottom ? colors.text : colors.textMuted }} className={`${textSize.small} ${fontFamily.semibold}`}>
+              I Accept
+            </Text>
+          )}
         </TouchableOpacity>
       </View>
     </SafeAreaView>

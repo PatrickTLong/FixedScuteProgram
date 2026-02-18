@@ -18,7 +18,6 @@ import Svg, { Path } from 'react-native-svg';
 import BoxiconsFilled from '../components/BoxiconsFilled';
 import ConfirmationModal from '../components/ConfirmationModal';
 import HeaderIconButton from '../components/HeaderIconButton';
-import EmailConfirmationModal from '../components/EmailConfirmationModal';
 import { getMembershipStatus, MembershipStatus, getCachedMembershipStatus } from '../services/cardApi';
 import { useTheme , textSize, fontFamily, radius, shadow, iconSize, buttonPadding, colors } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
@@ -170,8 +169,8 @@ function SettingsScreen() {
 
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
   const [resetModalVisible, setResetModalVisible] = useState(false);
-  const [deleteAccountModalVisible, setDeleteAccountModalVisible] = useState(false);
-  const [deleteEmailConfirmModalVisible, setDeleteEmailConfirmModalVisible] = useState(false);
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [deleteStep, setDeleteStep] = useState<1 | 2>(1);
   const [membershipModalVisible, setMembershipModalVisible] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'yearly' | 'lifetime' | null>(null);
   const [lockChecked, setLockChecked] = useState(hasCache);
@@ -348,14 +347,14 @@ function SettingsScreen() {
   };
 
   const handleDeleteAccountConfirm = () => {
-    // First modal confirmed, show email confirmation modal
-    setDeleteAccountModalVisible(false);
-    setDeleteEmailConfirmModalVisible(true);
+    // First step confirmed, show final confirmation
+    setDeleteStep(2);
   };
 
   const handleDeleteAccount = async () => {
-    // Email confirmed, proceed with deletion
-    setDeleteEmailConfirmModalVisible(false);
+    // Final confirmation, proceed with deletion
+    setDeleteModalVisible(false);
+    setDeleteStep(1);
     setIsDeleting(true);
     setDeleteError(null);
 
@@ -634,7 +633,7 @@ function SettingsScreen() {
           <SettingsRow
             icon={trashIcon}
             label="Delete Account"
-            onPress={isDisabled ? undefined : () => setDeleteAccountModalVisible(true)}
+            onPress={isDisabled ? undefined : () => { setDeleteStep(1); setDeleteModalVisible(true); }}
             labelColor={colors.red}
             borderColor={colors.divider}
 
@@ -667,24 +666,18 @@ function SettingsScreen() {
         onCancel={() => setResetModalVisible(false)}
       />
 
-      {/* Delete Account Modal - First Warning */}
+      {/* Delete Account Modal - Two Steps */}
       <ConfirmationModal
-        visible={deleteAccountModalVisible}
-        title="Delete Account"
-        message="This will permanently delete your account and all associated data. Your subscription will be cancelled automatically. Previous purchases will not be refunded. This action cannot be undone."
-        confirmText="Continue"
+        visible={deleteModalVisible}
+        title={deleteStep === 1 ? 'Delete Account' : 'Are You Sure?'}
+        message={deleteStep === 1
+          ? 'This will permanently delete your account and all associated data. Previous purchases will not be refunded. This action cannot be undone.'
+          : 'This action is permanent and cannot be undone. All your data will be deleted forever.'}
+        confirmText={deleteStep === 1 ? 'Continue' : 'Delete Account'}
         cancelText="Cancel"
         isDestructive
-        onConfirm={handleDeleteAccountConfirm}
-        onCancel={() => setDeleteAccountModalVisible(false)}
-      />
-
-      {/* Email Confirmation Modal - Second Layer */}
-      <EmailConfirmationModal
-        visible={deleteEmailConfirmModalVisible}
-        userEmail={email}
-        onConfirm={handleDeleteAccount}
-        onCancel={() => setDeleteEmailConfirmModalVisible(false)}
+        onConfirm={deleteStep === 1 ? handleDeleteAccountConfirm : handleDeleteAccount}
+        onCancel={() => setDeleteModalVisible(false)}
       />
 
       {/* Privacy Policy Modal */}

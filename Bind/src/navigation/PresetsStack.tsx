@@ -23,7 +23,9 @@ export interface FinalSettingsState {
   timerHours: number;
   timerMinutes: number;
   timerSeconds: number;
+  timerEnabled: boolean;
   targetDate: string | null;
+  dateEnabled: boolean;
   allowEmergencyTapout: boolean;
   strictMode: boolean;
   isScheduled: boolean;

@@ -58,14 +58,15 @@
                     android:paddingEnd="18dp"
                     android:visibility="gone">
 
-                    <!-- Chevron icon (rotated -90 = points right, 0 = points down) -->
+                    <!-- Caret icon (0 = points right, 90 = points down) -->
                     <ImageView
                         android:id="@+id/bubble_chevron"
-                        android:layout_width="18dp"
-                        android:layout_height="18dp"
-                        android:src="@drawable/ic_chevron"
-                        android:layout_marginEnd="10dp"
-                        android:rotation="-90" />
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:padding="9dp"
+                        android:src="@drawable/ic_caret"
+                        android:layout_marginEnd="4dp"
+                        android:rotation="0" />
 
                     <!-- Countdown Timer -->
                     <TextView

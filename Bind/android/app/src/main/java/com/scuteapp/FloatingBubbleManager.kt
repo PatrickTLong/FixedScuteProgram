@@ -850,9 +850,9 @@ class FloatingBubbleManager(private val context: Context) {
         // Extend auto-collapse delay while viewing app list
         handler.removeCallbacks(autoCollapseRunnable)
 
-        // Rotate chevron from right (-90) to down (0)
+        // Rotate caret from right (0) to down (90)
         bubbleChevron?.animate()
-            ?.rotation(0f)
+            ?.rotation(90f)
             ?.setDuration(ANIMATION_DURATION)
             ?.setInterpolator(DecelerateInterpolator())
             ?.start()
@@ -904,9 +904,9 @@ class FloatingBubbleManager(private val context: Context) {
         }
 
         if (animate) {
-            // Rotate chevron back to right
+            // Rotate caret back to right
             bubbleChevron?.animate()
-                ?.rotation(-90f)
+                ?.rotation(0f)
                 ?.setDuration(ANIMATION_DURATION)
                 ?.setInterpolator(DecelerateInterpolator())
                 ?.start()
@@ -922,7 +922,7 @@ class FloatingBubbleManager(private val context: Context) {
                 }
                 ?.start()
         } else {
-            bubbleChevron?.rotation = -90f
+            bubbleChevron?.rotation = 0f
             bubbleAppList?.visibility = View.GONE
             bubbleAppList?.alpha = 1f
             bubbleAppList?.translationY = 0f
