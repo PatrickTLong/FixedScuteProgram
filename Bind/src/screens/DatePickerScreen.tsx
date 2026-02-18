@@ -539,29 +539,17 @@ function DatePickerScreen() {
       >
         {/* Month/Year Navigation */}
         <View className="flex-row items-center justify-between mb-4">
-          <TouchableOpacity
-            onPress={handlePrevMonth}
-            disabled={!canGoPrev}
-            activeOpacity={0.7}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            className="w-10 h-10 items-center justify-center"
-          >
+          <HeaderIconButton onPress={handlePrevMonth} disabled={!canGoPrev}>
             <ChevronLeftIcon size={s(iconSize.chevron)} color={canGoPrev ? colors.text : colors.textMuted} />
-          </TouchableOpacity>
+          </HeaderIconButton>
 
           <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>
             {MONTHS[viewMonth]} {viewYear}
           </Text>
 
-          <TouchableOpacity
-            onPress={handleNextMonth}
-            disabled={!canGoNext}
-            activeOpacity={0.7}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            className="w-10 h-10 items-center justify-center"
-          >
+          <HeaderIconButton onPress={handleNextMonth} disabled={!canGoNext}>
             <ChevronRightIcon size={s(iconSize.chevron)} color={canGoNext ? colors.text : colors.textMuted} />
-          </TouchableOpacity>
+          </HeaderIconButton>
         </View>
 
         {/* Days of Week Header */}
