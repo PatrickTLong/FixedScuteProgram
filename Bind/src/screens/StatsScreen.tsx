@@ -364,7 +364,7 @@ function StatsScreen() {
   if (loading) {
     return (
       <View style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center', paddingTop: insets.top }}>
-        <LoadingSpinner size={s(32)} />
+        <LoadingSpinner size={s(48)} />
       </View>
     );
   }

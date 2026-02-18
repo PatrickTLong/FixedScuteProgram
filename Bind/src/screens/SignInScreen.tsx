@@ -146,7 +146,7 @@ function SignInScreen() {
   if (loading) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }}>
-        <LoadingSpinner size={s(32)} />
+        <LoadingSpinner size={s(48)} />
       </SafeAreaView>
     );
   }

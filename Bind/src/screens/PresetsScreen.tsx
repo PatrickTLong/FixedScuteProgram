@@ -702,7 +702,7 @@ function PresetsScreen() {
       <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
         {showSpinner && (
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-            <LoadingSpinner size={s(32)} />
+            <LoadingSpinner size={s(48)} />
           </View>
         )}
       </View>
@@ -738,18 +738,9 @@ function PresetsScreen() {
         </View>
 
         {/* Add Button - stays green but disabled when locked */}
-          <TouchableOpacity
-            onPress={handleAddPresetWithFlag}
-            disabled={isDisabled}
-            activeOpacity={0.7}
-            style={{
-              backgroundColor: colors.card,
-              borderWidth: 1, borderColor: colors.border, ...shadow.card,
-              width: s(44), height: s(44), borderRadius: 9999, alignItems: 'center', justifyContent: 'center',
-            }}
-          >
-            <BoxiconsFilled name="bx-plus" size={iconSize.xs} color="#fff" />
-          </TouchableOpacity>
+          <HeaderIconButton onPress={handleAddPresetWithFlag} disabled={isDisabled}>
+            <BoxiconsFilled name="bx-plus-circle" size={s(iconSize.headerNav)} color="#fff" />
+          </HeaderIconButton>
       </View>
 
       {/* Presets List */}

@@ -322,7 +322,7 @@ function SettingsScreen() {
 
   const handleBugReport = () => {
     if (sharedIsLocked) return;
-    Linking.openURL('googlegmail:///co?to=bugs@scuteapp.com&subject=Scute%20Bug%20Report');
+    Linking.openURL('mailto:bugs@scuteapp.com?subject=Scute%20Bug%20Report');
   };
 
   const handleLogout = () => {
@@ -399,7 +399,7 @@ function SettingsScreen() {
   if (isResetting || isDeleting || isLoggingOut) {
     return (
       <View style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center', paddingTop: insets.top }}>
-        <LoadingSpinner size={s(32)} />
+        <LoadingSpinner size={s(48)} />
       </View>
     );
   }
@@ -408,7 +408,7 @@ function SettingsScreen() {
   if (loading) {
     return (
       <View style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center', paddingTop: insets.top }}>
-        <LoadingSpinner size={s(32)} />
+        <LoadingSpinner size={s(48)} />
       </View>
     );
   }

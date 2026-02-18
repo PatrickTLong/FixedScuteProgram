@@ -221,7 +221,7 @@ function SelectAppsScreen({
 
           {loading ? (
             <View className="flex-1 items-center justify-center">
-              <LoadingSpinner size={s(32)} />
+              <LoadingSpinner size={s(48)} />
               <Text style={{ color: colors.textSecondary }} className={`${textSize.base} ${fontFamily.regular} mt-4`}>
                 Loading apps...
               </Text>

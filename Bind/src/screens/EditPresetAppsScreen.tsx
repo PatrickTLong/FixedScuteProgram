@@ -640,7 +640,7 @@ function EditPresetAppsScreen() {
                 {/* Apps List - loading dots on first load, then persists */}
                 {loadingApps ? (
                   <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }} pointerEvents="none">
-                    <LoadingSpinner size={s(32)} />
+                    <LoadingSpinner size={s(48)} />
                   </View>
                 ) : (
                   <FlatList
@@ -682,17 +682,9 @@ function EditPresetAppsScreen() {
                     className={`${textSize.small} ${fontFamily.semibold}`}
                   />
                 </View>
-                <TouchableOpacity
-                  onPress={addWebsite}
-                  activeOpacity={0.7}
-                  style={{
-                    backgroundColor: colors.card,
-                    borderWidth: 1, borderColor: colors.border, ...shadow.card,
-                    width: s(44), height: s(44), borderRadius: 9999, alignItems: 'center', justifyContent: 'center',
-                  }}
-                >
-                  <BoxiconsFilled name="bx-plus" size={iconSize.xs} color="#fff" />
-                </TouchableOpacity>
+                <HeaderIconButton onPress={addWebsite}>
+                  <BoxiconsFilled name="bx-plus-circle" size={s(iconSize.headerNav)} color="#fff" />
+                </HeaderIconButton>
               </View>
 
               <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} mb-4`}>

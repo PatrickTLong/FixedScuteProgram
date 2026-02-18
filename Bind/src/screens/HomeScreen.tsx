@@ -17,6 +17,7 @@ import Svg, { Path } from 'react-native-svg';
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 import BoxiconsFilled from '../components/BoxiconsFilled';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import HeaderIconButton from '../components/HeaderIconButton';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -24,7 +25,7 @@ import BlockNowButton from '../components/BlockNowButton';
 import InfoModal from '../components/InfoModal';
 import EmergencyTapoutModal from '../components/EmergencyTapoutModal';
 import { updateLockStatus, Preset, useEmergencyTapout, activatePreset, invalidateUserCaches } from '../services/cardApi';
-import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius, shadow, iconSize } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { useAuth } from '../context/AuthContext';
 
@@ -927,7 +928,7 @@ function HomeScreen() {
   if (loading) {
     return (
       <View style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center', paddingTop: insets.top }}>
-        <LoadingSpinner size={s(32)} />
+        <LoadingSpinner size={s(48)} />
       </View>
     );
   }
@@ -944,54 +945,29 @@ function HomeScreen() {
         {/* Right side buttons */}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: s(8) }}>
           {/* Silent Notifications Toggle */}
-          <TouchableOpacity
-            onPress={toggleSilentNotifications}
-            activeOpacity={0.7}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            style={{
-              backgroundColor: silentNotifications ? colors.green : colors.card,
-              borderWidth: 1, borderColor: silentNotifications ? colors.green : colors.border, ...shadow.card,
-              width: s(44), height: s(44), borderRadius: 9999, alignItems: 'center', justifyContent: 'center',
-            }}
-          >
+          <HeaderIconButton onPress={toggleSilentNotifications}>
             {silentNotifications ? (
-              <Svg width={s(18)} height={s(18)} viewBox="0 0 24 24" fill="#FFFFFF">
+              <Svg width={s(iconSize.headerNav)} height={s(iconSize.headerNav)} viewBox="0 0 24 24" fill="#FFFFFF">
                 <Path d="M3.53 2.47a.75.75 0 0 0-1.06 1.06l18 18a.75.75 0 1 0 1.06-1.06l-18-18ZM20.57 16.476c-.223.082-.448.161-.674.238L7.319 4.137A6.75 6.75 0 0 1 18.75 9v.75c0 2.123.8 4.057 2.118 5.52a.75.75 0 0 1-.297 1.206Z" />
                 <Path fillRule="evenodd" clipRule="evenodd" d="M5.25 9c0-.184.007-.366.022-.546l10.384 10.384a3.751 3.751 0 0 1-7.396-1.119 24.585 24.585 0 0 1-4.831-1.244.75.75 0 0 1-.298-1.205A8.217 8.217 0 0 0 5.25 9.75V9Zm4.502 8.9a2.25 2.25 0 1 0 4.496 0 25.057 25.057 0 0 1-4.496 0Z" />
               </Svg>
             ) : (
-              <Svg width={s(18)} height={s(18)} viewBox="0 0 24 24" fill="#FFFFFF">
+              <Svg width={s(iconSize.headerNav)} height={s(iconSize.headerNav)} viewBox="0 0 24 24" fill="#FFFFFF">
                 <Path d="M5.85 3.5a.75.75 0 0 0-1.117-1 9.719 9.719 0 0 0-2.348 4.876.75.75 0 0 0 1.479.248A8.219 8.219 0 0 1 5.85 3.5ZM19.267 2.5a.75.75 0 1 0-1.118 1 8.22 8.22 0 0 1 1.987 4.124.75.75 0 0 0 1.48-.248A9.72 9.72 0 0 0 19.266 2.5Z" />
                 <Path fillRule="evenodd" clipRule="evenodd" d="M12 2.25A6.75 6.75 0 0 0 5.25 9v.75a8.217 8.217 0 0 1-2.119 5.52.75.75 0 0 0 .298 1.206c1.544.57 3.16.99 4.831 1.243a3.75 3.75 0 1 0 7.48 0 24.583 24.583 0 0 0 4.83-1.244.75.75 0 0 0 .298-1.205 8.217 8.217 0 0 1-2.118-5.52V9A6.75 6.75 0 0 0 12 2.25ZM9.75 18c0-.034 0-.067.002-.1a25.05 25.05 0 0 0 4.496 0l.002.1a2.25 2.25 0 1 1-4.5 0Z" />
               </Svg>
             )}
-          </TouchableOpacity>
+          </HeaderIconButton>
 
           {/* WiFi Settings */}
-          <TouchableOpacity
-            onPress={() => { Linking.sendIntent('android.settings.WIFI_SETTINGS').catch(() => {}); }}
-            activeOpacity={0.7}
-            style={{
-              backgroundColor: colors.card,
-              borderWidth: 1, borderColor: colors.border, ...shadow.card,
-              width: s(44), height: s(44), borderRadius: 9999, alignItems: 'center', justifyContent: 'center',
-            }}
-          >
-            <BoxiconsFilled name="bx-wifi" size={s(18)} color="#FFFFFF" />
-          </TouchableOpacity>
+          <HeaderIconButton onPress={() => { Linking.sendIntent('android.settings.WIFI_SETTINGS').catch(() => {}); }}>
+            <BoxiconsFilled name="bx-wifi" size={s(iconSize.headerNav)} color="#FFFFFF" />
+          </HeaderIconButton>
 
           {/* Support @ icon */}
-          <TouchableOpacity
-            onPress={() => { Linking.openURL('mailto:support@scuteapp.com?subject=Scute%20Support%20Request'); }}
-            activeOpacity={0.7}
-            style={{
-              backgroundColor: colors.card,
-              borderWidth: 1, borderColor: colors.border, ...shadow.card,
-              width: s(44), height: s(44), borderRadius: 9999, alignItems: 'center', justifyContent: 'center',
-            }}
-          >
-            <BoxiconsFilled name="bx-send" size={s(18)} color="#FFFFFF" />
-          </TouchableOpacity>
+          <HeaderIconButton onPress={() => { Linking.openURL('mailto:support@scuteapp.com?subject=Scute%20Support%20Request'); }}>
+            <BoxiconsFilled name="bx-send" size={s(iconSize.headerNav)} color="#FFFFFF" />
+          </HeaderIconButton>
         </View>
       </View>
 
