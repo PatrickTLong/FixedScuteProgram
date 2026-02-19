@@ -354,7 +354,7 @@ function HomeScreen() {
         setTimeRemaining(null);
         setElapsedTime(null);
         setSharedLockStatus({ isLocked: false, lockStartedAt: null, lockEndsAt: null });
-        setTapoutStatus(tapoutStatus ? { ...tapoutStatus, remaining: result.remaining } : null);
+        setTapoutStatus(tapoutStatus ? { ...tapoutStatus, remaining: result.remaining, nextRefillDate: result.nextRefillDate } : null);
         if (isScheduledPreset) {
           setCurrentPreset(null);
           setActivePreset(null);

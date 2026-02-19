@@ -60,7 +60,9 @@
       "Bash(/tmp/edit_preset.py:*)",
       "WebFetch(domain:thelinuxcode.com)",
       "Bash(Select-String \"boxicons\")",
-      "WebFetch(domain:static.enapter.com)"
+      "WebFetch(domain:static.enapter.com)",
+      "Bash(.gradlew clean:*)",
+      "Bash(cmd /c:*)"
     ],
     "additionalDirectories": [
       "c:\\Users\\Shado\\OneDrive\\Desktop\\ScuteProgram\\Bind\\src"

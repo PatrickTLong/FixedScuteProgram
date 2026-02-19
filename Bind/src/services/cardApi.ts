@@ -668,7 +668,7 @@ export async function setEmergencyTapoutEnabled(email: string, enabled: boolean)
  * @param presetId - Optional preset ID to deactivate (if not provided, all active presets are deactivated)
  * @param skipTapoutDecrement - If true, unlocks without decrementing tapout count (for slide-to-unlock)
  */
-export async function useEmergencyTapout(email: string, presetId?: string, skipTapoutDecrement?: boolean): Promise<{ success: boolean; remaining: number }> {
+export async function useEmergencyTapout(email: string, presetId?: string, skipTapoutDecrement?: boolean): Promise<{ success: boolean; remaining: number; nextRefillDate: string | null }> {
   const normalizedEmail = email.toLowerCase();
 
   try {
@@ -682,15 +682,16 @@ export async function useEmergencyTapout(email: string, presetId?: string, skipT
     const data = await response.json();
 
     if (!response.ok || data.error) {
-      return { success: false, remaining: 0 };
+      return { success: false, remaining: 0, nextRefillDate: null };
     }
 
-    // Invalidate presets cache since the preset was deactivated
+    // Invalidate presets and tapout status cache since state changed
     invalidateCache(`presets:${normalizedEmail}`);
+    invalidateCache(`tapoutStatus:${normalizedEmail}`);
 
-    return { success: true, remaining: data.remaining ?? 0 };
+    return { success: true, remaining: data.remaining ?? 0, nextRefillDate: data.nextRefillDate ?? null };
   } catch (error) {
-    return { success: false, remaining: 0 };
+    return { success: false, remaining: 0, nextRefillDate: null };
   }
 }
 

@@ -1449,6 +1449,15 @@ app.get('/api/emergency-tapout', authenticateToken, async (req, res) => {
     let remaining = data.emergency_tapout_remaining ?? 3;
     let nextRefillDate = data.emergency_tapout_next_refill ? new Date(data.emergency_tapout_next_refill) : null;
 
+    // Safety net: if below max tapouts but no refill date, set one now
+    if (remaining < 3 && !nextRefillDate) {
+      nextRefillDate = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000); // 2 weeks from now
+      await supabase
+        .from('user_cards')
+        .update({ emergency_tapout_next_refill: nextRefillDate.toISOString() })
+        .eq('email', normalizedEmail);
+    }
+
     // Check if a refill is due
     if (remaining < 3 && nextRefillDate && now >= nextRefillDate) {
       // Grant one tapout
@@ -1607,9 +1616,12 @@ app.post('/api/emergency-tapout/use', authenticateToken, async (req, res) => {
       // Calculate next refill date
       // If going from 3 to 2, start the 2-week countdown
       // If already below 3, keep the existing countdown (don't reset it)
-      if (data.emergency_tapout_remaining === 3) {
+      if ((data.emergency_tapout_remaining ?? 3) === 3) {
         // First tapout used, start the refill countdown
         nextRefillDate = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(); // 2 weeks from now
+      } else if (!nextRefillDate) {
+        // Safety net: if no refill date exists, set one now
+        nextRefillDate = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
       }
       // If already had a refill date scheduled, keep it
     }
