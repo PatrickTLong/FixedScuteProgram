@@ -210,6 +210,8 @@ class AppMonitorService(private val context: Context) {
         // Check if should block
         if (shouldBlockApp(currentPackage)) {
             Log.d(TAG, "BLOCKING app: $currentPackage")
+            // Kick user out of the app immediately by going HOME
+            ScuteAccessibilityService.instance?.goHome()
             showBlockedOverlay(currentPackage)
         }
     }

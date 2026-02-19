@@ -16,6 +16,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import BoxiconsFilled from '../components/BoxiconsFilled';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import ConfirmationModal from '../components/ConfirmationModal';
 import HeaderIconButton from '../components/HeaderIconButton';
 import { getMembershipStatus, MembershipStatus, getCachedMembershipStatus } from '../services/cardApi';
@@ -113,7 +114,7 @@ const ChevronRightIcon = ({ size = iconSize.chevron, color = "#FFFFFF" }: { size
 );
 
 const TapoutIcon = ({ color = '#FF5C5C' }: { color?: string }) => (
-  <BoxiconsFilled name="bx-heart" size={iconSize.forTabs} color={color} />
+  <MaterialCommunityIcons name="heart-pulse" size={iconSize.forTabs} color={color} />
 );
 
 interface SettingsRowProps {
@@ -546,7 +547,7 @@ function SettingsScreen() {
             <Animated.View className="mr-4" style={{ transform: [{ scale: heartbeatScale }] }}>
               {(tapoutStatus?.remaining ?? 0) > 0
                 ? <TapoutIcon />
-                : <BoxiconsFilled name="bx-heart-break" size={iconSize.forTabs} color={colors.textMuted} />
+                : <MaterialCommunityIcons name="heart-broken" size={iconSize.forTabs} color={colors.textMuted} />
               }
             </Animated.View>
             <View className="flex-1">

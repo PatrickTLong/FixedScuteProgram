@@ -8,6 +8,7 @@ import {
 import Svg, { Path } from 'react-native-svg';
 import LoadingSpinner from './LoadingSpinner';
 import BoxiconsFilled from './BoxiconsFilled';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useTheme , textSize, fontFamily, radius, shadow, iconSize, buttonPadding } from '../context/ThemeContext';
 
 import { useResponsive } from '../utils/responsive';
@@ -114,7 +115,7 @@ function EmergencyTapoutModal({
           <View className="justify-center p-6">
             <View className="items-center">
               <View className="flex-row items-center mb-3">
-                <BoxiconsFilled name={canUseTapout ? "bx-heart" : "bx-heart-break"} size={iconSize.md} color={canUseTapout ? '#FF5C5C' : colors.textMuted} />
+                <MaterialCommunityIcons name={canUseTapout ? "heart-pulse" : "heart-broken"} size={iconSize.md} color={canUseTapout ? '#FF5C5C' : colors.textMuted} />
                 <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold} ml-2`}>
                   Emergency Tapout
                 </Text>

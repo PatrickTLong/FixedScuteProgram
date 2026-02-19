@@ -201,7 +201,7 @@ function SignInScreen() {
                   <Text style={{ color: colors.text, position: 'absolute', top: s(-25), left: s(8) }} className={`${textSize.small} ${fontFamily.regular}`}>
                     Password
                   </Text>
-                  <View style={{ position: 'relative' }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, height: s(52), borderWidth: 1, borderColor: colors.border, ...shadow.card, overflow: 'hidden' }} className={radius.full}>
                     <TextInput
                       value={password}
                       onChangeText={setPassword}
@@ -209,27 +209,27 @@ function SignInScreen() {
                       autoCapitalize="none"
                       autoCorrect={false}
                       editable={!loading}
-                      style={{ backgroundColor: colors.card, color: colors.text, paddingRight: s(50), height: s(52), borderWidth: 1, borderColor: colors.border, ...shadow.card }}
-                      className={`${radius.full} px-5 ${textSize.small} ${fontFamily.regular}`}
+                      style={{ flex: 1, color: colors.text, height: s(52) }}
+                      className={`px-5 ${textSize.small} ${fontFamily.regular}`}
                     />
                     <TouchableOpacity
                       onPress={() => setShowPassword(!showPassword)}
-                      style={{ position: 'absolute', right: s(16), top: 0, bottom: 0, justifyContent: 'center' }}
+                      activeOpacity={0.6}
+                      style={{ justifyContent: 'center', alignItems: 'center', paddingHorizontal: s(16), height: '100%' }}
                     >
                       <BoxiconsFilled name={showPassword ? 'bx-eye' : 'bx-eye-slash'} size={iconSize.md} color={colors.text} />
                     </TouchableOpacity>
-
-                    {/* Forgot Password - absolutely positioned */}
-                    <TouchableOpacity
-                      onPress={() => onForgotPassword()}
-                      activeOpacity={0.7}
-                      style={{ position: 'absolute', right: 0, top: s(60) }}
-                    >
-                      <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular}`}>
-                        Forgot Password?
-                      </Text>
-                    </TouchableOpacity>
                   </View>
+                  {/* Forgot Password */}
+                  <TouchableOpacity
+                    onPress={() => onForgotPassword()}
+                    activeOpacity={0.7}
+                    style={{ alignSelf: 'flex-end', marginTop: s(8) }}
+                  >
+                    <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular}`}>
+                      Forgot Password?
+                    </Text>
+                  </TouchableOpacity>
                 </View>
               </>
             ) : (

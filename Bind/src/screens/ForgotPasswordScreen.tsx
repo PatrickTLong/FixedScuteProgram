@@ -260,7 +260,7 @@ function ForgotPasswordScreen() {
                   <Text style={{ color: colors.text, position: 'absolute', top: s(-25), left: s(8) }} className={`${textSize.small} ${fontFamily.regular}`}>
                     New Password
                   </Text>
-                  <View style={{ position: 'relative' }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, height: s(52), borderWidth: 1, borderColor: colors.border, ...shadow.card, overflow: 'hidden' }} className={radius.full}>
                     <TextInput
                       value={newPassword}
                       onChangeText={setNewPassword}
@@ -268,12 +268,13 @@ function ForgotPasswordScreen() {
                       autoCapitalize="none"
                       autoCorrect={false}
                       editable={!loading}
-                      style={{ backgroundColor: colors.card, color: colors.text, paddingRight: s(50), height: s(52), borderWidth: 1, borderColor: colors.border, ...shadow.card }}
-                      className={`${radius.full} px-5 ${textSize.small} ${fontFamily.regular}`}
+                      style={{ flex: 1, color: colors.text, height: s(52) }}
+                      className={`px-5 ${textSize.small} ${fontFamily.regular}`}
                     />
                     <TouchableOpacity
                       onPress={() => setShowNewPassword(!showNewPassword)}
-                      style={{ position: 'absolute', right: s(16), top: 0, bottom: 0, justifyContent: 'center' }}
+                      activeOpacity={0.6}
+                      style={{ justifyContent: 'center', alignItems: 'center', paddingHorizontal: s(16), height: '100%' }}
                     >
                       <BoxiconsFilled name={showNewPassword ? 'bx-eye' : 'bx-eye-slash'} size={iconSize.md} color={colors.text} />
                     </TouchableOpacity>
@@ -284,7 +285,7 @@ function ForgotPasswordScreen() {
                   <Text style={{ color: colors.text, position: 'absolute', top: s(-25), left: s(8) }} className={`${textSize.small} ${fontFamily.regular}`}>
                     Confirm New Password
                   </Text>
-                  <View style={{ position: 'relative' }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, height: s(52), borderWidth: 1, borderColor: colors.border, ...shadow.card, overflow: 'hidden' }} className={radius.full}>
                     <TextInput
                       value={confirmPassword}
                       onChangeText={setConfirmPassword}
@@ -292,12 +293,13 @@ function ForgotPasswordScreen() {
                       autoCapitalize="none"
                       autoCorrect={false}
                       editable={!loading}
-                      style={{ backgroundColor: colors.card, color: colors.text, paddingRight: s(50), height: s(52), borderWidth: 1, borderColor: colors.border, ...shadow.card }}
-                      className={`${radius.full} px-5 ${textSize.small} ${fontFamily.regular}`}
+                      style={{ flex: 1, color: colors.text, height: s(52) }}
+                      className={`px-5 ${textSize.small} ${fontFamily.regular}`}
                     />
                     <TouchableOpacity
                       onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                      style={{ position: 'absolute', right: s(16), top: 0, bottom: 0, justifyContent: 'center' }}
+                      activeOpacity={0.6}
+                      style={{ justifyContent: 'center', alignItems: 'center', paddingHorizontal: s(16), height: '100%' }}
                     >
                       <BoxiconsFilled name={showConfirmPassword ? 'bx-eye' : 'bx-eye-slash'} size={iconSize.md} color={colors.text} />
                     </TouchableOpacity>
