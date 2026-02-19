@@ -16,7 +16,6 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import BoxiconsFilled from '../components/BoxiconsFilled';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import ConfirmationModal from '../components/ConfirmationModal';
 import HeaderIconButton from '../components/HeaderIconButton';
 import { getMembershipStatus, MembershipStatus, getCachedMembershipStatus } from '../services/cardApi';
@@ -113,12 +112,6 @@ const ChevronRightIcon = ({ size = iconSize.chevron, color = "#FFFFFF" }: { size
   <BoxiconsFilled name="bx-caret-right-circle" size={size} color={color} />
 );
 
-const TapoutIcon = ({ color = '#FF5C5C', size = iconSize.forTabs }: { color?: string; size?: number }) => (
-  <Svg width={size} height={size} viewBox="0 0 640 640">
-    <Path d="M320 171.9L305 151.1C280 116.5 239.9 96 197.1 96C123.6 96 64 155.6 64 229.1L64 231.7C64 255.3 70.2 279.7 80.6 304L186.6 304C189.8 304 192.7 302.1 194 299.1L225.8 222.8C229.5 214 238.1 208.2 247.6 208C257.1 207.8 265.9 213.4 269.8 222.1L321.1 336L362.5 253.2C366.6 245.1 374.9 239.9 384 239.9C393.1 239.9 401.4 245 405.5 253.2L428.7 299.5C430.1 302.2 432.8 303.9 435.9 303.9L559.5 303.9C570 279.6 576.1 255.2 576.1 231.6L576.1 229C576 155.6 516.4 96 442.9 96C400.2 96 360 116.5 335 151.1L320 171.8zM533.6 352L435.8 352C414.6 352 395.2 340 385.7 321L384 317.6L341.5 402.7C337.4 411 328.8 416.2 319.5 416C310.2 415.8 301.9 410.3 298.1 401.9L248.8 292.4L238.3 317.6C229.6 338.5 209.2 352.1 186.6 352.1L106.4 352.1C153.6 425.9 229.4 493.8 276.8 530C289.2 539.4 304.4 544.1 319.9 544.1C335.4 544.1 350.7 539.5 363 530C410.6 493.7 486.4 425.8 533.6 352z" fill={color} />
-  </Svg>
-);
-
 interface SettingsRowProps {
   icon: React.ReactNode;
   label: string;
@@ -194,31 +187,27 @@ function SettingsScreen() {
   // Gear spin animation
   const gearRotation = useRef(new Animated.Value(0)).current;
 
-  // Heartbeat animation for tapout icon
-  const heartbeatScale = useRef(new Animated.Value(1)).current;
+  // Pulse sweep animation for tapout icon
+  const pulseSweep = useRef(new Animated.Value(0)).current;
+  const tapoutIconSize = iconSize.forTabs;
+  const sweepBandWidth = tapoutIconSize;
 
   const hasTapouts = (tapoutStatus?.remaining ?? 0) > 0;
 
   useEffect(() => {
     if (!hasTapouts) {
-      heartbeatScale.setValue(1);
+      pulseSweep.setValue(0);
       return;
     }
-    const pulse = Animated.loop(
+    const wave = Animated.loop(
       Animated.sequence([
-        // First beat (strong)
-        Animated.timing(heartbeatScale, { toValue: 1.25, duration: 100, easing: Easing.out(Easing.ease), useNativeDriver: true }),
-        Animated.timing(heartbeatScale, { toValue: 1, duration: 100, easing: Easing.in(Easing.ease), useNativeDriver: true }),
-        // Second beat (softer)
-        Animated.timing(heartbeatScale, { toValue: 1.15, duration: 80, easing: Easing.out(Easing.ease), useNativeDriver: true }),
-        Animated.timing(heartbeatScale, { toValue: 1, duration: 100, easing: Easing.in(Easing.ease), useNativeDriver: true }),
-        // Pause between heartbeats
-        Animated.delay(600),
+        Animated.timing(pulseSweep, { toValue: 1, duration: 1200, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        Animated.delay(800),
       ])
     );
-    pulse.start();
-    return () => pulse.stop();
-  }, [heartbeatScale, hasTapouts]);
+    wave.start();
+    return () => wave.stop();
+  }, [pulseSweep, hasTapouts]);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -546,12 +535,27 @@ function SettingsScreen() {
             style={getTimeUntilRefill() ? { borderBottomWidth: 1, borderBottomColor: colors.divider, paddingVertical: s(buttonPadding.standard) } : { paddingVertical: s(buttonPadding.standard) }}
             className="flex-row items-center px-4"
           >
-            <Animated.View className="mr-4" style={{ transform: [{ scale: heartbeatScale }] }}>
-              {(tapoutStatus?.remaining ?? 0) > 0
-                ? <TapoutIcon />
-                : <MaterialCommunityIcons name="heart-broken" size={iconSize.forTabs} color={colors.textMuted} />
-              }
-            </Animated.View>
+            <View className="mr-4">
+              {(tapoutStatus?.remaining ?? 0) > 0 ? (
+                <View style={{ width: tapoutIconSize, height: tapoutIconSize, overflow: 'hidden' }}>
+                  <BoxiconsFilled name="bx-pulse" size={tapoutIconSize} color={colors.textMuted} />
+                  <Animated.View style={{
+                    position: 'absolute', top: 0, bottom: 0,
+                    width: sweepBandWidth,
+                    overflow: 'hidden',
+                    transform: [{ translateX: pulseSweep.interpolate({ inputRange: [0, 1], outputRange: [-sweepBandWidth, tapoutIconSize + sweepBandWidth] }) }],
+                  }}>
+                    <Animated.View style={{
+                      transform: [{ translateX: pulseSweep.interpolate({ inputRange: [0, 1], outputRange: [sweepBandWidth, -(tapoutIconSize + sweepBandWidth)] }) }],
+                    }}>
+                      <BoxiconsFilled name="bx-pulse" size={tapoutIconSize} color="white" />
+                    </Animated.View>
+                  </Animated.View>
+                </View>
+              ) : (
+                <BoxiconsFilled name="bx-pulse" size={tapoutIconSize} color={colors.textMuted} />
+              )}
+            </View>
             <View className="flex-1">
               <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular}`}>Tapouts Remaining</Text>
               <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-0.5`}>

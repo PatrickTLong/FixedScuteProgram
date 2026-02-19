@@ -4,11 +4,11 @@ import {
   Text,
   TouchableOpacity,
   Modal,
+  Animated,
+  Easing,
 } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
 import LoadingSpinner from './LoadingSpinner';
 import BoxiconsFilled from './BoxiconsFilled';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useTheme , textSize, fontFamily, radius, shadow, iconSize, buttonPadding } from '../context/ThemeContext';
 
 import { useResponsive } from '../utils/responsive';
@@ -35,6 +35,26 @@ function EmergencyTapoutModal({
   const { colors } = useTheme();
   const { s } = useResponsive();
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Pulse sweep animation
+  const pulseSweep = useRef(new Animated.Value(0)).current;
+  const canUseTapout = presetAllowsTapout && tapoutsRemaining > 0;
+  const pulseIconSize = iconSize.md;
+
+  useEffect(() => {
+    if (!canUseTapout || !visible) {
+      pulseSweep.setValue(0);
+      return;
+    }
+    const wave = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseSweep, { toValue: 1, duration: 1200, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        Animated.delay(800),
+      ])
+    );
+    wave.start();
+    return () => wave.stop();
+  }, [pulseSweep, canUseTapout, visible]);
 
   // Auto-close modal when timer expires
   useEffect(() => {
@@ -69,8 +89,6 @@ function EmergencyTapoutModal({
     };
   }, [visible, lockEndsAt, onClose]);
 
-  // Can use tapout if preset allows it AND has remaining tapouts
-  const canUseTapout = presetAllowsTapout && tapoutsRemaining > 0;
 
   const getUnavailableReason = () => {
     if (!presetAllowsTapout) {
@@ -116,11 +134,23 @@ function EmergencyTapoutModal({
             <View className="items-center">
               <View className="flex-row items-center mb-3">
                 {canUseTapout ? (
-                  <Svg width={iconSize.md} height={iconSize.md} viewBox="0 0 640 640">
-                    <Path d="M320 171.9L305 151.1C280 116.5 239.9 96 197.1 96C123.6 96 64 155.6 64 229.1L64 231.7C64 255.3 70.2 279.7 80.6 304L186.6 304C189.8 304 192.7 302.1 194 299.1L225.8 222.8C229.5 214 238.1 208.2 247.6 208C257.1 207.8 265.9 213.4 269.8 222.1L321.1 336L362.5 253.2C366.6 245.1 374.9 239.9 384 239.9C393.1 239.9 401.4 245 405.5 253.2L428.7 299.5C430.1 302.2 432.8 303.9 435.9 303.9L559.5 303.9C570 279.6 576.1 255.2 576.1 231.6L576.1 229C576 155.6 516.4 96 442.9 96C400.2 96 360 116.5 335 151.1L320 171.8zM533.6 352L435.8 352C414.6 352 395.2 340 385.7 321L384 317.6L341.5 402.7C337.4 411 328.8 416.2 319.5 416C310.2 415.8 301.9 410.3 298.1 401.9L248.8 292.4L238.3 317.6C229.6 338.5 209.2 352.1 186.6 352.1L106.4 352.1C153.6 425.9 229.4 493.8 276.8 530C289.2 539.4 304.4 544.1 319.9 544.1C335.4 544.1 350.7 539.5 363 530C410.6 493.7 486.4 425.8 533.6 352z" fill="#FF5C5C" />
-                  </Svg>
+                  <View style={{ width: pulseIconSize, height: pulseIconSize, overflow: 'hidden' }}>
+                    <BoxiconsFilled name="bx-pulse" size={pulseIconSize} color={colors.textMuted} />
+                    <Animated.View style={{
+                      position: 'absolute', top: 0, bottom: 0,
+                      width: pulseIconSize,
+                      overflow: 'hidden',
+                      transform: [{ translateX: pulseSweep.interpolate({ inputRange: [0, 1], outputRange: [-pulseIconSize, pulseIconSize + pulseIconSize] }) }],
+                    }}>
+                      <Animated.View style={{
+                        transform: [{ translateX: pulseSweep.interpolate({ inputRange: [0, 1], outputRange: [pulseIconSize, -(pulseIconSize + pulseIconSize)] }) }],
+                      }}>
+                        <BoxiconsFilled name="bx-pulse" size={pulseIconSize} color="white" />
+                      </Animated.View>
+                    </Animated.View>
+                  </View>
                 ) : (
-                  <MaterialCommunityIcons name="heart-broken" size={iconSize.md} color={colors.textMuted} />
+                  <BoxiconsFilled name="bx-pulse" size={pulseIconSize} color={colors.textMuted} />
                 )}
                 <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold} ml-2`}>
                   Emergency Tapout
