@@ -3,7 +3,6 @@ package com.scuteapp
 import android.accessibilityservice.AccessibilityService
 import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
 import android.os.Build
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
@@ -11,13 +10,11 @@ import android.view.accessibility.AccessibilityNodeInfo
 import org.json.JSONArray
 
 /**
- * Accessibility Service - ONLY used for:
- * 1. Website blocking (needs to read browser URL bars)
- * 2. Uninstall protection (needs to detect uninstall dialogs)
+ * Accessibility Service used for:
+ * 1. Website blocking (reads browser URL bars)
+ * 2. Uninstall protection (detects uninstall dialogs)
  * 3. Scheduled preset activation
- * 4. Performing HOME action when overlay is dismissed
- *
- * App blocking is handled by AppMonitorService using UsageStats (faster, simpler).
+ * 4. Performing HOME/BACK actions for app blocking
  */
 class ScuteAccessibilityService : AccessibilityService() {
 
@@ -103,7 +100,6 @@ class ScuteAccessibilityService : AccessibilityService() {
     }
 
     private var lastScheduleCheckTime = 0L
-    private var lastAllowedWifiSettings = false
 
     override fun onServiceConnected() {
         super.onServiceConnected()
@@ -141,87 +137,8 @@ class ScuteAccessibilityService : AccessibilityService() {
             return
         }
 
-        // Reset WiFi flag when user leaves Settings entirely
-        if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED && !isSettingsPackage(packageName)) {
-            lastAllowedWifiSettings = false
-        }
-
-        // INSTANT Settings blocking via Accessibility (faster than UsageStats polling)
-        // Only handle Settings here; regular apps are handled by AppMonitorService
-        // Only block on TYPE_WINDOW_STATE_CHANGED (32) - actual activity opens
-        // Ignore TYPE_WINDOW_CONTENT_CHANGED (2048) - just UI updates within an existing window
-        if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED &&
-            isSettingsPackage(packageName) && shouldBlockSettings()) {
-            val className = event.className?.toString() ?: ""
-
-            // Skip framework view classes (FrameLayout, ViewGroup, etc.) - not real activities
-            if (className.startsWith("android.") || className.startsWith("androidx.") || className.isEmpty()) return
-
-            // Allow WiFi/Connections settings through (quick settings opens these activities)
-            if (className.contains("WifiSettings", ignoreCase = true) ||
-                className.contains("DeepLinkHomepageActivity", ignoreCase = true) ||
-                className.contains("ConnectionsSettingsActivity", ignoreCase = true)) {
-                Log.d(TAG, "ALLOWING WiFi settings: $className")
-                lastAllowedWifiSettings = true
-            } else if (className.contains("SubSettings", ignoreCase = true) && lastAllowedWifiSettings) {
-                // Allow SubSettings if the user navigated from WiFi settings
-                Log.d(TAG, "ALLOWING SubSettings (came from WiFi): $className")
-            } else {
-                Log.d(TAG, "BLOCKING Settings via Accessibility: $packageName (class: $className)")
-                lastAllowedWifiSettings = false
-
-                // Show blocked overlay INSTANTLY (before Settings renders)
-                AppMonitorService.instance?.blockSettingsNow(packageName)
-
-                // Also go back to close Settings underneath the overlay
-                performGlobalAction(GLOBAL_ACTION_BACK)
-            }
-        }
-
-        // Website blocking is now handled by WebsiteMonitorService with fast polling
-    }
-
-    /**
-     * Check if this is a Settings-related package
-     */
-    private fun isSettingsPackage(packageName: String): Boolean {
-        return packageName == "com.android.settings" ||
-               packageName == "com.samsung.android.settings" ||
-               packageName == "com.samsung.android.setting.multisoundmain" ||
-               packageName == "com.miui.securitycenter" ||
-               packageName == "com.coloros.settings" ||
-               packageName == "com.oppo.settings" ||
-               packageName == "com.vivo.settings" ||
-               packageName == "com.huawei.systemmanager" ||
-               packageName == "com.oneplus.settings" ||
-               packageName == "com.google.android.settings.intelligence" ||
-               packageName == "com.android.provision" ||
-               packageName == "com.lge.settings" ||
-               packageName == "com.asus.settings" ||
-               packageName == "com.sony.settings" ||
-               packageName.contains("settings", ignoreCase = true)
-    }
-
-    /**
-     * Check if Settings should be blocked right now
-     */
-    private fun shouldBlockSettings(): Boolean {
-        val prefs = getSharedPreferences(UninstallBlockerService.PREFS_NAME, Context.MODE_PRIVATE)
-
-        // Check if session is active
-        if (!prefs.getBoolean(UninstallBlockerService.KEY_SESSION_ACTIVE, false)) {
-            return false
-        }
-
-        // Check if session has expired
-        val endTime = prefs.getLong(UninstallBlockerService.KEY_SESSION_END_TIME, 0)
-        if (System.currentTimeMillis() > endTime) {
-            return false
-        }
-
-        // Check if any Settings package is in the blocked list
-        val blockedApps = prefs.getStringSet(UninstallBlockerService.KEY_BLOCKED_APPS, emptySet()) ?: emptySet()
-        return blockedApps.any { isSettingsPackage(it) }
+        // Website blocking is handled by WebsiteMonitorService with fast polling
+        // Settings screen detection is handled by AppMonitorService using UsageStats className
     }
 
     private fun isScuteUninstallDialog(): Boolean {

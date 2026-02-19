@@ -3,23 +3,21 @@ package com.scuteapp
 import android.app.usage.UsageEvents
 import android.app.usage.UsageStatsManager
 import android.content.Context
-import android.content.Intent
-import android.os.Build
 import android.os.Handler
 import android.os.Looper
-import android.provider.Settings
 import android.util.Log
-import android.view.WindowManager
 
 /**
- * Simple app monitor using UsageStats with fast polling.
+ * App monitor using UsageStats with fast polling.
  * Detects foreground app changes and shows blocking overlay when needed.
+ * Uses UsageEvents.Event.getClassName() for Settings screen detection
+ * (WiFi, SubSettings, etc.) without needing the AccessibilityService proxy.
  */
 class AppMonitorService(private val context: Context) {
 
     companion object {
         private const val TAG = "AppMonitorService"
-        private const val POLL_INTERVAL_MS = 15L // Poll every 15ms for instant detection (especially for Settings)
+        private const val POLL_INTERVAL_MS = 15L // Poll every 15ms for instant detection
 
         @Volatile
         var instance: AppMonitorService? = null
@@ -29,8 +27,12 @@ class AppMonitorService(private val context: Context) {
     private val handler = Handler(Looper.getMainLooper())
     private var isMonitoring = false
     private var lastForegroundPackage: String? = null
+    private var lastForegroundClassName: String? = null
     private var overlayManager: BlockedOverlayManager? = null
     private var debugPollCount = 0L
+
+    // Track whether user came from an allowed WiFi screen (for SubSettings navigation)
+    private var lastAllowedWifiSettings = false
 
     // Callback to go home (will be set by whoever starts monitoring)
     var onGoHome: (() -> Unit)? = null
@@ -77,20 +79,6 @@ class AppMonitorService(private val context: Context) {
     }
 
     /**
-     * Block Settings immediately (called by AccessibilityService for instant blocking)
-     */
-    fun blockSettingsNow(packageName: String) {
-        // Skip if already showing overlay
-        if (overlayManager?.isShowing() == true) return
-
-        // Dismiss keyboard immediately to prevent janky push/shift
-        dismissKeyboard()
-
-        Log.d(TAG, "BLOCKING Settings (instant via Accessibility): $packageName")
-        showBlockedOverlay(packageName)
-    }
-
-    /**
      * Dismiss the soft keyboard
      */
     private fun dismissKeyboard() {
@@ -119,12 +107,13 @@ class AppMonitorService(private val context: Context) {
     }
 
     /**
-     * Get the current foreground app package name
+     * Get the current foreground app package name and activity class name.
+     * Returns Pair(packageName, className) or null if no foreground app detected.
      */
-    private fun getForegroundPackage(): String? {
+    private fun getForegroundApp(): Pair<String, String?>? {
         val usageStatsManager = context.getSystemService(Context.USAGE_STATS_SERVICE) as? UsageStatsManager
             ?: run {
-                if (debugPollCount % 500 == 0L) Log.w(TAG, "DEBUG UsageStatsManager is null!")
+                if (debugPollCount % 500 == 0L) Log.w(TAG, "UsageStatsManager is null!")
                 return null
             }
 
@@ -134,43 +123,44 @@ class AppMonitorService(private val context: Context) {
         val event = UsageEvents.Event()
 
         var foregroundPackage: String? = null
-        var eventCount = 0
+        var foregroundClassName: String? = null
 
         while (events.hasNextEvent()) {
             events.getNextEvent(event)
-            eventCount++
             if (event.eventType == UsageEvents.Event.MOVE_TO_FOREGROUND ||
                 event.eventType == UsageEvents.Event.ACTIVITY_RESUMED) {
                 foregroundPackage = event.packageName
+                foregroundClassName = event.className
             }
         }
 
-        // Log diagnostics periodically
-        if (debugPollCount % 500 == 0L && foregroundPackage == null) {
-            Log.w(TAG, "DEBUG queryEvents(5s window): $eventCount total events, 0 foreground events")
-        }
-
-        return foregroundPackage
+        return if (foregroundPackage != null) Pair(foregroundPackage, foregroundClassName) else null
     }
 
     /**
-     * Check foreground app and block if needed
+     * Check foreground app and block if needed.
+     * For Settings apps, uses the activity className from UsageStats to determine
+     * if the specific screen is allowed (WiFi, SubSettings from WiFi, etc.).
      */
     private fun checkForegroundApp() {
         debugPollCount++
-        val currentPackage = getForegroundPackage()
+        val result = getForegroundApp()
 
-        // Log every 500 polls (~7.5 seconds) so we can see if monitoring is alive
-        if (debugPollCount % 500 == 0L) {
-            Log.d(TAG, "DEBUG poll #$debugPollCount — foreground=$currentPackage, last=$lastForegroundPackage")
+        if (result == null) return
+
+        val (currentPackage, currentClassName) = result
+
+        // Skip if same package AND same class (nothing changed)
+        if (currentPackage == lastForegroundPackage && currentClassName == lastForegroundClassName) return
+
+        if (currentPackage != lastForegroundPackage) {
+            lastForegroundPackage = currentPackage
+            // Reset WiFi flag when leaving Settings entirely
+            if (!isSettingsApp(currentPackage)) {
+                lastAllowedWifiSettings = false
+            }
         }
-
-        if (currentPackage == null) return
-
-        // Skip if same as last check
-        if (currentPackage == lastForegroundPackage) return
-        Log.d(TAG, "DEBUG foreground changed: $lastForegroundPackage -> $currentPackage")
-        lastForegroundPackage = currentPackage
+        lastForegroundClassName = currentClassName
 
         // When user enters Scute app, reset the bubble's hidden state
         // so it reappears if they X'd it earlier
@@ -201,19 +191,49 @@ class AppMonitorService(private val context: Context) {
             return
         }
 
-        // Skip Settings apps - they're handled instantly by AccessibilityService
-        if (isSettingsApp(currentPackage)) return
-
         // Skip if overlay is already showing
         if (overlayManager?.isShowing() == true) return
 
         // Check if should block
-        if (shouldBlockApp(currentPackage)) {
-            Log.d(TAG, "BLOCKING app: $currentPackage")
-            // Kick user out of the app immediately by going HOME
-            ScuteAccessibilityService.instance?.goHome()
-            showBlockedOverlay(currentPackage)
+        val shouldBlock = shouldBlockApp(currentPackage)
+        if (!shouldBlock) return
+
+        // For Settings apps, check if the specific screen is allowed
+        if (isSettingsApp(currentPackage)) {
+            if (isAllowedSettingsScreen(currentClassName)) {
+                return
+            }
         }
+
+        Log.d(TAG, "BLOCKING: pkg=$currentPackage, class=$currentClassName")
+        // Kick user out of the app immediately by going HOME
+        ScuteAccessibilityService.instance?.goHome()
+        showBlockedOverlay(currentPackage)
+    }
+
+    /**
+     * Check if a Settings screen className is allowed through blocking.
+     * Allows WiFi settings and SubSettings navigated from WiFi.
+     */
+    private fun isAllowedSettingsScreen(className: String?): Boolean {
+        if (className.isNullOrEmpty()) return false
+
+        // Allow WiFi / Connections screens
+        if (className.contains("WifiSettings", ignoreCase = true) ||
+            className.contains("DeepLinkHomepageActivity", ignoreCase = true) ||
+            className.contains("ConnectionsSettingsActivity", ignoreCase = true)) {
+            lastAllowedWifiSettings = true
+            return true
+        }
+
+        // Allow SubSettings if user navigated from WiFi
+        if (className.contains("SubSettings", ignoreCase = true) && lastAllowedWifiSettings) {
+            return true
+        }
+
+        // Any other Settings screen — not allowed, reset WiFi flag
+        lastAllowedWifiSettings = false
+        return false
     }
 
     /**
