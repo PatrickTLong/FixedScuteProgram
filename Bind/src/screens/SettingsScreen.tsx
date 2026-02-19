@@ -194,7 +194,13 @@ function SettingsScreen() {
   // Heartbeat animation for tapout icon
   const heartbeatScale = useRef(new Animated.Value(1)).current;
 
+  const hasTapouts = (tapoutStatus?.remaining ?? 0) > 0;
+
   useEffect(() => {
+    if (!hasTapouts) {
+      heartbeatScale.setValue(1);
+      return;
+    }
     const pulse = Animated.loop(
       Animated.sequence([
         // First beat (strong)
@@ -209,7 +215,7 @@ function SettingsScreen() {
     );
     pulse.start();
     return () => pulse.stop();
-  }, [heartbeatScale]);
+  }, [heartbeatScale, hasTapouts]);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -538,7 +544,10 @@ function SettingsScreen() {
             className="flex-row items-center px-4"
           >
             <Animated.View className="mr-4" style={{ transform: [{ scale: heartbeatScale }] }}>
-              <TapoutIcon />
+              {(tapoutStatus?.remaining ?? 0) > 0
+                ? <TapoutIcon />
+                : <BoxiconsFilled name="bx-heart-break" size={iconSize.forTabs} color={colors.textMuted} />
+              }
             </Animated.View>
             <View className="flex-1">
               <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular}`}>Tapouts Remaining</Text>

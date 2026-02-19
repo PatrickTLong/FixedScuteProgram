@@ -167,7 +167,6 @@ const TimePresetCircle = memo(({ label, onPress, onLongPressAdd }: {
   const didLongPress = useRef(false);
   const activeRef = useRef(false);
   const scaleAnim = useRef(new Animated.Value(1)).current;
-  const [pressed, setPressed] = useState(false);
 
   const clearTimers = useCallback(() => {
     activeRef.current = false;
@@ -187,7 +186,6 @@ const TimePresetCircle = memo(({ label, onPress, onLongPressAdd }: {
   const handlePressIn = useCallback(() => {
     didLongPress.current = false;
     activeRef.current = true;
-    setPressed(true);
     Animated.timing(scaleAnim, { toValue: 0.9, useNativeDriver: true, duration: 30 }).start();
     timeoutRef.current = setTimeout(() => {
       didLongPress.current = true;
@@ -198,7 +196,6 @@ const TimePresetCircle = memo(({ label, onPress, onLongPressAdd }: {
 
   const handlePressOut = useCallback(() => {
     clearTimers();
-    setPressed(false);
     Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true, speed: 12, bounciness: 14 }).start();
   }, [clearTimers, scaleAnim]);
 
@@ -216,13 +213,13 @@ const TimePresetCircle = memo(({ label, onPress, onLongPressAdd }: {
         onPress={handlePress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
-        activeOpacity={1}
+        activeOpacity={0.7}
         style={{
           width: circleSize,
           height: circleSize,
           borderRadius: circleSize / 2,
-          backgroundColor: pressed ? 'rgba(255,255,255,0.12)' : colors.card,
-          borderWidth: pressed ? 0 : 1,
+          backgroundColor: colors.card,
+          borderWidth: 1,
           borderColor: colors.border,
           alignItems: 'center',
           justifyContent: 'center',

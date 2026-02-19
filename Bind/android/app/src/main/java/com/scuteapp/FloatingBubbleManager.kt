@@ -441,8 +441,8 @@ class FloatingBubbleManager(private val context: Context) {
                     Choreographer.getInstance().removeFrameCallback(dragFrameCallback)
                     hasPendingDragUpdate = false
                     if (!isDragging && !longPressTriggered) {
-                        // Check if tap was on the chevron area
-                        if (isExpanded && isTapOnChevron(event)) {
+                        if (isExpanded) {
+                            // Any tap while expanded toggles the app list
                             toggleAppList()
                         } else {
                             toggleExpanded()

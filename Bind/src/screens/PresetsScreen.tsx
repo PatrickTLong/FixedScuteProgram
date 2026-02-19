@@ -96,7 +96,7 @@ function PresetsScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<MainStackParamList>>();
   const { userEmail, sharedPresets, setSharedPresets, sharedIsLocked, refreshPresets, refreshLockStatus } = useAuth();
   const userEmail_safe = userEmail || '';
-  const { setOnSave, setEditingPreset: setContextEditingPreset, setExistingPresets, setEmail } = usePresetSave();
+  const { setOnSave, setEditingPreset: setContextEditingPreset, setExistingPresets, setEmail, setFinalSettingsState } = usePresetSave();
 
   // Read directly from shared state (single source of truth in AuthContext)
   const presets = sharedPresets;
@@ -146,18 +146,20 @@ function PresetsScreen() {
   const handleAddPresetWithFlag = useCallback(() => {
     isReturningFromEdit.current = true;
     setContextEditingPreset(null);
+    setFinalSettingsState(null);
     setExistingPresets(presets);
     setEmail(userEmail_safe);
     navigation.getParent()?.navigate('EditPresetApps');
-  }, [presets, userEmail_safe, navigation, setContextEditingPreset, setExistingPresets, setEmail]);
+  }, [presets, userEmail_safe, navigation, setContextEditingPreset, setFinalSettingsState, setExistingPresets, setEmail]);
 
   const handleEditPresetWithFlag = useCallback((preset: Preset) => {
     isReturningFromEdit.current = true;
     setContextEditingPreset(preset);
+    setFinalSettingsState(null);
     setExistingPresets(presets);
     setEmail(userEmail_safe);
     navigation.getParent()?.navigate('EditPresetApps');
-  }, [presets, userEmail_safe, navigation, setContextEditingPreset, setExistingPresets, setEmail]);
+  }, [presets, userEmail_safe, navigation, setContextEditingPreset, setFinalSettingsState, setExistingPresets, setEmail]);
 
   // Background orphan cleanup - doesn't block UI
   const runOrphanCleanup = useCallback(async (fetchedPresets: Preset[]) => {
