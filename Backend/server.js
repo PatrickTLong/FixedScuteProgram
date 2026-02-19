@@ -1451,6 +1451,7 @@ app.get('/api/emergency-tapout', authenticateToken, async (req, res) => {
 
     // Safety net: if below max tapouts but no refill date, set one now
     if (remaining < 3 && !nextRefillDate) {
+      console.log(`[TAPOUT SAFETY NET] Setting missing refill date for ${normalizedEmail} (remaining=${remaining}, db_remaining=${data.emergency_tapout_remaining})`);
       nextRefillDate = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000); // 2 weeks from now
       await supabase
         .from('user_cards')
@@ -1481,6 +1482,7 @@ app.get('/api/emergency-tapout', authenticateToken, async (req, res) => {
         .eq('email', normalizedEmail);
     }
 
+    console.log(`[TAPOUT GET] ${normalizedEmail}: remaining=${remaining}, db_remaining=${data.emergency_tapout_remaining}, nextRefillDate=${nextRefillDate ? nextRefillDate.toISOString() : null}`);
     res.json({
       remaining: remaining,
       nextRefillDate: nextRefillDate ? nextRefillDate.toISOString() : null,
