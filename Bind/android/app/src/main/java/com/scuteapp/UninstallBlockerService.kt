@@ -194,8 +194,10 @@ class UninstallBlockerService : Service() {
         startForeground(NOTIFICATION_ID, notification)
 
         // Show floating bubble for all active sessions (if not already showing)
+        // Skip if user has globally disabled the widget bubble
+        val widgetBubbleDisabled = prefs.getBoolean("widget_bubble_disabled", false)
         val bubbleManager = FloatingBubbleManager.getInstance(this)
-        if (!bubbleManager.isShowing()) {
+        if (!widgetBubbleDisabled && !bubbleManager.isShowing()) {
             try {
                 val noTimeLimit = prefs.getBoolean("no_time_limit", false)
                 if (noTimeLimit) {
@@ -212,6 +214,8 @@ class UninstallBlockerService : Service() {
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to show floating bubble", e)
             }
+        } else if (widgetBubbleDisabled) {
+            Log.d(TAG, "Widget bubble is globally disabled, skipping")
         }
 
         return START_STICKY

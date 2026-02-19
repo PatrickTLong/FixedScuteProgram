@@ -68,6 +68,9 @@ function HomeScreen() {
   // Silent notifications toggle
   const [silentNotifications, setSilentNotifications] = useState(false);
 
+  // Widget bubble disabled toggle
+  const [widgetBubbleDisabled, setWidgetBubbleDisabled] = useState(false);
+
 
   // Success checkmark animation
   const checkmarkOpacity = useRef(new Animated.Value(0)).current;
@@ -115,6 +118,15 @@ function HomeScreen() {
       await BlockingModule.setSilentNotifications(newValue);
     } catch {}
   }, [silentNotifications]);
+
+  const toggleWidgetBubble = useCallback(async () => {
+    if (!BlockingModule?.setWidgetBubbleDisabled) return;
+    const newValue = !widgetBubbleDisabled;
+    setWidgetBubbleDisabled(newValue);
+    try {
+      await BlockingModule.setWidgetBubbleDisabled(newValue);
+    } catch {}
+  }, [widgetBubbleDisabled]);
 
   // Track which scheduled preset we're currently activating to prevent duplicates
   const activatingPresetRef = useRef<string | null>(null);
@@ -428,6 +440,15 @@ function HomeScreen() {
     if (BlockingModule?.getSilentNotifications) {
       BlockingModule.getSilentNotifications().then((silent: boolean) => {
         setSilentNotifications(silent);
+      }).catch(() => {});
+    }
+  }, []);
+
+  // Load widget bubble disabled preference on mount
+  useEffect(() => {
+    if (BlockingModule?.getWidgetBubbleDisabled) {
+      BlockingModule.getWidgetBubbleDisabled().then((disabled: boolean) => {
+        setWidgetBubbleDisabled(disabled);
       }).catch(() => {});
     }
   }, []);
@@ -960,9 +981,9 @@ function HomeScreen() {
             )}
           </HeaderIconButton>
 
-          {/* WiFi Settings */}
-          <HeaderIconButton onPress={() => { Linking.sendIntent('android.settings.WIFI_SETTINGS').catch(() => {}); }}>
-            <BoxiconsFilled name="bx-wifi" size={s(iconSize.headerNav)} color="#FFFFFF" />
+          {/* Widget Bubble Toggle */}
+          <HeaderIconButton onPress={toggleWidgetBubble}>
+            <BoxiconsFilled name="bx-image-circle" size={s(iconSize.headerNav)} color={widgetBubbleDisabled ? colors.textMuted : '#FFFFFF'} />
           </HeaderIconButton>
 
           {/* Support @ icon */}

@@ -62,7 +62,8 @@
       "Bash(Select-String \"boxicons\")",
       "WebFetch(domain:static.enapter.com)",
       "Bash(.gradlew clean:*)",
-      "Bash(cmd /c:*)"
+      "Bash(cmd /c:*)",
+      "WebFetch(domain:pictogrammers.com)"
     ],
     "additionalDirectories": [
       "c:\\Users\\Shado\\OneDrive\\Desktop\\ScuteProgram\\Bind\\src"

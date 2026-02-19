@@ -1,0 +1,202 @@
+import React, { memo, useState, useRef, useEffect } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Animated,
+  LayoutAnimation,
+  Platform,
+  UIManager,
+} from 'react-native';
+import Svg, { Path } from 'react-native-svg';
+import LinearGradient from 'react-native-linear-gradient';
+import MaskedView from '@react-native-masked-view/masked-view';
+import BoxiconsFilled from '../components/BoxiconsFilled';
+import { iconSize } from '../context/ThemeContext';
+import { useTheme, textSize, fontFamily, radius, shadow, buttonPadding } from '../context/ThemeContext';
+import { useResponsive } from '../utils/responsive';
+
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
+
+const PLANS = {
+  monthly: {
+    label: 'Monthly',
+    price: '$6.95',
+    period: '/month',
+    originalPrice: '$9.95',
+    billingNote: 'Billed monthly',
+    savingsBadge: null,
+  },
+  yearly: {
+    label: 'Yearly',
+    price: '$4.95',
+    period: '/month',
+    originalPrice: '$6.95',
+    billingNote: '$59.40 billed annually',
+    savingsBadge: 'Save 29%',
+  },
+  lifetime: {
+    label: 'Lifetime',
+    price: '$49.95',
+    period: 'one-time',
+    originalPrice: '$79.95',
+    billingNote: 'One-time payment, forever access',
+    savingsBadge: 'Best Value',
+  },
+} as const;
+
+type PlanKey = keyof typeof PLANS;
+const PLAN_KEYS: PlanKey[] = ['monthly', 'yearly', 'lifetime'];
+
+const FEATURES = [
+  'Unlimited presets',
+  'Emergency tapout access',
+  'Scheduled blocking sessions',
+  'Priority support',
+  'All future updates included',
+];
+
+function MembershipContent() {
+  const { colors } = useTheme();
+  const { s } = useResponsive();
+  const [selectedPlan, setSelectedPlan] = useState<PlanKey>('yearly');
+  const priceScale = useRef(new Animated.Value(1)).current;
+  const contentOpacity = useRef(new Animated.Value(0)).current;
+  const featureAnims = useRef(FEATURES.map(() => new Animated.Value(0))).current;
+
+  useEffect(() => {
+    Animated.sequence([
+      Animated.timing(contentOpacity, { toValue: 1, duration: 300, useNativeDriver: true }),
+      Animated.stagger(80, featureAnims.map(anim =>
+        Animated.spring(anim, { toValue: 1, friction: 8, useNativeDriver: true })
+      )),
+    ]).start();
+  }, []);
+
+  const handlePlanChange = (plan: PlanKey) => {
+    if (plan === selectedPlan) return;
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setSelectedPlan(plan);
+    priceScale.setValue(0.92);
+    Animated.spring(priceScale, { toValue: 1, friction: 6, tension: 120, useNativeDriver: true }).start();
+  };
+
+  const plan = PLANS[selectedPlan];
+
+  return (
+    <View style={{ flex: 1, paddingHorizontal: s(20), paddingVertical: s(24), justifyContent: 'space-between' }}>
+      {/* Top Section */}
+      <View style={{ flex: 1 }}>
+        {/* Tab Selector */}
+        <View style={{ backgroundColor: colors.card, borderRadius: s(50), borderWidth: 1, borderColor: colors.border, padding: s(4), flexDirection: 'row', ...shadow.card, marginBottom: s(24) }}>
+          {PLAN_KEYS.map((key) => (
+            <TouchableOpacity
+              key={key}
+              onPress={() => handlePlanChange(key)}
+              activeOpacity={0.8}
+              style={{
+                flex: 1,
+                backgroundColor: selectedPlan === key ? colors.text : 'transparent',
+                borderRadius: s(50),
+                paddingVertical: s(10),
+                alignItems: 'center',
+              }}
+            >
+              <Text style={{ color: selectedPlan === key ? colors.bg : colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.bold}`}>
+                {PLANS[key].label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* Price Display */}
+        <Animated.View style={{ alignItems: 'center', marginBottom: s(24), opacity: contentOpacity, transform: [{ scale: priceScale }] }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <MaskedView maskElement={<BoxiconsFilled name="bx-sparkles-alt" size={iconSize.lg} color="black" />}>
+              <LinearGradient colors={['#7B6FE8', '#A78BFA', '#6366F1']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ width: iconSize.lg, height: iconSize.lg }} />
+            </MaskedView>
+            <Text style={{ color: colors.text, marginLeft: s(6) }} className={`${textSize['4xLarge']} ${fontFamily.bold}`}>{plan.price}</Text>
+            <Text style={{ color: colors.textSecondary, marginLeft: s(4) }} className={`${textSize.base} ${fontFamily.regular}`}>{plan.period}</Text>
+          </View>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: s(4) }}>
+            {plan.originalPrice && (
+              <Text style={{ color: colors.textMuted, textDecorationLine: 'line-through' }} className={`${textSize.small} ${fontFamily.regular}`}>
+                {plan.originalPrice}
+              </Text>
+            )}
+            {plan.savingsBadge && (
+              <View style={{ backgroundColor: colors.green, borderRadius: s(50), paddingHorizontal: s(10), paddingVertical: s(2), marginLeft: s(8), ...shadow.card }}>
+                <Text style={{ color: colors.text }} className={`${textSize.extraSmall} ${fontFamily.bold}`}>{plan.savingsBadge}</Text>
+              </View>
+            )}
+          </View>
+          <Text style={{ color: colors.textSecondary, marginTop: s(6) }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>
+            {plan.billingNote}
+          </Text>
+        </Animated.View>
+
+        {/* Features Card */}
+        <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card, overflow: 'hidden' }} className={radius['2xl']}>
+          {FEATURES.map((feature, index) => {
+            const isLast = index === FEATURES.length - 1;
+            return (
+              <Animated.View
+                key={feature}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  paddingHorizontal: s(16),
+                  paddingVertical: s(buttonPadding.standard),
+                  borderBottomWidth: isLast ? 0 : 1,
+                  borderBottomColor: colors.divider,
+                  opacity: featureAnims[index],
+                  transform: [{ translateY: featureAnims[index].interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }],
+                }}
+              >
+                <View style={{ width: s(22), height: s(22), borderRadius: s(11), backgroundColor: colors.green, alignItems: 'center', justifyContent: 'center' }}>
+                  <Svg width={s(12)} height={s(12)} viewBox="0 0 24 24" fill="none">
+                    <Path d="M20 6L9 17l-5-5" stroke="#FFFFFF" strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round" />
+                  </Svg>
+                </View>
+                <Text style={{ color: colors.text, marginLeft: s(12) }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>
+                  {feature}
+                </Text>
+              </Animated.View>
+            );
+          })}
+        </View>
+      </View>
+
+      {/* Bottom Section */}
+      <View>
+        {/* Subscribe Button */}
+        <TouchableOpacity
+          onPress={() => { /* TODO: Google Play purchase */ }}
+          activeOpacity={0.8}
+          style={{ backgroundColor: colors.text, ...shadow.card }}
+          className={`${radius.full} py-4 items-center mb-3`}
+        >
+          <Text style={{ color: colors.bg }} className={`${textSize.small} ${fontFamily.bold}`}>
+            {selectedPlan === 'lifetime' ? 'Purchase Lifetime' : 'Subscribe'}
+          </Text>
+        </TouchableOpacity>
+
+        {/* Restore Subscription */}
+        <TouchableOpacity activeOpacity={0.7} style={{ alignItems: 'center', paddingVertical: s(4), marginBottom: s(4) }}>
+          <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>
+            Restore Subscription
+          </Text>
+        </TouchableOpacity>
+
+        {/* Terms */}
+        <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} text-center leading-4`}>
+          By subscribing, you agree to our Terms of Service and Privacy Policy. Subscriptions auto-renew unless cancelled.
+        </Text>
+      </View>
+    </View>
+  );
+}
+
+export default memo(MembershipContent);

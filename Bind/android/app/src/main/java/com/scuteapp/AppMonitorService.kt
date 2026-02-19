@@ -163,13 +163,16 @@ class AppMonitorService(private val context: Context) {
         lastForegroundClassName = currentClassName
 
         // When user enters Scute app, reset the bubble's hidden state
-        // so it reappears if they X'd it earlier
+        // so it reappears if they X'd it earlier (only if widget bubble is enabled)
         if (currentPackage == "com.scuteapp") {
+            val prefs = context.getSharedPreferences(UninstallBlockerService.PREFS_NAME, Context.MODE_PRIVATE)
+            val widgetBubbleDisabled = prefs.getBoolean("widget_bubble_disabled", false)
             val bubbleManager = FloatingBubbleManager.getInstance(context)
-            bubbleManager.resetHidden()
+            if (!widgetBubbleDisabled) {
+                bubbleManager.resetHidden()
+            }
             // Re-show bubble if there's an active session and it's not already showing
-            if (!bubbleManager.isShowing()) {
-                val prefs = context.getSharedPreferences(UninstallBlockerService.PREFS_NAME, Context.MODE_PRIVATE)
+            if (!widgetBubbleDisabled && !bubbleManager.isShowing()) {
                 val isSessionActive = prefs.getBoolean(UninstallBlockerService.KEY_SESSION_ACTIVE, false)
                 if (isSessionActive) {
                     val noTimeLimit = prefs.getBoolean("no_time_limit", false)

@@ -414,6 +414,73 @@ class BlockingModule(reactContext: ReactApplicationContext) :
     }
 
     /**
+     * Set whether the floating widget bubble is disabled for all sessions.
+     */
+    @ReactMethod
+    fun setWidgetBubbleDisabled(disabled: Boolean, promise: Promise) {
+        try {
+            val prefs = reactApplicationContext.getSharedPreferences(
+                UninstallBlockerService.PREFS_NAME,
+                Context.MODE_PRIVATE
+            )
+            prefs.edit().putBoolean("widget_bubble_disabled", disabled).apply()
+
+            val bubbleManager = FloatingBubbleManager.getInstance(reactApplicationContext)
+            if (disabled) {
+                // Dismiss the bubble immediately
+                try {
+                    bubbleManager.dismiss()
+                } catch (e: Exception) {
+                    Log.d(TAG, "Failed to dismiss floating bubble", e)
+                }
+            } else {
+                // Re-show the bubble if there's an active session
+                val isSessionActive = prefs.getBoolean(UninstallBlockerService.KEY_SESSION_ACTIVE, false)
+                if (isSessionActive && !bubbleManager.isShowing()) {
+                    try {
+                        val noTimeLimit = prefs.getBoolean("no_time_limit", false)
+                        if (noTimeLimit) {
+                            val sessionStartTime = prefs.getLong("session_start_time", System.currentTimeMillis())
+                            bubbleManager.showNoTimeLimit(sessionStartTime)
+                        } else {
+                            val sessionEndTime = prefs.getLong(UninstallBlockerService.KEY_SESSION_END_TIME, 0)
+                            if (sessionEndTime > System.currentTimeMillis()) {
+                                bubbleManager.show(sessionEndTime)
+                            }
+                        }
+                    } catch (e: Exception) {
+                        Log.d(TAG, "Failed to re-show floating bubble", e)
+                    }
+                }
+            }
+
+            Log.d(TAG, "Widget bubble disabled set to: $disabled")
+            promise.resolve(true)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error setting widget bubble disabled", e)
+            promise.reject("ERROR", "Failed to set widget bubble disabled: ${e.message}")
+        }
+    }
+
+    /**
+     * Get whether the floating widget bubble is disabled.
+     */
+    @ReactMethod
+    fun getWidgetBubbleDisabled(promise: Promise) {
+        try {
+            val prefs = reactApplicationContext.getSharedPreferences(
+                UninstallBlockerService.PREFS_NAME,
+                Context.MODE_PRIVATE
+            )
+            val disabled = prefs.getBoolean("widget_bubble_disabled", false)
+            promise.resolve(disabled)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting widget bubble disabled", e)
+            promise.reject("ERROR", "Failed to get widget bubble disabled: ${e.message}")
+        }
+    }
+
+    /**
      * Deactivate a preset in ScheduleManager's local storage.
      * This prevents scheduled presets from re-activating after emergency tapout.
      */
