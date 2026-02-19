@@ -103,9 +103,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [sharedPresetsLoaded, setSharedPresetsLoaded] = useState(false);
 
   // Shared lock status - single source of truth across all mounted screens
-  const [sharedLockStatus, setSharedLockStatus] = useState<LockStatus>({
+  const [sharedLockStatus, _setSharedLockStatus] = useState<LockStatus>({
     isLocked: false, lockStartedAt: null, lockEndsAt: null,
   });
+
+  // Shallow-equality wrapper: prevents re-renders when the same lock state is set multiple times
+  // (e.g., multiple code paths setting isLocked: false on foreground return)
+  const setSharedLockStatus = useCallback<React.Dispatch<React.SetStateAction<LockStatus>>>((action) => {
+    _setSharedLockStatus(prev => {
+      const next = typeof action === 'function' ? (action as (prev: LockStatus) => LockStatus)(prev) : action;
+      if (prev.isLocked === next.isLocked && prev.lockStartedAt === next.lockStartedAt && prev.lockEndsAt === next.lockEndsAt) {
+        return prev; // Same reference = no re-render
+      }
+      return next;
+    });
+  }, []);
 
   // Info modal
   const [modalState, setModalState] = useState<ModalState>({ visible: false, title: '', message: '' });
@@ -180,7 +192,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       ]);
       setSharedPresets(presets);
       setSharedPresetsLoaded(true);
-      setSharedLockStatus(lockStatus);
+      // NOTE: Lock status is NOT set here — callers (loadStats) handle it after
+      // checking for timer expiration, preventing a false→true→false bounce on foreground return.
       setTapoutStatus(tapout);
       return { presets, lockStatus, tapoutStatus: tapout };
     } finally {

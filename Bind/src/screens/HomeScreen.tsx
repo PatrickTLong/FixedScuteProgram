@@ -76,6 +76,11 @@ function HomeScreen() {
   const checkmarkAnimRef = useRef<{ popIn: Animated.CompositeAnimation; fadeOut: Animated.CompositeAnimation } | null>(null);
   const prevIsLockedRef = useRef(isLocked);
 
+  // Track app foreground/background so handleTimerExpired can defer UI updates
+  const appStateRef = useRef(AppState.currentState);
+  // Guard to prevent handleTimerExpired from firing multiple times while backgrounded
+  const timerExpiredRef = useRef(false);
+
   // Reset checkmark when screen loses focus so it doesn't freeze mid-animation
   useEffect(() => {
     if (!isFocused) {
@@ -313,7 +318,8 @@ function HomeScreen() {
         }
       }
 
-      // Sync lock status to shared state (refreshAll already set it, but ensure consistency after early returns)
+      // Sync lock status to shared state (refreshAll returns data without setting it,
+      // so this is the single setter for the normal non-expired path)
       setSharedLockStatus(lockStatus);
       setTapoutStatus(tapout);
       hideLoading();
@@ -405,6 +411,7 @@ function HomeScreen() {
 
     // Refresh preset when app comes to foreground (silently, no loading spinner)
     const subscription = AppState.addEventListener('change', async (nextAppState) => {
+      appStateRef.current = nextAppState;
       if (nextAppState === 'active') {
         invalidateUserCaches(email);
         await loadStats(true, false); // skipCache=true, showLoading=false
@@ -463,13 +470,20 @@ function HomeScreen() {
 
   // Auto-unlock when timer expires (called from countdown effect)
   const handleTimerExpired = useCallback(async () => {
-    try {
-      // Optimistic UI update — instant unlock, clear timer in same render
-      setTimeRemaining(null);
-      setElapsedTime(null);
-      setSharedLockStatus({ isLocked: false, lockStartedAt: null, lockEndsAt: null });
+    // Guard: only handle once per lock session (interval may fire repeatedly while backgrounded)
+    if (timerExpiredRef.current) return;
+    timerExpiredRef.current = true;
 
-      // Fire-and-forget: native unlock + backend sync
+    try {
+      // Only update UI if app is in foreground; if backgrounded, loadStats
+      // will handle the clean transition when the user returns (single animation play).
+      if (appStateRef.current === 'active') {
+        setTimeRemaining(null);
+        setElapsedTime(null);
+        setSharedLockStatus({ isLocked: false, lockStartedAt: null, lockEndsAt: null });
+      }
+
+      // Fire-and-forget: native unlock + backend sync (always runs)
       (async () => {
         try {
           await updateLockStatus(email, false, null);
@@ -492,6 +506,9 @@ function HomeScreen() {
       setTimeRemaining(null);
       return;
     }
+
+    // New lock started — reset the expiration guard so this session can fire
+    timerExpiredRef.current = false;
 
     function updateCountdown() {
       const endTime = new Date(lockEndsAt!).getTime();
