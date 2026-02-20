@@ -1,12 +1,14 @@
-import React, { memo } from 'react';
+import React, { memo, useRef, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   Modal,
+  Animated,
 } from 'react-native';
 
 import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
+import { useResponsive } from '../utils/responsive';
 
 interface ConfirmationModalProps {
   visible: boolean;
@@ -32,6 +34,19 @@ function ConfirmationModal({
   onCancel,
 }: ConfirmationModalProps) {
   const { colors } = useTheme();
+  const { s } = useResponsive();
+  const cancelFlash = useRef(new Animated.Value(0)).current;
+  const confirmFlash = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    cancelFlash.stopAnimation(() => cancelFlash.setValue(0));
+    confirmFlash.stopAnimation(() => confirmFlash.setValue(0));
+  }, [visible]);
+
+  const triggerFlash = useCallback((anim: Animated.Value) => {
+    anim.setValue(0.3);
+    Animated.timing(anim, { toValue: 0, duration: 300, useNativeDriver: true }).start();
+  }, []);
 
   return (
     <Modal
@@ -64,27 +79,35 @@ function ConfirmationModal({
               <View style={{ borderTopWidth: 1, borderTopColor: colors.divider }} className="flex-row">
                 {/* Cancel Button */}
                 <TouchableOpacity
+                  onPressIn={() => triggerFlash(cancelFlash)}
                   onPress={onCancel}
-                  activeOpacity={0.7}
+                  activeOpacity={1}
                   style={{ borderRightWidth: 1, borderRightColor: colors.divider }}
-                  className="flex-1 py-4 items-center"
+                  className="flex-1 py-4 items-center justify-center"
                 >
-                  <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular}`}>
-                    {cancelText}
-                  </Text>
+                  <View>
+                    <Animated.View style={{ position: 'absolute', top: s(-7), left: s(-18), right: s(-18), bottom: s(-7), backgroundColor: '#ffffff', opacity: cancelFlash, borderRadius: 50 }} />
+                    <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular}`}>
+                      {cancelText}
+                    </Text>
+                  </View>
                 </TouchableOpacity>
 
                 {/* Confirm Button */}
                 <TouchableOpacity
+                  onPressIn={() => triggerFlash(confirmFlash)}
                   onPress={onConfirm}
-                  activeOpacity={0.7}
+                  activeOpacity={1}
                   className="flex-1 py-4 items-center justify-center"
                 >
-                  {icon ? icon : (
-                    <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
-                      {confirmText}
-                    </Text>
-                  )}
+                  <View>
+                    <Animated.View style={{ position: 'absolute', top: s(-7), left: s(-18), right: s(-18), bottom: s(-7), backgroundColor: '#ffffff', opacity: confirmFlash, borderRadius: 50 }} />
+                    {icon ? icon : (
+                      <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
+                        {confirmText}
+                      </Text>
+                    )}
+                  </View>
                 </TouchableOpacity>
               </View>
             </View>

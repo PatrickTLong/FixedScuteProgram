@@ -8,11 +8,7 @@ import {
   Platform,
   UIManager,
 } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
-import LinearGradient from 'react-native-linear-gradient';
-import MaskedView from '@react-native-masked-view/masked-view';
-import BoxiconsFilled from '../components/BoxiconsFilled';
-import { iconSize } from '../context/ThemeContext';
+import Svg, { Path, Defs, LinearGradient as SvgGradient, Stop } from 'react-native-svg';
 import { useTheme, textSize, fontFamily, radius, shadow, buttonPadding } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 
@@ -114,9 +110,16 @@ function MembershipContent() {
         {/* Price Display */}
         <Animated.View style={{ alignItems: 'center', marginBottom: s(24), opacity: contentOpacity, transform: [{ scale: priceScale }] }}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <MaskedView maskElement={<BoxiconsFilled name="bx-sparkles-alt" size={iconSize.lg} color="black" />}>
-              <LinearGradient colors={['#7B6FE8', '#A78BFA', '#6366F1']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ width: iconSize.lg, height: iconSize.lg }} />
-            </MaskedView>
+            <Svg width={s(28)} height={s(28)} viewBox="0 -960 960 960">
+              <Defs>
+                <SvgGradient id="diamondGrad" x1="0" y1="0" x2="1" y2="1">
+                  <Stop offset="0" stopColor="#7B6FE8" />
+                  <Stop offset="0.5" stopColor="#A78BFA" />
+                  <Stop offset="1" stopColor="#6366F1" />
+                </SvgGradient>
+              </Defs>
+              <Path fill="url(#diamondGrad)" d="M480-80 120-436l200-244h320l200 244L480-80ZM183-680l-85-85 57-56 85 85-57 56Zm257-80v-120h80v120h-80Zm335 80-57-57 85-85 57 57-85 85ZM480-192l210-208H270l210 208ZM358-600l-99 120h442l-99-120H358Z" />
+            </Svg>
             <Text style={{ color: colors.text, marginLeft: s(6) }} className={`${textSize['4xLarge']} ${fontFamily.bold}`}>{plan.price}</Text>
             <Text style={{ color: colors.textSecondary, marginLeft: s(4) }} className={`${textSize.base} ${fontFamily.regular}`}>{plan.period}</Text>
           </View>

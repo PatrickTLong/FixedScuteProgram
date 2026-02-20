@@ -48,8 +48,8 @@ function EmergencyTapoutModal({
     }
     const wave = Animated.loop(
       Animated.sequence([
-        Animated.timing(pulseSweep, { toValue: 1, duration: 1000, easing: Easing.linear, useNativeDriver: true }),
-        Animated.delay(200),
+        Animated.timing(pulseSweep, { toValue: 1, duration: 600, easing: Easing.linear, useNativeDriver: true }),
+        Animated.delay(400),
       ])
     );
     wave.start();
@@ -122,42 +122,14 @@ function EmergencyTapoutModal({
               <View style={{ width: pulseIconSize, height: pulseIconSize, overflow: 'hidden', marginBottom: 12 }}>
                 <BoxiconsFilled name="bx-pulse" size={pulseIconSize} color={colors.textMuted} />
 
-                {/* Wipe reveal — slides in from left, trace stays visible and fades */}
                 <Animated.View style={{
                   position: 'absolute', top: 0, bottom: 0,
                   width: pulseIconSize,
                   overflow: 'hidden',
-                  opacity: pulseSweep.interpolate({ inputRange: [0, 0.3, 1], outputRange: [0.6, 0.5, 0.15] }),
-                  transform: [{ translateX: pulseSweep.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [-pulseIconSize, 0],
-                  }) }],
+                  transform: [{ translateX: pulseSweep.interpolate({ inputRange: [0, 1], outputRange: [-pulseIconSize, pulseIconSize] }) }],
                 }}>
                   <Animated.View style={{
-                    transform: [{ translateX: pulseSweep.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [pulseIconSize, 0],
-                    }) }],
-                  }}>
-                    <BoxiconsFilled name="bx-pulse" size={pulseIconSize} color="white" />
-                  </Animated.View>
-                </Animated.View>
-
-                {/* Bright sweep head — narrow band at the leading edge */}
-                <Animated.View style={{
-                  position: 'absolute', top: 0, bottom: 0,
-                  width: pulseIconSize * 0.25,
-                  overflow: 'hidden',
-                  transform: [{ translateX: pulseSweep.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [-(pulseIconSize * 0.25), pulseIconSize],
-                  }) }],
-                }}>
-                  <Animated.View style={{
-                    transform: [{ translateX: pulseSweep.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [pulseIconSize * 0.25, -pulseIconSize],
-                    }) }],
+                    transform: [{ translateX: pulseSweep.interpolate({ inputRange: [0, 1], outputRange: [pulseIconSize, -pulseIconSize] }) }],
                   }}>
                     <BoxiconsFilled name="bx-pulse" size={pulseIconSize} color="white" />
                   </Animated.View>

@@ -193,8 +193,8 @@ function SettingsScreen() {
     }
     const wave = Animated.loop(
       Animated.sequence([
-        Animated.timing(pulseSweep, { toValue: 1, duration: 1000, easing: Easing.linear, useNativeDriver: true }),
-        Animated.delay(200),
+        Animated.timing(pulseSweep, { toValue: 1, duration: 600, easing: Easing.linear, useNativeDriver: true }),
+        Animated.delay(400),
       ])
     );
     wave.start();
@@ -532,42 +532,14 @@ function SettingsScreen() {
                 <View style={{ width: tapoutIconSize, height: tapoutIconSize, overflow: 'hidden' }}>
                   <BoxiconsFilled name="bx-pulse" size={tapoutIconSize} color={colors.textMuted} />
 
-                  {/* Wipe reveal — slides in from left, trace stays visible and fades */}
                   <Animated.View style={{
                     position: 'absolute', top: 0, bottom: 0,
                     width: tapoutIconSize,
                     overflow: 'hidden',
-                    opacity: pulseSweep.interpolate({ inputRange: [0, 0.3, 1], outputRange: [0.6, 0.5, 0.15] }),
-                    transform: [{ translateX: pulseSweep.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [-tapoutIconSize, 0],
-                    }) }],
+                    transform: [{ translateX: pulseSweep.interpolate({ inputRange: [0, 1], outputRange: [-tapoutIconSize, tapoutIconSize] }) }],
                   }}>
                     <Animated.View style={{
-                      transform: [{ translateX: pulseSweep.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [tapoutIconSize, 0],
-                      }) }],
-                    }}>
-                      <BoxiconsFilled name="bx-pulse" size={tapoutIconSize} color="white" />
-                    </Animated.View>
-                  </Animated.View>
-
-                  {/* Bright sweep head — narrow band at the leading edge */}
-                  <Animated.View style={{
-                    position: 'absolute', top: 0, bottom: 0,
-                    width: tapoutIconSize * 0.25,
-                    overflow: 'hidden',
-                    transform: [{ translateX: pulseSweep.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [-(tapoutIconSize * 0.25), tapoutIconSize],
-                    }) }],
-                  }}>
-                    <Animated.View style={{
-                      transform: [{ translateX: pulseSweep.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [tapoutIconSize * 0.25, -tapoutIconSize],
-                      }) }],
+                      transform: [{ translateX: pulseSweep.interpolate({ inputRange: [0, 1], outputRange: [tapoutIconSize, -tapoutIconSize] }) }],
                     }}>
                       <BoxiconsFilled name="bx-pulse" size={tapoutIconSize} color="white" />
                     </Animated.View>
@@ -705,6 +677,7 @@ function SettingsScreen() {
 
       {/* Delete Account Modal - Two Steps */}
       <ConfirmationModal
+        key={deleteStep}
         visible={deleteModalVisible}
         title={deleteStep === 1 ? 'Delete Account' : 'Are You Sure?'}
         message={deleteStep === 1
