@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useRef } from 'react';
+import React, { memo, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -35,6 +35,18 @@ function EmergencyTapoutModal({
   const { colors } = useTheme();
   const { s } = useResponsive();
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const dismissFlash = useRef(new Animated.Value(0)).current;
+  const tapoutFlash = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    dismissFlash.stopAnimation(() => dismissFlash.setValue(0));
+    tapoutFlash.stopAnimation(() => tapoutFlash.setValue(0));
+  }, [visible]);
+
+  const triggerFlash = useCallback((anim: Animated.Value) => {
+    anim.setValue(0.3);
+    Animated.timing(anim, { toValue: 0, duration: 300, useNativeDriver: true }).start();
+  }, []);
 
   // Pulse sweep animation
   const pulseSweep = useRef(new Animated.Value(0)).current;
@@ -154,27 +166,35 @@ function EmergencyTapoutModal({
           {/* Buttons */}
           <View style={{ borderTopWidth: 1, borderTopColor: colors.divider }} className="flex-row">
             <TouchableOpacity
+              onPressIn={() => triggerFlash(dismissFlash)}
               onPress={onClose}
-              activeOpacity={0.7}
+              activeOpacity={1}
               style={{ borderRightWidth: 1, borderRightColor: colors.divider }}
-              className="flex-1 py-4 items-center"
+              className="flex-1 py-4 items-center justify-center"
             >
-              <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.semibold}`}>
-                Dismiss
-              </Text>
+              <View>
+                <Animated.View style={{ position: 'absolute', top: s(-7), left: s(-18), right: s(-18), bottom: s(-7), backgroundColor: '#ffffff', opacity: dismissFlash, borderRadius: 50 }} />
+                <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.semibold}`}>
+                  Dismiss
+                </Text>
+              </View>
             </TouchableOpacity>
             <TouchableOpacity
+              onPressIn={() => triggerFlash(tapoutFlash)}
               onPress={onUseTapout}
               disabled={!canUseTapout || isLoading}
-              activeOpacity={0.7}
+              activeOpacity={1}
               className="flex-1 py-4 items-center justify-center"
             >
               {isLoading ? (
                 <LoadingSpinner size={s(22)} color={colors.textMuted} />
               ) : (
-                <Text style={{ color: canUseTapout ? colors.text : colors.textMuted }} className={`${textSize.small} ${fontFamily.semibold}`}>
-                  {canUseTapout ? 'Use Tapout' : 'Not Available'}
-                </Text>
+                <View>
+                  <Animated.View style={{ position: 'absolute', top: s(-7), left: s(-18), right: s(-18), bottom: s(-7), backgroundColor: '#ffffff', opacity: tapoutFlash, borderRadius: 50 }} />
+                  <Text style={{ color: canUseTapout ? colors.text : colors.textMuted }} className={`${textSize.small} ${fontFamily.semibold}`}>
+                    {canUseTapout ? 'Unlock' : 'Not Available'}
+                  </Text>
+                </View>
               )}
             </TouchableOpacity>
           </View>

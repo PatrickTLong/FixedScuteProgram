@@ -1,13 +1,15 @@
-import React, { memo } from 'react';
+import React, { memo, useRef, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   Modal,
   Pressable,
+  Animated,
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { useTheme , textSize, fontFamily, radius, shadow, iconSize } from '../context/ThemeContext';
+import { useResponsive } from '../utils/responsive';
 
 interface ShieldIconsInfoModalProps {
   visible: boolean;
@@ -49,6 +51,17 @@ const RotateCwIcon = ({ color, size = iconSize.lg }: { color: string; size?: num
 
 function ShieldIconsInfoModal({ visible, onClose }: ShieldIconsInfoModalProps) {
   const { colors } = useTheme();
+  const { s } = useResponsive();
+  const flash = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    flash.stopAnimation(() => flash.setValue(0));
+  }, [visible]);
+
+  const triggerFlash = useCallback((anim: Animated.Value) => {
+    anim.setValue(0.3);
+    Animated.timing(anim, { toValue: 0, duration: 300, useNativeDriver: true }).start();
+  }, []);
 
   const handleClose = () => {
     onClose(true);
@@ -112,13 +125,17 @@ function ShieldIconsInfoModal({ visible, onClose }: ShieldIconsInfoModalProps) {
               {/* Button */}
               <View style={{ borderTopWidth: 1, borderTopColor: colors.divider }}>
                 <TouchableOpacity
+                  onPressIn={() => triggerFlash(flash)}
                   onPress={handleClose}
-                  activeOpacity={0.7}
-                  className="py-4 items-center"
+                  activeOpacity={1}
+                  className="py-4 items-center justify-center"
                 >
-                  <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
-                    Dismiss
-                  </Text>
+                  <View>
+                    <Animated.View style={{ position: 'absolute', top: s(-7), left: s(-18), right: s(-18), bottom: s(-7), backgroundColor: '#ffffff', opacity: flash, borderRadius: 50 }} />
+                    <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
+                      Dismiss
+                    </Text>
+                  </View>
                 </TouchableOpacity>
               </View>
             </View>
