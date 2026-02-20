@@ -110,16 +110,40 @@ function MembershipContent() {
         {/* Price Display */}
         <Animated.View style={{ alignItems: 'center', marginBottom: s(24), opacity: contentOpacity, transform: [{ scale: priceScale }] }}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Svg width={s(28)} height={s(28)} viewBox="0 -960 960 960">
-              <Defs>
-                <SvgGradient id="diamondGrad" x1="0" y1="0" x2="1" y2="1">
-                  <Stop offset="0" stopColor="#7B6FE8" />
-                  <Stop offset="0.5" stopColor="#A78BFA" />
-                  <Stop offset="1" stopColor="#6366F1" />
-                </SvgGradient>
-              </Defs>
-              <Path fill="url(#diamondGrad)" d="M480-80 120-436l200-244h320l200 244L480-80ZM183-680l-85-85 57-56 85 85-57 56Zm257-80v-120h80v120h-80Zm335 80-57-57 85-85 57 57-85 85ZM480-192l210-208H270l210 208ZM358-600l-99 120h442l-99-120H358Z" />
-            </Svg>
+            {selectedPlan === 'lifetime' ? (
+              <Svg width={s(28)} height={s(28)} viewBox="0 -960 960 960">
+                <Defs>
+                  <SvgGradient id="crownGrad" x1="0" y1="0" x2="1" y2="1">
+                    <Stop offset="0" stopColor="#F59E0B" />
+                    <Stop offset="0.5" stopColor="#FBBF24" />
+                    <Stop offset="1" stopColor="#D97706" />
+                  </SvgGradient>
+                </Defs>
+                <Path fill="url(#crownGrad)" d="M200-160v-80h560v80H200Zm0-140-51-321q-2 0-4.5.5t-4.5.5q-25 0-42.5-17.5T80-680q0-25 17.5-42.5T140-740q25 0 42.5 17.5T200-680q0 7-1.5 13t-3.5 11l125 56 125-171q-11-8-18-21t-7-28q0-25 17.5-42.5T480-880q25 0 42.5 17.5T540-820q0 15-7 28t-18 21l125 171 125-56q-2-5-3.5-11t-1.5-13q0-25 17.5-42.5T820-740q25 0 42.5 17.5T880-680q0 25-17.5 42.5T820-620q-2 0-4.5-.5t-4.5-.5l-51 321H200Z" />
+              </Svg>
+            ) : selectedPlan === 'yearly' ? (
+              <Svg width={s(28)} height={s(28)} viewBox="0 -960 960 960">
+                <Defs>
+                  <SvgGradient id="icyDiamondGrad" x1="0" y1="0" x2="1" y2="1">
+                    <Stop offset="0" stopColor="#67E8F9" />
+                    <Stop offset="0.5" stopColor="#A5F3FC" />
+                    <Stop offset="1" stopColor="#22D3EE" />
+                  </SvgGradient>
+                </Defs>
+                <Path fill="url(#icyDiamondGrad)" d="m368-630 106-210h12l106 210H368Zm82 474L105-570h345v414Zm60 0v-414h345L510-156Zm148-474L554-840h206l105 210H658Zm-563 0 105-210h206L302-630H95Z" />
+              </Svg>
+            ) : (
+              <Svg width={s(28)} height={s(28)} viewBox="0 -960 960 960">
+                <Defs>
+                  <SvgGradient id="diamondGrad" x1="0" y1="0" x2="1" y2="1">
+                    <Stop offset="0" stopColor="#7B6FE8" />
+                    <Stop offset="0.5" stopColor="#A78BFA" />
+                    <Stop offset="1" stopColor="#6366F1" />
+                  </SvgGradient>
+                </Defs>
+                <Path fill="url(#diamondGrad)" d="m183-680-85-85 57-56 85 85-57 56Zm257-80v-120h80v120h-80Zm335 80-57-57 85-85 57 57-85 85ZM480-80 157-400h646L480-80ZM320-680h320l164 200H156l164-200Z" />
+              </Svg>
+            )}
             <Text style={{ color: colors.text, marginLeft: s(6) }} className={`${textSize['4xLarge']} ${fontFamily.bold}`}>{plan.price}</Text>
             <Text style={{ color: colors.textSecondary, marginLeft: s(4) }} className={`${textSize.base} ${fontFamily.regular}`}>{plan.period}</Text>
           </View>

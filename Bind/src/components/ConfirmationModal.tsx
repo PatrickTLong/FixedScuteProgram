@@ -85,12 +85,10 @@ function ConfirmationModal({
                   style={{ borderRightWidth: 1, borderRightColor: colors.divider }}
                   className="flex-1 py-4 items-center justify-center"
                 >
-                  <View>
-                    <Animated.View style={{ position: 'absolute', top: s(-7), left: s(-18), right: s(-18), bottom: s(-7), backgroundColor: '#ffffff', opacity: cancelFlash, borderRadius: 50 }} />
-                    <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular}`}>
-                      {cancelText}
-                    </Text>
-                  </View>
+                  <Animated.View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#ffffff', opacity: cancelFlash }} />
+                  <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular}`}>
+                    {cancelText}
+                  </Text>
                 </TouchableOpacity>
 
                 {/* Confirm Button */}
@@ -100,14 +98,12 @@ function ConfirmationModal({
                   activeOpacity={1}
                   className="flex-1 py-4 items-center justify-center"
                 >
-                  <View>
-                    <Animated.View style={{ position: 'absolute', top: s(-7), left: s(-18), right: s(-18), bottom: s(-7), backgroundColor: '#ffffff', opacity: confirmFlash, borderRadius: 50 }} />
-                    {icon ? icon : (
-                      <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
-                        {confirmText}
-                      </Text>
-                    )}
-                  </View>
+                  <Animated.View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#ffffff', opacity: confirmFlash }} />
+                  {icon ? icon : (
+                    <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
+                      {confirmText}
+                    </Text>
+                  )}
                 </TouchableOpacity>
               </View>
             </View>

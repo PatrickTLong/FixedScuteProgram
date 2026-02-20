@@ -7,9 +7,9 @@ import {
   Animated,
   Easing,
 } from 'react-native';
+import Svg, { Path } from 'react-native-svg';
 import LoadingSpinner from './LoadingSpinner';
-import BoxiconsFilled from './BoxiconsFilled';
-import { useTheme , textSize, fontFamily, radius, shadow, iconSize } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
 
 import { useResponsive } from '../utils/responsive';
 
@@ -51,7 +51,7 @@ function EmergencyTapoutModal({
   // Pulse sweep animation
   const pulseSweep = useRef(new Animated.Value(0)).current;
   const canUseTapout = presetAllowsTapout && tapoutsRemaining > 0;
-  const pulseIconSize = 44;
+  const pulseIconSize = 34;
 
   useEffect(() => {
     if (!canUseTapout || !visible) {
@@ -132,7 +132,9 @@ function EmergencyTapoutModal({
           <View className="p-6 items-center">
             {canUseTapout ? (
               <View style={{ width: pulseIconSize, height: pulseIconSize, overflow: 'hidden', marginBottom: 12 }}>
-                <BoxiconsFilled name="bx-pulse" size={pulseIconSize} color={colors.textMuted} />
+                <Svg width={pulseIconSize} height={pulseIconSize} viewBox="0 0 24 24" fill={colors.textMuted}>
+                  <Path d="M20 19H4v2h16zM13 6V3h-2v3zm6 5v2h3v-2zM5 13v-2H2v2zm12.66-5.24 1.06-1.06 1.06-1.06-.71-.71-.71-.71-1.06 1.06-1.06 1.06.71.71zm-11.32 0 .71-.71.71-.71L6.7 5.28 5.64 4.22l-.71.71-.71.71L5.28 6.7zM7 18h10v-5c0-2.76-2.24-5-5-5s-5 2.24-5 5z" />
+                </Svg>
 
                 <Animated.View style={{
                   position: 'absolute', top: 0, bottom: 0,
@@ -143,13 +145,17 @@ function EmergencyTapoutModal({
                   <Animated.View style={{
                     transform: [{ translateX: pulseSweep.interpolate({ inputRange: [0, 1], outputRange: [pulseIconSize, -pulseIconSize] }) }],
                   }}>
-                    <BoxiconsFilled name="bx-pulse" size={pulseIconSize} color="white" />
+                    <Svg width={pulseIconSize} height={pulseIconSize} viewBox="0 0 24 24" fill={colors.red}>
+                      <Path d="M20 19H4v2h16zM13 6V3h-2v3zm6 5v2h3v-2zM5 13v-2H2v2zm12.66-5.24 1.06-1.06 1.06-1.06-.71-.71-.71-.71-1.06 1.06-1.06 1.06.71.71zm-11.32 0 .71-.71.71-.71L6.7 5.28 5.64 4.22l-.71.71-.71.71L5.28 6.7zM7 18h10v-5c0-2.76-2.24-5-5-5s-5 2.24-5 5z" />
+                    </Svg>
                   </Animated.View>
                 </Animated.View>
               </View>
             ) : (
               <View style={{ marginBottom: 12 }}>
-                <BoxiconsFilled name="bx-pulse" size={pulseIconSize} color={colors.textMuted} />
+                <Svg width={pulseIconSize} height={pulseIconSize} viewBox="0 0 24 24" fill={colors.textMuted}>
+                  <Path d="M20 19H4v2h16zM13 6V3h-2v3zm6 5v2h3v-2zM5 13v-2H2v2zm12.66-5.24 1.06-1.06 1.06-1.06-.71-.71-.71-.71-1.06 1.06-1.06 1.06.71.71zm-11.32 0 .71-.71.71-.71L6.7 5.28 5.64 4.22l-.71.71-.71.71L5.28 6.7zM7 18h10v-5c0-2.76-2.24-5-5-5s-5 2.24-5 5z" />
+                </Svg>
               </View>
             )}
 

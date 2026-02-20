@@ -12,6 +12,7 @@ import {
   FlatList,
   Image,
   StyleSheet,
+  Animated,
 } from 'react-native';
 import LoadingSpinner from '../components/LoadingSpinner';
 import AnimatedCheckbox, { AnimatedCheckboxRef } from '../components/AnimatedCheckbox';
@@ -197,21 +198,60 @@ const AppItemRow = memo(({ item, isSelected, onToggle, colors, s, skipCheckboxAn
   skipCheckboxAnimation: boolean;
 }) => {
   const checkboxRef = useRef<AnimatedCheckboxRef>(null);
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const opacityAnim = useRef(new Animated.Value(1)).current;
 
   const handlePressIn = useCallback(() => {
-    if (!isSelected) {
-      checkboxRef.current?.pop();
-    } else {
-      checkboxRef.current?.shrink();
-    }
-  }, [isSelected]);
+    // Scale down and dim animation
+    Animated.parallel([
+      Animated.spring(scaleAnim, {
+        toValue: 0.96,
+        useNativeDriver: true,
+        tension: 300,
+        friction: 20,
+      }),
+      Animated.timing(opacityAnim, {
+        toValue: 0.7,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [scaleAnim, opacityAnim]);
+
+  const handlePressOut = useCallback(() => {
+    // Bounce back and restore opacity animation
+    Animated.parallel([
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        useNativeDriver: true,
+        tension: 300,
+        friction: 20,
+      }),
+      Animated.timing(opacityAnim, {
+        toValue: 1,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [scaleAnim, opacityAnim]);
 
   return (
-      <TouchableOpacity
-        onPressIn={handlePressIn}
-        onPress={() => onToggle(item.id)}
-        activeOpacity={0.7}
-        style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, paddingVertical: s(buttonPadding.standard), ...shadow.card }}
+    <TouchableOpacity
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      onPress={() => onToggle(item.id)}
+      activeOpacity={1}
+    >
+      <Animated.View
+        style={{
+          backgroundColor: colors.card,
+          borderWidth: 1,
+          borderColor: colors.border,
+          paddingVertical: s(buttonPadding.standard),
+          ...shadow.card,
+          opacity: opacityAnim,
+          transform: [{ scale: scaleAnim }],
+        }}
         className={`flex-row items-center px-4 ${radius.xl} mb-2`}
       >
         {item.icon ? (
@@ -229,7 +269,8 @@ const AppItemRow = memo(({ item, isSelected, onToggle, colors, s, skipCheckboxAn
         )}
         <Text style={{ color: colors.text }} className={`flex-1 ${textSize.small} ${fontFamily.regular}`}>{item.name}</Text>
         <AnimatedCheckbox ref={checkboxRef} checked={isSelected} size={s(iconSize.lg)} skipAnimation={skipCheckboxAnimation} />
-      </TouchableOpacity>
+      </Animated.View>
+    </TouchableOpacity>
   );
 });
 
