@@ -202,44 +202,46 @@ const AppItemRow = memo(({ item, isSelected, onToggle, colors, s, skipCheckboxAn
   const opacityAnim = useRef(new Animated.Value(1)).current;
 
   const handlePressIn = useCallback(() => {
-    // Scale down and dim animation
-    Animated.parallel([
-      Animated.spring(scaleAnim, {
-        toValue: 0.96,
-        useNativeDriver: true,
-        tension: 300,
-        friction: 20,
-      }),
-      Animated.timing(opacityAnim, {
-        toValue: 0.7,
-        duration: 100,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, [scaleAnim, opacityAnim]);
+    // Dim animation on press down
+    Animated.timing(opacityAnim, {
+      toValue: 0.7,
+      duration: 30,
+      useNativeDriver: true,
+    }).start();
+  }, [opacityAnim]);
 
   const handlePressOut = useCallback(() => {
-    // Bounce back and restore opacity animation
-    Animated.parallel([
+    // Restore opacity on press release
+    Animated.timing(opacityAnim, {
+      toValue: 1,
+      duration: 100,
+      useNativeDriver: true,
+    }).start();
+  }, [opacityAnim]);
+
+  const handlePress = useCallback(() => {
+    onToggle(item.id);
+    // Scale down and bounce back animation on press
+    Animated.sequence([
+      Animated.timing(scaleAnim, {
+        toValue: 0.95,
+        useNativeDriver: true,
+        duration: 30,
+      }),
       Animated.spring(scaleAnim, {
         toValue: 1,
         useNativeDriver: true,
-        tension: 300,
-        friction: 20,
-      }),
-      Animated.timing(opacityAnim, {
-        toValue: 1,
-        duration: 100,
-        useNativeDriver: true,
+        speed: 12,
+        bounciness: 14,
       }),
     ]).start();
-  }, [scaleAnim, opacityAnim]);
+  }, [item.id, onToggle, scaleAnim]);
 
   return (
     <TouchableOpacity
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
-      onPress={() => onToggle(item.id)}
+      onPress={handlePress}
       activeOpacity={1}
     >
       <Animated.View

@@ -48,25 +48,28 @@ function EmergencyTapoutModal({
     Animated.timing(anim, { toValue: 0, duration: 300, useNativeDriver: true }).start();
   }, []);
 
-  // Pulse sweep animation
-  const pulseSweep = useRef(new Animated.Value(0)).current;
+  // Heartbeat animation
+  const heartBeat = useRef(new Animated.Value(1)).current;
   const canUseTapout = presetAllowsTapout && tapoutsRemaining > 0;
-  const pulseIconSize = 34;
+  const iconSize = 34;
 
   useEffect(() => {
     if (!canUseTapout || !visible) {
-      pulseSweep.setValue(0);
+      heartBeat.setValue(1);
       return;
     }
-    const wave = Animated.loop(
+    const beat = Animated.loop(
       Animated.sequence([
-        Animated.timing(pulseSweep, { toValue: 1, duration: 600, easing: Easing.linear, useNativeDriver: true }),
-        Animated.delay(400),
+        Animated.timing(heartBeat, { toValue: 1.25, duration: 200, easing: Easing.out(Easing.ease), useNativeDriver: true }),
+        Animated.timing(heartBeat, { toValue: 1, duration: 200, easing: Easing.in(Easing.ease), useNativeDriver: true }),
+        Animated.timing(heartBeat, { toValue: 1.2, duration: 150, easing: Easing.out(Easing.ease), useNativeDriver: true }),
+        Animated.timing(heartBeat, { toValue: 1, duration: 150, easing: Easing.in(Easing.ease), useNativeDriver: true }),
+        Animated.delay(800),
       ])
     );
-    wave.start();
-    return () => wave.stop();
-  }, [pulseSweep, canUseTapout, visible]);
+    beat.start();
+    return () => beat.stop();
+  }, [heartBeat, canUseTapout, visible]);
 
   // Auto-close modal when timer expires
   useEffect(() => {
@@ -131,30 +134,15 @@ function EmergencyTapoutModal({
           {/* Content */}
           <View className="p-6 items-center">
             {canUseTapout ? (
-              <View style={{ width: pulseIconSize, height: pulseIconSize, overflow: 'hidden', marginBottom: 12 }}>
-                <Svg width={pulseIconSize} height={pulseIconSize} viewBox="0 0 24 24" fill={colors.textMuted}>
-                  <Path d="M20 19H4v2h16zM13 6V3h-2v3zm6 5v2h3v-2zM5 13v-2H2v2zm12.66-5.24 1.06-1.06 1.06-1.06-.71-.71-.71-.71-1.06 1.06-1.06 1.06.71.71zm-11.32 0 .71-.71.71-.71L6.7 5.28 5.64 4.22l-.71.71-.71.71L5.28 6.7zM7 18h10v-5c0-2.76-2.24-5-5-5s-5 2.24-5 5z" />
+              <Animated.View style={{ marginBottom: 12, transform: [{ scale: heartBeat }] }}>
+                <Svg width={iconSize} height={iconSize} viewBox="0 -960 960 960" fill={colors.red}>
+                  <Path d="M600-400v-80h320v80H600ZM440-120 313-234q-72-65-123.5-116t-85-96q-33.5-45-49-87T40-621q0-94 63-156.5T260-840q52 0 99 21.5t81 61.5q34-40 81-61.5t99-21.5q85 0 142.5 51.5T834-668q-18-7-36-10.5t-35-3.5q-101 0-172 70.5T520-440q0 52 21 98.5t59 79.5q-19 17-49.5 43.5T498-172l-58 52Z" />
                 </Svg>
-
-                <Animated.View style={{
-                  position: 'absolute', top: 0, bottom: 0,
-                  width: pulseIconSize,
-                  overflow: 'hidden',
-                  transform: [{ translateX: pulseSweep.interpolate({ inputRange: [0, 1], outputRange: [-pulseIconSize, pulseIconSize] }) }],
-                }}>
-                  <Animated.View style={{
-                    transform: [{ translateX: pulseSweep.interpolate({ inputRange: [0, 1], outputRange: [pulseIconSize, -pulseIconSize] }) }],
-                  }}>
-                    <Svg width={pulseIconSize} height={pulseIconSize} viewBox="0 0 24 24" fill={colors.red}>
-                      <Path d="M20 19H4v2h16zM13 6V3h-2v3zm6 5v2h3v-2zM5 13v-2H2v2zm12.66-5.24 1.06-1.06 1.06-1.06-.71-.71-.71-.71-1.06 1.06-1.06 1.06.71.71zm-11.32 0 .71-.71.71-.71L6.7 5.28 5.64 4.22l-.71.71-.71.71L5.28 6.7zM7 18h10v-5c0-2.76-2.24-5-5-5s-5 2.24-5 5z" />
-                    </Svg>
-                  </Animated.View>
-                </Animated.View>
-              </View>
+              </Animated.View>
             ) : (
               <View style={{ marginBottom: 12 }}>
-                <Svg width={pulseIconSize} height={pulseIconSize} viewBox="0 0 24 24" fill={colors.textMuted}>
-                  <Path d="M20 19H4v2h16zM13 6V3h-2v3zm6 5v2h3v-2zM5 13v-2H2v2zm12.66-5.24 1.06-1.06 1.06-1.06-.71-.71-.71-.71-1.06 1.06-1.06 1.06.71.71zm-11.32 0 .71-.71.71-.71L6.7 5.28 5.64 4.22l-.71.71-.71.71L5.28 6.7zM7 18h10v-5c0-2.76-2.24-5-5-5s-5 2.24-5 5z" />
+                <Svg width={iconSize} height={iconSize} viewBox="0 -960 960 960" fill={colors.textMuted}>
+                  <Path d="M481-83Q347-218 267.5-301t-121-138q-41.5-55-54-94T80-620q0-92 64-156t156-64q45 0 87 16.5t75 47.5l-62 216h120l-34 335 114-375H480l71-212q25-14 52.5-21t56.5-7q92 0 156 64t64 156q0 48-13 88t-55 95.5q-42 55.5-121 138T481-83Z" />
                 </Svg>
               </View>
             )}

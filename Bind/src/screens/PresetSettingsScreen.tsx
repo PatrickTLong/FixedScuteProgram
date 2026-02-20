@@ -186,22 +186,27 @@ const TimePresetCircle = memo(({ label, onPress, onLongPressAdd }: {
   const handlePressIn = useCallback(() => {
     didLongPress.current = false;
     activeRef.current = true;
-    Animated.timing(scaleAnim, { toValue: 0.9, useNativeDriver: true, duration: 30 }).start();
     timeoutRef.current = setTimeout(() => {
       didLongPress.current = true;
       onLongPressAddRef.current();
       scheduleNext(LONG_PRESS_START_INTERVAL);
     }, LONG_PRESS_INITIAL_DELAY);
-  }, [scheduleNext, scaleAnim]);
+  }, [scheduleNext]);
 
   const handlePressOut = useCallback(() => {
     clearTimers();
-    Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true, speed: 12, bounciness: 14 }).start();
-  }, [clearTimers, scaleAnim]);
+  }, [clearTimers]);
 
   const handlePress = useCallback(() => {
-    if (!didLongPress.current) onPress();
-  }, [onPress]);
+    if (!didLongPress.current) {
+      onPress();
+      // Scale down and bounce back animation on press
+      Animated.sequence([
+        Animated.timing(scaleAnim, { toValue: 0.9, useNativeDriver: true, duration: 30 }),
+        Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true, speed: 12, bounciness: 14 }),
+      ]).start();
+    }
+  }, [onPress, scaleAnim]);
 
   useEffect(() => clearTimers, [clearTimers]);
 
