@@ -1387,7 +1387,7 @@ function PresetSettingsScreen() {
           <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}>
             <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
               <TouchableOpacity onPress={() => toggleInfo('emergencyTapout')} activeOpacity={0.7} style={{ maxWidth: '75%' }} className="flex-row items-center">
-<Svg width={s(iconSize.toggleRow)} height={s(iconSize.toggleRow)} viewBox="0 0 24 24" fill={colors.red} style={{ marginRight: s(14) }}><Path d="M20 19H4v2h16zM13 6V3h-2v3zm6 5v2h3v-2zM5 13v-2H2v2zm12.66-5.24 1.06-1.06 1.06-1.06-.71-.71-.71-.71-1.06 1.06-1.06 1.06.71.71zm-11.32 0 .71-.71.71-.71L6.7 5.28 5.64 4.22l-.71.71-.71.71L5.28 6.7zM7 18h10v-5c0-2.76-2.24-5-5-5s-5 2.24-5 5z" /></Svg>
+<Svg width={s(iconSize.toggleRow)} height={s(iconSize.toggleRow)} viewBox="0 -960 960 960" fill={colors.red} style={{ marginRight: s(14) }}><Path d="M440-120 313-234q-72-65-123.5-116t-85-96q-33.5-45-49-87T40-621q0-94 63-156.5T260-840q52 0 99 21.5t81 61.5q34-40 81-61.5t99-21.5q85 0 142.5 51.5T834-668q-20-8-42-10t-45-2q-85 0-156 68.5T520-440q0 48 21 97.5t59 80.5q-19 17-49.5 43.5T498-172l-58 52Zm278-193L604-426l57-56 57 56 141-141 57 56-198 198Z" /></Svg>
                 <View>
                   <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Allow Emergency Tapout</Text>
                   <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-1`}>Use your emergency tapouts for this preset</Text>

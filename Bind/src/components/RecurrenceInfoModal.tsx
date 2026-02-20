@@ -61,12 +61,10 @@ function RecurrenceInfoModal({ visible, onClose }: RecurrenceInfoModalProps) {
                   activeOpacity={1}
                   className="py-4 items-center justify-center"
                 >
-                  <View>
-                    <Animated.View style={{ position: 'absolute', top: s(-7), left: s(-18), right: s(-18), bottom: s(-7), backgroundColor: '#ffffff', opacity: flash, borderRadius: 50 }} />
-                    <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
-                      Dismiss
-                    </Text>
-                  </View>
+                  <Animated.View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#ffffff', opacity: flash }} />
+                  <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
+                    Dismiss
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>

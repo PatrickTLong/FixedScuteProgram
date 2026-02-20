@@ -268,7 +268,9 @@ const AppItemRow = memo(({ item, isSelected, onToggle, colors, s, skipCheckboxAn
           </View>
         )}
         <Text style={{ color: colors.text }} className={`flex-1 ${textSize.small} ${fontFamily.regular}`}>{item.name}</Text>
-        <AnimatedCheckbox ref={checkboxRef} checked={isSelected} size={s(iconSize.lg)} skipAnimation={skipCheckboxAnimation} />
+        <View pointerEvents="none">
+          <AnimatedCheckbox ref={checkboxRef} checked={isSelected} size={s(iconSize.lg)} skipAnimation={skipCheckboxAnimation} />
+        </View>
       </Animated.View>
     </TouchableOpacity>
   );

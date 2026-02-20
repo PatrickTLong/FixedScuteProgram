@@ -180,26 +180,29 @@ function SettingsScreen() {
   // Gear spin animation
   const gearRotation = useRef(new Animated.Value(0)).current;
 
-  // Pulse sweep animation for tapout icon
-  const pulseSweep = useRef(new Animated.Value(0)).current;
+  // Heartbeat animation for tapout icon
+  const heartBeat = useRef(new Animated.Value(1)).current;
   const tapoutIconSize = iconSize.forTabs;
 
-  const hasTapouts = (tapoutStatus?.remaining ?? 0) > 0;
+  const tapoutsRemaining = tapoutStatus?.remaining ?? 0;
 
   useEffect(() => {
-    if (!hasTapouts) {
-      pulseSweep.setValue(0);
+    if (tapoutsRemaining === 0 || tapoutsRemaining >= 3) {
+      heartBeat.setValue(1);
       return;
     }
-    const wave = Animated.loop(
+    const beat = Animated.loop(
       Animated.sequence([
-        Animated.timing(pulseSweep, { toValue: 1, duration: 600, easing: Easing.linear, useNativeDriver: true }),
-        Animated.delay(400),
+        Animated.timing(heartBeat, { toValue: 1.25, duration: 200, easing: Easing.out(Easing.ease), useNativeDriver: true }),
+        Animated.timing(heartBeat, { toValue: 1, duration: 200, easing: Easing.in(Easing.ease), useNativeDriver: true }),
+        Animated.timing(heartBeat, { toValue: 1.2, duration: 150, easing: Easing.out(Easing.ease), useNativeDriver: true }),
+        Animated.timing(heartBeat, { toValue: 1, duration: 150, easing: Easing.in(Easing.ease), useNativeDriver: true }),
+        Animated.delay(800),
       ])
     );
-    wave.start();
-    return () => wave.stop();
-  }, [pulseSweep, hasTapouts]);
+    beat.start();
+    return () => beat.stop();
+  }, [heartBeat, tapoutsRemaining]);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -528,31 +531,20 @@ function SettingsScreen() {
             className="flex-row items-center px-4"
           >
             <View className="mr-4">
-              {(tapoutStatus?.remaining ?? 0) > 0 ? (
-                <View style={{ width: tapoutIconSize, height: tapoutIconSize, overflow: 'hidden' }}>
-                  <Svg width={tapoutIconSize} height={tapoutIconSize} viewBox="0 0 24 24" fill={colors.textMuted}>
-                    <Path d="M20 19H4v2h16zM13 6V3h-2v3zm6 5v2h3v-2zM5 13v-2H2v2zm12.66-5.24 1.06-1.06 1.06-1.06-.71-.71-.71-.71-1.06 1.06-1.06 1.06.71.71zm-11.32 0 .71-.71.71-.71L6.7 5.28 5.64 4.22l-.71.71-.71.71L5.28 6.7zM7 18h10v-5c0-2.76-2.24-5-5-5s-5 2.24-5 5z" />
-                  </Svg>
-
-                  <Animated.View style={{
-                    position: 'absolute', top: 0, bottom: 0,
-                    width: tapoutIconSize,
-                    overflow: 'hidden',
-                    transform: [{ translateX: pulseSweep.interpolate({ inputRange: [0, 1], outputRange: [-tapoutIconSize, tapoutIconSize] }) }],
-                  }}>
-                    <Animated.View style={{
-                      transform: [{ translateX: pulseSweep.interpolate({ inputRange: [0, 1], outputRange: [tapoutIconSize, -tapoutIconSize] }) }],
-                    }}>
-                      <Svg width={tapoutIconSize} height={tapoutIconSize} viewBox="0 0 24 24" fill={colors.red}>
-                        <Path d="M20 19H4v2h16zM13 6V3h-2v3zm6 5v2h3v-2zM5 13v-2H2v2zm12.66-5.24 1.06-1.06 1.06-1.06-.71-.71-.71-.71-1.06 1.06-1.06 1.06.71.71zm-11.32 0 .71-.71.71-.71L6.7 5.28 5.64 4.22l-.71.71-.71.71L5.28 6.7zM7 18h10v-5c0-2.76-2.24-5-5-5s-5 2.24-5 5z" />
-                      </Svg>
-                    </Animated.View>
-                  </Animated.View>
-                </View>
-              ) : (
-                <Svg width={tapoutIconSize} height={tapoutIconSize} viewBox="0 0 24 24" fill={colors.textMuted}>
-                  <Path d="M20 19H4v2h16zM13 6V3h-2v3zm6 5v2h3v-2zM5 13v-2H2v2zm12.66-5.24 1.06-1.06 1.06-1.06-.71-.71-.71-.71-1.06 1.06-1.06 1.06.71.71zm-11.32 0 .71-.71.71-.71L6.7 5.28 5.64 4.22l-.71.71-.71.71L5.28 6.7zM7 18h10v-5c0-2.76-2.24-5-5-5s-5 2.24-5 5z" />
+              {tapoutsRemaining === 0 ? (
+                <Svg width={tapoutIconSize} height={tapoutIconSize} viewBox="0 -960 960 960" fill={colors.textMuted}>
+                  <Path d="M481-83Q347-218 267.5-301t-121-138q-41.5-55-54-94T80-620q0-92 64-156t156-64q45 0 87 16.5t75 47.5l-62 216h120l-34 335 114-375H480l71-212q25-14 52.5-21t56.5-7q92 0 156 64t64 156q0 48-13 88t-55 95.5q-42 55.5-121 138T481-83Z" />
                 </Svg>
+              ) : tapoutsRemaining >= 3 ? (
+                <Svg width={tapoutIconSize} height={tapoutIconSize} viewBox="0 -960 960 960" fill={colors.red}>
+                  <Path d="M592-379q49-39 63-101h-83q-12 27-37 43.5T480-420q-30 0-55-16.5T388-480h-83q14 62 63 101t112 39q63 0 112-39ZM405.5-554.5Q420-569 420-590t-14.5-35.5Q391-640 370-640t-35.5 14.5Q320-611 320-590t14.5 35.5Q349-540 370-540t35.5-14.5Zm220 0Q640-569 640-590t-14.5-35.5Q611-640 590-640t-35.5 14.5Q540-611 540-590t14.5 35.5Q569-540 590-540t35.5-14.5ZM480-120l-58-50q-101-88-167-152T150-437q-39-51-54.5-94T80-620q0-94 63-157t157-63q52 0 99 22t81 62q34-40 81-62t99-22q94 0 157 63t63 157q0 46-15.5 89T810-437q-39 51-105 115T538-170l-58 50Z" />
+                </Svg>
+              ) : (
+                <Animated.View style={{ transform: [{ scale: heartBeat }] }}>
+                  <Svg width={tapoutIconSize} height={tapoutIconSize} viewBox="0 -960 960 960" fill={colors.red}>
+                    <Path d="M720-280v-120H600v-80h120v-120h80v120h120v80H800v120h-80ZM440-120 313-234q-72-65-123.5-116t-85-96q-33.5-45-49-87T40-621q0-94 63-156.5T260-840q52 0 99 21.5t81 61.5q34-40 81-61.5t99-21.5q85 0 142.5 51.5T834-668q-18-7-36-10.5t-35-3.5q-101 0-172 70.5T520-440q0 52 21 98.5t59 79.5q-19 17-49.5 43.5T498-172l-58 52Z" />
+                  </Svg>
+                </Animated.View>
               )}
             </View>
             <View className="flex-1">

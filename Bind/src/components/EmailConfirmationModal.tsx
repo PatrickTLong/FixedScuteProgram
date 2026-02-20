@@ -140,12 +140,10 @@ function EmailConfirmationModal({ visible, userEmail, onConfirm, onCancel }: Ema
               className="flex-1 py-4 items-center justify-center"
               style={{ borderRightWidth: 1, borderRightColor: colors.divider }}
             >
-              <View>
-                <Animated.View style={{ position: 'absolute', top: s(-7), left: s(-18), right: s(-18), bottom: s(-7), backgroundColor: '#ffffff', opacity: cancelFlash, borderRadius: 50 }} />
-                <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular}`}>
-                  Cancel
-                </Text>
-              </View>
+              <Animated.View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#ffffff', opacity: cancelFlash }} />
+              <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular}`}>
+                Cancel
+              </Text>
             </TouchableOpacity>
 
             {/* Delete Account Button */}
@@ -157,15 +155,13 @@ function EmailConfirmationModal({ visible, userEmail, onConfirm, onCancel }: Ema
               className="flex-1 py-4 items-center justify-center"
               style={{ opacity: isEmailMatch ? 1 : 0.5 }}
             >
-              <View>
-                <Animated.View style={{ position: 'absolute', top: s(-7), left: s(-18), right: s(-18), bottom: s(-7), backgroundColor: '#ffffff', opacity: confirmFlash, borderRadius: 50 }} />
-                <Text
-                  style={{ color: colors.text }}
-                  className={`${textSize.small} ${fontFamily.semibold}`}
-                >
-                  Delete Account
-                </Text>
-              </View>
+              <Animated.View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#ffffff', opacity: confirmFlash }} />
+              <Text
+                style={{ color: colors.text }}
+                className={`${textSize.small} ${fontFamily.semibold}`}
+              >
+                Delete Account
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
