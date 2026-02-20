@@ -270,7 +270,7 @@ function SignInScreen() {
           </View>
 
           {/* Bottom Section */}
-          <View className="px-6 pb-8 mt-12">
+          <View className="px-6 pb-8 mt-6">
             {/* Sign In / Verify Button */}
             <TouchableOpacity
               onPress={() => { step === 'credentials' ? handleSignIn() : handleVerifyCode(); }}
@@ -292,6 +292,20 @@ function SignInScreen() {
                   onError={(error) => showModal('Google Sign-In Error', error)}
                   disabled={loading}
                 />
+              </View>
+            )}
+
+            {/* Hidden "Already have an account" placeholder for layout consistency */}
+            {step === 'credentials' && (
+              <View
+                style={{ opacity: 0 }}
+                pointerEvents="none"
+                className="items-center py-2 mt-4"
+              >
+                <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular}`}>
+                  Already have an account?{' '}
+                  <Text style={{ color: colors.text }} className={`${fontFamily.semibold}`}>Sign In</Text>
+                </Text>
               </View>
             )}
 

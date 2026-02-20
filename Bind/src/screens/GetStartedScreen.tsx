@@ -209,6 +209,15 @@ function GetStartedScreen() {
                       <BoxiconsFilled name={showPassword ? 'bx-eye' : 'bx-eye-slash'} size={iconSize.md} color={colors.text} />
                     </TouchableOpacity>
                   </View>
+                  {/* Hidden Forgot Password placeholder for layout consistency */}
+                  <View
+                    style={{ alignSelf: 'flex-end', marginTop: s(8), opacity: 0 }}
+                    pointerEvents="none"
+                  >
+                    <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular}`}>
+                      Forgot Password?
+                    </Text>
+                  </View>
                 </View>
               </>
             ) : (
@@ -249,7 +258,7 @@ function GetStartedScreen() {
           </View>
 
           {/* Bottom Section */}
-          <View className="px-6 pb-8 mt-12">
+          <View className="px-6 pb-8 mt-6">
             {/* Sign Up / Verify Button */}
             <TouchableOpacity
               onPress={() => { step === 'form' ? handleSignUp() : handleVerifyCode(); }}
