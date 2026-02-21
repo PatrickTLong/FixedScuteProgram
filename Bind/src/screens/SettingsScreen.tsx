@@ -20,7 +20,8 @@ import ConfirmationModal from '../components/ConfirmationModal';
 import HeaderIconButton from '../components/HeaderIconButton';
 import MembershipContent from '../components/MembershipContent';
 import { getMembershipStatus, MembershipStatus, getCachedMembershipStatus } from '../services/cardApi';
-import { useTheme , textSize, fontFamily, radius, shadow, iconSize, buttonPadding } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius, shadow, iconSize, buttonPadding, haptics } from '../context/ThemeContext';
+import { triggerHaptic } from '../utils/haptics';
 import { useResponsive } from '../utils/responsive';
 import { useAuth } from '../context/AuthContext';
 
@@ -133,6 +134,7 @@ const SettingsRow = memo(({
 }: SettingsRowProps) => (
   <TouchableOpacity
     onPress={onPress || undefined}
+    onPressIn={() => { if (onPress && haptics.settingsRow.enabled) triggerHaptic(haptics.settingsRow.type); }}
     disabled={!onPress}
     activeOpacity={onPress ? 0.7 : 1}
     style={!isLast ? { borderBottomWidth: 1, borderBottomColor: borderColor, paddingVertical: s(buttonPadding.standard) } : { paddingVertical: s(buttonPadding.standard) }}
@@ -484,6 +486,7 @@ function SettingsScreen() {
           {/* Membership Row with Trial Countdown */}
           <TouchableOpacity
             onPress={() => setMembershipModalVisible(true)}
+            onPressIn={() => { if (haptics.settingsRow.enabled) triggerHaptic(haptics.settingsRow.type); }}
             activeOpacity={0.7}
             style={{ borderBottomWidth: 1, borderBottomColor: colors.divider, paddingVertical: s(buttonPadding.standard) }}
             className="px-4"

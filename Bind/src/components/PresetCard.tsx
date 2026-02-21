@@ -3,9 +3,11 @@ import {
   View,
   Text,
   Pressable,
+  Animated,
 } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { useTheme , textSize, fontFamily, radius, shadow, buttonPadding, iconSize } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius, shadow, buttonPadding, iconSize, haptics } from '../context/ThemeContext';
+import { triggerHaptic } from '../utils/haptics';
 import { useResponsive } from '../utils/responsive';
 import { useAuth } from '../context/AuthContext';
 import AnimatedSwitch from './AnimatedSwitch';
@@ -267,21 +269,46 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, onExpire
     }
   }, [disabled, isExpired, onToggle]);
 
+  const opacityAnim = useRef(new Animated.Value(1)).current;
+
+  const handlePressIn = useCallback(() => {
+    if (disabled) return;
+    if (haptics.presetCard.enabled) triggerHaptic(haptics.presetCard.type);
+    Animated.timing(opacityAnim, {
+      toValue: 0.7,
+      duration: 30,
+      useNativeDriver: true,
+    }).start();
+  }, [disabled, opacityAnim]);
+
+  const handlePressOut = useCallback(() => {
+    Animated.timing(opacityAnim, {
+      toValue: 1,
+      duration: 100,
+      useNativeDriver: true,
+    }).start();
+  }, [opacityAnim]);
+
   return (
     <Pressable
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
       onPress={handlePress}
       onLongPress={handleLongPress}
       delayLongPress={500}
-      style={{
-        backgroundColor: colors.card,
-        borderWidth: 1,
-        borderColor: colors.border,
-        paddingVertical: s(buttonPadding.standard),
-        paddingHorizontal: s(buttonPadding.standard),
-        ...shadow.card,
-      }}
-      className={`${radius['2xl']} mb-3`}
     >
+      <Animated.View
+        style={{
+          backgroundColor: colors.card,
+          borderWidth: 1,
+          borderColor: colors.border,
+          paddingVertical: s(buttonPadding.standard),
+          paddingHorizontal: s(buttonPadding.standard),
+          opacity: opacityAnim,
+          ...shadow.card,
+        }}
+        className={`${radius['2xl']} mb-3`}
+      >
       <View className="flex-row items-center">
         <View className="flex-1">
           {/* Preset Name with Badges */}
@@ -330,6 +357,7 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, onExpire
           animate={!isExpired}
         />
       </View>
+      </Animated.View>
     </Pressable>
   );
 }

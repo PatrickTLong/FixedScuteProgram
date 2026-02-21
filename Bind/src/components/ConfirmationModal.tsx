@@ -7,7 +7,8 @@ import {
   Animated,
 } from 'react-native';
 
-import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius, shadow, haptics } from '../context/ThemeContext';
+import { triggerHaptic } from '../utils/haptics';
 import { useResponsive } from '../utils/responsive';
 
 interface ConfirmationModalProps {
@@ -44,6 +45,7 @@ function ConfirmationModal({
   }, [visible]);
 
   const triggerFlash = useCallback((anim: Animated.Value) => {
+    if (haptics.modalButton.enabled) triggerHaptic(haptics.modalButton.type);
     anim.setValue(0.3);
     Animated.timing(anim, { toValue: 0, duration: 300, useNativeDriver: true }).start();
   }, []);

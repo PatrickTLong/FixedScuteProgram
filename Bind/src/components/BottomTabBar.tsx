@@ -5,8 +5,9 @@ import Svg, { Path, Rect, Line, G } from 'react-native-svg';
 
 const AnimatedLine = Animated.createAnimatedComponent(Line);
 
-import { useTheme , textSize, fontFamily, shadow, iconSize, buttonPadding } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, shadow, iconSize, buttonPadding, haptics } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
+import { triggerHaptic } from '../utils/haptics';
 import type { BottomTabBarProps as RNBottomTabBarProps } from '@react-navigation/bottom-tabs';
 
 type TabName = 'home' | 'presets' | 'stats' | 'settings';
@@ -412,7 +413,10 @@ const TabItem = memo(({ label, isActive, onPress, renderIcon, activeColor, inact
 
   return (
     <TouchableOpacity
-      onPressIn={triggerFlash}
+      onPressIn={() => {
+        triggerFlash();
+        if (haptics.tabBar.enabled) triggerHaptic(haptics.tabBar.type);
+      }}
       onPress={onPress}
       activeOpacity={0.7}
       hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}

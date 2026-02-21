@@ -92,6 +92,7 @@ interface TimeWheelProps {
 
 const TimeWheel = memo(({ values, selectedValue, onValueChange, padZero = true, textColor, textMutedColor, itemHeight, wheelWidth, selectedFontSize, unselectedFontSize }: TimeWheelProps) => {
   const scrollRef = useRef<ScrollView>(null);
+  const lastTickIndex = useRef(values.indexOf(selectedValue));
 
   const selectedIndex = values.indexOf(selectedValue);
   const [windowStart, setWindowStart] = useState(() => Math.max(0, selectedIndex - TIME_WINDOW_BUFFER));
@@ -122,6 +123,13 @@ const TimeWheel = memo(({ values, selectedValue, onValueChange, padZero = true, 
     const currentIndex = Math.round(offsetY / itemHeight);
     const clampedIndex = Math.max(0, Math.min(currentIndex, values.length - 1));
 
+    if (clampedIndex !== lastTickIndex.current) {
+      lastTickIndex.current = clampedIndex;
+      if (haptics.timeWheel.enabled) {
+        triggerHaptic(haptics.timeWheel.type);
+      }
+    }
+
     updateWindow(clampedIndex);
   }, [values.length, itemHeight, updateWindow]);
 
@@ -131,9 +139,6 @@ const TimeWheel = memo(({ values, selectedValue, onValueChange, padZero = true, 
     const clampedIndex = Math.max(0, Math.min(index, values.length - 1));
 
     if (values[clampedIndex] !== selectedValue) {
-      if (haptics.timeWheel.enabled) {
-        triggerHaptic(haptics.timeWheel.type);
-      }
       onValueChange(values[clampedIndex]);
     }
   }, [values, selectedValue, onValueChange, itemHeight]);

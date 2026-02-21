@@ -899,15 +899,9 @@ function PresetSettingsScreen() {
                 </Text>
               </TouchableOpacity>
             </ExpandableInfo>
-          </View>
-        </ExpandableInfo>
-
-        {/* Schedule Date Pickers */}
-        <ExpandableInfo expanded={isScheduled} lazy>
-          <View className="mt-4 px-6">
-            <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} text-white tracking-wider mb-4`}>
-              Schedule
-            </Text>
+            {/* Schedule Date Pickers */}
+            <ExpandableInfo expanded={isScheduled}>
+              <View className="px-6" style={{ paddingTop: s(8) }}>
 
             {/* Start Date */}
             <TouchableOpacity
@@ -956,7 +950,7 @@ function PresetSettingsScreen() {
               onPress={() => openDatePicker('scheduleEnd')}
                 activeOpacity={0.7}
                 style={{ backgroundColor: colors.card, paddingVertical: s(buttonPadding.standard), borderWidth: 1, borderColor: colors.border, ...shadow.card }}
-                className={`flex-row items-center px-4 ${radius.xl}`}
+                className={`flex-row items-center px-4 ${radius.xl} mb-4`}
               >
                 <View className={`w-10 h-10 ${radius.lg} items-center justify-center mr-3`}>
                   <EndDateIcon size={s(iconSize.lg)} />
@@ -1000,12 +994,11 @@ function PresetSettingsScreen() {
               </Text>
             )}
 
-            <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight, marginTop: s(20), marginHorizontal: s(-24) }} />
-
             {/* Recurring Schedule - only when both dates are valid */}
             {scheduleStartDate && scheduleEndDate && scheduleEndDate > scheduleStartDate && (
               <View style={{ marginHorizontal: s(-24) }}>
-                <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}>
+                <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }} />
+                <View>
                   <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
                     <TouchableOpacity onPress={() => toggleInfo('recurring')} activeOpacity={0.7} style={{ maxWidth: '75%' }} className="flex-row items-center">
                       <BoxiconsFilled name="bx-refresh-cw" size={s(iconSize.toggleRow)} color={colors.text} style={{ marginRight: s(14) }} />
@@ -1026,9 +1019,6 @@ function PresetSettingsScreen() {
                               setRecurrenceInfoVisible(true);
                             }
                           });
-                        } else {
-                          setRecurringValue('1');
-                          setRecurringUnit('hours');
                         }
                       }}
                     />
@@ -1040,17 +1030,12 @@ function PresetSettingsScreen() {
                       </Text>
                     </TouchableOpacity>
                   </ExpandableInfo>
-                </View>
-
-                {/* Recurring Options */}
-                <View style={!isRecurring ? { height: 0, overflow: 'hidden' } : undefined}>
-                  <View
-                    style={{ paddingBottom: s(20) }}
-                    className="mt-4 px-6"
-                  >
-                    <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} tracking-wider mb-4`}>
-                      Recurrence
-                    </Text>
+                  {/* Recurring Options */}
+                  <ExpandableInfo expanded={isRecurring}>
+                    <View
+                      className="px-6 pb-4"
+                      style={{ paddingTop: s(8) }}
+                    >
 
                     {/* Wheel Picker for Recurrence */}
                     <View
@@ -1134,11 +1119,13 @@ function PresetSettingsScreen() {
                         </View>
                       );
                     })()}
-                  </View>
-                  <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }} />
+                    </View>
+                  </ExpandableInfo>
                 </View>
               </View>
             )}
+              </View>
+            </ExpandableInfo>
           </View>
         </ExpandableInfo>
 

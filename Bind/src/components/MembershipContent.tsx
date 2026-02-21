@@ -11,7 +11,8 @@ import {
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import { useTheme, textSize, fontFamily, radius, shadow, buttonPadding } from '../context/ThemeContext';
+import { useTheme, textSize, fontFamily, radius, shadow, buttonPadding, haptics } from '../context/ThemeContext';
+import { triggerHaptic } from '../utils/haptics';
 import { useResponsive } from '../utils/responsive';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -162,7 +163,6 @@ function MembershipContent() {
   const contentOpacity = useRef(new Animated.Value(0)).current;
   const featureAnims = useRef(FEATURES.map(() => new Animated.Value(0))).current;
   const btnPulse = useRef(new Animated.Value(1)).current;
-  const btnTextPop = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.sequence([
@@ -177,14 +177,11 @@ function MembershipContent() {
         Animated.timing(btnPulse, { toValue: 1, duration: 1000, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
       ])
     ).start();
-    Animated.sequence([
-      Animated.delay(600),
-      Animated.spring(btnTextPop, { toValue: 1, friction: 5, tension: 160, useNativeDriver: true }),
-    ]).start();
   }, []);
 
   const handlePlanChange = (plan: PlanKey) => {
     if (plan === selectedPlan) return;
+    if (haptics.planTab.enabled) triggerHaptic(haptics.planTab.type);
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setSelectedPlan(plan);
     priceScale.setValue(0.92);
@@ -277,9 +274,9 @@ function MembershipContent() {
             style={{ backgroundColor: colors.text, ...shadow.card }}
             className={`${radius.full} py-4 items-center`}
           >
-            <Animated.Text style={{ color: colors.bg, transform: [{ scale: btnTextPop }] }} className={`${textSize.small} ${fontFamily.bold}`}>
+            <Text style={{ color: colors.bg }} className={`${textSize.small} ${fontFamily.bold}`}>
               {selectedPlan === 'lifetime' ? 'Purchase Lifetime' : 'Subscribe'}
-            </Animated.Text>
+            </Text>
           </TouchableOpacity>
         </Animated.View>
 

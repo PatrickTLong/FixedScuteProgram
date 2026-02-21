@@ -48,7 +48,6 @@ function BlockNowButton({
 
   // Haptic tracking refs
   const holdHalfwayFired = useRef(false);
-  const slideHalfwayFired = useRef(false);
 
   // Slide state — ref-only to avoid re-renders during drag
   const slidePosition = useRef(new Animated.Value(0)).current;
@@ -177,17 +176,11 @@ function BlockNowButton({
       onMoveShouldSetPanResponder: (_, g) => !isUnlockingRef.current && Math.abs(g.dx) > 5,
       onPanResponderGrant: () => {
           onInteractionChangeRef.current?.(true);
-          slideHalfwayFired.current = false;
         },
       onPanResponderMove: (_, g) => {
         const maxSlide = buttonWidthRef.current;
         const pos = Math.max(0, Math.min(g.dx, maxSlide));
         slidePosition.setValue(pos);
-        // Haptic at 50% slide progress
-        if (haptics.slideToUnlock.enabled && !slideHalfwayFired.current && pos >= maxSlide * 0.5) {
-          slideHalfwayFired.current = true;
-          triggerHaptic(haptics.slideToUnlock.halfwayType);
-        }
       },
       onPanResponderRelease: (_, g) => {
         onInteractionChangeRef.current?.(false);
