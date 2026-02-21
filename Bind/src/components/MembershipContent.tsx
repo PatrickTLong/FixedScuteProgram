@@ -66,25 +66,21 @@ const SpinningDiscountSeal = memo(({ size, sealColor }: { size: number; sealColo
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
-    Animated.sequence([
-      Animated.delay(400),
-      Animated.spring(popAnim, { toValue: 1, friction: 4, tension: 200, useNativeDriver: true }),
-    ]).start(() => {
-      Animated.loop(
-        Animated.timing(spinAnim, {
-          toValue: 1,
-          duration: 4000,
-          easing: Easing.linear,
-          useNativeDriver: true,
-        })
-      ).start();
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(pulseAnim, { toValue: 1.12, duration: 800, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
-          Animated.timing(pulseAnim, { toValue: 1, duration: 800, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
-        ])
-      ).start();
-    });
+    Animated.spring(popAnim, { toValue: 1, friction: 4, tension: 200, useNativeDriver: true }).start();
+    Animated.loop(
+      Animated.timing(spinAnim, {
+        toValue: 1,
+        duration: 4000,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      })
+    ).start();
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, { toValue: 1.25, duration: 800, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 1, duration: 800, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+      ])
+    ).start();
   }, [spinAnim, popAnim, pulseAnim]);
 
   const spin = spinAnim.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
@@ -113,10 +109,10 @@ const GlintBadge = memo(({ label, bgColor, textColor, s }: { label: string; bgCo
   useEffect(() => {
     const loop = Animated.loop(
       Animated.sequence([
-        Animated.delay(1400),
+        Animated.delay(2000),
         Animated.timing(glintAnim, {
           toValue: 1,
-          duration: 400,
+          duration: 350,
           easing: Easing.inOut(Easing.ease),
           useNativeDriver: true,
         }),
