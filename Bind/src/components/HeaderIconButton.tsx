@@ -1,6 +1,8 @@
 import React, { memo, useCallback, useRef } from 'react';
 import { Animated, TouchableOpacity, View, StyleSheet } from 'react-native';
 import { useResponsive } from '../utils/responsive';
+import { haptics } from '../context/ThemeContext';
+import { triggerHaptic } from '../utils/haptics';
 
 const DEFAULT_FLASH_SIZE = 40;
 const FLASH_DURATION = 300;
@@ -20,6 +22,9 @@ function HeaderIconButton({ onPress, disabled = false, children, style, classNam
 
   const triggerFlash = useCallback(() => {
     if (disabled) return;
+    if (haptics.headerButton.enabled) {
+      triggerHaptic(haptics.headerButton.type);
+    }
     flashOpacity.setValue(0.3);
     Animated.timing(flashOpacity, {
       toValue: 0,

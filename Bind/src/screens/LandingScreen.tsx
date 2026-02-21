@@ -8,8 +8,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useTheme , textSize, fontFamily } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, haptics } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
+import { triggerHaptic } from '../utils/haptics';
 import type { AuthStackParamList } from '../navigation/types';
 
 function LandingScreen() {
@@ -39,6 +40,9 @@ function LandingScreen() {
 
   const handleTap = () => {
     if (showTapText) {
+      if (haptics.landingTap.enabled) {
+        triggerHaptic(haptics.landingTap.type);
+      }
       navigation.navigate('GetStarted');
     }
   };

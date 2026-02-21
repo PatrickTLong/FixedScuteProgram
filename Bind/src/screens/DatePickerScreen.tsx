@@ -12,8 +12,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import HeaderIconButton from '../components/HeaderIconButton';
 import BoxiconsFilled from '../components/BoxiconsFilled';
-import { useTheme, textSize, fontFamily, radius, shadow, iconSize, buttonPadding } from '../context/ThemeContext';
+import { useTheme, textSize, fontFamily, radius, shadow, iconSize, buttonPadding, haptics } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
+import { triggerHaptic } from '../utils/haptics';
 import { usePresetSave } from '../navigation/PresetsStack';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
@@ -130,6 +131,9 @@ const TimeWheel = memo(({ values, selectedValue, onValueChange, padZero = true, 
     const clampedIndex = Math.max(0, Math.min(index, values.length - 1));
 
     if (values[clampedIndex] !== selectedValue) {
+      if (haptics.timeWheel.enabled) {
+        triggerHaptic(haptics.timeWheel.type);
+      }
       onValueChange(values[clampedIndex]);
     }
   }, [values, selectedValue, onValueChange, itemHeight]);

@@ -88,6 +88,19 @@ export const shadow = {
   },
 } as const;
 
+// Haptic feedback config — per-component type, all disabled by default
+// Flip `enabled` to true and adjust type/strength as needed
+export const haptics = {
+  blockNowHold: { enabled: true, halfwayType: 'impactHeavy' as const, completionType: 'notificationSuccess' as const },
+  slideToUnlock: { enabled: true, halfwayType: 'impactHeavy' as const, completionType: 'notificationSuccess' as const },
+  toggle: { enabled: true, type: 'impactHeavy' as const },
+  timeWheel: { enabled: true, type: 'selection' as const },
+  headerButton: { enabled: false, type: 'impactHeavy' as const },
+  bubbleButton: { enabled: true, type: 'impactHeavy' as const },
+  overlayDismiss: { enabled: true, type: 'impactHeavy' as const },
+  landingTap: { enabled: true, type: 'impactHeavy' as const },
+};
+
 // Colors
 export const colors = {
   bg: '#28282B',

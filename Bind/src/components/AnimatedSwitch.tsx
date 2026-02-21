@@ -2,7 +2,8 @@ import React, { memo, useCallback, useEffect, useRef } from 'react';
 import { Animated, Pressable, View } from 'react-native';
 import { useIsFocused } from '@react-navigation/native';
 import { useResponsive } from '../utils/responsive';
-import { shadow, colors } from '../context/ThemeContext';
+import { shadow, colors, haptics } from '../context/ThemeContext';
+import { triggerHaptic } from '../utils/haptics';
 
 interface AnimatedSwitchProps {
   value: boolean;
@@ -86,6 +87,9 @@ function AnimatedSwitch({
 
   const handlePress = useCallback(() => {
     if (!disabled) {
+      if (haptics.toggle.enabled) {
+        triggerHaptic(haptics.toggle.type);
+      }
       pressedRef.current = true;
       onValueChange(!value);
     }

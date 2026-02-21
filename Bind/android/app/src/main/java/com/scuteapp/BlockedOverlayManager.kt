@@ -16,6 +16,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
 import android.view.animation.DecelerateInterpolator
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.widget.ImageView
 import android.widget.TextView
 import java.io.ByteArrayOutputStream
@@ -36,6 +38,10 @@ class BlockedOverlayManager(private val context: Context) {
         const val TYPE_APP = "app"
         const val TYPE_WEBSITE = "website"
         const val TYPE_SETTINGS = "settings"
+
+        // Haptic feedback on tap-to-dismiss — flip to true to enable
+        const val HAPTIC_ON_DISMISS = false
+        const val HAPTIC_DURATION_MS = 50L
     }
 
     private var windowManager: WindowManager? = null
@@ -196,6 +202,21 @@ class BlockedOverlayManager(private val context: Context) {
             isClickable = true
             setOnClickListener {
                 if (!isTransitioning) {
+                    if (HAPTIC_ON_DISMISS) {
+                        try {
+                            val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
+                            if (vibrator?.hasVibrator() == true) {
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                    vibrator.vibrate(VibrationEffect.createOneShot(HAPTIC_DURATION_MS, VibrationEffect.DEFAULT_AMPLITUDE))
+                                } else {
+                                    @Suppress("DEPRECATION")
+                                    vibrator.vibrate(HAPTIC_DURATION_MS)
+                                }
+                            }
+                        } catch (e: Exception) {
+                            Log.w(TAG, "Haptic feedback failed", e)
+                        }
+                    }
                     dismiss()
                 }
             }

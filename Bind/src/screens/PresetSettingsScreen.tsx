@@ -25,8 +25,9 @@ import { Preset } from '../components/PresetCard';
 import HeaderIconButton from '../components/HeaderIconButton';
 import BoxiconsFilled from '../components/BoxiconsFilled';
 import { useAuth } from '../context/AuthContext';
-import { useTheme, textSize, fontFamily, radius, shadow, iconSize, buttonPadding } from '../context/ThemeContext';
+import { useTheme, textSize, fontFamily, radius, shadow, iconSize, buttonPadding, haptics } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
+import { triggerHaptic } from '../utils/haptics';
 import { usePresetSave } from '../navigation/PresetsStack';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
@@ -178,6 +179,9 @@ const TimePresetCircle = memo(({ label, onPress, onLongPressAdd }: {
     if (!activeRef.current) return;
     repeatRef.current = setTimeout(() => {
       if (!activeRef.current) return;
+      if (haptics.bubbleButton.enabled) {
+        triggerHaptic(haptics.bubbleButton.type);
+      }
       onLongPressAddRef.current();
       scheduleNext(Math.max(LONG_PRESS_MIN_INTERVAL, interval * LONG_PRESS_ACCELERATION));
     }, interval);
@@ -188,6 +192,9 @@ const TimePresetCircle = memo(({ label, onPress, onLongPressAdd }: {
     activeRef.current = true;
     timeoutRef.current = setTimeout(() => {
       didLongPress.current = true;
+      if (haptics.bubbleButton.enabled) {
+        triggerHaptic(haptics.bubbleButton.type);
+      }
       onLongPressAddRef.current();
       scheduleNext(LONG_PRESS_START_INTERVAL);
     }, LONG_PRESS_INITIAL_DELAY);
@@ -199,6 +206,9 @@ const TimePresetCircle = memo(({ label, onPress, onLongPressAdd }: {
 
   const handlePress = useCallback(() => {
     if (!didLongPress.current) {
+      if (haptics.bubbleButton.enabled) {
+        triggerHaptic(haptics.bubbleButton.type);
+      }
       onPress();
       // Scale down and bounce back animation on press
       Animated.sequence([

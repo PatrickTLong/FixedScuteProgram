@@ -8,8 +8,9 @@ import {
   Dimensions,
 } from 'react-native';
 
-import { useTheme , textSize, fontFamily, radius, shadow, colors } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius, shadow, colors, haptics } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
+import { triggerHaptic } from '../utils/haptics';
 
 const HOLD_DURATION = 1000; // 1 second
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -44,6 +45,10 @@ function BlockNowButton({
   const [isUnlocking, setIsUnlocking] = useState(false);
   const fillAnimation = useRef(new Animated.Value(0)).current;
   const animationRef = useRef<Animated.CompositeAnimation | null>(null);
+
+  // Haptic tracking refs
+  const holdHalfwayFired = useRef(false);
+  const slideHalfwayFired = useRef(false);
 
   // Slide state — ref-only to avoid re-renders during drag
   const slidePosition = useRef(new Animated.Value(0)).current;
@@ -83,6 +88,15 @@ function BlockNowButton({
 
     setIsPressed(true);
     fillAnimation.setValue(0);
+    holdHalfwayFired.current = false;
+
+    // Listen for halfway progress to trigger haptic
+    const listenerId = fillAnimation.addListener(({ value }) => {
+      if (haptics.blockNowHold.enabled && !holdHalfwayFired.current && value >= 0.5) {
+        holdHalfwayFired.current = true;
+        triggerHaptic(haptics.blockNowHold.halfwayType);
+      }
+    });
 
     animationRef.current = Animated.timing(fillAnimation, {
       toValue: 1,
@@ -91,7 +105,11 @@ function BlockNowButton({
     });
 
     animationRef.current.start(({ finished }) => {
+      fillAnimation.removeListener(listenerId);
       if (finished) {
+        if (haptics.blockNowHold.enabled) {
+          triggerHaptic(haptics.blockNowHold.completionType);
+        }
         onActivateRef.current();
         setIsPressed(false);
         fillAnimation.setValue(0);
@@ -119,6 +137,9 @@ function BlockNowButton({
   }, [slidePosition]);
 
   const handleSlideComplete = useCallback(async () => {
+    if (haptics.slideToUnlock.enabled) {
+      triggerHaptic(haptics.slideToUnlock.completionType);
+    }
     setIsUnlocking(true);
     isUnlockingRef.current = true;
     try {
@@ -156,11 +177,17 @@ function BlockNowButton({
       onMoveShouldSetPanResponder: (_, g) => !isUnlockingRef.current && Math.abs(g.dx) > 5,
       onPanResponderGrant: () => {
           onInteractionChangeRef.current?.(true);
+          slideHalfwayFired.current = false;
         },
       onPanResponderMove: (_, g) => {
         const maxSlide = buttonWidthRef.current;
         const pos = Math.max(0, Math.min(g.dx, maxSlide));
         slidePosition.setValue(pos);
+        // Haptic at 50% slide progress
+        if (haptics.slideToUnlock.enabled && !slideHalfwayFired.current && pos >= maxSlide * 0.5) {
+          slideHalfwayFired.current = true;
+          triggerHaptic(haptics.slideToUnlock.halfwayType);
+        }
       },
       onPanResponderRelease: (_, g) => {
         onInteractionChangeRef.current?.(false);
