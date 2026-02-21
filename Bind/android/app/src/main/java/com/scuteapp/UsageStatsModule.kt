@@ -138,16 +138,17 @@ class UsageStatsModule(reactContext: ReactApplicationContext) :
     }
 
     /**
-     * Get per-app foreground times using queryUsageStats with INTERVAL_DAILY.
-     * Less precise than event-based tracking but retains data for months,
-     * making it suitable for 30-day queries where queryEvents data is purged.
+     * Get per-app foreground times using queryUsageStats with INTERVAL_WEEKLY.
+     * Less precise than event-based tracking but INTERVAL_WEEKLY retains ~4 weeks
+     * of data, making it suitable for 30-day queries where queryEvents (~7-10 days)
+     * and INTERVAL_DAILY (~7 days) data is purged.
      */
     private fun getAppForegroundTimesAggregated(startTime: Long, endTime: Long): HashMap<String, Long> {
         val usageStatsManager = reactApplicationContext.getSystemService(Context.USAGE_STATS_SERVICE) as? UsageStatsManager
             ?: return HashMap()
 
         val stats: List<UsageStats> = usageStatsManager.queryUsageStats(
-            UsageStatsManager.INTERVAL_DAILY, startTime, endTime
+            UsageStatsManager.INTERVAL_WEEKLY, startTime, endTime
         )
 
         val foregroundTimes = HashMap<String, Long>()
@@ -329,7 +330,7 @@ class UsageStatsModule(reactContext: ReactApplicationContext) :
     fun getScreenTime(period: String, promise: Promise) {
         try {
             val (startTime, endTime) = getTimeRange(period)
-            // Use aggregated stats for month (queryEvents only retains ~7-10 days)
+            // Use aggregated stats for month (queryEvents & INTERVAL_DAILY only retain ~7 days)
             val foregroundTimes = if (period == "month") {
                 getAppForegroundTimesAggregated(startTime, endTime)
             } else {
@@ -354,7 +355,7 @@ class UsageStatsModule(reactContext: ReactApplicationContext) :
     fun getAllAppsUsage(period: String, promise: Promise) {
         try {
             val (startTime, endTime) = getTimeRange(period)
-            // Use aggregated stats for month (queryEvents only retains ~7-10 days)
+            // Use aggregated stats for month (queryEvents & INTERVAL_DAILY only retain ~7 days)
             val foregroundTimes = if (period == "month") {
                 getAppForegroundTimesAggregated(startTime, endTime)
             } else {
