@@ -212,7 +212,7 @@ const DayCell = memo(({ day, selectable, selected, isToday: todayDay, textColor,
         <View
           style={{
             backgroundColor: selected ? colors.green : 'transparent',
-            borderColor: todayDay && !selected ? colors.green : 'transparent',
+            borderColor: todayDay && !selected ? colors.text : 'transparent',
             borderWidth: todayDay && !selected ? 1 : 0,
           }}
           className={`w-9 h-9 ${radius.full} items-center justify-center`}

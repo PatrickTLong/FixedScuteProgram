@@ -252,7 +252,7 @@ const TimePresetCircle = memo(({ label, onPress, onLongPressAdd }: {
 });
 
 // ============ Recurrence Wheel Picker Component ============
-const RECURRENCE_ITEM_HEIGHT = 40;
+const RECURRENCE_ITEM_HEIGHT = 34;
 const RECURRENCE_VISIBLE_ITEMS = 3;
 const RECURRENCE_WINDOW_BUFFER = 5;
 const RECURRENCE_VALUES = Array.from({ length: 99 }, (_, i) => i + 1);
@@ -291,9 +291,7 @@ const RecurrenceWheel = memo(({ values, selectedValue, onValueChange, textColor,
     }
     const index = values.indexOf(selectedValue);
     if (index >= 0 && scrollRef.current) {
-      setTimeout(() => {
-        scrollRef.current?.scrollTo({ y: index * itemHeight, animated: false });
-      }, 10);
+      scrollRef.current.scrollTo({ y: index * itemHeight, animated: false });
     }
   }, [selectedValue, values, itemHeight]);
 
@@ -388,8 +386,8 @@ const RecurrenceWheelPicker = memo(({ value, unit, onValueChange, onUnitChange, 
   const numberWheelWidth = s(60);
   const unitWheelWidth = s(100);
   const textMutedColor = colors.text === '#ffffff' ? 'rgba(255,255,255,0.3)' : 'rgba(26,26,26,0.3)';
-  const selectedFontSize = s(22);
-  const unselectedFontSize = s(16);
+  const selectedFontSize = s(18);
+  const unselectedFontSize = s(13);
 
   return (
     <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: s(16) }}>
