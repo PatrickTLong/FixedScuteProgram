@@ -13,7 +13,7 @@ object SessionEventHelper {
     private const val TAG = "SessionEventHelper"
     const val EVENT_SESSION_CHANGED = "onSessionChanged"
 
-    fun emitSessionEvent(context: Context, type: String) {
+    fun emitSessionEvent(context: Context, type: String, lockEndsAt: String? = null, presetId: String? = null) {
         try {
             val reactApp = context.applicationContext as? ReactApplication ?: return
             val reactHost = reactApp.reactHost ?: return
@@ -21,12 +21,14 @@ object SessionEventHelper {
 
             val params = Arguments.createMap()
             params.putString("type", type)
+            if (lockEndsAt != null) params.putString("lockEndsAt", lockEndsAt)
+            if (presetId != null) params.putString("presetId", presetId)
 
             reactContext
                 .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
                 .emit(EVENT_SESSION_CHANGED, params)
 
-            Log.d(TAG, "Emitted session event: $type")
+            Log.d(TAG, "Emitted session event: $type, lockEndsAt=$lockEndsAt, presetId=$presetId")
         } catch (e: Exception) {
             Log.d(TAG, "Could not emit session event (app may not be running): ${e.message}")
         }

@@ -646,10 +646,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     checkActiveScheduledPreset();
 
-    const subscription = DeviceEventEmitter.addListener('onSessionChanged', async () => {
+    const subscription = DeviceEventEmitter.addListener('onSessionChanged', async (event) => {
+      const eventType = event?.type;
+      console.log('[UNLOCK-DEBUG] onSessionChanged event received:', eventType);
+
+      // Optimistically update lock status IMMEDIATELY so UI reacts instantly
+      if (eventType === 'session_started') {
+        // Use lockEndsAt directly from the native event (ScheduledPresetReceiver sends it)
+        const lockEndsAt = event?.lockEndsAt ?? null;
+        console.log('[UNLOCK-DEBUG] session_started: setting lock with lockEndsAt:', lockEndsAt);
+        setSharedLockStatus({
+          isLocked: true,
+          lockStartedAt: new Date().toISOString(),
+          lockEndsAt,
+        });
+      } else if (eventType === 'session_ended') {
+        setSharedLockStatus({ isLocked: false, lockStartedAt: null, lockEndsAt: null });
+      }
+
       invalidateUserCaches(userEmail);
 
-      // Fetch fresh presets and update shared state immediately
+      // Fetch fresh presets and update shared state with accurate data from backend
       try {
         await refreshPresets(true);
       } catch (e) {

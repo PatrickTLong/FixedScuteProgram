@@ -398,11 +398,14 @@ function HomeScreen() {
 
     setTapoutLoading(true);
     setLoading(true);
+    console.log('[UNLOCK-DEBUG] handleUseEmergencyTapout called:', { presetId: activePreset?.id, isScheduled: activePreset?.isScheduled });
     try {
       // Tapout API must succeed before unlocking (decrements tapout count)
       const result = await useEmergencyTapout(email);
+      console.log('[UNLOCK-DEBUG] emergencyTapout result:', { success: result.success, remaining: result.remaining });
       if (result.success) {
         // Unlock UI — clear timer in same render for smooth transition
+        console.log('[UNLOCK-DEBUG] emergencyTapout: setting optimistic unlock state');
         setEmergencyTapoutModalVisible(false);
         setTapoutLoading(false);
         setLoading(false);
@@ -502,7 +505,7 @@ function HomeScreen() {
   }, [refreshTrigger, loadStats, email]);
 
   // React to shared preset changes from other screens (e.g., PresetsScreen toggling)
-  // This updates derived state without a full loadStats call
+  // Also reacts to lock status changes so scheduled presets appear immediately
   // Note: Expiration checking is handled globally in AuthContext
   useEffect(() => {
     if (!sharedPresetsLoaded || loading) return;
@@ -512,8 +515,18 @@ function HomeScreen() {
     if (active) {
       setCurrentPreset(active.name);
       setActivePreset(active);
-    } else if (!isLocked) {
-      // Only clear if not locked (if locked, loadStats sets the correct preset)
+    } else if (isLocked) {
+      // When locked with no regular active preset, find the scheduled preset in its blocking window
+      const now = new Date();
+      const blockingScheduled = sharedPresets.find(p =>
+        p.isScheduled && p.isActive && p.scheduleStartDate && p.scheduleEndDate &&
+        now >= new Date(p.scheduleStartDate) && now < new Date(p.scheduleEndDate)
+      );
+      if (blockingScheduled) {
+        setCurrentPreset(blockingScheduled.name);
+        setActivePreset(blockingScheduled);
+      }
+    } else {
       setCurrentPreset(null);
       setActivePreset(null);
     }
@@ -524,37 +537,43 @@ function HomeScreen() {
       .filter(p => new Date(p.scheduleEndDate!) > new Date())
       .sort((a, b) => new Date(a.scheduleStartDate!).getTime() - new Date(b.scheduleStartDate!).getTime());
     setScheduledPresets(activeScheduled);
-  }, [sharedPresets, sharedPresetsLoaded]);
+  }, [sharedPresets, sharedPresetsLoaded, isLocked]);
 
   // Auto-unlock when timer expires (called from countdown effect)
   const handleTimerExpired = useCallback(async () => {
     // Guard: only handle once per lock session (interval may fire repeatedly while backgrounded)
     if (timerExpiredRef.current) return;
     timerExpiredRef.current = true;
+    console.log('[UNLOCK-DEBUG] handleTimerExpired called, appState:', appStateRef.current);
 
     try {
       // Only update UI if app is in foreground; if backgrounded, loadStats
       // will handle the clean transition when the user returns (single animation play).
       if (appStateRef.current === 'active') {
+        console.log('[UNLOCK-DEBUG] timerExpired: setting optimistic unlock state (foreground)');
         setTimeRemaining(null);
         setElapsedTime(null);
         setSharedLockStatus({ isLocked: false, lockStartedAt: null, lockEndsAt: null });
+      } else {
+        console.log('[UNLOCK-DEBUG] timerExpired: app backgrounded, skipping UI update');
       }
 
       // Fire-and-forget: native unlock + backend sync (always runs)
       (async () => {
         try {
+          console.log('[UNLOCK-DEBUG] timerExpired: calling updateLockStatus + forceUnlock...');
           await updateLockStatus(email, false, null);
           if (BlockingModule) {
             await BlockingModule.forceUnlock();
           }
           invalidateUserCaches(email);
+          console.log('[UNLOCK-DEBUG] timerExpired: backend sync complete');
         } catch {
-          // Failed to sync — state will reconcile on next app foreground
+          console.log('[UNLOCK-DEBUG] timerExpired: backend sync failed');
         }
       })();
     } catch (error) {
-      // Failed to auto-unlock on timer expiry
+      console.log('[UNLOCK-DEBUG] handleTimerExpired error:', error);
     }
   }, [email]);
 
@@ -722,9 +741,11 @@ function HomeScreen() {
     // Store preset info before starting
     const presetIdToKeep = activePreset?.id;
     const isScheduledPreset = activePreset?.isScheduled;
+    console.log('[UNLOCK-DEBUG] handleSlideUnlock called:', { presetId: presetIdToKeep, isScheduled: isScheduledPreset });
 
     try {
       // Optimistic UI update — instant unlock, clear timer in same render
+      console.log('[UNLOCK-DEBUG] slideUnlock: setting optimistic unlock state');
       setTimeRemaining(null);
       setElapsedTime(null);
       setSharedLockStatus({ isLocked: false, lockStartedAt: null, lockEndsAt: null });
@@ -741,24 +762,29 @@ function HomeScreen() {
       // Fire-and-forget: native unlock + backend sync
       (async () => {
         try {
+          console.log('[UNLOCK-DEBUG] slideUnlock: calling forceUnlock...');
           if (BlockingModule) {
             await BlockingModule.forceUnlock();
           }
           if (isScheduledPreset) {
+            console.log('[UNLOCK-DEBUG] slideUnlock: calling useEmergencyTapout for scheduled...');
             await useEmergencyTapout(email, presetIdToKeep, true);
           } else {
+            console.log('[UNLOCK-DEBUG] slideUnlock: calling updateLockStatus...');
             await updateLockStatus(email, false, null);
             if (presetIdToKeep) {
               await activatePreset(email, presetIdToKeep);
             }
           }
           invalidateUserCaches(email);
+          console.log('[UNLOCK-DEBUG] slideUnlock: backend sync complete');
         } catch {
-          // Backend sync failed silently — state will reconcile on next app foreground
+          console.log('[UNLOCK-DEBUG] slideUnlock: backend sync failed');
         }
       })();
 
     } catch (error) {
+      console.log('[UNLOCK-DEBUG] handleSlideUnlock error:', error);
       showModal('Error', 'Failed to unlock. Please try again.');
     }
   }, [email, showModal, activePreset]);

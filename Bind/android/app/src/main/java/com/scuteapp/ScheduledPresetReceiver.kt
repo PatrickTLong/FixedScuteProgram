@@ -769,8 +769,8 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
             // Show high-priority activation notification so the user knows a scheduled preset started
             showActivationNotification(context, targetPreset.optString("name", "Scheduled Preset"), presetId)
 
-            // Notify React Native that a session started
-            SessionEventHelper.emitSessionEvent(context, "session_started")
+            // Notify React Native that a session started (include end date so UI shows correct countdown instantly)
+            SessionEventHelper.emitSessionEvent(context, "session_started", endDate, presetId)
 
             // Schedule the end alarm to stop blocking
             if (endDate != null && !noTimeLimit) {

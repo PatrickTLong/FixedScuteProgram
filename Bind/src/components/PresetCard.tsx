@@ -147,12 +147,14 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, onExpire
     const interval = setInterval(() => {
       const newStatus = getExpirationStatus();
       setStatus(prev => {
-        if (newStatus === 'expired' && prev !== 'expired' && !hasCalledExpired.current) {
-          hasCalledExpired.current = true;
-          onExpired?.(preset);
-        }
-        return newStatus;
+        if (newStatus !== prev) return newStatus;
+        return prev;
       });
+      // Call onExpired outside of setState updater to avoid setState-during-render
+      if (newStatus === 'expired' && !hasCalledExpired.current) {
+        hasCalledExpired.current = true;
+        onExpired?.(preset);
+      }
     }, 1000);
 
     return () => clearInterval(interval);
