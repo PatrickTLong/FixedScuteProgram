@@ -221,7 +221,7 @@ function BlockNowButton({
           ...shadow.card,
         }}
       >
-        <View className="flex-1 flex-row items-center justify-center">
+        <View className="flex-1 flex-row items-center justify-center" style={{ opacity: 0.6 }}>
           <Text style={{ color: colors.textMuted }} className={`${textSize.small} ${fontFamily.semibold}`}>Locked</Text>
         </View>
       </TouchableOpacity>
@@ -286,7 +286,7 @@ function BlockNowButton({
       }}
     >
       {/* Button Content */}
-      <View className="flex-1 flex-row items-center justify-center" style={{ zIndex: 1 }}>
+      <View className="flex-1 flex-row items-center justify-center" style={{ zIndex: 1, opacity: !canActivate ? 0.6 : 1 }}>
         <Text
           style={{ color: getTextColor() }}
           className={`${textSize.small} ${fontFamily.semibold}`}

@@ -185,8 +185,8 @@ function EmergencyTapoutModal({
               ) : (
                 <>
                   <Animated.View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#ffffff', opacity: tapoutFlash }} />
-                  <Text style={{ color: canUseTapout ? colors.text : colors.textMuted }} className={`${textSize.small} ${fontFamily.semibold}`}>
-                    {canUseTapout ? 'Unlock' : 'Not Available'}
+                  <Text style={{ color: colors.textMuted, opacity: 0.6 }} className={`${textSize.small} ${fontFamily.semibold}`}>
+                    Unlock
                   </Text>
                 </>
               )}
