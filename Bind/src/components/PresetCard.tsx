@@ -362,7 +362,7 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, onExpire
         {/* Toggle Switch */}
         <View style={{ alignItems: 'center' }}>
           {sharedIsLocked && !disabled && !isExpired && (
-            <MaterialCommunityIcons name="close-circle" size={iconSize.xs} color={colors.red} style={{ marginBottom: 2 }} />
+            <MaterialCommunityIcons name="close-circle" size={iconSize.xs} color={colors.red} style={{ position: 'absolute', top: s(-20), zIndex: 1 }} />
           )}
           <AnimatedSwitch
             size="small"
