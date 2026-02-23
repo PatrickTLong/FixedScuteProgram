@@ -166,6 +166,8 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, onExpire
   }, [preset.id, preset.targetDate, preset.scheduleStartDate, preset.scheduleEndDate]);
 
   const isExpired = status === 'expired';
+  const isLockedActive = sharedIsLocked && isActive;
+  const isDimmed = isExpired || isLockedActive;
 
   const getClockColor = () => {
     switch (status) {
@@ -281,13 +283,14 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, onExpire
 
   const handlePressIn = useCallback(() => {
     if (disabled) return;
-    if (haptics.presetCard.enabled) triggerHaptic(haptics.presetCard.type);
+    // Skip haptics for locked active presets (press shows modal, not edit)
+    if (!isLockedActive && haptics.presetCard.enabled) triggerHaptic(haptics.presetCard.type);
     Animated.timing(opacityAnim, {
       toValue: 0.7,
       duration: 30,
       useNativeDriver: true,
     }).start();
-  }, [disabled, opacityAnim]);
+  }, [disabled, opacityAnim, isLockedActive]);
 
   const handlePressOut = useCallback(() => {
     Animated.timing(opacityAnim, {
@@ -321,7 +324,7 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, onExpire
         <View className="flex-1">
           {/* Preset Name with Badges */}
           <View className="flex-row items-center mb-1">
-            <Text style={{ color: isExpired ? colors.textMuted : colors.text, flexShrink: 1 }} className={`${textSize.large} ${fontFamily.semibold}`}>
+            <Text style={{ color: isDimmed ? colors.textMuted : colors.text, flexShrink: 1 }} className={`${textSize.large} ${fontFamily.semibold}`}>
               {preset.name}
             </Text>
             {status !== null && (
@@ -357,13 +360,26 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, onExpire
         </View>
 
         {/* Toggle Switch */}
-        <AnimatedSwitch
-          size="small"
-          value={isActive && !isExpired}
-          onValueChange={handleToggle}
-          disabled={disabled || isExpired}
-          animate={!isExpired}
-        />
+        <View style={{ alignItems: 'center' }}>
+          {sharedIsLocked && !disabled && !isExpired && (
+            <MaterialCommunityIcons name="close-circle" size={iconSize.xs} color={colors.red} style={{ marginBottom: 2 }} />
+          )}
+          <AnimatedSwitch
+            size="small"
+            value={isActive && !isExpired}
+            onValueChange={handleToggle}
+            disabled={disabled || isExpired || sharedIsLocked}
+            animate={!isExpired}
+          />
+          {/* Invisible overlay catches taps on disabled toggle when locked to show modal */}
+          {sharedIsLocked && !disabled && !isExpired && (
+            <Pressable
+              style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+              hitSlop={{ top: 10, bottom: 10, left: 6, right: 6 }}
+              onPress={() => onToggle(!isActive)}
+            />
+          )}
+        </View>
       </View>
       </Animated.View>
     </Pressable>

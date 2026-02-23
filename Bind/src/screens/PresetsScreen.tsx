@@ -116,6 +116,11 @@ function PresetsScreen() {
   const [scheduleVerifyModalVisible, setScheduleVerifyModalVisible] = useState(false);
   const [pendingScheduledPreset, setPendingScheduledPreset] = useState<Preset | null>(null);
 
+  // Locked modal - shown when user tries to toggle/edit active presets while locked
+  const [lockedModalVisible, setLockedModalVisible] = useState(false);
+  const [lockedModalTitle, setLockedModalTitle] = useState('');
+  const [lockedModalMessage, setLockedModalMessage] = useState('');
+
   // Pull-to-refresh state
   const [refreshing, setRefreshing] = useState(false);
 
@@ -153,13 +158,20 @@ function PresetsScreen() {
   }, [presets, userEmail_safe, navigation, setContextEditingPreset, setFinalSettingsState, setExistingPresets, setEmail]);
 
   const handleEditPresetWithFlag = useCallback((preset: Preset) => {
+    // Block editing active presets while locked
+    if (sharedIsLocked && preset.isActive) {
+      setLockedModalTitle('Preset Active');
+      setLockedModalMessage("This preset can't be edited while it's actively blocking.");
+      setLockedModalVisible(true);
+      return;
+    }
     isReturningFromEdit.current = true;
     setContextEditingPreset(preset);
     setFinalSettingsState(null);
     setExistingPresets(presets);
     setEmail(userEmail_safe);
     navigation.getParent()?.navigate('EditPresetApps');
-  }, [presets, userEmail_safe, navigation, setContextEditingPreset, setFinalSettingsState, setExistingPresets, setEmail]);
+  }, [presets, userEmail_safe, navigation, setContextEditingPreset, setFinalSettingsState, setExistingPresets, setEmail, sharedIsLocked]);
 
   // Background orphan cleanup - doesn't block UI
   const runOrphanCleanup = useCallback(async (fetchedPresets: Preset[]) => {
@@ -239,8 +251,8 @@ function PresetsScreen() {
   // Note: Expiration checking is handled globally in AuthContext
   useFocusEffect(useCallback(() => {}, []));
 
-  // Disable interactions until lock status is checked, or if locked
-  const isDisabled = !lockChecked || sharedIsLocked === true;
+  // Disable interactions until lock status is checked
+  const isDisabled = !lockChecked;
 
 
   // Sync all scheduled presets to native module for background activation
@@ -299,6 +311,13 @@ function PresetsScreen() {
 
 
   const handleTogglePreset = useCallback(async (preset: Preset, value: boolean) => {
+    // Block all toggles while locked
+    if (sharedIsLocked) {
+      setLockedModalTitle('Presets Locked');
+      setLockedModalMessage("You can't toggle presets while blocking is active.");
+      setLockedModalVisible(true);
+      return;
+    }
     if (value) {
       if (preset.isScheduled) {
         // Scheduled preset - check for overlaps with other active scheduled presets
@@ -440,13 +459,20 @@ function PresetsScreen() {
         });
       }
     }
-  }, [userEmail_safe, syncScheduledPresetsToNative, presets]);
+  }, [userEmail_safe, syncScheduledPresetsToNative, presets, sharedIsLocked]);
 
 
   const handleLongPressPreset = useCallback((preset: Preset) => {
+    // Block deleting active presets while locked
+    if (sharedIsLocked && preset.isActive) {
+      setLockedModalTitle('Preset Active');
+      setLockedModalMessage("This preset can't be deleted while it's actively blocking.");
+      setLockedModalVisible(true);
+      return;
+    }
     setPresetToDelete(preset);
     setDeleteModalVisible(true);
-  }, []);
+  }, [sharedIsLocked]);
 
   const handleDeletePreset = useCallback(async () => {
     if (!presetToDelete) return;
@@ -713,23 +739,6 @@ function PresetsScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
-      {/* Locked Overlay */}
-      {sharedIsLocked === true && (
-        <View style={{ backgroundColor: colors.bg + 'F2' }} className="absolute inset-0 z-50 items-center justify-center" pointerEvents="auto" onStartShouldSetResponder={() => true}>
-          <View className="items-center" style={{ marginTop: '-20%' }}>
-            <Image
-              source={require('../frontassets/TrueScute-Photoroom.png')}
-              style={{ width: s(250), height: s(250), tintColor: colors.logoTint, marginBottom: s(-60) }}
-              resizeMode="contain"
-            />
-            <Text style={{ color: colors.text }} className={`${textSize.xLarge} ${fontFamily.bold} mb-2`}>Phone is Locked</Text>
-            <Text style={{ color: colors.textSecondary }} className={`text-center ${textSize.small} ${fontFamily.regular} px-8`}>
-              Presets cannot be changed while blocking is active.
-            </Text>
-          </View>
-        </View>
-      )}
-
       {/* Header */}
       <View className="flex-row items-center justify-between px-6 py-4">
         <View className="flex-row items-center">
@@ -791,6 +800,16 @@ function PresetsScreen() {
         confirmText="OK"
         onConfirm={handleCloseOverlapModal}
         onCancel={handleCloseOverlapModal}
+      />
+
+      {/* Locked Modal - shown when trying to toggle/edit active presets while locked */}
+      <ConfirmationModal
+        visible={lockedModalVisible}
+        title={lockedModalTitle}
+        message={lockedModalMessage}
+        confirmText="Dismiss"
+        onConfirm={() => setLockedModalVisible(false)}
+        onCancel={() => setLockedModalVisible(false)}
       />
 
       {/* Schedule Verification Modal */}
