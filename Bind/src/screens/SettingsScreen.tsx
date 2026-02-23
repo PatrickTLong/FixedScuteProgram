@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   Linking,
   Modal,
-  Image,
   Animated,
   Easing,
   RefreshControl,
@@ -145,7 +144,7 @@ const SettingsRow = memo(({
     {value && (
       <Text style={{ color: valueColor }} className={`${textSize.small} ${fontFamily.regular} mr-2`}>{value}</Text>
     )}
-    {showArrow && onPress && (
+    {showArrow && (
       <ChevronRightIcon size={s(iconSize.chevron)} />
     )}
   </TouchableOpacity>
@@ -311,12 +310,10 @@ function SettingsScreen() {
   // The modal here is for users to view/change their membership during trial or as members
 
   const handleContactSupport = () => {
-    if (sharedIsLocked) return;
     Linking.openURL('mailto:support@scuteapp.com?subject=Scute%20Support%20Request');
   };
 
   const handleBugReport = () => {
-    if (sharedIsLocked) return;
     Linking.openURL('mailto:bugs@scuteapp.com?subject=Scute%20Bug%20Report');
   };
 
@@ -410,23 +407,6 @@ function SettingsScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
-      {/* Locked Overlay */}
-      {sharedIsLocked && (
-        <View style={{ backgroundColor: colors.bg + 'F2' }} className="absolute inset-0 z-50 items-center justify-center" pointerEvents="auto" onStartShouldSetResponder={() => true}>
-          <View className="items-center" style={{ marginTop: '-20%' }}>
-            <Image
-              source={require('../frontassets/TrueScute-Photoroom.png')}
-              style={{ width: s(250), height: s(250), tintColor: colors.logoTint, marginBottom: s(-60) }}
-              resizeMode="contain"
-            />
-            <Text style={{ color: colors.text }} className={`${textSize.xLarge} ${fontFamily.bold} mb-2`}>Phone is Locked</Text>
-            <Text style={{ color: colors.textSecondary }} className={`text-center ${textSize.small} ${fontFamily.regular} px-8`}>
-              Settings cannot be changed while blocking is active.
-            </Text>
-          </View>
-        </View>
-      )}
-
       {/* Header */}
       <View className="flex-row items-center justify-between px-6 py-4">
         <View className="flex-row items-center">
@@ -512,16 +492,18 @@ function SettingsScreen() {
               <ChevronRightIcon size={s(iconSize.chevron)} />
             </View>
           </TouchableOpacity>
-          <SettingsRow
-            icon={logoutIcon}
-            label="Log Out"
-            onPress={isDisabled ? undefined : () => setLogoutModalVisible(true)}
-            labelColor={colors.text}
-            borderColor={colors.divider}
+          <View style={{ opacity: isDisabled ? 0.6 : 1 }}>
+            <SettingsRow
+              icon={logoutIcon}
+              label="Log Out"
+              onPress={isDisabled ? undefined : () => setLogoutModalVisible(true)}
+              labelColor={colors.text}
+              borderColor={colors.divider}
 
-            isLast
-            s={s}
-          />
+              isLast
+              s={s}
+            />
+          </View>
         </View>
 
         {/* EMERGENCY TAPOUT Section */}
@@ -581,7 +563,7 @@ function SettingsScreen() {
           <SettingsRow
             icon={messageIcon}
             label="Contact Support"
-            onPress={isDisabled ? undefined : handleContactSupport}
+            onPress={handleContactSupport}
             labelColor={colors.text}
             borderColor={colors.divider}
 
@@ -590,7 +572,7 @@ function SettingsScreen() {
           <SettingsRow
             icon={bugIcon}
             label="Bug Report"
-            onPress={isDisabled ? undefined : handleBugReport}
+            onPress={handleBugReport}
             labelColor={colors.text}
             borderColor={colors.divider}
 
@@ -632,25 +614,27 @@ function SettingsScreen() {
           </View>
         )}
         <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }} className={`${radius['2xl']}`}>
-          <SettingsRow
-            icon={refreshIcon}
-            label="Reset Account"
-            onPress={isDisabled ? undefined : () => setResetModalVisible(true)}
-            labelColor={colors.text}
-            borderColor={colors.divider}
+          <View style={{ opacity: isDisabled ? 0.6 : 1 }}>
+            <SettingsRow
+              icon={refreshIcon}
+              label="Reset Account"
+              onPress={isDisabled ? undefined : () => setResetModalVisible(true)}
+              labelColor={colors.text}
+              borderColor={colors.divider}
 
-            s={s}
-          />
-          <SettingsRow
-            icon={trashIcon}
-            label="Delete Account"
-            onPress={isDisabled ? undefined : () => { setDeleteStep(1); setDeleteModalVisible(true); }}
-            labelColor={colors.red}
-            borderColor={colors.divider}
+              s={s}
+            />
+            <SettingsRow
+              icon={trashIcon}
+              label="Delete Account"
+              onPress={isDisabled ? undefined : () => { setDeleteStep(1); setDeleteModalVisible(true); }}
+              labelColor={colors.red}
+              borderColor={colors.divider}
 
-            isLast
-            s={s}
-          />
+              isLast
+              s={s}
+            />
+          </View>
         </View>
       </ScrollView>
 

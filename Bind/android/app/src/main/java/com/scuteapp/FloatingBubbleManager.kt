@@ -7,6 +7,8 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -43,6 +45,7 @@ class FloatingBubbleManager(private val context: Context) {
         private const val LONG_PRESS_DURATION = 500L   // 0.5 seconds for long press
         private const val HIDE_BUTTON_TIMEOUT = 3000L  // Hide button disappears after 3 seconds
         private const val APP_LIST_COLLAPSE_DELAY = 8000L  // Longer delay when app list is shown
+        private const val HAPTIC_HEAVY_MS = 50L  // Duration for impactHeavy haptic
 
         @Volatile
         private var instance: FloatingBubbleManager? = null
@@ -106,6 +109,7 @@ class FloatingBubbleManager(private val context: Context) {
     private var longPressTriggered = false
     private val longPressRunnable = Runnable {
         longPressTriggered = true
+        triggerHeavyHaptic()
         showHideButton()
     }
 
@@ -149,6 +153,25 @@ class FloatingBubbleManager(private val context: Context) {
             Settings.canDrawOverlays(context)
         } else {
             true
+        }
+    }
+
+    /**
+     * Trigger a heavy haptic (vibration) feedback.
+     */
+    private fun triggerHeavyHaptic() {
+        try {
+            val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
+            if (vibrator?.hasVibrator() == true) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    vibrator.vibrate(VibrationEffect.createOneShot(HAPTIC_HEAVY_MS, VibrationEffect.DEFAULT_AMPLITUDE))
+                } else {
+                    @Suppress("DEPRECATION")
+                    vibrator.vibrate(HAPTIC_HEAVY_MS)
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Haptic feedback failed", e)
         }
     }
 
@@ -230,6 +253,7 @@ class FloatingBubbleManager(private val context: Context) {
 
             // Set up hide button click
             bubbleHideButton?.setOnClickListener {
+                triggerHeavyHaptic()
                 hideBubble()
             }
 
@@ -353,6 +377,7 @@ class FloatingBubbleManager(private val context: Context) {
 
             // Set up hide button click
             bubbleHideButton?.setOnClickListener {
+                triggerHeavyHaptic()
                 hideBubble()
             }
 
@@ -441,6 +466,7 @@ class FloatingBubbleManager(private val context: Context) {
                     Choreographer.getInstance().removeFrameCallback(dragFrameCallback)
                     hasPendingDragUpdate = false
                     if (!isDragging && !longPressTriggered) {
+                        triggerHeavyHaptic()
                         if (isExpanded) {
                             // Any tap while expanded toggles the app list
                             toggleAppList()

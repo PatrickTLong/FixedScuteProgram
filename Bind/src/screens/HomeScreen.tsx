@@ -9,7 +9,6 @@ import {
   ScrollView,
   Modal,
   Platform,
-  Linking,
   RefreshControl,
   Animated,
 } from 'react-native';
@@ -100,8 +99,6 @@ function HomeScreen() {
 
   // Pull-to-refresh state
   const [refreshing, setRefreshing] = useState(false);
-  const [buttonInteracting, setButtonInteracting] = useState(false);
-  const buttonAreaRef = useRef<View>(null);
 
 
   const showModal = useCallback((title: string, message: string) => {
@@ -936,16 +933,13 @@ function HomeScreen() {
     ) : null;
   }, [getPresetTimingSubtext, colors.textMuted]);
 
-  const refreshEnabled = !buttonInteracting;
-
   // Pull-to-refresh handler
   const onRefresh = useCallback(async () => {
-    if (!refreshEnabled) return;
     setRefreshing(true);
     invalidateUserCaches(email);
     await loadStats(true, false);
     setRefreshing(false);
-  }, [email, loadStats, refreshEnabled]);
+  }, [email, loadStats]);
 
   if (loading) {
     return (
@@ -986,10 +980,6 @@ function HomeScreen() {
             <BoxiconsFilled name="bx-image-circle" size={s(iconSize.headerNav)} color={widgetBubbleDisabled ? colors.textMuted : '#FFFFFF'} />
           </HeaderIconButton>
 
-          {/* Support @ icon */}
-          <HeaderIconButton onPress={() => { Linking.openURL('mailto:support@scuteapp.com?subject=Scute%20Support%20Request'); }}>
-            <BoxiconsFilled name="bx-send" size={s(iconSize.headerNav)} color="#FFFFFF" />
-          </HeaderIconButton>
         </View>
       </View>
 
@@ -1000,7 +990,6 @@ function HomeScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            enabled={refreshEnabled}
             tintColor={colors.text}
             colors={[colors.text]}
             progressBackgroundColor={colors.card}
@@ -1063,12 +1052,8 @@ function HomeScreen() {
 
         {/* Action Button - clean matte style */}
         <View
-          ref={buttonAreaRef}
           className="mb-10"
           style={{ position: 'relative' }}
-          onTouchStart={() => setButtonInteracting(true)}
-          onTouchEnd={() => setButtonInteracting(false)}
-          onTouchCancel={() => setButtonInteracting(false)}
         >
           {/* Success checkmark — pops in on lock/unlock, then fades out */}
           <Animated.View
@@ -1113,7 +1098,7 @@ function HomeScreen() {
             isLocked={isLocked}
             hasActiveTimer={!!timeRemaining}
             strictMode={activePreset?.strictMode ?? false}
-            onInteractionChange={setButtonInteracting}
+            onInteractionChange={() => {}}
           />
         </View>
       </ScrollView>

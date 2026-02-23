@@ -93,10 +93,10 @@ export const shadow = {
 export const haptics = {
   blockNowHold: { enabled: true, halfwayType: 'impactHeavy' as const, completionType: 'notificationSuccess' as const },
   slideToUnlock: { enabled: true, halfwayType: 'impactHeavy' as const, completionType: 'notificationSuccess' as const },
-  toggle: { enabled: false, type: 'impactHeavy' as const },
+  toggle: { enabled: true, type: 'impactHeavy' as const },
   timeWheel: { enabled: false, type: 'impactLight' as const },
   headerButton: { enabled: false, type: 'impactLight' as const },
-  bubbleButton: { enabled: false, type: 'impactLight' as const },
+  bubbleButton: { enabled: false, type: 'impactHeavy' as const },
   overlayDismiss: { enabled: true, type: 'impactLight' as const },
   landingTap: { enabled: true, type: 'impactLight' as const },
   tabBar: { enabled: false, type: 'impactLight' as const },
