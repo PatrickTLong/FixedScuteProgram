@@ -99,6 +99,8 @@ function HomeScreen() {
 
   // Pull-to-refresh state
   const [refreshing, setRefreshing] = useState(false);
+  const [buttonInteracting, setButtonInteracting] = useState(false);
+  const buttonAreaRef = useRef<View>(null);
 
 
   const showModal = useCallback((title: string, message: string) => {
@@ -933,13 +935,16 @@ function HomeScreen() {
     ) : null;
   }, [getPresetTimingSubtext, colors.textMuted]);
 
+  const refreshEnabled = !buttonInteracting;
+
   // Pull-to-refresh handler
   const onRefresh = useCallback(async () => {
+    if (!refreshEnabled) return;
     setRefreshing(true);
     invalidateUserCaches(email);
     await loadStats(true, false);
     setRefreshing(false);
-  }, [email, loadStats]);
+  }, [email, loadStats, refreshEnabled]);
 
   if (loading) {
     return (
@@ -990,6 +995,7 @@ function HomeScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
+            enabled={refreshEnabled}
             tintColor={colors.text}
             colors={[colors.text]}
             progressBackgroundColor={colors.card}
@@ -1052,8 +1058,12 @@ function HomeScreen() {
 
         {/* Action Button - clean matte style */}
         <View
+          ref={buttonAreaRef}
           className="mb-10"
           style={{ position: 'relative' }}
+          onTouchStart={() => setButtonInteracting(true)}
+          onTouchEnd={() => setButtonInteracting(false)}
+          onTouchCancel={() => setButtonInteracting(false)}
         >
           {/* Success checkmark — pops in on lock/unlock, then fades out */}
           <Animated.View
@@ -1098,7 +1108,7 @@ function HomeScreen() {
             isLocked={isLocked}
             hasActiveTimer={!!timeRemaining}
             strictMode={activePreset?.strictMode ?? false}
-            onInteractionChange={() => {}}
+            onInteractionChange={setButtonInteracting}
           />
         </View>
       </ScrollView>

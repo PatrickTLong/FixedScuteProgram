@@ -1615,17 +1615,11 @@ app.post('/api/emergency-tapout/use', authenticateToken, async (req, res) => {
 
     if (!skipTapoutDecrement) {
       newRemaining = newRemaining - 1;
-      // Calculate next refill date
-      // If going from 3 to 2, start the 2-week countdown
-      // If already below 3, keep the existing countdown (don't reset it)
+      // Only start the 2-week refill countdown when going from 3 to 2 (first use).
+      // If already below 3, keep the existing countdown — don't reset it.
       if ((data.emergency_tapout_remaining ?? 3) === 3) {
-        // First tapout used, start the refill countdown
-        nextRefillDate = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(); // 2 weeks from now
-      } else if (!nextRefillDate) {
-        // Safety net: if no refill date exists, set one now
         nextRefillDate = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
       }
-      // If already had a refill date scheduled, keep it
     }
 
     // Build update object - always unlock

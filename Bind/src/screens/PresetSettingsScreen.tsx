@@ -6,6 +6,7 @@ import {
   TextInput,
   ScrollView,
   Animated,
+  Easing,
   Platform,
   NativeSyntheticEvent,
   NativeScrollEvent,
@@ -462,6 +463,28 @@ function PresetSettingsScreen() {
   const [dateEnabled, setDateEnabled] = useState(false);
 
   // Emergency tapout feature
+  const tapoutHeartBeat = useRef(new Animated.Value(1)).current;
+  const tapoutsRemaining = tapoutStatus?.remaining ?? 0;
+
+  useEffect(() => {
+    if (tapoutsRemaining === 0) {
+      tapoutHeartBeat.setValue(1);
+      return;
+    }
+    const beat = Animated.loop(
+      Animated.sequence([
+        Animated.timing(tapoutHeartBeat, { toValue: 1.15, duration: 90, easing: Easing.out(Easing.ease), useNativeDriver: true }),
+        Animated.timing(tapoutHeartBeat, { toValue: 1, duration: 80, easing: Easing.in(Easing.ease), useNativeDriver: true }),
+        Animated.delay(60),
+        Animated.timing(tapoutHeartBeat, { toValue: 1.1, duration: 80, easing: Easing.out(Easing.ease), useNativeDriver: true }),
+        Animated.timing(tapoutHeartBeat, { toValue: 1, duration: 100, easing: Easing.in(Easing.ease), useNativeDriver: true }),
+        Animated.delay(700),
+      ])
+    );
+    beat.start();
+    return () => beat.stop();
+  }, [tapoutHeartBeat, tapoutsRemaining]);
+
   const [allowEmergencyTapout, setAllowEmergencyTapout] = useState(false);
   const [noTapoutsModalVisible, setNoTapoutsModalVisible] = useState(false);
 
@@ -1387,7 +1410,7 @@ function PresetSettingsScreen() {
           <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}>
             <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
               <TouchableOpacity onPress={() => toggleInfo('emergencyTapout')} activeOpacity={0.7} style={{ maxWidth: '75%' }} className="flex-row items-center">
-<Svg width={s(iconSize.toggleRow)} height={s(iconSize.toggleRow)} viewBox="0 -960 960 960" fill={colors.red} style={{ marginRight: s(14) }}><Path d="M440-120 313-234q-72-65-123.5-116t-85-96q-33.5-45-49-87T40-621q0-94 63-156.5T260-840q52 0 99 21.5t81 61.5q34-40 81-61.5t99-21.5q85 0 142.5 51.5T834-668q-20-8-42-10t-45-2q-85 0-156 68.5T520-440q0 48 21 97.5t59 80.5q-19 17-49.5 43.5T498-172l-58 52Zm278-193L604-426l57-56 57 56 141-141 57 56-198 198Z" /></Svg>
+<Animated.View style={{ marginRight: s(14), transform: [{ scale: tapoutHeartBeat }], opacity: tapoutHeartBeat.interpolate({ inputRange: [1, 1.15], outputRange: [1, 0.85], extrapolate: 'clamp' }) }}><Svg width={s(iconSize.toggleRow)} height={s(iconSize.toggleRow)} viewBox="0 -960 960 960" fill={colors.red}><Path d="M440-120 313-234q-72-65-123.5-116t-85-96q-33.5-45-49-87T40-621q0-94 63-156.5T260-840q52 0 99 21.5t81 61.5q34-40 81-61.5t99-21.5q85 0 142.5 51.5T834-668q-20-8-42-10t-45-2q-85 0-156 68.5T520-440q0 48 21 97.5t59 80.5q-19 17-49.5 43.5T498-172l-58 52Zm278-193L604-426l57-56 57 56 141-141 57 56-198 198Z" /></Svg></Animated.View>
                 <View>
                   <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Allow Emergency Tapout</Text>
                   <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-1`}>Use your emergency tapouts for this preset</Text>
