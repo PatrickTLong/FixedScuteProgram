@@ -9,7 +9,8 @@ import {
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import LoadingSpinner from './LoadingSpinner';
-import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius, shadow, haptics } from '../context/ThemeContext';
+import { triggerHaptic } from '../utils/haptics';
 
 import { useResponsive } from '../utils/responsive';
 
@@ -137,7 +138,7 @@ function EmergencyTapoutModal({
             {canUseTapout ? (
               <Animated.View style={{ marginBottom: 12, transform: [{ scale: heartBeat }], opacity: heartBeat.interpolate({ inputRange: [1, 1.15], outputRange: [1, 0.85], extrapolate: 'clamp' }) }}>
                 <Svg width={iconSize} height={iconSize} viewBox="0 -960 960 960" fill={colors.red}>
-                  <Path d="M600-400v-80h320v80H600ZM440-120 313-234q-72-65-123.5-116t-85-96q-33.5-45-49-87T40-621q0-94 63-156.5T260-840q52 0 99 21.5t81 61.5q34-40 81-61.5t99-21.5q85 0 142.5 51.5T834-668q-18-7-36-10.5t-35-3.5q-101 0-172 70.5T520-440q0 52 21 98.5t59 79.5q-19 17-49.5 43.5T498-172l-58 52Z" />
+                  <Path d="M595-468h-230q0 170 115 170t115-170ZM405.5-554.5Q420-569 420-590t-14.5-35.5Q391-640 370-640t-35.5 14.5Q320-611 320-590t14.5 35.5Q349-540 370-540t35.5-14.5Zm220 0Q640-569 640-590t-14.5-35.5Q611-640 590-640t-35.5 14.5Q540-611 540-590t14.5 35.5Q569-540 590-540t35.5-14.5ZM480-120l-58-50q-101-88-167-152T150-437q-39-51-54.5-94T80-620q0-94 63-157t157-63q52 0 99 22t81 62q34-40 81-62t99-22q94 0 157 63t63 157q0 46-15.5 89T810-437q-39 51-105 115T538-170l-58 50Z" />
                 </Svg>
               </Animated.View>
             ) : (
@@ -174,7 +175,7 @@ function EmergencyTapoutModal({
             </TouchableOpacity>
             <TouchableOpacity
               onPressIn={() => triggerFlash(tapoutFlash)}
-              onPress={onUseTapout}
+              onPress={() => { if (haptics.slideToUnlock.enabled) triggerHaptic(haptics.slideToUnlock.completionType); onUseTapout(); }}
               disabled={!canUseTapout || isLoading}
               activeOpacity={1}
               className="flex-1 py-4 items-center justify-center"

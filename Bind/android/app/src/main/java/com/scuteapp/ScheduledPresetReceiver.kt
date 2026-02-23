@@ -743,6 +743,7 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
                 .putString("active_preset_id", presetId)
                 .putString("active_preset_name", targetPreset.optString("name", "Scheduled Preset"))
                 .putBoolean("is_scheduled_preset", true) // Mark as scheduled so TimerPresetReceiver knows to skip
+                .putString("custom_blocked_text", targetPreset.optString("customBlockedText", ""))
                 .commit()
 
             // Start the foreground service

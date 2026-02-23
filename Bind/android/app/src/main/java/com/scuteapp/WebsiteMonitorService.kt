@@ -163,17 +163,18 @@ class WebsiteMonitorService(private val context: Context) {
     private fun showBlockedOverlay(blockedSite: String) {
         val prefs = context.getSharedPreferences(UninstallBlockerService.PREFS_NAME, Context.MODE_PRIVATE)
         val strictMode = prefs.getBoolean("strict_mode", true)
+        val customBlockedText = prefs.getString("custom_blocked_text", "") ?: ""
 
         // Redirect to Google BEFORE showing overlay (so it appears underneath)
         redirectToGoogle()
 
         // Show overlay instantly with website name (use the blocked site as the display name)
-        val shown = overlayManager?.show(BlockedOverlayManager.TYPE_WEBSITE, blockedSite, blockedSite, strictMode) ?: false
+        val shown = overlayManager?.show(BlockedOverlayManager.TYPE_WEBSITE, blockedSite, blockedSite, strictMode, customBlockedText) ?: false
 
         if (!shown) {
             Log.w(TAG, "Failed to show overlay, falling back to activity")
             // Fallback: launch BlockedActivity
-            BlockedActivity.launchNoAnimation(context, BlockedActivity.TYPE_WEBSITE, blockedSite, strictMode)
+            BlockedActivity.launchNoAnimation(context, BlockedActivity.TYPE_WEBSITE, blockedSite, strictMode, customBlockedText)
         }
 
         // Redirect to safe URL while overlay is showing (happens underneath the overlay)

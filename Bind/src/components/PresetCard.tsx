@@ -55,6 +55,8 @@ export interface Preset {
   // Strict mode - when enabled, presets are locked and require emergency tapout to unlock
   // When disabled, slide-to-unlock is available for all presets
   strictMode?: boolean;
+  // Custom blocked message - replaces default "X is blocked." overlay text
+  customBlockedText?: string;
 }
 
 interface PresetCardProps {
@@ -234,6 +236,10 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, onExpire
 
     if (preset.blockSettings) {
       parts.push('Settings blocked');
+    }
+
+    if (preset.customBlockedText) {
+      parts.push('Custom message');
     }
 
     return parts.length > 0 ? parts.join(', ') : null;

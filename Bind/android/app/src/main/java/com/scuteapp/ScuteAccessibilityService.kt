@@ -327,6 +327,7 @@ class ScuteAccessibilityService : AccessibilityService() {
                 .putBoolean("no_time_limit", noTimeLimit)
                 .putString("active_preset_id", presetId)
                 .putString("active_preset_name", preset.optString("name", "Scheduled Preset"))
+                .putString("custom_blocked_text", preset.optString("customBlockedText", ""))
                 .apply()
 
             val serviceIntent = Intent(this, UninstallBlockerService::class.java)

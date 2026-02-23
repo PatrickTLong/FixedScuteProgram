@@ -264,6 +264,7 @@ class AppMonitorService(private val context: Context) {
     private fun showBlockedOverlay(packageName: String) {
         val prefs = context.getSharedPreferences(UninstallBlockerService.PREFS_NAME, Context.MODE_PRIVATE)
         val strictMode = prefs.getBoolean("strict_mode", true)
+        val customBlockedText = prefs.getString("custom_blocked_text", "") ?: ""
 
         val blockedType = if (isSettingsApp(packageName)) {
             BlockedOverlayManager.TYPE_SETTINGS
@@ -284,12 +285,12 @@ class AppMonitorService(private val context: Context) {
         pauseMedia()
 
         // Show overlay instantly with app name
-        val shown = overlayManager?.show(blockedType, packageName, appName, strictMode) ?: false
+        val shown = overlayManager?.show(blockedType, packageName, appName, strictMode, customBlockedText) ?: false
 
         if (!shown) {
             Log.w(TAG, "Failed to show overlay, falling back to activity")
             // Fallback: launch BlockedActivity (no HOME action - just show activity)
-            BlockedActivity.launchNoAnimation(context, blockedType, packageName, strictMode)
+            BlockedActivity.launchNoAnimation(context, blockedType, packageName, strictMode, customBlockedText)
         }
     }
 

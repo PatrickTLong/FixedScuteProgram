@@ -109,6 +109,9 @@ class BlockingModule(reactContext: ReactApplicationContext) :
             // Get strict mode setting (default to true for safety)
             val strictMode = if (config.hasKey("strictMode")) config.getBoolean("strictMode") else true
 
+            // Get custom blocked text (replaces default "X is blocked." overlay message)
+            val customBlockedText = if (config.hasKey("customBlockedText")) config.getString("customBlockedText") else ""
+
             // Save to SharedPreferences
             val sessionStartTime = System.currentTimeMillis()
             sessionPrefs.edit()
@@ -121,6 +124,7 @@ class BlockingModule(reactContext: ReactApplicationContext) :
                 .putBoolean("strict_mode", strictMode)
                 .putString("active_preset_name", presetName)
                 .putString("active_preset_id", presetId)
+                .putString("custom_blocked_text", customBlockedText)
                 .apply()
 
             // Start the foreground service

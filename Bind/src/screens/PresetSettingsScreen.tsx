@@ -191,6 +191,7 @@ const TimePresetCircle = memo(({ label, onPress, onLongPressAdd }: {
   const handlePressIn = useCallback(() => {
     didLongPress.current = false;
     activeRef.current = true;
+    Animated.timing(scaleAnim, { toValue: 0.9, useNativeDriver: true, duration: 30 }).start();
     timeoutRef.current = setTimeout(() => {
       didLongPress.current = true;
       if (haptics.bubbleButton.enabled) {
@@ -199,11 +200,12 @@ const TimePresetCircle = memo(({ label, onPress, onLongPressAdd }: {
       onLongPressAddRef.current();
       scheduleNext(LONG_PRESS_START_INTERVAL);
     }, LONG_PRESS_INITIAL_DELAY);
-  }, [scheduleNext]);
+  }, [scheduleNext, scaleAnim]);
 
   const handlePressOut = useCallback(() => {
     clearTimers();
-  }, [clearTimers]);
+    Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true, speed: 12, bounciness: 14 }).start();
+  }, [clearTimers, scaleAnim]);
 
   const handlePress = useCallback(() => {
     if (!didLongPress.current) {
@@ -211,13 +213,8 @@ const TimePresetCircle = memo(({ label, onPress, onLongPressAdd }: {
         triggerHaptic(haptics.bubbleButton.type);
       }
       onPress();
-      // Scale down and bounce back animation on press
-      Animated.sequence([
-        Animated.timing(scaleAnim, { toValue: 0.9, useNativeDriver: true, duration: 30 }),
-        Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true, speed: 12, bounciness: 14 }),
-      ]).start();
     }
-  }, [onPress, scaleAnim]);
+  }, [onPress]);
 
   useEffect(() => clearTimers, [clearTimers]);
 
@@ -501,6 +498,10 @@ function PresetSettingsScreen() {
   const [strictMode, setStrictMode] = useState(false);
   const [strictModeWarningVisible, setStrictModeWarningVisible] = useState(false);
 
+  // Custom blocked message
+  const [customBlockedText, setCustomBlockedText] = useState('');
+  const [customBlockedTextEnabled, setCustomBlockedTextEnabled] = useState(false);
+
   // Expandable info dropdowns
   const [expandedInfo, setExpandedInfo] = useState<Record<string, boolean>>({});
   const toggleInfo = useCallback((key: string) => {
@@ -542,6 +543,7 @@ function PresetSettingsScreen() {
   const isRecurringRef = useRef(isRecurring);
   const recurringValueRef = useRef(recurringValue);
   const recurringUnitRef = useRef(recurringUnit);
+  const customBlockedTextRef = useRef(customBlockedText);
 
   // Keep refs in sync with state
   blockSettingsRef.current = blockSettings;
@@ -561,6 +563,7 @@ function PresetSettingsScreen() {
   isRecurringRef.current = isRecurring;
   recurringValueRef.current = recurringValue;
   recurringUnitRef.current = recurringUnit;
+  customBlockedTextRef.current = customBlockedText;
 
   // ============ Reinitialize from editingPreset each time screen gains focus ============
   // Restores from saved finalSettingsState if returning from EditPresetApps (back-and-forward),
@@ -588,6 +591,8 @@ function PresetSettingsScreen() {
         setIsRecurring(savedState.isRecurring);
         setRecurringValue(savedState.recurringValue);
         setRecurringUnit(savedState.recurringUnit);
+        setCustomBlockedText(savedState.customBlockedText ?? '');
+        setCustomBlockedTextEnabled(!!(savedState.customBlockedText));
       } else {
         const editingPreset = getEditingPreset();
         if (editingPreset) {
@@ -608,6 +613,8 @@ function PresetSettingsScreen() {
           setIsRecurring(editingPreset.repeat_enabled ?? false);
           setRecurringValue(editingPreset.repeat_interval?.toString() ?? '1');
           setRecurringUnit(editingPreset.repeat_unit ?? 'hours');
+          setCustomBlockedText(editingPreset.customBlockedText ?? '');
+          setCustomBlockedTextEnabled(!!(editingPreset.customBlockedText));
         } else {
           // New preset defaults
           setBlockSettings(false);
@@ -627,6 +634,8 @@ function PresetSettingsScreen() {
           setIsRecurring(false);
           setRecurringValue('1');
           setRecurringUnit('hours');
+          setCustomBlockedText('');
+          setCustomBlockedTextEnabled(false);
         }
       }
       // Apply date picker result if returning from DatePicker screen
@@ -681,6 +690,7 @@ function PresetSettingsScreen() {
           isRecurring: isRecurringRef.current,
           recurringValue: recurringValueRef.current,
           recurringUnit: recurringUnitRef.current,
+          customBlockedText: customBlockedTextRef.current,
         });
       };
     }, [getEditingPreset, getFinalSettingsState, setFinalSettingsState, getDatePickerResult, setDatePickerResult])
@@ -794,6 +804,7 @@ function PresetSettingsScreen() {
       repeat_enabled: isScheduled && isRecurring ? true : false,
       repeat_unit: isScheduled && isRecurring ? recurringUnit : undefined,
       repeat_interval: isScheduled && isRecurring ? finalRecurringInterval : undefined,
+      customBlockedText: customBlockedTextEnabled ? customBlockedText.trim() : undefined,
     };
 
     // Navigate immediately — save happens in the background
@@ -801,7 +812,7 @@ function PresetSettingsScreen() {
     setPresetSettingsParams(null);
     navigation.navigate({ name: 'Presets' } as any);
     onSave(newPreset);
-  }, [name, canSave, getEditingPreset, getExistingPresets, installedSelectedApps, blockedWebsites, blockSettings, noTimeLimit, timerDays, timerHours, timerMinutes, timerSeconds, targetDate, onSave, allowEmergencyTapout, strictMode, isScheduled, scheduleStartDate, scheduleEndDate, isRecurring, recurringValue, recurringUnit, navigation, setFinalSettingsState]);
+  }, [name, canSave, getEditingPreset, getExistingPresets, installedSelectedApps, blockedWebsites, blockSettings, noTimeLimit, timerDays, timerHours, timerMinutes, timerSeconds, targetDate, onSave, allowEmergencyTapout, strictMode, isScheduled, scheduleStartDate, scheduleEndDate, isRecurring, recurringValue, recurringUnit, navigation, setFinalSettingsState, customBlockedText, customBlockedTextEnabled]);
 
 
   // ============ Render ============
@@ -1410,7 +1421,11 @@ function PresetSettingsScreen() {
           <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}>
             <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
               <TouchableOpacity onPress={() => toggleInfo('emergencyTapout')} activeOpacity={0.7} style={{ maxWidth: '75%' }} className="flex-row items-center">
-<Animated.View style={{ marginRight: s(14), transform: [{ scale: tapoutHeartBeat }], opacity: tapoutHeartBeat.interpolate({ inputRange: [1, 1.15], outputRange: [1, 0.85], extrapolate: 'clamp' }) }}><Svg width={s(iconSize.toggleRow)} height={s(iconSize.toggleRow)} viewBox="0 -960 960 960" fill={colors.red}><Path d="M440-120 313-234q-72-65-123.5-116t-85-96q-33.5-45-49-87T40-621q0-94 63-156.5T260-840q52 0 99 21.5t81 61.5q34-40 81-61.5t99-21.5q85 0 142.5 51.5T834-668q-20-8-42-10t-45-2q-85 0-156 68.5T520-440q0 48 21 97.5t59 80.5q-19 17-49.5 43.5T498-172l-58 52Zm278-193L604-426l57-56 57 56 141-141 57 56-198 198Z" /></Svg></Animated.View>
+<Animated.View style={{ marginRight: s(14), transform: [{ scale: tapoutHeartBeat }], opacity: tapoutHeartBeat.interpolate({ inputRange: [1, 1.15], outputRange: [1, 0.85], extrapolate: 'clamp' }) }}>
+                    <Svg width={s(iconSize.toggleRow)} height={s(iconSize.toggleRow)} viewBox="0 -960 960 960" fill={colors.red}>
+                      <Path d="M595-468h-230q0 170 115 170t115-170ZM405.5-554.5Q420-569 420-590t-14.5-35.5Q391-640 370-640t-35.5 14.5Q320-611 320-590t14.5 35.5Q349-540 370-540t35.5-14.5Zm220 0Q640-569 640-590t-14.5-35.5Q611-640 590-640t-35.5 14.5Q540-611 540-590t14.5 35.5Q569-540 590-540t35.5-14.5ZM480-120l-58-50q-101-88-167-152T150-437q-39-51-54.5-94T80-620q0-94 63-157t157-63q52 0 99 22t81 62q34-40 81-62t99-22q94 0 157 63t63 157q0 46-15.5 89T810-437q-39 51-105 115T538-170l-58 50Z" />
+                    </Svg>
+                  </Animated.View>
                 <View>
                   <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Allow Emergency Tapout</Text>
                   <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-1`}>Use your emergency tapouts for this preset</Text>
@@ -1432,6 +1447,63 @@ function PresetSettingsScreen() {
             </ExpandableInfo>
           </View>
         </ExpandableInfo>
+
+        {/* Custom Blocked Message Toggle */}
+        <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}>
+          <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
+            <TouchableOpacity onPress={() => toggleInfo('customBlockedText')} activeOpacity={0.7} style={{ maxWidth: '75%' }} className="flex-row items-center">
+              <BoxiconsFilled name="bx-arrow-up-a-z" size={s(iconSize.toggleRow)} color={colors.text} style={{ marginRight: s(14) }} />
+              <View>
+                <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Custom Blocked Message</Text>
+                <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-1`}>Replace default blocked text with your own</Text>
+              </View>
+            </TouchableOpacity>
+            <AnimatedSwitch
+              size="small"
+              value={customBlockedTextEnabled}
+              animate={!skipSwitchAnimation}
+              onValueChange={(value: boolean) => {
+                setCustomBlockedTextEnabled(value);
+                if (!value) {
+                  setCustomBlockedText('');
+                }
+              }}
+            />
+          </View>
+          <ExpandableInfo expanded={!!expandedInfo.customBlockedText}>
+            <TouchableOpacity onPress={() => toggleInfo('customBlockedText')} activeOpacity={0.7} className="px-6 pb-4">
+              <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular} leading-5`}>
+                When enabled, the overlay that appears when opening a blocked app or website will show your custom message instead of the default "App is blocked." text.
+              </Text>
+            </TouchableOpacity>
+          </ExpandableInfo>
+          <ExpandableInfo expanded={customBlockedTextEnabled}>
+            <View className="px-6 pb-4">
+              <TextInput
+                value={customBlockedText}
+                onChangeText={setCustomBlockedText}
+                placeholder="e.g. Stay focused! You got this."
+                placeholderTextColor={colors.textSecondary}
+                multiline
+                maxLength={200}
+                style={{
+                  backgroundColor: colors.card,
+                  color: colors.text,
+                  borderWidth: 1,
+                  borderColor: colors.border,
+                  ...shadow.card,
+                  padding: s(14),
+                  minHeight: s(80),
+                  textAlignVertical: 'top',
+                }}
+                className={`${radius.xl} ${textSize.small} ${fontFamily.semibold}`}
+              />
+              <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-2 text-right`}>
+                {customBlockedText.length}/200
+              </Text>
+            </View>
+          </ExpandableInfo>
+        </View>
 
         {/* Extra bottom padding */}
         <View style={{ height: s(40) }} />

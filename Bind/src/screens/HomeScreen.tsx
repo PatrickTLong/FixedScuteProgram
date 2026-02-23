@@ -103,6 +103,8 @@ function HomeScreen() {
   const buttonAreaRef = useRef<View>(null);
 
 
+
+
   const showModal = useCallback((title: string, message: string) => {
     setModalTitle(title);
     setModalMessage(message);
@@ -204,6 +206,7 @@ function HomeScreen() {
           presetId: preset.id,
           isScheduled: true, // Scheduled preset - ScheduledPresetReceiver handles end notification
           strictMode: preset.strictMode ?? false,
+          customBlockedText: preset.customBlockedText ?? '',
         });
       }
 
@@ -867,6 +870,7 @@ function HomeScreen() {
               presetId: activePreset.id,
               isScheduled: activePreset.isScheduled || false,
               strictMode: activePreset.strictMode ?? false,
+              customBlockedText: activePreset.customBlockedText ?? '',
             });
           }
 
@@ -944,7 +948,7 @@ function HomeScreen() {
     invalidateUserCaches(email);
     await loadStats(true, false);
     setRefreshing(false);
-  }, [email, loadStats, refreshEnabled]);
+  }, [email, loadStats]);
 
   if (loading) {
     return (
