@@ -725,11 +725,15 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
 
             // Calculate end time
             val noTimeLimit = targetPreset.optBoolean("noTimeLimit", false)
+            val strictMode = targetPreset.optBoolean("strictMode", false)
+            val customBlockedText = targetPreset.optString("customBlockedText", "")
             val endTime = if (endDate != null && !noTimeLimit) {
                 parseIsoDate(endDate)
             } else {
                 System.currentTimeMillis() + Long.MAX_VALUE / 2
             }
+
+            Log.d(TAG, "[SCHED-DEBUG] Preset config: mode=$mode, apps=${selectedApps.size}, websites=${blockedWebsites.size}, noTimeLimit=$noTimeLimit, strictMode=$strictMode, customBlockedText='$customBlockedText', endTime=$endTime")
 
             // Save to session prefs (reusing sessionPrefs from earlier check)
             // Use commit() instead of apply() to ensure prefs are written before service reads them
@@ -740,11 +744,14 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
                 .putLong(UninstallBlockerService.KEY_SESSION_END_TIME, endTime)
                 .putLong("session_start_time", System.currentTimeMillis())
                 .putBoolean("no_time_limit", noTimeLimit)
+                .putBoolean("strict_mode", strictMode)
                 .putString("active_preset_id", presetId)
                 .putString("active_preset_name", targetPreset.optString("name", "Scheduled Preset"))
                 .putBoolean("is_scheduled_preset", true) // Mark as scheduled so TimerPresetReceiver knows to skip
-                .putString("custom_blocked_text", targetPreset.optString("customBlockedText", ""))
+                .putString("custom_blocked_text", customBlockedText)
                 .commit()
+
+            Log.d(TAG, "[SCHED-DEBUG] Session prefs committed successfully")
 
             // Start the foreground service
             val serviceIntent = Intent(context, UninstallBlockerService::class.java)
@@ -754,6 +761,7 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
                 context.startService(serviceIntent)
             }
 
+            Log.d(TAG, "[SCHED-DEBUG] Foreground service started")
             Log.d(TAG, "Scheduled preset activated: ${targetPreset.optString("name")}")
 
             // Floating bubble is shown by UninstallBlockerService.onStartCommand

@@ -135,12 +135,15 @@ function HomeScreen() {
   // Check and activate scheduled presets
   const checkScheduledPresets = useCallback(async (presets: Preset[], currentLockStatus: { isLocked: boolean; lockEndsAt: string | null }) => {
     const now = new Date();
+    console.log('[SCHED-DEBUG] checkScheduledPresets called', { presetsCount: presets.length, isLocked: currentLockStatus.isLocked, lockEndsAt: currentLockStatus.lockEndsAt });
 
     // Find scheduled presets that should be activated now
     for (const preset of presets) {
       if (preset.isScheduled && preset.isActive && preset.scheduleStartDate && preset.scheduleEndDate) {
         const startDate = new Date(preset.scheduleStartDate);
         const endDate = new Date(preset.scheduleEndDate);
+
+        console.log('[SCHED-DEBUG] Checking preset:', { id: preset.id, name: preset.name, start: preset.scheduleStartDate, end: preset.scheduleEndDate, nowInWindow: now >= startDate && now < endDate, customBlockedText: preset.customBlockedText });
 
         // Check if current time is within the schedule window
         if (now >= startDate && now < endDate) {
@@ -150,68 +153,86 @@ function HomeScreen() {
             if (!currentLockStatus.lockEndsAt) {
               // Check if we're already activating this preset
               if (activatingPresetRef.current === preset.id) {
+                console.log('[SCHED-DEBUG] Already activating this preset, skipping');
                 return null;
               }
+              console.log('[SCHED-DEBUG] Will override untimed lock for scheduled preset');
               return { preset, shouldOverride: true };
             }
             // If current lock ends AFTER the scheduled preset starts, it might be a different session
             // Don't override if it's already a timed lock
+            console.log('[SCHED-DEBUG] Already locked with timed preset, not overriding');
             return null;
           }
 
           // Check if we're already activating this preset
           if (activatingPresetRef.current === preset.id) {
+            console.log('[SCHED-DEBUG] Already activating this preset, skipping');
             return null;
           }
 
+          console.log('[SCHED-DEBUG] Found preset to activate:', preset.name);
           return { preset, shouldOverride: false };
         }
       }
     }
 
+    console.log('[SCHED-DEBUG] No scheduled presets to activate');
     return null;
   }, []);
 
   // Activate a scheduled preset
   const activateScheduledPreset = useCallback(async (preset: Preset) => {
+    console.log('[SCHED-DEBUG] activateScheduledPreset called:', { id: preset.id, name: preset.name, strictMode: preset.strictMode, customBlockedText: preset.customBlockedText, blockSettings: preset.blockSettings, scheduleEnd: preset.scheduleEndDate });
     // Set the ref to prevent duplicate activations
     activatingPresetRef.current = preset.id;
 
     try {
       // Activate the preset in database
+      console.log('[SCHED-DEBUG] Calling activatePreset in DB...');
       await activatePreset(email, preset.id);
 
       // Use scheduleEndDate as the lock end time
       const lockEndsAtDate = preset.scheduleEndDate;
 
       // Update lock status in database
+      console.log('[SCHED-DEBUG] Calling updateLockStatus...', { lockEndsAtDate });
       await updateLockStatus(email, true, lockEndsAtDate);
 
+      console.log('[SCHED-DEBUG] Setting shared lock status and active preset state');
       setSharedLockStatus({ isLocked: true, lockStartedAt: new Date().toISOString(), lockEndsAt: lockEndsAtDate ?? null });
       setCurrentPreset(preset.name);
       setActivePreset(preset);
 
       // Call native blocking module
       if (BlockingModule) {
-        await BlockingModule.startBlocking({
+        // Calculate lockEndTimeMs from scheduleEndDate so native side gets the correct end time
+        const lockEndTimeMs = lockEndsAtDate ? new Date(lockEndsAtDate).getTime() : 0;
+        const blockingConfig = {
           mode: preset.mode,
           selectedApps: preset.selectedApps,
           blockedWebsites: preset.blockedWebsites,
           timerDays: 0,
           timerHours: 0,
           timerMinutes: 0,
+          lockEndTimeMs,
           blockSettings: preset.blockSettings,
           noTimeLimit: false,
           presetName: preset.name,
           presetId: preset.id,
-          isScheduled: true, // Scheduled preset - ScheduledPresetReceiver handles end notification
+          isScheduled: true,
           strictMode: preset.strictMode ?? false,
           customBlockedText: preset.customBlockedText ?? '',
-        });
+        };
+        console.log('[SCHED-DEBUG] Calling BlockingModule.startBlocking:', JSON.stringify(blockingConfig));
+        await BlockingModule.startBlocking(blockingConfig);
+        console.log('[SCHED-DEBUG] BlockingModule.startBlocking completed');
+      } else {
+        console.log('[SCHED-DEBUG] WARNING: BlockingModule is null/undefined!');
       }
 
-
     } catch (error) {
+      console.log('[SCHED-DEBUG] ERROR in activateScheduledPreset:', error);
     } finally {
       // Clear the activating ref after a delay to allow for settling
       setTimeout(() => {
@@ -236,12 +257,15 @@ function HomeScreen() {
         .sort((a: Preset, b: Preset) => new Date(a.scheduleStartDate!).getTime() - new Date(b.scheduleStartDate!).getTime());
 
       // Check for scheduled presets that should activate
+      console.log('[SCHED-DEBUG] loadStats: checking scheduled presets...', { lockStatus, activeScheduledCount: activeScheduled.length });
       const scheduledResult = await checkScheduledPresets(presets, lockStatus);
       if (scheduledResult) {
         const { preset, shouldOverride } = scheduledResult;
+        console.log('[SCHED-DEBUG] loadStats: scheduled preset found to activate:', { name: preset.name, id: preset.id, shouldOverride });
 
         // If we need to override an untimed lock, force unlock first
         if (shouldOverride) {
+          console.log('[SCHED-DEBUG] loadStats: overriding untimed lock...');
           if (BlockingModule) {
             await BlockingModule.forceUnlock();
           }
@@ -249,14 +273,19 @@ function HomeScreen() {
           await activatePreset(email, null);
           await updateLockStatus(email, false, null);
           invalidateUserCaches(email);
+          console.log('[SCHED-DEBUG] loadStats: override complete');
         }
 
+        console.log('[SCHED-DEBUG] loadStats: calling activateScheduledPreset...');
         await activateScheduledPreset(preset);
         // Also set state that would normally be set
         setScheduledPresets(activeScheduled);
         setTapoutStatus(tapout);
         hideLoading();
+        console.log('[SCHED-DEBUG] loadStats: returning early after scheduled activation');
         return; // State will be updated by activateScheduledPreset
+      } else {
+        console.log('[SCHED-DEBUG] loadStats: no scheduled preset to activate');
       }
 
       setScheduledPresets(activeScheduled);
@@ -300,6 +329,7 @@ function HomeScreen() {
 
       // If we're locked, check if there's a scheduled preset that was blocking (even if expired)
       // This keeps the preset showing until user unlocks
+      console.log('[SCHED-DEBUG] loadStats: lock status path', { isLocked: lockStatus.isLocked, lockEndsAt: lockStatus.lockEndsAt, activePresetName: active?.name, activeScheduledCount: activeScheduled.length });
       if (lockStatus.isLocked) {
         // First check for a currently active scheduled preset
         const currentlyBlockingScheduled = activeScheduled.find((p: Preset) => {
@@ -309,14 +339,17 @@ function HomeScreen() {
         });
 
         if (currentlyBlockingScheduled) {
+          console.log('[SCHED-DEBUG] loadStats: locked with scheduled preset:', currentlyBlockingScheduled.name);
           // A scheduled preset is currently in its window and blocking
           setCurrentPreset(currentlyBlockingScheduled.name);
           setActivePreset(currentlyBlockingScheduled);
         } else if (active) {
+          console.log('[SCHED-DEBUG] loadStats: locked with regular preset:', active.name);
           // Regular active preset is blocking (no-time-limit preset)
           setCurrentPreset(active.name);
           setActivePreset(active);
         } else {
+          console.log('[SCHED-DEBUG] loadStats: locked but no matching preset found');
           // Locked but no matching preset found (edge case)
           setCurrentPreset(null);
           setActivePreset(null);
@@ -324,9 +357,11 @@ function HomeScreen() {
       } else {
         // Not locked - show the active preset if any
         if (active) {
+          console.log('[SCHED-DEBUG] loadStats: not locked, active preset:', active.name);
           setCurrentPreset(active.name);
           setActivePreset(active);
         } else {
+          console.log('[SCHED-DEBUG] loadStats: not locked, no active preset');
           setCurrentPreset(null);
           setActivePreset(null);
         }

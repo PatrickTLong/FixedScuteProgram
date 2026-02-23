@@ -112,6 +112,8 @@ class BlockingModule(reactContext: ReactApplicationContext) :
             // Get custom blocked text (replaces default "X is blocked." overlay message)
             val customBlockedText = if (config.hasKey("customBlockedText")) config.getString("customBlockedText") else ""
 
+            Log.d(TAG, "[SCHED-DEBUG] startBlocking: strictMode=$strictMode, customBlockedText='$customBlockedText', presetName=$presetName, presetId=$presetId, noTimeLimit=$noTimeLimit, endTime=$endTime, apps=${appSet.size}, websites=${websiteSet.size}")
+
             // Save to SharedPreferences
             val sessionStartTime = System.currentTimeMillis()
             sessionPrefs.edit()
@@ -126,6 +128,8 @@ class BlockingModule(reactContext: ReactApplicationContext) :
                 .putString("active_preset_id", presetId)
                 .putString("custom_blocked_text", customBlockedText)
                 .apply()
+
+            Log.d(TAG, "[SCHED-DEBUG] SharedPreferences saved via apply()")
 
             // Start the foreground service
             val serviceIntent = Intent(reactApplicationContext, UninstallBlockerService::class.java)

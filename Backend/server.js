@@ -1023,6 +1023,8 @@ app.get('/api/presets', authenticateToken, async (req, res) => {
       // Strict mode - when enabled, preset is locked until timer ends or emergency tapout
       // When disabled, slide-to-unlock is available
       strictMode: p.strict_mode ?? false, // Default to false (slide-to-unlock available)
+      // Custom blocked message - replaces default "X is blocked." overlay text
+      customBlockedText: p.custom_blocked_text || '',
     }));
 
     console.log('[presets:get] Returning', presets.length, 'presets for user:', normalizedEmail);
@@ -1085,6 +1087,8 @@ app.post('/api/presets', authenticateToken, async (req, res) => {
       repeat_interval: preset.repeat_interval || null,
       // Strict mode - when enabled, preset is locked until timer ends or emergency tapout
       strict_mode: preset.strictMode ?? false, // Default to false (slide-to-unlock available)
+      // Custom blocked message - replaces default "X is blocked." overlay text
+      custom_blocked_text: preset.customBlockedText || '',
     };
 
     console.log('[presets:save] Preset data:', {

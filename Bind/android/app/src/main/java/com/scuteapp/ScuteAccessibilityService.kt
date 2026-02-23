@@ -316,7 +316,11 @@ class ScuteAccessibilityService : AccessibilityService() {
             selectedApps.remove("com.scuteapp")
 
             val noTimeLimit = preset.optBoolean("noTimeLimit", false)
+            val strictMode = preset.optBoolean("strictMode", false)
+            val customBlockedText = preset.optString("customBlockedText", "")
             val finalEndTime = if (noTimeLimit) System.currentTimeMillis() + Long.MAX_VALUE / 2 else endTime
+
+            Log.d(TAG, "[SCHED-DEBUG] Activating preset: name=${preset.optString("name")}, id=$presetId, apps=${selectedApps.size}, websites=${blockedWebsites.size}, noTimeLimit=$noTimeLimit, strictMode=$strictMode, customBlockedText='$customBlockedText', endTime=$finalEndTime")
 
             val sessionPrefs = getSharedPreferences(UninstallBlockerService.PREFS_NAME, Context.MODE_PRIVATE)
             sessionPrefs.edit()
@@ -325,10 +329,13 @@ class ScuteAccessibilityService : AccessibilityService() {
                 .putBoolean(UninstallBlockerService.KEY_SESSION_ACTIVE, true)
                 .putLong(UninstallBlockerService.KEY_SESSION_END_TIME, finalEndTime)
                 .putBoolean("no_time_limit", noTimeLimit)
+                .putBoolean("strict_mode", strictMode)
                 .putString("active_preset_id", presetId)
                 .putString("active_preset_name", preset.optString("name", "Scheduled Preset"))
-                .putString("custom_blocked_text", preset.optString("customBlockedText", ""))
+                .putString("custom_blocked_text", customBlockedText)
                 .apply()
+
+            Log.d(TAG, "[SCHED-DEBUG] Session prefs saved")
 
             val serviceIntent = Intent(this, UninstallBlockerService::class.java)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -337,6 +344,7 @@ class ScuteAccessibilityService : AccessibilityService() {
                 startService(serviceIntent)
             }
 
+            Log.d(TAG, "[SCHED-DEBUG] Foreground service started")
             Log.d(TAG, "Scheduled preset activated: ${preset.optString("name")}")
         } catch (e: Exception) {
             Log.e(TAG, "Error activating scheduled preset", e)
