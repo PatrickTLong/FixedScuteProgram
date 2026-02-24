@@ -115,8 +115,9 @@ class BlockingModule(reactContext: ReactApplicationContext) :
             val customBlockedText = if (config.hasKey("customBlockedText")) config.getString("customBlockedText") else ""
             val customBlockedTextColor = if (config.hasKey("customBlockedTextColor")) config.getString("customBlockedTextColor") else ""
             val customOverlayImage = if (config.hasKey("customOverlayImage")) config.getString("customOverlayImage") else ""
+            val customOverlayImageSize = if (config.hasKey("customOverlayImageSize")) config.getInt("customOverlayImageSize") else 120
 
-            Log.d(TAG, "[SCHED-DEBUG] startBlocking: strictMode=$strictMode, customBlockedText='$customBlockedText', customBlockedTextColor='$customBlockedTextColor', customOverlayImage='$customOverlayImage', presetName=$presetName, presetId=$presetId, noTimeLimit=$noTimeLimit, endTime=$endTime, apps=${appSet.size}, websites=${websiteSet.size}")
+            Log.d(TAG, "[SCHED-DEBUG] startBlocking: strictMode=$strictMode, customBlockedText='$customBlockedText', customBlockedTextColor='$customBlockedTextColor', customOverlayImage='$customOverlayImage', customOverlayImageSize=$customOverlayImageSize, presetName=$presetName, presetId=$presetId, noTimeLimit=$noTimeLimit, endTime=$endTime, apps=${appSet.size}, websites=${websiteSet.size}")
 
             // Save to SharedPreferences
             val sessionStartTime = System.currentTimeMillis()
@@ -133,6 +134,7 @@ class BlockingModule(reactContext: ReactApplicationContext) :
                 .putString("custom_blocked_text", customBlockedText)
                 .putString("custom_blocked_text_color", customBlockedTextColor)
                 .putString("custom_overlay_image", customOverlayImage)
+                .putInt("custom_overlay_image_size", customOverlayImageSize)
                 .apply()
 
             Log.d(TAG, "[SCHED-DEBUG] SharedPreferences saved via apply()")

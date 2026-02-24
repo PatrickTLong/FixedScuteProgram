@@ -37,6 +37,7 @@ export interface FinalSettingsState {
   customBlockedText: string;
   customBlockedTextColor: string;
   customOverlayImage: string;
+  customOverlayImageSize: number;
 }
 
 // Params passed to the DatePicker screen

@@ -166,19 +166,20 @@ class WebsiteMonitorService(private val context: Context) {
         val customBlockedText = prefs.getString("custom_blocked_text", "") ?: ""
         val customBlockedTextColor = prefs.getString("custom_blocked_text_color", "") ?: ""
         val customOverlayImage = prefs.getString("custom_overlay_image", "") ?: ""
+        val customOverlayImageSize = prefs.getInt("custom_overlay_image_size", 120)
 
-        Log.d(TAG, "showBlockedOverlay: site=$blockedSite, customBlockedText='$customBlockedText', customBlockedTextColor='$customBlockedTextColor', customOverlayImage='$customOverlayImage'")
+        Log.d(TAG, "showBlockedOverlay: site=$blockedSite, customBlockedText='$customBlockedText', customBlockedTextColor='$customBlockedTextColor', customOverlayImage='$customOverlayImage', customOverlayImageSize=$customOverlayImageSize")
 
         // Redirect to Google BEFORE showing overlay (so it appears underneath)
         redirectToGoogle()
 
         // Show overlay instantly with website name (use the blocked site as the display name)
-        val shown = overlayManager?.show(BlockedOverlayManager.TYPE_WEBSITE, blockedSite, blockedSite, strictMode, customBlockedText, customBlockedTextColor, customOverlayImage) ?: false
+        val shown = overlayManager?.show(BlockedOverlayManager.TYPE_WEBSITE, blockedSite, blockedSite, strictMode, customBlockedText, customBlockedTextColor, customOverlayImage, customOverlayImageSize) ?: false
 
         if (!shown) {
             Log.w(TAG, "Failed to show overlay, falling back to activity")
             // Fallback: launch BlockedActivity
-            BlockedActivity.launchNoAnimation(context, BlockedActivity.TYPE_WEBSITE, blockedSite, strictMode, customBlockedText, customBlockedTextColor, customOverlayImage)
+            BlockedActivity.launchNoAnimation(context, BlockedActivity.TYPE_WEBSITE, blockedSite, strictMode, customBlockedText, customBlockedTextColor, customOverlayImage, customOverlayImageSize)
         }
 
         // Redirect to safe URL while overlay is showing (happens underneath the overlay)

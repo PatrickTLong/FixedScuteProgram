@@ -35,6 +35,7 @@ class BlockedActivity : Activity() {
         private const val EXTRA_CUSTOM_BLOCKED_TEXT = "custom_blocked_text"
         private const val EXTRA_CUSTOM_BLOCKED_TEXT_COLOR = "custom_blocked_text_color"
         private const val EXTRA_CUSTOM_OVERLAY_IMAGE = "custom_overlay_image"
+        private const val EXTRA_CUSTOM_OVERLAY_IMAGE_SIZE = "custom_overlay_image_size"
 
         const val TYPE_APP = "app"
         const val TYPE_WEBSITE = "website"
@@ -47,7 +48,7 @@ class BlockedActivity : Activity() {
         /**
          * Launch the blocked overlay activity (no animation)
          */
-        fun launch(context: Context, blockedType: String = TYPE_APP, blockedItem: String? = null, strictMode: Boolean = true, customBlockedText: String = "", customBlockedTextColor: String = "", customOverlayImage: String = "") {
+        fun launch(context: Context, blockedType: String = TYPE_APP, blockedItem: String? = null, strictMode: Boolean = true, customBlockedText: String = "", customBlockedTextColor: String = "", customOverlayImage: String = "", customOverlayImageSize: Int = 120) {
             val intent = Intent(context, BlockedActivity::class.java).apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
@@ -59,6 +60,7 @@ class BlockedActivity : Activity() {
                 putExtra(EXTRA_CUSTOM_BLOCKED_TEXT, customBlockedText)
                 putExtra(EXTRA_CUSTOM_BLOCKED_TEXT_COLOR, customBlockedTextColor)
                 putExtra(EXTRA_CUSTOM_OVERLAY_IMAGE, customOverlayImage)
+                putExtra(EXTRA_CUSTOM_OVERLAY_IMAGE_SIZE, customOverlayImageSize)
             }
             context.startActivity(intent)
         }
@@ -66,8 +68,8 @@ class BlockedActivity : Activity() {
         /**
          * Launch with explicit no animation (called from AccessibilityService)
          */
-        fun launchNoAnimation(context: Context, blockedType: String = TYPE_APP, blockedItem: String? = null, strictMode: Boolean = true, customBlockedText: String = "", customBlockedTextColor: String = "", customOverlayImage: String = "") {
-            launch(context, blockedType, blockedItem, strictMode, customBlockedText, customBlockedTextColor, customOverlayImage)
+        fun launchNoAnimation(context: Context, blockedType: String = TYPE_APP, blockedItem: String? = null, strictMode: Boolean = true, customBlockedText: String = "", customBlockedTextColor: String = "", customOverlayImage: String = "", customOverlayImageSize: Int = 120) {
+            launch(context, blockedType, blockedItem, strictMode, customBlockedText, customBlockedTextColor, customOverlayImage, customOverlayImageSize)
         }
     }
 
@@ -101,8 +103,9 @@ class BlockedActivity : Activity() {
         val customBlockedText = intent.getStringExtra(EXTRA_CUSTOM_BLOCKED_TEXT) ?: ""
         val customBlockedTextColor = intent.getStringExtra(EXTRA_CUSTOM_BLOCKED_TEXT_COLOR) ?: ""
         val customOverlayImage = intent.getStringExtra(EXTRA_CUSTOM_OVERLAY_IMAGE) ?: ""
+        val customOverlayImageSize = intent.getIntExtra(EXTRA_CUSTOM_OVERLAY_IMAGE_SIZE, 120)
 
-        Log.d(TAG, "onCreate: type=$blockedType, item=$blockedItem, customText='$customBlockedText', customTextColor='$customBlockedTextColor', customImage='$customOverlayImage'")
+        Log.d(TAG, "onCreate: type=$blockedType, item=$blockedItem, customText='$customBlockedText', customTextColor='$customBlockedTextColor', customImage='$customOverlayImage', imageSize=$customOverlayImageSize")
 
         val messageView = findViewById<TextView>(R.id.blocked_message)
 
@@ -129,6 +132,13 @@ class BlockedActivity : Activity() {
         if (customOverlayImage.isNotEmpty()) {
             val appIconView = findViewById<ImageView>(R.id.blocked_app_icon)
             if (appIconView != null) {
+                // Apply custom size
+                val density = resources.displayMetrics.density
+                val sizePx = (customOverlayImageSize * density).toInt()
+                appIconView.layoutParams.width = sizePx
+                appIconView.layoutParams.height = sizePx
+                appIconView.requestLayout()
+
                 thread {
                     try {
                         val inputStream = URL(customOverlayImage).openStream()

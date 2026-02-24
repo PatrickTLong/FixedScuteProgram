@@ -64,6 +64,7 @@ class BlockedOverlayManager(private val context: Context) {
     private var currentCustomBlockedText: String = ""
     private var currentCustomBlockedTextColor: String = ""
     private var currentCustomOverlayImage: String = ""
+    private var currentCustomOverlayImageSize: Int = 120
 
     // Cache for downloaded overlay image
     private var cachedImageUrl: String = ""
@@ -86,10 +87,10 @@ class BlockedOverlayManager(private val context: Context) {
      * Note: TYPE_ACCESSIBILITY_OVERLAY doesn't require SYSTEM_ALERT_WINDOW permission
      * when called from an AccessibilityService.
      */
-    fun show(blockedType: String, blockedItem: String?, blockedName: String?, strictMode: Boolean, customBlockedText: String = "", customBlockedTextColor: String = "", customOverlayImage: String = ""): Boolean {
+    fun show(blockedType: String, blockedItem: String?, blockedName: String?, strictMode: Boolean, customBlockedText: String = "", customBlockedTextColor: String = "", customOverlayImage: String = "", customOverlayImageSize: Int = 120): Boolean {
         if (isShowing) {
             Log.d(TAG, "Overlay already showing, updating content")
-            updateContent(blockedType, blockedItem, blockedName, strictMode, customBlockedText, customBlockedTextColor, customOverlayImage)
+            updateContent(blockedType, blockedItem, blockedName, strictMode, customBlockedText, customBlockedTextColor, customOverlayImage, customOverlayImageSize)
             return true
         }
 
@@ -104,6 +105,7 @@ class BlockedOverlayManager(private val context: Context) {
             currentCustomBlockedText = customBlockedText
             currentCustomBlockedTextColor = customBlockedTextColor
             currentCustomOverlayImage = customOverlayImage
+            currentCustomOverlayImageSize = customOverlayImageSize
 
             windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
 
@@ -150,7 +152,7 @@ class BlockedOverlayManager(private val context: Context) {
             }
 
             // Update content based on block type
-            updateViewContent(blockedType, blockedItem, blockedName, strictMode, customBlockedText, customBlockedTextColor, customOverlayImage)
+            updateViewContent(blockedType, blockedItem, blockedName, strictMode, customBlockedText, customBlockedTextColor, customOverlayImage, customOverlayImageSize)
 
             // Hide navigation and status bar (matching BlockedActivity's fullscreen theme)
             overlayView?.systemUiVisibility = (View.SYSTEM_UI_FLAG_LAYOUT_STABLE
@@ -240,7 +242,7 @@ class BlockedOverlayManager(private val context: Context) {
     /**
      * Update the content of an already showing overlay
      */
-    private fun updateContent(blockedType: String, blockedItem: String?, blockedName: String?, strictMode: Boolean, customBlockedText: String = "", customBlockedTextColor: String = "", customOverlayImage: String = "") {
+    private fun updateContent(blockedType: String, blockedItem: String?, blockedName: String?, strictMode: Boolean, customBlockedText: String = "", customBlockedTextColor: String = "", customOverlayImage: String = "", customOverlayImageSize: Int = 120) {
         currentBlockedType = blockedType
         currentBlockedItem = blockedItem
         currentBlockedName = blockedName
@@ -248,14 +250,15 @@ class BlockedOverlayManager(private val context: Context) {
         currentCustomBlockedText = customBlockedText
         currentCustomBlockedTextColor = customBlockedTextColor
         currentCustomOverlayImage = customOverlayImage
-        updateViewContent(blockedType, blockedItem, blockedName, strictMode, customBlockedText, customBlockedTextColor, customOverlayImage)
+        currentCustomOverlayImageSize = customOverlayImageSize
+        updateViewContent(blockedType, blockedItem, blockedName, strictMode, customBlockedText, customBlockedTextColor, customOverlayImage, customOverlayImageSize)
     }
 
     /**
      * Update the view content based on block type
      */
-    private fun updateViewContent(blockedType: String, blockedItem: String?, blockedName: String?, strictMode: Boolean, customBlockedText: String = "", customBlockedTextColor: String = "", customOverlayImage: String = "") {
-        Log.d(TAG, "updateViewContent: type=$blockedType, item=$blockedItem, customText='$customBlockedText', customTextColor='$customBlockedTextColor', customImage='$customOverlayImage'")
+    private fun updateViewContent(blockedType: String, blockedItem: String?, blockedName: String?, strictMode: Boolean, customBlockedText: String = "", customBlockedTextColor: String = "", customOverlayImage: String = "", customOverlayImageSize: Int = 120) {
+        Log.d(TAG, "updateViewContent: type=$blockedType, item=$blockedItem, customText='$customBlockedText', customTextColor='$customBlockedTextColor', customImage='$customOverlayImage', imageSize=$customOverlayImageSize")
 
         // Get views
         val appIconView = overlayView?.findViewById<ImageView>(R.id.overlay_app_icon)
@@ -286,6 +289,13 @@ class BlockedOverlayManager(private val context: Context) {
                 Log.w(TAG, "Invalid custom text color: $customBlockedTextColor", e)
             }
         }
+
+        // Apply custom image size
+        val density = context.resources.displayMetrics.density
+        val sizePx = (customOverlayImageSize * density).toInt()
+        appIconView?.layoutParams?.width = sizePx
+        appIconView?.layoutParams?.height = sizePx
+        appIconView?.requestLayout()
 
         // Custom overlay image replaces the center icon
         if (customOverlayImage.isNotEmpty()) {

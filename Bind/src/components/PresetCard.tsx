@@ -61,6 +61,8 @@ export interface Preset {
   customBlockedTextColor?: string;
   // Custom overlay image URL (replaces center icon)
   customOverlayImage?: string;
+  // Custom overlay image size in dp (default 120)
+  customOverlayImageSize?: number;
 }
 
 interface PresetCardProps {

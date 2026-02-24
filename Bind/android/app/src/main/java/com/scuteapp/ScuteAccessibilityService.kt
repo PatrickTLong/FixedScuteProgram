@@ -323,6 +323,7 @@ class ScuteAccessibilityService : AccessibilityService() {
             val customBlockedText = preset.optString("customBlockedText", "")
             val customBlockedTextColor = preset.optString("customBlockedTextColor", "")
             val customOverlayImage = preset.optString("customOverlayImage", "")
+            val customOverlayImageSize = preset.optInt("customOverlayImageSize", 120)
             val finalEndTime = if (noTimeLimit) System.currentTimeMillis() + Long.MAX_VALUE / 2 else endTime
 
             Log.d(TAG, "[SCHED-DEBUG] Activating preset: name=${preset.optString("name")}, id=$presetId, apps=${selectedApps.size}, websites=${blockedWebsites.size}, noTimeLimit=$noTimeLimit, strictMode=$strictMode, customBlockedText='$customBlockedText', customBlockedTextColor='$customBlockedTextColor', customOverlayImage='$customOverlayImage', endTime=$finalEndTime")
@@ -340,6 +341,7 @@ class ScuteAccessibilityService : AccessibilityService() {
                 .putString("custom_blocked_text", customBlockedText)
                 .putString("custom_blocked_text_color", customBlockedTextColor)
                 .putString("custom_overlay_image", customOverlayImage)
+                .putInt("custom_overlay_image_size", customOverlayImageSize)
                 .apply()
 
             Log.d(TAG, "[SCHED-DEBUG] Session prefs saved")

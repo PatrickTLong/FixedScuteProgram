@@ -225,6 +225,7 @@ function HomeScreen() {
           customBlockedText: preset.customBlockedText ?? '',
           customBlockedTextColor: preset.customBlockedTextColor ?? '',
           customOverlayImage: preset.customOverlayImage ?? '',
+          customOverlayImageSize: preset.customOverlayImageSize ?? 120,
         };
         console.log('[SCHED-DEBUG] Calling BlockingModule.startBlocking:', JSON.stringify(blockingConfig));
         await BlockingModule.startBlocking(blockingConfig);
@@ -936,6 +937,7 @@ function HomeScreen() {
               customBlockedText: activePreset.customBlockedText ?? '',
               customBlockedTextColor: activePreset.customBlockedTextColor ?? '',
               customOverlayImage: activePreset.customOverlayImage ?? '',
+              customOverlayImageSize: activePreset.customOverlayImageSize ?? 120,
             });
           }
 

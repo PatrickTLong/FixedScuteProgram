@@ -13,7 +13,6 @@ import {
   Image,
   PanResponder,
   LayoutChangeEvent,
-  Alert,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { launchImageLibrary } from 'react-native-image-picker';
@@ -504,6 +503,10 @@ function PresetSettingsScreen() {
   // Duplicate name modal
   const [duplicateNameModalVisible, setDuplicateNameModalVisible] = useState(false);
 
+  // Image upload error modal
+  const [imageErrorModalVisible, setImageErrorModalVisible] = useState(false);
+  const [imageErrorMessage, setImageErrorMessage] = useState('');
+
   // Disable tapout warning modal
   const [disableTapoutWarningVisible, setDisableTapoutWarningVisible] = useState(false);
 
@@ -527,6 +530,7 @@ function PresetSettingsScreen() {
   const [customOverlayImage, setCustomOverlayImage] = useState('');
   const [customOverlayImageEnabled, setCustomOverlayImageEnabled] = useState(false);
   const [imageUploading, setImageUploading] = useState(false);
+  const [customOverlayImageSize, setCustomOverlayImageSize] = useState(120);
 
   // Expandable info dropdowns
   const [expandedInfo, setExpandedInfo] = useState<Record<string, boolean>>({});
@@ -572,6 +576,7 @@ function PresetSettingsScreen() {
   const customBlockedTextRef = useRef(customBlockedText);
   const customBlockedTextColorRef = useRef(customBlockedTextColor);
   const customOverlayImageRef = useRef(customOverlayImage);
+  const customOverlayImageSizeRef = useRef(customOverlayImageSize);
 
   // Keep refs in sync with state
   blockSettingsRef.current = blockSettings;
@@ -594,6 +599,7 @@ function PresetSettingsScreen() {
   customBlockedTextRef.current = customBlockedText;
   customBlockedTextColorRef.current = customBlockedTextColor;
   customOverlayImageRef.current = customOverlayImage;
+  customOverlayImageSizeRef.current = customOverlayImageSize;
 
   // ============ Reinitialize from editingPreset each time screen gains focus ============
   // Restores from saved finalSettingsState if returning from EditPresetApps (back-and-forward),
@@ -627,6 +633,7 @@ function PresetSettingsScreen() {
         setCustomBlockedTextColorEnabled(!!(savedState.customBlockedTextColor));
         setCustomOverlayImage(savedState.customOverlayImage ?? '');
         setCustomOverlayImageEnabled(!!(savedState.customOverlayImage));
+        setCustomOverlayImageSize(savedState.customOverlayImageSize ?? 120);
       } else {
         const editingPreset = getEditingPreset();
         if (editingPreset) {
@@ -653,6 +660,7 @@ function PresetSettingsScreen() {
           setCustomBlockedTextColorEnabled(!!(editingPreset.customBlockedTextColor));
           setCustomOverlayImage(editingPreset.customOverlayImage ?? '');
           setCustomOverlayImageEnabled(!!(editingPreset.customOverlayImage));
+          setCustomOverlayImageSize(editingPreset.customOverlayImageSize ?? 120);
         } else {
           // New preset defaults
           setBlockSettings(false);
@@ -678,6 +686,7 @@ function PresetSettingsScreen() {
           setCustomBlockedTextColorEnabled(false);
           setCustomOverlayImage('');
           setCustomOverlayImageEnabled(false);
+          setCustomOverlayImageSize(120);
         }
       }
       // Apply date picker result if returning from DatePicker screen
@@ -735,6 +744,7 @@ function PresetSettingsScreen() {
           customBlockedText: customBlockedTextRef.current,
           customBlockedTextColor: customBlockedTextColorRef.current,
           customOverlayImage: customOverlayImageRef.current,
+          customOverlayImageSize: customOverlayImageSizeRef.current,
         });
       };
     }, [getEditingPreset, getFinalSettingsState, setFinalSettingsState, getDatePickerResult, setDatePickerResult])
@@ -834,7 +844,8 @@ function PresetSettingsScreen() {
       }
       if (result.errorCode) {
         console.error('[OverlayImage] Image picker error:', result.errorCode, result.errorMessage);
-        Alert.alert('Picker Error', result.errorMessage || result.errorCode);
+        setImageErrorMessage(result.errorMessage || result.errorCode || 'Unknown picker error');
+        setImageErrorModalVisible(true);
         return;
       }
       if (!result.assets?.[0]?.uri) {
@@ -889,11 +900,13 @@ function PresetSettingsScreen() {
         setCustomOverlayImage(data.url);
       } else {
         console.error('[OverlayImage] Upload failed:', data.error);
-        Alert.alert('Upload Failed', data.error || 'Could not upload image');
+        setImageErrorMessage(data.error || 'Could not upload image');
+        setImageErrorModalVisible(true);
       }
     } catch (error: any) {
       console.error('[OverlayImage] Exception:', error?.message || error, error?.stack);
-      Alert.alert('Error', 'Failed to pick or upload image');
+      setImageErrorMessage('Failed to pick or upload image');
+      setImageErrorModalVisible(true);
     } finally {
       setImageUploading(false);
       console.log('[OverlayImage] handlePickImage finished');
@@ -975,6 +988,7 @@ function PresetSettingsScreen() {
       customBlockedText: customBlockedTextEnabled ? customBlockedText.trim() : undefined,
       customBlockedTextColor: customBlockedTextColorEnabled ? customBlockedTextColor : undefined,
       customOverlayImage: customOverlayImageEnabled ? customOverlayImage : undefined,
+      customOverlayImageSize: customOverlayImageEnabled ? customOverlayImageSize : undefined,
     };
 
     // Navigate immediately — save happens in the background
@@ -1676,7 +1690,7 @@ function PresetSettingsScreen() {
               <View style={{ marginTop: s(12), backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card, padding: s(14) }} className={radius.xl}>
                 <View className="flex-row items-center justify-between" style={{ marginBottom: s(10) }}>
                   <View className="flex-row items-center">
-                    <MaterialCommunityIcons name="color-wheel" size={s(20)} color={colors.text} style={{ marginRight: s(8) }} />
+                    <BoxiconsFilled name="bx-color-wheel" size={s(20)} color={colors.text} style={{ marginRight: s(8) }} />
                     <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>Text Color</Text>
                   </View>
                   <AnimatedSwitch
@@ -1708,35 +1722,27 @@ function PresetSettingsScreen() {
                     </View>
                     {/* Hex code input */}
                     <View className="flex-row items-center" style={{ marginTop: s(10) }}>
-                      <TextInput
-                        value={customBlockedTextColor}
-                        onChangeText={(text) => {
-                          // Allow typing hex codes
-                          let cleaned = text.toUpperCase();
-                          if (!cleaned.startsWith('#')) cleaned = '#' + cleaned;
-                          if (cleaned.length <= 7) setCustomBlockedTextColor(cleaned);
-                        }}
-                        placeholder="#FFFFFF"
-                        placeholderTextColor={colors.textSecondary}
-                        maxLength={7}
-                        autoCapitalize="characters"
-                        style={{
-                          flex: 1,
-                          backgroundColor: colors.bg,
-                          color: colors.text,
-                          borderWidth: 1,
-                          borderColor: colors.border,
-                          padding: s(10),
-                          borderRadius: s(8),
-                        }}
-                        className={`${textSize.small} ${fontFamily.semibold}`}
-                      />
-                      <TouchableOpacity
-                        onPress={() => setCustomBlockedTextColor('')}
-                        style={{ marginLeft: s(10), backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.border, borderRadius: s(8), padding: s(10) }}
-                      >
-                        <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.semibold}`}>Reset</Text>
-                      </TouchableOpacity>
+                      <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: colors.cardLight, ...shadow.card, height: s(44) }} className={radius.xl}>
+                        <View style={{ width: s(20), height: s(20), borderRadius: s(10), backgroundColor: customBlockedTextColor || '#FFFFFF', borderWidth: 1, borderColor: colors.divider, marginLeft: s(14) }} />
+                        <TextInput
+                          value={customBlockedTextColor}
+                          onChangeText={(text) => {
+                            let cleaned = text.replace(/[^#0-9A-Fa-f]/g, '').toUpperCase();
+                            if (!cleaned.startsWith('#')) cleaned = '#' + cleaned;
+                            if (cleaned.length <= 7) setCustomBlockedTextColor(cleaned);
+                          }}
+                          placeholder="#FFFFFF"
+                          placeholderTextColor={colors.textSecondary}
+                          maxLength={7}
+                          autoCapitalize="characters"
+                          autoCorrect={false}
+                          style={{ flex: 1, color: colors.text, height: s(44) }}
+                          className={`px-3 ${textSize.small} ${fontFamily.semibold}`}
+                        />
+                      </View>
+                      <HeaderIconButton onPress={() => setCustomBlockedTextColor('')} style={{ marginLeft: s(10) }}>
+                        <BoxiconsFilled name="bx-refresh-cw-alt" size={s(iconSize.headerNav)} color="#FFFFFF" />
+                      </HeaderIconButton>
                     </View>
                   </View>
                 </ExpandableInfo>
@@ -1746,7 +1752,7 @@ function PresetSettingsScreen() {
               <View style={{ marginTop: s(12), backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card, padding: s(14) }} className={radius.xl}>
                 <View className="flex-row items-center justify-between" style={{ marginBottom: customOverlayImageEnabled ? s(10) : 0 }}>
                   <View className="flex-row items-center">
-                    <MaterialCommunityIcons name="image-plus" size={s(20)} color={colors.text} style={{ marginRight: s(8) }} />
+                    <BoxiconsFilled name="bx-image-plus" size={s(20)} color={colors.text} style={{ marginRight: s(8) }} />
                     <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>Custom Icon</Text>
                   </View>
                   <AnimatedSwitch
@@ -1774,13 +1780,17 @@ function PresetSettingsScreen() {
                           <TouchableOpacity
                             onPress={handlePickImage}
                             disabled={imageUploading}
-                            style={{ backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.border, borderRadius: s(8), paddingVertical: s(8), paddingHorizontal: s(14), marginRight: s(8) }}
+                            activeOpacity={0.7}
+                            style={{ backgroundColor: colors.cardLight, borderWidth: 1, borderColor: colors.border, ...shadow.card, paddingVertical: s(buttonPadding.smallStandard), paddingHorizontal: s(16), marginRight: s(8) }}
+                            className={radius.xl}
                           >
                             <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>Change</Text>
                           </TouchableOpacity>
                           <TouchableOpacity
                             onPress={() => setCustomOverlayImage('')}
-                            style={{ backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.red, borderRadius: s(8), paddingVertical: s(8), paddingHorizontal: s(14) }}
+                            activeOpacity={0.7}
+                            style={{ backgroundColor: colors.cardLight, borderWidth: 1, borderColor: colors.red, ...shadow.card, paddingVertical: s(buttonPadding.smallStandard), paddingHorizontal: s(16) }}
+                            className={radius.xl}
                           >
                             <Text style={{ color: colors.red }} className={`${textSize.small} ${fontFamily.semibold}`}>Remove</Text>
                           </TouchableOpacity>
@@ -1790,14 +1800,42 @@ function PresetSettingsScreen() {
                       <TouchableOpacity
                         onPress={handlePickImage}
                         disabled={imageUploading}
-                        style={{ backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.border, borderRadius: s(8), paddingVertical: s(14), alignItems: 'center' }}
+                        activeOpacity={0.7}
+                        style={{ backgroundColor: colors.cardLight, ...shadow.card, paddingVertical: s(buttonPadding.standard), alignItems: 'center' }}
+                        className={radius.xl}
                       >
-                        <MaterialCommunityIcons name="image-plus" size={s(24)} color={colors.textSecondary} />
+                        <BoxiconsFilled name="bx-image-plus" size={s(iconSize.lg)} color={colors.textSecondary} />
                         <Text style={{ color: colors.textSecondary, marginTop: s(4) }} className={`${textSize.small} ${fontFamily.semibold}`}>
                           {imageUploading ? 'Uploading...' : 'Choose Image'}
                         </Text>
                       </TouchableOpacity>
                     )}
+
+                    {/* Image Size Control */}
+                    <View style={{ marginTop: s(14) }}>
+                      <Text style={{ color: colors.text, marginBottom: s(8) }} className={`${textSize.small} ${fontFamily.semibold}`}>Icon Size</Text>
+                      <View className="flex-row items-center justify-center">
+                        <TouchableOpacity
+                          onPress={() => setCustomOverlayImageSize(prev => Math.max(40, prev - 10))}
+                          activeOpacity={0.7}
+                          style={{ backgroundColor: colors.cardLight, ...shadow.card, width: s(36), height: s(36), alignItems: 'center', justifyContent: 'center' }}
+                          className={radius.full}
+                        >
+                          <BoxiconsFilled name="bx-minus" size={s(iconSize.md)} color="#FFFFFF" />
+                        </TouchableOpacity>
+                        <Text style={{ color: colors.text, marginHorizontal: s(16), minWidth: s(50), textAlign: 'center' }} className={`${textSize.base} ${fontFamily.bold}`}>
+                          {customOverlayImageSize}dp
+                        </Text>
+                        <TouchableOpacity
+                          onPress={() => setCustomOverlayImageSize(prev => Math.min(250, prev + 10))}
+                          activeOpacity={0.7}
+                          style={{ backgroundColor: colors.cardLight, ...shadow.card, width: s(36), height: s(36), alignItems: 'center', justifyContent: 'center' }}
+                          className={radius.full}
+                        >
+                          <BoxiconsFilled name="bx-plus" size={s(iconSize.md)} color="#FFFFFF" />
+                        </TouchableOpacity>
+                      </View>
+                    </View>
                   </View>
                 </ExpandableInfo>
               </View>
@@ -1809,53 +1847,39 @@ function PresetSettingsScreen() {
                   backgroundColor: '#28282B',
                   borderRadius: s(12),
                   overflow: 'hidden',
-                  aspectRatio: 9 / 16,
-                  width: '100%',
+                  paddingVertical: s(28),
+                  paddingHorizontal: s(16),
+                  alignItems: 'center',
+                  justifyContent: 'center',
                 }}>
-                  {/* Mini Scute logo - top left */}
-                  <Image
-                    source={require('../frontassets/scute_logo.png')}
-                    style={{
-                      position: 'absolute',
-                      top: s(-6),
-                      left: s(-2),
-                      width: s(40),
-                      height: s(40),
-                      tintColor: '#FFFFFF',
-                    }}
-                    resizeMode="contain"
-                  />
-                  {/* Center content */}
-                  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: s(16) }}>
-                    {/* Icon or custom image */}
-                    {customOverlayImageEnabled && customOverlayImage ? (
-                      <Image
-                        source={{ uri: customOverlayImage }}
-                        style={{ width: s(48), height: s(48), borderRadius: s(8), marginBottom: s(10) }}
-                        resizeMode="cover"
-                      />
-                    ) : (
-                      <MaterialCommunityIcons name="android" size={s(48)} color="#FFFFFF" style={{ marginBottom: s(10) }} />
-                    )}
-                    {/* Message text */}
-                    <Text style={{
-                      color: customBlockedTextColorEnabled && customBlockedTextColor ? customBlockedTextColor : '#FFFFFF',
-                      textAlign: 'center',
-                      fontSize: s(11),
-                      lineHeight: s(15),
-                    }} className={fontFamily.bold}>
-                      {customBlockedText.trim() || 'This app is blocked.'}
-                    </Text>
-                    {/* Tap to dismiss hint */}
-                    <Text style={{
-                      color: '#FFFFFF',
-                      fontSize: s(6),
-                      marginTop: s(10),
-                      opacity: 0.7,
-                    }} className={fontFamily.bold}>
-                      Tap anywhere to dismiss
-                    </Text>
-                  </View>
+                  {/* Icon or custom image */}
+                  {customOverlayImageEnabled && customOverlayImage ? (
+                    <Image
+                      source={{ uri: customOverlayImage }}
+                      style={{ width: s(customOverlayImageSize * 0.6), height: s(customOverlayImageSize * 0.6), borderRadius: s(12), marginBottom: s(14) }}
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <MaterialCommunityIcons name="android" size={s(72)} color="#FFFFFF" style={{ marginBottom: s(14) }} />
+                  )}
+                  {/* Message text */}
+                  <Text style={{
+                    color: customBlockedTextColorEnabled && customBlockedTextColor ? customBlockedTextColor : '#FFFFFF',
+                    textAlign: 'center',
+                    fontSize: s(16),
+                    lineHeight: s(22),
+                  }} className={fontFamily.bold}>
+                    {customBlockedText.trim() || 'This app is blocked.'}
+                  </Text>
+                  {/* Tap to dismiss hint */}
+                  <Text style={{
+                    color: '#FFFFFF',
+                    fontSize: s(9),
+                    marginTop: s(14),
+                    opacity: 0.5,
+                  }} className={fontFamily.bold}>
+                    Tap anywhere to dismiss
+                  </Text>
                 </View>
               </View>
             </View>
@@ -1905,6 +1929,14 @@ function PresetSettingsScreen() {
         title="Preset Exists"
         message="A preset with the same name already exists. Please choose a different name."
         onClose={() => setDuplicateNameModalVisible(false)}
+      />
+
+      {/* Image Error Modal */}
+      <InfoModal
+        visible={imageErrorModalVisible}
+        title="Image Error"
+        message={imageErrorMessage}
+        onClose={() => setImageErrorModalVisible(false)}
       />
 
       {/* Disable Tapout Warning Modal */}

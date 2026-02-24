@@ -1032,6 +1032,7 @@ app.get('/api/presets', authenticateToken, async (req, res) => {
       customBlockedTextColor: p.custom_blocked_text_color || '',
       // Custom overlay image URL (replaces center icon)
       customOverlayImage: p.custom_overlay_image || '',
+      customOverlayImageSize: p.custom_overlay_image_size || 120,
     }));
 
     console.log('[presets:get] Returning', presets.length, 'presets for user:', normalizedEmail);
@@ -1100,6 +1101,7 @@ app.post('/api/presets', authenticateToken, async (req, res) => {
       custom_blocked_text_color: preset.customBlockedTextColor || '',
       // Custom overlay image URL (replaces center icon)
       custom_overlay_image: preset.customOverlayImage || '',
+      custom_overlay_image_size: preset.customOverlayImageSize || null,
     };
 
     console.log('[presets:save] Preset data:', {
