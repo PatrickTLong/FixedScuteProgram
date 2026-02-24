@@ -7,8 +7,10 @@ import { triggerHaptic } from '../utils/haptics';
 const DEFAULT_FLASH_SIZE = 40;
 const FLASH_DURATION = 300;
 
-interface HeaderIconButtonProps {
-  onPress: () => void;
+export interface HeaderIconButtonProps {
+  onPress?: () => void;
+  onPressIn?: () => void;
+  onPressOut?: () => void;
   disabled?: boolean;
   children: React.ReactNode;
   style?: any;
@@ -16,28 +18,51 @@ interface HeaderIconButtonProps {
   flashSize?: number;
 }
 
-function HeaderIconButton({ onPress, disabled = false, children, style, className, flashSize = DEFAULT_FLASH_SIZE }: HeaderIconButtonProps) {
+function HeaderIconButton({ onPress, onPressIn: onPressInProp, onPressOut, disabled = false, children, style, className, flashSize = DEFAULT_FLASH_SIZE }: HeaderIconButtonProps) {
   const { s } = useResponsive();
   const flashOpacity = useRef(new Animated.Value(0)).current;
+
+  const flashAnimRef = useRef<Animated.CompositeAnimation | null>(null);
 
   const triggerFlash = useCallback(() => {
     if (disabled) return;
     if (haptics.headerButton.enabled) {
       triggerHaptic(haptics.headerButton.type);
     }
+    if (flashAnimRef.current) flashAnimRef.current.stop();
     flashOpacity.setValue(0.3);
-    Animated.timing(flashOpacity, {
-      toValue: 0,
-      duration: FLASH_DURATION,
-      useNativeDriver: true,
-    }).start();
-  }, [disabled, flashOpacity]);
+    if (onPressInProp) {
+      // Hold mode: keep flash visible, fade on release
+    } else {
+      flashAnimRef.current = Animated.timing(flashOpacity, {
+        toValue: 0,
+        duration: FLASH_DURATION,
+        useNativeDriver: true,
+      });
+      flashAnimRef.current.start();
+    }
+    onPressInProp?.();
+  }, [disabled, flashOpacity, onPressInProp]);
+
+  const handlePressOut = useCallback(() => {
+    if (onPressInProp) {
+      // Fade out flash on release for hold buttons
+      flashAnimRef.current = Animated.timing(flashOpacity, {
+        toValue: 0,
+        duration: FLASH_DURATION,
+        useNativeDriver: true,
+      });
+      flashAnimRef.current.start();
+    }
+    onPressOut?.();
+  }, [flashOpacity, onPressInProp, onPressOut]);
 
   const scaledSize = s(flashSize);
 
   return (
     <TouchableOpacity
       onPressIn={triggerFlash}
+      onPressOut={handlePressOut}
       onPress={disabled ? undefined : onPress}
       disabled={disabled}
       activeOpacity={0.7}

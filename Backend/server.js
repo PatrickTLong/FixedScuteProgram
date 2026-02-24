@@ -1028,8 +1028,13 @@ app.get('/api/presets', authenticateToken, async (req, res) => {
       strictMode: p.strict_mode ?? false, // Default to false (slide-to-unlock available)
       // Custom blocked message - replaces default "X is blocked." overlay text
       customBlockedText: p.custom_blocked_text || '',
+      customDismissText: p.custom_dismiss_text || '',
       // Custom overlay text color (hex code)
       customBlockedTextColor: p.custom_blocked_text_color || '',
+      // Custom overlay background color (hex code)
+      customOverlayBgColor: p.custom_overlay_bg_color || '',
+      // Custom dismiss text color (hex code)
+      customDismissColor: p.custom_dismiss_color || '',
       // Custom overlay image URL (replaces center icon)
       customOverlayImage: p.custom_overlay_image || '',
       customOverlayImageSize: p.custom_overlay_image_size || 120,
@@ -1097,8 +1102,13 @@ app.post('/api/presets', authenticateToken, async (req, res) => {
       strict_mode: preset.strictMode ?? false, // Default to false (slide-to-unlock available)
       // Custom blocked message - replaces default "X is blocked." overlay text
       custom_blocked_text: preset.customBlockedText || '',
+      custom_dismiss_text: preset.customDismissText || '',
       // Custom overlay text color (hex code)
       custom_blocked_text_color: preset.customBlockedTextColor || '',
+      // Custom overlay background color (hex code)
+      custom_overlay_bg_color: preset.customOverlayBgColor || '',
+      // Custom dismiss text color (hex code)
+      custom_dismiss_color: preset.customDismissColor || '',
       // Custom overlay image URL (replaces center icon)
       custom_overlay_image: preset.customOverlayImage || '',
       custom_overlay_image_size: preset.customOverlayImageSize || null,

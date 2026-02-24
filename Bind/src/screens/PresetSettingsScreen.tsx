@@ -520,14 +520,25 @@ function PresetSettingsScreen() {
   // Custom overlay master toggle
   const [customOverlayEnabled, setCustomOverlayEnabled] = useState(false);
 
-  // Custom blocked message
+  // Custom text (blocked message + dismiss text)
   const [customBlockedText, setCustomBlockedText] = useState('');
+  const [customDismissText, setCustomDismissText] = useState('');
   const [customBlockedTextEnabled, setCustomBlockedTextEnabled] = useState(false);
 
   // Custom text color (hex code)
   const [customBlockedTextColor, setCustomBlockedTextColor] = useState('');
   const [customBlockedTextColorEnabled, setCustomBlockedTextColorEnabled] = useState(false);
   const [colorPickerWidth, setColorPickerWidth] = useState(0);
+
+  // Custom overlay background color
+  const [customOverlayBgColor, setCustomOverlayBgColor] = useState('');
+  const [customOverlayBgColorEnabled, setCustomOverlayBgColorEnabled] = useState(false);
+  const [bgColorPickerWidth, setBgColorPickerWidth] = useState(0);
+
+  // Custom dismiss text color
+  const [customDismissColor, setCustomDismissColor] = useState('');
+  const [customDismissColorEnabled, setCustomDismissColorEnabled] = useState(false);
+  const [dismissColorPickerWidth, setDismissColorPickerWidth] = useState(0);
 
   // Custom overlay image
   const [customOverlayImage, setCustomOverlayImage] = useState('');
@@ -577,9 +588,13 @@ function PresetSettingsScreen() {
   const recurringValueRef = useRef(recurringValue);
   const recurringUnitRef = useRef(recurringUnit);
   const customBlockedTextRef = useRef(customBlockedText);
+  const customDismissTextRef = useRef(customDismissText);
   const customBlockedTextColorRef = useRef(customBlockedTextColor);
+  const customOverlayBgColorRef = useRef(customOverlayBgColor);
+  const customDismissColorRef = useRef(customDismissColor);
   const customOverlayImageRef = useRef(customOverlayImage);
   const customOverlayImageSizeRef = useRef(customOverlayImageSize);
+  const imageSizeIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Keep refs in sync with state
   blockSettingsRef.current = blockSettings;
@@ -600,7 +615,10 @@ function PresetSettingsScreen() {
   recurringValueRef.current = recurringValue;
   recurringUnitRef.current = recurringUnit;
   customBlockedTextRef.current = customBlockedText;
+  customDismissTextRef.current = customDismissText;
   customBlockedTextColorRef.current = customBlockedTextColor;
+  customOverlayBgColorRef.current = customOverlayBgColor;
+  customDismissColorRef.current = customDismissColor;
   customOverlayImageRef.current = customOverlayImage;
   customOverlayImageSizeRef.current = customOverlayImageSize;
 
@@ -631,13 +649,18 @@ function PresetSettingsScreen() {
         setRecurringValue(savedState.recurringValue);
         setRecurringUnit(savedState.recurringUnit);
         setCustomBlockedText(savedState.customBlockedText ?? '');
-        setCustomBlockedTextEnabled(!!(savedState.customBlockedText));
+        setCustomDismissText(savedState.customDismissText ?? '');
+        setCustomBlockedTextEnabled(!!(savedState.customBlockedText) || !!(savedState.customDismissText));
         setCustomBlockedTextColor(savedState.customBlockedTextColor ?? '');
         setCustomBlockedTextColorEnabled(!!(savedState.customBlockedTextColor));
+        setCustomOverlayBgColor(savedState.customOverlayBgColor ?? '');
+        setCustomOverlayBgColorEnabled(!!(savedState.customOverlayBgColor));
+        setCustomDismissColor(savedState.customDismissColor ?? '');
+        setCustomDismissColorEnabled(!!(savedState.customDismissColor));
         setCustomOverlayImage(savedState.customOverlayImage ?? '');
         setCustomOverlayImageEnabled(!!(savedState.customOverlayImage));
         setCustomOverlayImageSize(savedState.customOverlayImageSize ?? 120);
-        setCustomOverlayEnabled(!!(savedState.customBlockedText) || !!(savedState.customBlockedTextColor) || !!(savedState.customOverlayImage));
+        setCustomOverlayEnabled(!!(savedState.customBlockedText) || !!(savedState.customDismissText) || !!(savedState.customBlockedTextColor) || !!(savedState.customOverlayBgColor) || !!(savedState.customDismissColor) || !!(savedState.customOverlayImage));
       } else {
         const editingPreset = getEditingPreset();
         if (editingPreset) {
@@ -659,13 +682,18 @@ function PresetSettingsScreen() {
           setRecurringValue(editingPreset.repeat_interval?.toString() ?? '1');
           setRecurringUnit(editingPreset.repeat_unit ?? 'hours');
           setCustomBlockedText(editingPreset.customBlockedText ?? '');
-          setCustomBlockedTextEnabled(!!(editingPreset.customBlockedText));
+          setCustomDismissText(editingPreset.customDismissText ?? '');
+          setCustomBlockedTextEnabled(!!(editingPreset.customBlockedText) || !!(editingPreset.customDismissText));
           setCustomBlockedTextColor(editingPreset.customBlockedTextColor ?? '');
           setCustomBlockedTextColorEnabled(!!(editingPreset.customBlockedTextColor));
+          setCustomOverlayBgColor(editingPreset.customOverlayBgColor ?? '');
+          setCustomOverlayBgColorEnabled(!!(editingPreset.customOverlayBgColor));
+          setCustomDismissColor(editingPreset.customDismissColor ?? '');
+          setCustomDismissColorEnabled(!!(editingPreset.customDismissColor));
           setCustomOverlayImage(editingPreset.customOverlayImage ?? '');
           setCustomOverlayImageEnabled(!!(editingPreset.customOverlayImage));
           setCustomOverlayImageSize(editingPreset.customOverlayImageSize ?? 120);
-          setCustomOverlayEnabled(!!(editingPreset.customBlockedText) || !!(editingPreset.customBlockedTextColor) || !!(editingPreset.customOverlayImage));
+          setCustomOverlayEnabled(!!(editingPreset.customBlockedText) || !!(editingPreset.customDismissText) || !!(editingPreset.customBlockedTextColor) || !!(editingPreset.customOverlayBgColor) || !!(editingPreset.customDismissColor) || !!(editingPreset.customOverlayImage));
         } else {
           // New preset defaults
           setBlockSettings(false);
@@ -686,9 +714,14 @@ function PresetSettingsScreen() {
           setRecurringValue('1');
           setRecurringUnit('hours');
           setCustomBlockedText('');
+          setCustomDismissText('');
           setCustomBlockedTextEnabled(false);
           setCustomBlockedTextColor('');
           setCustomBlockedTextColorEnabled(false);
+          setCustomOverlayBgColor('');
+          setCustomOverlayBgColorEnabled(false);
+          setCustomDismissColor('');
+          setCustomDismissColorEnabled(false);
           setCustomOverlayImage('');
           setCustomOverlayImageEnabled(false);
           setCustomOverlayImageSize(120);
@@ -747,7 +780,10 @@ function PresetSettingsScreen() {
           recurringValue: recurringValueRef.current,
           recurringUnit: recurringUnitRef.current,
           customBlockedText: customBlockedTextRef.current,
+          customDismissText: customDismissTextRef.current,
           customBlockedTextColor: customBlockedTextColorRef.current,
+          customOverlayBgColor: customOverlayBgColorRef.current,
+          customDismissColor: customDismissColorRef.current,
           customOverlayImage: customOverlayImageRef.current,
           customOverlayImageSize: customOverlayImageSizeRef.current,
         });
@@ -811,18 +847,79 @@ function PresetSettingsScreen() {
     return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`.toUpperCase();
   }, []);
 
-  const colorPickerPanResponder = useMemo(() => PanResponder.create({
+  // Hold-to-repeat for image size +/- buttons
+  const startImageSizeHold = useCallback((delta: number) => {
+    setCustomOverlayImageSize(prev => Math.max(40, Math.min(250, prev + delta)));
+    const timeout = setTimeout(() => {
+      imageSizeIntervalRef.current = setInterval(() => {
+        setCustomOverlayImageSize(prev => Math.max(40, Math.min(250, prev + delta)));
+      }, 80);
+    }, 300);
+    imageSizeIntervalRef.current = timeout as unknown as ReturnType<typeof setInterval>;
+  }, []);
+
+  const stopImageSizeHold = useCallback(() => {
+    if (imageSizeIntervalRef.current !== null) {
+      clearInterval(imageSizeIntervalRef.current);
+      clearTimeout(imageSizeIntervalRef.current as unknown as ReturnType<typeof setTimeout>);
+      imageSizeIntervalRef.current = null;
+    }
+  }, []);
+
+  // Throttled color picker: color state batched per animation frame to reduce re-renders
+  const colorRafRef = useRef<{ [key: string]: number | null }>({});
+  const pendingColorRef = useRef<{ [key: string]: string }>({});
+
+  const makeColorPickerPanResponder = useCallback((
+    pickerWidth: number,
+    setColor: (c: string) => void,
+    key: string,
+  ) => PanResponder.create({
     onStartShouldSetPanResponder: () => true,
     onMoveShouldSetPanResponder: () => true,
     onPanResponderGrant: (evt) => {
-      const x = Math.max(0, Math.min(evt.nativeEvent.locationX, colorPickerWidth));
-      setCustomBlockedTextColor(getColorFromPosition(x, colorPickerWidth));
+      const x = Math.max(0, Math.min(evt.nativeEvent.locationX, pickerWidth));
+      setColor(getColorFromPosition(x, pickerWidth));
     },
     onPanResponderMove: (evt) => {
-      const x = Math.max(0, Math.min(evt.nativeEvent.locationX, colorPickerWidth));
-      setCustomBlockedTextColor(getColorFromPosition(x, colorPickerWidth));
+      const x = Math.max(0, Math.min(evt.nativeEvent.locationX, pickerWidth));
+      pendingColorRef.current[key] = getColorFromPosition(x, pickerWidth);
+      if (!colorRafRef.current[key]) {
+        colorRafRef.current[key] = requestAnimationFrame(() => {
+          if (pendingColorRef.current[key]) {
+            setColor(pendingColorRef.current[key]);
+            delete pendingColorRef.current[key];
+          }
+          colorRafRef.current[key] = null;
+        });
+      }
     },
-  }), [colorPickerWidth, getColorFromPosition]);
+    onPanResponderRelease: () => {
+      if (pendingColorRef.current[key]) {
+        setColor(pendingColorRef.current[key]);
+        delete pendingColorRef.current[key];
+      }
+      if (colorRafRef.current[key]) {
+        cancelAnimationFrame(colorRafRef.current[key]!);
+        colorRafRef.current[key] = null;
+      }
+    },
+  }), [getColorFromPosition]);
+
+  const colorPickerPanResponder = useMemo(
+    () => makeColorPickerPanResponder(colorPickerWidth, setCustomBlockedTextColor, 'text'),
+    [colorPickerWidth, makeColorPickerPanResponder]
+  );
+
+  const bgColorPickerPanResponder = useMemo(
+    () => makeColorPickerPanResponder(bgColorPickerWidth, setCustomOverlayBgColor, 'bg'),
+    [bgColorPickerWidth, makeColorPickerPanResponder]
+  );
+
+  const dismissColorPickerPanResponder = useMemo(
+    () => makeColorPickerPanResponder(dismissColorPickerWidth, setCustomDismissColor, 'dismiss'),
+    [dismissColorPickerWidth, makeColorPickerPanResponder]
+  );
 
   // ============ Image Picker Handler ============
   const handlePickImage = useCallback(async () => {
@@ -993,7 +1090,10 @@ function PresetSettingsScreen() {
       repeat_unit: isScheduled && isRecurring ? recurringUnit : undefined,
       repeat_interval: isScheduled && isRecurring ? finalRecurringInterval : undefined,
       customBlockedText: customBlockedTextEnabled ? customBlockedText.trim() : undefined,
+      customDismissText: customBlockedTextEnabled && customDismissText.trim() ? customDismissText.trim() : undefined,
       customBlockedTextColor: customBlockedTextColorEnabled ? customBlockedTextColor : undefined,
+      customOverlayBgColor: customOverlayBgColorEnabled ? customOverlayBgColor : undefined,
+      customDismissColor: customBlockedTextColorEnabled && customDismissColor ? customDismissColor : undefined,
       customOverlayImage: customOverlayImageEnabled ? customOverlayImage : undefined,
       customOverlayImageSize: customOverlayImageEnabled ? customOverlayImageSize : undefined,
     };
@@ -1003,7 +1103,7 @@ function PresetSettingsScreen() {
     setPresetSettingsParams(null);
     navigation.navigate({ name: 'Presets' } as any);
     onSave(newPreset);
-  }, [name, canSave, getEditingPreset, getExistingPresets, installedSelectedApps, blockedWebsites, blockSettings, noTimeLimit, timerDays, timerHours, timerMinutes, timerSeconds, targetDate, onSave, allowEmergencyTapout, strictMode, isScheduled, scheduleStartDate, scheduleEndDate, isRecurring, recurringValue, recurringUnit, navigation, setFinalSettingsState, customBlockedText, customBlockedTextEnabled, customBlockedTextColor, customBlockedTextColorEnabled, customOverlayImage, customOverlayImageEnabled]);
+  }, [name, canSave, getEditingPreset, getExistingPresets, installedSelectedApps, blockedWebsites, blockSettings, noTimeLimit, timerDays, timerHours, timerMinutes, timerSeconds, targetDate, onSave, allowEmergencyTapout, strictMode, isScheduled, scheduleStartDate, scheduleEndDate, isRecurring, recurringValue, recurringUnit, navigation, setFinalSettingsState, customBlockedText, customDismissText, customBlockedTextEnabled, customBlockedTextColor, customBlockedTextColorEnabled, customOverlayBgColor, customOverlayBgColorEnabled, customDismissColor, customDismissColorEnabled, customOverlayImage, customOverlayImageEnabled]);
 
 
   // ============ Render ============
@@ -1664,89 +1764,131 @@ function PresetSettingsScreen() {
             </TouchableOpacity>
           </ExpandableInfo>
         </View>
-        <ExpandableInfo expanded={customOverlayEnabled}>
-          <View className="px-6">
-
-            {/* ---- Custom Blocked Message Sub-Toggle ---- */}
-            <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}>
-              <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between">
-                <View className="flex-row items-center" style={{ maxWidth: '75%' }}>
-                  <BoxiconsFilled name="bx-arrow-up-a-z" size={s(iconSize.toggleRow)} color={colors.text} style={{ marginRight: s(14) }} />
-                  <View>
-                    <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>Custom Blocked Message</Text>
-                    <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-1`}>Replace default blocked text with your own</Text>
-                  </View>
+        {/* ---- Custom Text Toggle ---- */}
+        <ExpandableInfo expanded={customOverlayEnabled} lazy>
+          <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}>
+            <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
+              <TouchableOpacity onPress={() => toggleInfo('customText')} activeOpacity={0.7} style={{ maxWidth: '75%' }} className="flex-row items-center">
+                <BoxiconsFilled name="bx-arrow-up-a-z" size={s(iconSize.toggleRow)} color={colors.text} style={{ marginRight: s(14) }} />
+                <View>
+                  <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Custom Text</Text>
+                  <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-1`}>Replace blocked &amp; dismiss text</Text>
                 </View>
-                <AnimatedSwitch
-                  size="small"
-                  value={customBlockedTextEnabled}
-                  animate={!skipSwitchAnimation}
-                  onValueChange={(value: boolean) => {
-                    setCustomBlockedTextEnabled(value);
-                    if (!value) {
-                      setCustomBlockedText('');
-                    }
-                  }}
-                />
-              </View>
-              <ExpandableInfo expanded={customBlockedTextEnabled}>
-                <View style={{ paddingBottom: s(14) }}>
-                  <TextInput
-                    value={customBlockedText}
-                    onChangeText={setCustomBlockedText}
-                    placeholder="e.g. Stay focused! You got this."
-                    placeholderTextColor={colors.textSecondary}
-                    multiline
-                    maxLength={200}
-                    style={{
-                      backgroundColor: colors.card,
-                      color: colors.text,
-                      borderWidth: 1,
-                      borderColor: colors.border,
-                      ...shadow.card,
-                      padding: s(14),
-                      minHeight: s(80),
-                      textAlignVertical: 'top',
-                    }}
-                    className={`${radius.xl} ${textSize.small} ${fontFamily.semibold}`}
-                  />
-                  <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-2 text-right`}>
-                    {customBlockedText.length}/200
-                  </Text>
-                </View>
-              </ExpandableInfo>
+              </TouchableOpacity>
+              <AnimatedSwitch
+                size="small"
+                value={customBlockedTextEnabled}
+                animate={!skipSwitchAnimation}
+                onValueChange={(value: boolean) => {
+                  setCustomBlockedTextEnabled(value);
+                  if (!value) {
+                    setCustomBlockedText('');
+                    setCustomDismissText('');
+                  }
+                }}
+              />
             </View>
-
-            {/* ---- Text Color Sub-Toggle ---- */}
-            <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}>
-              <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between">
-                <View className="flex-row items-center" style={{ maxWidth: '75%' }}>
-                  <BoxiconsFilled name="bx-color-wheel" size={s(iconSize.toggleRow)} color={colors.text} style={{ marginRight: s(14) }} />
-                  <View>
-                    <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>Text Color</Text>
-                    <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-1`}>Pick a custom color for blocked text</Text>
-                  </View>
-                </View>
-                <AnimatedSwitch
-                  size="small"
-                  value={customBlockedTextColorEnabled}
-                  animate={!skipSwitchAnimation}
-                  onValueChange={(value: boolean) => {
-                    setCustomBlockedTextColorEnabled(value);
-                    if (!value) {
-                      setCustomBlockedTextColor('');
-                    }
+            <ExpandableInfo expanded={!!expandedInfo.customText}>
+              <TouchableOpacity onPress={() => toggleInfo('customText')} activeOpacity={0.7} className="px-6 pb-4">
+                <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular} leading-5`}>
+                  Replace the default "This app is blocked." message and the "Tap anywhere to dismiss" text with your own custom messages.
+                </Text>
+              </TouchableOpacity>
+            </ExpandableInfo>
+            <ExpandableInfo expanded={customBlockedTextEnabled}>
+              <View style={{ paddingBottom: s(14) }} className="px-6">
+                <Text style={{ color: colors.text, marginBottom: s(6) }} className={`${textSize.extraSmall} ${fontFamily.semibold}`}>Blocked Message</Text>
+                <TextInput
+                  value={customBlockedText}
+                  onChangeText={setCustomBlockedText}
+                  placeholder="e.g. Stay focused! You got this."
+                  placeholderTextColor={colors.textSecondary}
+                  multiline
+                  maxLength={200}
+                  style={{
+                    backgroundColor: colors.card,
+                    color: colors.text,
+                    borderWidth: 1,
+                    borderColor: colors.border,
+                    ...shadow.card,
+                    padding: s(14),
+                    minHeight: s(80),
+                    textAlignVertical: 'top',
                   }}
+                  className={`${radius.xl} ${textSize.extraSmall} ${fontFamily.semibold}`}
                 />
+                <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-2 text-right`}>
+                  {customBlockedText.length}/200
+                </Text>
+
+                <Text style={{ color: colors.text, marginTop: s(10), marginBottom: s(6) }} className={`${textSize.extraSmall} ${fontFamily.semibold}`}>Dismiss Message</Text>
+                <TextInput
+                  value={customDismissText}
+                  onChangeText={setCustomDismissText}
+                  placeholder="e.g. Tap to go back"
+                  placeholderTextColor={colors.textSecondary}
+                  multiline
+                  maxLength={100}
+                  style={{
+                    backgroundColor: colors.card,
+                    color: colors.text,
+                    borderWidth: 1,
+                    borderColor: colors.border,
+                    ...shadow.card,
+                    padding: s(14),
+                    minHeight: s(80),
+                    textAlignVertical: 'top',
+                  }}
+                  className={`${radius.xl} ${textSize.extraSmall} ${fontFamily.semibold}`}
+                />
+                <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-2 text-right`}>
+                  {customDismissText.length}/100
+                </Text>
               </View>
-              <ExpandableInfo expanded={customBlockedTextColorEnabled}>
-                <View style={{ paddingBottom: s(14) }}>
-                  {/* Gradient spectrum bar with position dot */}
-                  <View
-                    onLayout={(e: LayoutChangeEvent) => setColorPickerWidth(e.nativeEvent.layout.width)}
-                    style={{ height: s(40), borderRadius: s(8), overflow: 'hidden' }}
-                    {...colorPickerPanResponder.panHandlers}
-                  >
+            </ExpandableInfo>
+          </View>
+        </ExpandableInfo>
+
+        {/* ---- Text Color Toggle ---- */}
+        <ExpandableInfo expanded={customOverlayEnabled} lazy>
+          <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}>
+            <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
+              <TouchableOpacity onPress={() => toggleInfo('textColor')} activeOpacity={0.7} style={{ maxWidth: '75%' }} className="flex-row items-center">
+                <BoxiconsFilled name="bx-color-wheel" size={s(iconSize.toggleRow)} color={colors.text} style={{ marginRight: s(14) }} />
+                <View>
+                  <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Text Color</Text>
+                  <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-1`}>Customize blocked &amp; dismiss text colors</Text>
+                </View>
+              </TouchableOpacity>
+              <AnimatedSwitch
+                size="small"
+                value={customBlockedTextColorEnabled}
+                animate={!skipSwitchAnimation}
+                onValueChange={(value: boolean) => {
+                  setCustomBlockedTextColorEnabled(value);
+                  if (!value) {
+                    setCustomBlockedTextColor('');
+                    setCustomDismissColor('');
+                    setCustomDismissColorEnabled(false);
+                  }
+                }}
+              />
+            </View>
+            <ExpandableInfo expanded={!!expandedInfo.textColor}>
+              <TouchableOpacity onPress={() => toggleInfo('textColor')} activeOpacity={0.7} className="px-6 pb-4">
+                <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular} leading-5`}>
+                  Pick custom colors for the blocked message text and the dismiss text using the gradient picker or by entering a hex code.
+                </Text>
+              </TouchableOpacity>
+            </ExpandableInfo>
+            <ExpandableInfo expanded={customBlockedTextColorEnabled}>
+              <View style={{ paddingBottom: s(14) }} className="px-6">
+                <Text style={{ color: colors.text, marginBottom: s(6) }} className={`${textSize.extraSmall} ${fontFamily.semibold}`}>Blocked Message</Text>
+                <View
+                  onLayout={(e: LayoutChangeEvent) => setColorPickerWidth(e.nativeEvent.layout.width)}
+                  {...colorPickerPanResponder.panHandlers}
+                >
+                  <View style={{ height: s(28), borderRadius: s(14), overflow: 'hidden', ...shadow.card }}>
                     <LinearGradient
                       colors={SPECTRUM_COLORS}
                       start={{ x: 0, y: 0 }}
@@ -1754,60 +1896,181 @@ function PresetSettingsScreen() {
                       style={{ flex: 1 }}
                     />
                   </View>
-                  {/* Hex code input */}
-                  <View className="flex-row items-center" style={{ marginTop: s(10) }}>
-                    <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card, height: s(44) }} className={radius.xl}>
-                      <View style={{ width: s(20), height: s(20), borderRadius: s(10), backgroundColor: customBlockedTextColor || '#FFFFFF', marginLeft: s(14) }} />
-                      <TextInput
-                        value={customBlockedTextColor}
-                        onChangeText={(text) => {
-                          let cleaned = text.replace(/[^#0-9A-Fa-f]/g, '').toUpperCase();
-                          if (!cleaned.startsWith('#')) cleaned = '#' + cleaned;
-                          if (cleaned.length <= 7) setCustomBlockedTextColor(cleaned);
-                        }}
-                        placeholder="#FFFFFF"
-                        placeholderTextColor={colors.textSecondary}
-                        maxLength={7}
-                        autoCapitalize="characters"
-                        autoCorrect={false}
-                        style={{ flex: 1, color: colors.text, height: s(44) }}
-                        className={`px-3 ${textSize.small} ${fontFamily.semibold}`}
-                      />
-                    </View>
-                    <HeaderIconButton onPress={() => setCustomBlockedTextColor('')} style={{ marginLeft: s(10) }}>
-                      <BoxiconsFilled name="bx-refresh-cw-alt" size={s(iconSize.headerNav)} color="#FFFFFF" />
-                    </HeaderIconButton>
-                  </View>
                 </View>
-              </ExpandableInfo>
-            </View>
+                <View className="flex-row items-center" style={{ marginTop: s(12) }}>
+                  <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card, height: s(44) }} className={radius.xl}>
+                    <View style={{ width: s(18), height: s(18), borderRadius: s(9), backgroundColor: customBlockedTextColor || '#FFFFFF', marginLeft: s(14) }} />
+                    <TextInput
+                      value={customBlockedTextColor}
+                      onChangeText={(text) => {
+                        let cleaned = text.replace(/[^#0-9A-Fa-f]/g, '').toUpperCase();
+                        if (!cleaned.startsWith('#')) cleaned = '#' + cleaned;
+                        if (cleaned.length <= 7) setCustomBlockedTextColor(cleaned);
+                      }}
+                      placeholder="#FFFFFF"
+                      placeholderTextColor={colors.textSecondary}
+                      maxLength={7}
+                      autoCapitalize="characters"
+                      autoCorrect={false}
+                      style={{ flex: 1, color: colors.text, height: s(44) }}
+                      className={`px-3 ${textSize.extraSmall} ${fontFamily.semibold}`}
+                    />
+                  </View>
+                  <HeaderIconButton onPress={() => setCustomBlockedTextColor('')} style={{ marginLeft: s(10) }}>
+                    <BoxiconsFilled name="bx-refresh-cw-alt" size={s(iconSize.headerNav)} color="#FFFFFF" />
+                  </HeaderIconButton>
+                </View>
 
-            {/* ---- Custom Icon Sub-Toggle ---- */}
-            <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}>
-              <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between">
-                <View className="flex-row items-center" style={{ maxWidth: '75%' }}>
-                  <BoxiconsFilled name="bx-image-plus" size={s(iconSize.toggleRow)} color={colors.text} style={{ marginRight: s(14) }} />
-                  <View>
-                    <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>Custom Icon</Text>
-                    <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-1`}>Replace the default icon with your own</Text>
+                <Text style={{ color: colors.text, marginTop: s(16), marginBottom: s(6) }} className={`${textSize.extraSmall} ${fontFamily.semibold}`}>Dismiss Message</Text>
+                <View
+                  onLayout={(e: LayoutChangeEvent) => setDismissColorPickerWidth(e.nativeEvent.layout.width)}
+                  {...dismissColorPickerPanResponder.panHandlers}
+                >
+                  <View style={{ height: s(28), borderRadius: s(14), overflow: 'hidden', ...shadow.card }}>
+                    <LinearGradient
+                      colors={SPECTRUM_COLORS}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                      style={{ flex: 1 }}
+                    />
                   </View>
                 </View>
-                <AnimatedSwitch
-                  size="small"
-                  value={customOverlayImageEnabled}
-                  animate={!skipSwitchAnimation}
-                  onValueChange={(value: boolean) => {
-                    setCustomOverlayImageEnabled(value);
-                    if (!value) {
-                      setCustomOverlayImage('');
-                    }
-                  }}
-                />
+                <View className="flex-row items-center" style={{ marginTop: s(12) }}>
+                  <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card, height: s(44) }} className={radius.xl}>
+                    <View style={{ width: s(18), height: s(18), borderRadius: s(9), backgroundColor: customDismissColor || '#FFFFFF', marginLeft: s(14) }} />
+                    <TextInput
+                      value={customDismissColor}
+                      onChangeText={(text) => {
+                        let cleaned = text.replace(/[^#0-9A-Fa-f]/g, '').toUpperCase();
+                        if (!cleaned.startsWith('#')) cleaned = '#' + cleaned;
+                        if (cleaned.length <= 7) setCustomDismissColor(cleaned);
+                      }}
+                      placeholder="#FFFFFF"
+                      placeholderTextColor={colors.textSecondary}
+                      maxLength={7}
+                      autoCapitalize="characters"
+                      autoCorrect={false}
+                      style={{ flex: 1, color: colors.text, height: s(44) }}
+                      className={`px-3 ${textSize.extraSmall} ${fontFamily.semibold}`}
+                    />
+                  </View>
+                  <HeaderIconButton onPress={() => setCustomDismissColor('')} style={{ marginLeft: s(10) }}>
+                    <BoxiconsFilled name="bx-refresh-cw-alt" size={s(iconSize.headerNav)} color="#FFFFFF" />
+                  </HeaderIconButton>
+                </View>
               </View>
-              <ExpandableInfo expanded={customOverlayImageEnabled}>
-                <View style={{ paddingBottom: s(14) }}>
-                  {customOverlayImage ? (
-                    <View className="items-center">
+            </ExpandableInfo>
+          </View>
+        </ExpandableInfo>
+
+        {/* ---- Background Color Toggle ---- */}
+        <ExpandableInfo expanded={customOverlayEnabled} lazy>
+          <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}>
+            <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
+              <TouchableOpacity onPress={() => toggleInfo('bgColor')} activeOpacity={0.7} style={{ maxWidth: '75%' }} className="flex-row items-center">
+                <BoxiconsFilled name="bx-background" size={s(iconSize.toggleRow)} color={colors.text} style={{ marginRight: s(14) }} />
+                <View>
+                  <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Background Color</Text>
+                  <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-1`}>Change the overlay background</Text>
+                </View>
+              </TouchableOpacity>
+              <AnimatedSwitch
+                size="small"
+                value={customOverlayBgColorEnabled}
+                animate={!skipSwitchAnimation}
+                onValueChange={(value: boolean) => {
+                  setCustomOverlayBgColorEnabled(value);
+                  if (!value) {
+                    setCustomOverlayBgColor('');
+                  }
+                }}
+              />
+            </View>
+            <ExpandableInfo expanded={!!expandedInfo.bgColor}>
+              <TouchableOpacity onPress={() => toggleInfo('bgColor')} activeOpacity={0.7} className="px-6 pb-4">
+                <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular} leading-5`}>
+                  Set a custom background color for the blocked overlay screen. Use the gradient picker or enter a hex code directly.
+                </Text>
+              </TouchableOpacity>
+            </ExpandableInfo>
+            <ExpandableInfo expanded={customOverlayBgColorEnabled}>
+              <View style={{ paddingBottom: s(14) }} className="px-6">
+                <View
+                  onLayout={(e: LayoutChangeEvent) => setBgColorPickerWidth(e.nativeEvent.layout.width)}
+                  {...bgColorPickerPanResponder.panHandlers}
+                >
+                  <View style={{ height: s(28), borderRadius: s(14), overflow: 'hidden', ...shadow.card }}>
+                    <LinearGradient
+                      colors={SPECTRUM_COLORS}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                      style={{ flex: 1 }}
+                    />
+                  </View>
+                </View>
+                <View className="flex-row items-center" style={{ marginTop: s(12) }}>
+                  <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card, height: s(44) }} className={radius.xl}>
+                    <View style={{ width: s(18), height: s(18), borderRadius: s(9), backgroundColor: customOverlayBgColor || '#FFFFFF', marginLeft: s(14) }} />
+                    <TextInput
+                      value={customOverlayBgColor}
+                      onChangeText={(text) => {
+                        let cleaned = text.replace(/[^#0-9A-Fa-f]/g, '').toUpperCase();
+                        if (!cleaned.startsWith('#')) cleaned = '#' + cleaned;
+                        if (cleaned.length <= 7) setCustomOverlayBgColor(cleaned);
+                      }}
+                      placeholder="#FFFFFF"
+                      placeholderTextColor={colors.textSecondary}
+                      maxLength={7}
+                      autoCapitalize="characters"
+                      autoCorrect={false}
+                      style={{ flex: 1, color: colors.text, height: s(44) }}
+                      className={`px-3 ${textSize.extraSmall} ${fontFamily.semibold}`}
+                    />
+                  </View>
+                  <HeaderIconButton onPress={() => setCustomOverlayBgColor('')} style={{ marginLeft: s(10) }}>
+                    <BoxiconsFilled name="bx-refresh-cw-alt" size={s(iconSize.headerNav)} color="#FFFFFF" />
+                  </HeaderIconButton>
+                </View>
+              </View>
+            </ExpandableInfo>
+          </View>
+        </ExpandableInfo>
+
+        {/* ---- Custom Icon Toggle ---- */}
+        <ExpandableInfo expanded={customOverlayEnabled} lazy>
+          <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}>
+            <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
+              <TouchableOpacity onPress={() => toggleInfo('customIcon')} activeOpacity={0.7} style={{ maxWidth: '75%' }} className="flex-row items-center">
+                <BoxiconsFilled name="bx-image-plus" size={s(iconSize.toggleRow)} color={colors.text} style={{ marginRight: s(14) }} />
+                <View>
+                  <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Custom Icon</Text>
+                  <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-1`}>Replace the default icon with your own</Text>
+                </View>
+              </TouchableOpacity>
+              <AnimatedSwitch
+                size="small"
+                value={customOverlayImageEnabled}
+                animate={!skipSwitchAnimation}
+                onValueChange={(value: boolean) => {
+                  setCustomOverlayImageEnabled(value);
+                  if (!value) {
+                    setCustomOverlayImage('');
+                  }
+                }}
+              />
+            </View>
+            <ExpandableInfo expanded={!!expandedInfo.customIcon}>
+              <TouchableOpacity onPress={() => toggleInfo('customIcon')} activeOpacity={0.7} className="px-6 pb-4">
+                <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular} leading-5`}>
+                  Upload a custom image to replace the default Android icon on the blocked overlay. Tap the image to change it, or use the trash icon to remove it.
+                </Text>
+              </TouchableOpacity>
+            </ExpandableInfo>
+            <ExpandableInfo expanded={customOverlayImageEnabled}>
+              <View style={{ paddingBottom: s(14) }} className="px-6">
+                {customOverlayImage ? (
+                  <View className="items-center">
+                    <View style={{ width: s(80), height: s(80) }}>
                       <TouchableOpacity onPress={handlePickImage} disabled={imageUploading} activeOpacity={0.7}>
                         <Image
                           source={{ uri: customOverlayImage }}
@@ -1815,97 +2078,108 @@ function PresetSettingsScreen() {
                           resizeMode="cover"
                         />
                       </TouchableOpacity>
-                      <View className="flex-row items-center" style={{ marginTop: s(10) }}>
-                        <HeaderIconButton onPress={() => setCustomOverlayImage('')}>
-                          <Svg width={s(iconSize.headerNav)} height={s(iconSize.headerNav)} viewBox="0 0 24 24" fill={colors.red}>
-                            <Path
-                              fillRule="evenodd"
-                              clipRule="evenodd"
-                              d="M16.5 4.478v.227a48.816 48.816 0 0 1 3.878.512.75.75 0 1 1-.256 1.478l-.209-.035-1.005 13.07a3 3 0 0 1-2.991 2.77H8.084a3 3 0 0 1-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 0 1-.256-1.478A48.567 48.567 0 0 1 7.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 0 1 3.369 0c1.603.051 2.815 1.387 2.815 2.951Zm-6.136-1.452a51.196 51.196 0 0 1 3.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 0 0-6 0v-.113c0-.794.609-1.428 1.364-1.452Zm-.355 5.945a.75.75 0 1 0-1.5.058l.347 9a.75.75 0 1 0 1.499-.058l-.346-9Zm5.48.058a.75.75 0 1 0-1.498-.058l-.347 9a.75.75 0 0 0 1.5.058l.345-9Z"
-                            />
-                          </Svg>
+                      <TouchableOpacity
+                        onPress={() => setCustomOverlayImage('')}
+                        activeOpacity={0.7}
+                        style={{
+                          position: 'absolute',
+                          top: s(-6),
+                          right: s(-6),
+                          backgroundColor: colors.red,
+                          width: s(24),
+                          height: s(24),
+                          borderRadius: s(12),
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <Svg width={s(14)} height={s(14)} viewBox="0 0 24 24" fill="#FFFFFF">
+                          <Path
+                            fillRule="evenodd"
+                            clipRule="evenodd"
+                            d="M16.5 4.478v.227a48.816 48.816 0 0 1 3.878.512.75.75 0 1 1-.256 1.478l-.209-.035-1.005 13.07a3 3 0 0 1-2.991 2.77H8.084a3 3 0 0 1-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 0 1-.256-1.478A48.567 48.567 0 0 1 7.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 0 1 3.369 0c1.603.051 2.815 1.387 2.815 2.951Zm-6.136-1.452a51.196 51.196 0 0 1 3.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 0 0-6 0v-.113c0-.794.609-1.428 1.364-1.452Zm-.355 5.945a.75.75 0 1 0-1.5.058l.347 9a.75.75 0 1 0 1.499-.058l-.346-9Zm5.48.058a.75.75 0 1 0-1.498-.058l-.347 9a.75.75 0 0 0 1.5.058l.345-9Z"
+                          />
+                        </Svg>
+                      </TouchableOpacity>
+                    </View>
+
+                    {/* Image Size Control */}
+                    <View style={{ marginTop: s(14), alignSelf: 'stretch' }}>
+                      <Text style={{ color: colors.text, marginBottom: s(8), textAlign: 'center' }} className={`${textSize.small} ${fontFamily.semibold}`}>Image Size</Text>
+                      <View className="flex-row items-center justify-center">
+                        <HeaderIconButton onPressIn={() => startImageSizeHold(-10)} onPressOut={stopImageSizeHold}>
+                          <BoxiconsFilled name="bx-minus-circle" size={s(iconSize.headerNav)} color="#FFFFFF" />
+                        </HeaderIconButton>
+                        <Text style={{ color: colors.text, marginHorizontal: s(16), minWidth: s(50), textAlign: 'center' }} className={`${textSize.base} ${fontFamily.bold}`}>
+                          {customOverlayImageSize}dp
+                        </Text>
+                        <HeaderIconButton onPressIn={() => startImageSizeHold(10)} onPressOut={stopImageSizeHold}>
+                          <BoxiconsFilled name="bx-plus-circle" size={s(iconSize.headerNav)} color="#FFFFFF" />
                         </HeaderIconButton>
                       </View>
-
-                      {/* Image Size Control */}
-                      <View style={{ marginTop: s(14), alignSelf: 'stretch' }}>
-                        <Text style={{ color: colors.text, marginBottom: s(8), textAlign: 'center' }} className={`${textSize.small} ${fontFamily.semibold}`}>Image Size</Text>
-                        <View className="flex-row items-center justify-center">
-                          <HeaderIconButton onPress={() => setCustomOverlayImageSize(prev => Math.max(40, prev - 10))}>
-                            <BoxiconsFilled name="bx-minus-circle" size={s(iconSize.headerNav)} color="#FFFFFF" />
-                          </HeaderIconButton>
-                          <Text style={{ color: colors.text, marginHorizontal: s(16), minWidth: s(50), textAlign: 'center' }} className={`${textSize.base} ${fontFamily.bold}`}>
-                            {customOverlayImageSize}dp
-                          </Text>
-                          <HeaderIconButton onPress={() => setCustomOverlayImageSize(prev => Math.min(250, prev + 10))}>
-                            <BoxiconsFilled name="bx-plus-circle" size={s(iconSize.headerNav)} color="#FFFFFF" />
-                          </HeaderIconButton>
-                        </View>
-                      </View>
                     </View>
-                  ) : (
-                    <TouchableOpacity
-                      onPress={handlePickImage}
-                      disabled={imageUploading}
-                      activeOpacity={0.7}
-                      style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card, paddingVertical: s(buttonPadding.standard), alignItems: 'center' }}
-                      className={radius.xl}
-                    >
-                      <BoxiconsFilled name="bx-image-plus" size={s(iconSize.lg)} color={colors.textSecondary} />
-                      <Text style={{ color: colors.textSecondary, marginTop: s(4) }} className={`${textSize.small} ${fontFamily.semibold}`}>
-                        {imageUploading ? 'Uploading...' : 'Choose Image'}
-                      </Text>
-                    </TouchableOpacity>
-                  )}
-                </View>
-              </ExpandableInfo>
-            </View>
-
-            {/* ---- Overlay Preview (phone mockup, ~0.5x scale of 360dp phone) ---- */}
-            <View style={{ paddingVertical: s(14) }}>
-              <Text style={{ color: '#FFFFFF', marginBottom: s(10) }} className={`${textSize.small} ${fontFamily.semibold}`}>Preview</Text>
-              <View style={{
-                alignSelf: 'center',
-                width: s(185),
-                aspectRatio: 9 / 19.5,
-                backgroundColor: colors.bg,
-                borderRadius: s(20),
-                overflow: 'hidden',
-                alignItems: 'center',
-                justifyContent: 'center',
-                paddingHorizontal: s(16),
-                borderWidth: s(3),
-                borderColor: '#3A3A3C',
-              }}>
-                {/* Icon or custom image — real: 120dp icon, 24dp margin */}
-                {customOverlayImageEnabled && customOverlayImage ? (
-                  <Image
-                    source={{ uri: customOverlayImage }}
-                    style={{ width: s(customOverlayImageSize * 0.5), height: s(customOverlayImageSize * 0.5), borderRadius: s(8), marginBottom: s(12) }}
-                    resizeMode="cover"
-                  />
+                  </View>
                 ) : (
-                  <MaterialCommunityIcons name="android" size={s(60)} color="#FFFFFF" style={{ marginBottom: s(12) }} />
+                  <TouchableOpacity
+                    onPress={handlePickImage}
+                    disabled={imageUploading}
+                    activeOpacity={0.7}
+                    style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card, paddingVertical: s(buttonPadding.standard), alignItems: 'center' }}
+                    className={radius.xl}
+                  >
+                    <BoxiconsFilled name="bx-image-plus" size={s(iconSize.lg)} color={colors.textSecondary} />
+                    <Text style={{ color: colors.textSecondary, marginTop: s(4) }} className={`${textSize.extraSmall} ${fontFamily.semibold}`}>
+                      {imageUploading ? 'Uploading...' : 'Choose Image'}
+                    </Text>
+                  </TouchableOpacity>
                 )}
-                {/* Message text — real: 22sp */}
-                <Text style={{
-                  color: customBlockedTextColorEnabled && customBlockedTextColor ? customBlockedTextColor : '#FFFFFF',
-                  textAlign: 'center',
-                  fontSize: s(11),
-                  lineHeight: s(15),
-                }} className={fontFamily.bold}>
-                  {customBlockedText.trim() || 'This app is blocked.'}
-                </Text>
-                {/* Tap to dismiss — real: 10sp, 24dp margin */}
-                <Text style={{
-                  color: '#FFFFFF',
-                  fontSize: s(7),
-                  marginTop: s(12),
-                  opacity: 0.5,
-                }} className={fontFamily.bold}>
-                  Tap anywhere to dismiss
-                </Text>
               </View>
+            </ExpandableInfo>
+          </View>
+        </ExpandableInfo>
+
+        {/* ---- Overlay Preview ---- */}
+        <ExpandableInfo expanded={customOverlayEnabled} lazy>
+          <View className="px-6" style={{ paddingVertical: s(14) }}>
+            <Text style={{ color: '#FFFFFF', marginBottom: s(10) }} className={`${textSize.small} ${fontFamily.semibold}`}>Preview</Text>
+            <View style={{
+              alignSelf: 'center',
+              width: s(185),
+              aspectRatio: 9 / 19.5,
+              backgroundColor: customOverlayBgColorEnabled && customOverlayBgColor ? customOverlayBgColor : colors.bg,
+              borderRadius: s(20),
+              overflow: 'hidden',
+              alignItems: 'center',
+              justifyContent: 'center',
+              paddingHorizontal: s(16),
+              borderWidth: s(3),
+              borderColor: '#3A3A3C',
+            }}>
+              {customOverlayImageEnabled && customOverlayImage ? (
+                <Image
+                  source={{ uri: customOverlayImage }}
+                  style={{ width: s(customOverlayImageSize * 0.5), height: s(customOverlayImageSize * 0.5), borderRadius: s(8), marginBottom: s(12) }}
+                  resizeMode="cover"
+                />
+              ) : (
+                <MaterialCommunityIcons name="android" size={s(60)} color="#FFFFFF" style={{ marginBottom: s(12) }} />
+              )}
+              <Text style={{
+                color: customBlockedTextColorEnabled && customBlockedTextColor ? customBlockedTextColor : '#FFFFFF',
+                textAlign: 'center',
+                fontSize: s(11),
+                lineHeight: s(15),
+              }} className={fontFamily.bold}>
+                {customBlockedText.trim() || 'This app is blocked.'}
+              </Text>
+              <Text style={{
+                color: customBlockedTextColorEnabled && customDismissColor ? customDismissColor : '#FFFFFF',
+                fontSize: s(5),
+                marginTop: s(12),
+                opacity: customBlockedTextColorEnabled && customDismissColor ? 1 : 0.5,
+              }} className={fontFamily.bold}>
+                {customDismissText.trim() || 'Tap anywhere to dismiss'}
+              </Text>
             </View>
           </View>
         </ExpandableInfo>

@@ -57,8 +57,14 @@ export interface Preset {
   strictMode?: boolean;
   // Custom blocked message - replaces default "X is blocked." overlay text
   customBlockedText?: string;
+  // Custom dismiss text - replaces default "Tap anywhere to dismiss"
+  customDismissText?: string;
   // Custom overlay text color (hex code like '#FF5733')
   customBlockedTextColor?: string;
+  // Custom overlay background color (hex code)
+  customOverlayBgColor?: string;
+  // Custom dismiss text color (hex code)
+  customDismissColor?: string;
   // Custom overlay image URL (replaces center icon)
   customOverlayImage?: string;
   // Custom overlay image size in dp (default 120)
@@ -248,7 +254,7 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, onExpire
       parts.push('Settings blocked');
     }
 
-    if (preset.customBlockedText || preset.customBlockedTextColor || preset.customOverlayImage) {
+    if (preset.customBlockedText || preset.customDismissText || preset.customBlockedTextColor || preset.customOverlayBgColor || preset.customDismissColor || preset.customOverlayImage) {
       parts.push('Custom overlay');
     }
 

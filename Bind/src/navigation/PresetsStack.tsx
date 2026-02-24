@@ -35,7 +35,10 @@ export interface FinalSettingsState {
   recurringValue: string;
   recurringUnit: 'minutes' | 'hours' | 'days' | 'weeks' | 'months';
   customBlockedText: string;
+  customDismissText: string;
   customBlockedTextColor: string;
+  customOverlayBgColor: string;
+  customDismissColor: string;
   customOverlayImage: string;
   customOverlayImageSize: number;
 }
