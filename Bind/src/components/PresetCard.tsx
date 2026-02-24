@@ -248,16 +248,8 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, onExpire
       parts.push('Settings blocked');
     }
 
-    if (preset.customBlockedText) {
-      parts.push('Custom message');
-    }
-
-    if (preset.customBlockedTextColor) {
-      parts.push('Custom text color');
-    }
-
-    if (preset.customOverlayImage) {
-      parts.push('Custom icon');
+    if (preset.customBlockedText || preset.customBlockedTextColor || preset.customOverlayImage) {
+      parts.push('Custom overlay');
     }
 
     return parts.length > 0 ? parts.join(', ') : null;
