@@ -41,6 +41,17 @@ export interface FinalSettingsState {
   customDismissColor: string;
   customOverlayImage: string;
   customOverlayImageSize: number;
+  iconPosX: number;
+  iconPosY: number;
+  blockedTextPosX: number;
+  blockedTextPosY: number;
+  dismissTextPosX: number;
+  dismissTextPosY: number;
+  iconVisible: boolean;
+  blockedTextVisible: boolean;
+  dismissTextVisible: boolean;
+  blockedTextSize: number;
+  dismissTextSize: number;
 }
 
 // Params passed to the DatePicker screen

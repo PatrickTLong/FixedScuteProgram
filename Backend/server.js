@@ -1038,6 +1038,17 @@ app.get('/api/presets', authenticateToken, async (req, res) => {
       // Custom overlay image URL (replaces center icon)
       customOverlayImage: p.custom_overlay_image || '',
       customOverlayImageSize: p.custom_overlay_image_size || 120,
+      iconPosX: p.icon_pos_x ?? 50,
+      iconPosY: p.icon_pos_y ?? 30,
+      blockedTextPosX: p.blocked_text_pos_x ?? 50,
+      blockedTextPosY: p.blocked_text_pos_y ?? 50,
+      dismissTextPosX: p.dismiss_text_pos_x ?? 50,
+      dismissTextPosY: p.dismiss_text_pos_y ?? 70,
+      iconVisible: p.icon_visible ?? true,
+      blockedTextVisible: p.blocked_text_visible ?? true,
+      dismissTextVisible: p.dismiss_text_visible ?? true,
+      blockedTextSize: p.blocked_text_size ?? 11,
+      dismissTextSize: p.dismiss_text_size ?? 7,
     }));
 
     console.log('[presets:get] Returning', presets.length, 'presets for user:', normalizedEmail);
@@ -1112,6 +1123,17 @@ app.post('/api/presets', authenticateToken, async (req, res) => {
       // Custom overlay image URL (replaces center icon)
       custom_overlay_image: preset.customOverlayImage || '',
       custom_overlay_image_size: preset.customOverlayImageSize || null,
+      icon_pos_x: preset.iconPosX ?? 50,
+      icon_pos_y: preset.iconPosY ?? 30,
+      blocked_text_pos_x: preset.blockedTextPosX ?? 50,
+      blocked_text_pos_y: preset.blockedTextPosY ?? 50,
+      dismiss_text_pos_x: preset.dismissTextPosX ?? 50,
+      dismiss_text_pos_y: preset.dismissTextPosY ?? 70,
+      icon_visible: preset.iconVisible ?? true,
+      blocked_text_visible: preset.blockedTextVisible ?? true,
+      dismiss_text_visible: preset.dismissTextVisible ?? true,
+      blocked_text_size: preset.blockedTextSize ?? 11,
+      dismiss_text_size: preset.dismissTextSize ?? 7,
     };
 
     console.log('[presets:save] Preset data:', {

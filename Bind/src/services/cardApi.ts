@@ -279,6 +279,20 @@ export interface Preset {
   customOverlayImage?: string;
   // Custom overlay image size in dp (default 120)
   customOverlayImageSize?: number;
+  // Overlay element positions (percentage 0-100, 50=center)
+  iconPosX?: number;
+  iconPosY?: number;
+  blockedTextPosX?: number;
+  blockedTextPosY?: number;
+  dismissTextPosX?: number;
+  dismissTextPosY?: number;
+  // Element visibility (interactive preview)
+  iconVisible?: boolean;
+  blockedTextVisible?: boolean;
+  dismissTextVisible?: boolean;
+  // Text sizes (interactive preview pinch-to-resize)
+  blockedTextSize?: number;
+  dismissTextSize?: number;
 }
 
 /**

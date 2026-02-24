@@ -63,7 +63,8 @@
       "WebFetch(domain:static.enapter.com)",
       "Bash(.gradlew clean:*)",
       "Bash(cmd /c:*)",
-      "WebFetch(domain:pictogrammers.com)"
+      "WebFetch(domain:pictogrammers.com)",
+      "Bash(node:*)"
     ],
     "additionalDirectories": [
       "c:\\Users\\Shado\\OneDrive\\Desktop\\ScuteProgram\\Bind\\src"
