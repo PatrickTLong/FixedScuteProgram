@@ -57,6 +57,10 @@ export interface Preset {
   strictMode?: boolean;
   // Custom blocked message - replaces default "X is blocked." overlay text
   customBlockedText?: string;
+  // Custom overlay text color (hex code like '#FF5733')
+  customBlockedTextColor?: string;
+  // Custom overlay image URL (replaces center icon)
+  customOverlayImage?: string;
 }
 
 interface PresetCardProps {
@@ -244,6 +248,14 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, onExpire
 
     if (preset.customBlockedText) {
       parts.push('Custom message');
+    }
+
+    if (preset.customBlockedTextColor) {
+      parts.push('Custom text color');
+    }
+
+    if (preset.customOverlayImage) {
+      parts.push('Custom icon');
     }
 
     return parts.length > 0 ? parts.join(', ') : null;

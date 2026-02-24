@@ -391,7 +391,7 @@ function SettingsScreen() {
   if (isResetting || isDeleting || isLoggingOut) {
     return (
       <View style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center', paddingTop: insets.top }}>
-        <LoadingSpinner size={s(48)} />
+        <LoadingSpinner size={s(48)} slideIn />
       </View>
     );
   }
@@ -400,7 +400,7 @@ function SettingsScreen() {
   if (loading) {
     return (
       <View style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center', paddingTop: insets.top }}>
-        <LoadingSpinner size={s(48)} />
+        <LoadingSpinner size={s(48)} slideIn />
       </View>
     );
   }

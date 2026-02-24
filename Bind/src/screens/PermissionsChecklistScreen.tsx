@@ -305,7 +305,7 @@ function PermissionsChecklistScreen() {
   if (isLoading) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }} className="justify-center items-center">
-        <LoadingSpinner size={s(48)} />
+        <LoadingSpinner size={s(48)} slideIn />
         <Text style={{ color: colors.textSecondary }} className={`${textSize.base} ${fontFamily.regular} mt-4`}>
           Checking permissions...
         </Text>

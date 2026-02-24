@@ -60,7 +60,9 @@ class BlockingModule(reactContext: ReactApplicationContext) :
 
             // Check if settings should be blocked
             val blockSettings = config.getBoolean("blockSettings")
+            Log.d(TAG, "blockSettings=$blockSettings")
             if (blockSettings) {
+                Log.d(TAG, "Settings blocking enabled — adding settings packages to blocked list")
                 // Add all known system settings packages for different device manufacturers
                 appSet.add("com.android.settings")
                 appSet.add("com.samsung.android.settings")
@@ -111,8 +113,10 @@ class BlockingModule(reactContext: ReactApplicationContext) :
 
             // Get custom blocked text (replaces default "X is blocked." overlay message)
             val customBlockedText = if (config.hasKey("customBlockedText")) config.getString("customBlockedText") else ""
+            val customBlockedTextColor = if (config.hasKey("customBlockedTextColor")) config.getString("customBlockedTextColor") else ""
+            val customOverlayImage = if (config.hasKey("customOverlayImage")) config.getString("customOverlayImage") else ""
 
-            Log.d(TAG, "[SCHED-DEBUG] startBlocking: strictMode=$strictMode, customBlockedText='$customBlockedText', presetName=$presetName, presetId=$presetId, noTimeLimit=$noTimeLimit, endTime=$endTime, apps=${appSet.size}, websites=${websiteSet.size}")
+            Log.d(TAG, "[SCHED-DEBUG] startBlocking: strictMode=$strictMode, customBlockedText='$customBlockedText', customBlockedTextColor='$customBlockedTextColor', customOverlayImage='$customOverlayImage', presetName=$presetName, presetId=$presetId, noTimeLimit=$noTimeLimit, endTime=$endTime, apps=${appSet.size}, websites=${websiteSet.size}")
 
             // Save to SharedPreferences
             val sessionStartTime = System.currentTimeMillis()
@@ -127,6 +131,8 @@ class BlockingModule(reactContext: ReactApplicationContext) :
                 .putString("active_preset_name", presetName)
                 .putString("active_preset_id", presetId)
                 .putString("custom_blocked_text", customBlockedText)
+                .putString("custom_blocked_text_color", customBlockedTextColor)
+                .putString("custom_overlay_image", customOverlayImage)
                 .apply()
 
             Log.d(TAG, "[SCHED-DEBUG] SharedPreferences saved via apply()")

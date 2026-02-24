@@ -94,7 +94,7 @@ function PresetsScreen() {
   const { s } = useResponsive();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NativeStackNavigationProp<MainStackParamList>>();
-  const { userEmail, sharedPresets, setSharedPresets, sharedIsLocked, refreshPresets, refreshLockStatus } = useAuth();
+  const { userEmail, sharedPresets, setSharedPresets, sharedIsLocked, refreshPresets, refreshLockStatus, showModal } = useAuth();
   const userEmail_safe = userEmail || '';
   const { setOnSave, setEditingPreset: setContextEditingPreset, setExistingPresets, setEmail, setFinalSettingsState } = usePresetSave();
 
@@ -290,9 +290,10 @@ function PresetsScreen() {
         setPresets(prev => prev.map(p =>
           p.id === preset.id ? { ...p, isActive: false } : p
         ));
+        showModal('Connection Error', 'Could not save changes. Please check your connection.');
       }
     });
-  }, [userEmail_safe, presets, syncScheduledPresetsToNative]);
+  }, [userEmail_safe, presets, syncScheduledPresetsToNative, showModal]);
 
   // Handle verification modal confirm for scheduled presets
   const handleScheduleVerifyConfirm = useCallback(() => {
@@ -405,6 +406,7 @@ function PresetsScreen() {
               ...p,
               isActive: p.isScheduled ? p.isActive : false,
             })));
+            showModal('Connection Error', 'Could not save changes. Please check your connection.');
           }
         });
       }
@@ -432,6 +434,7 @@ function PresetsScreen() {
             setPresets(prev => prev.map(p =>
               p.id === preset.id ? { ...p, isActive: true } : p
             ));
+            showModal('Connection Error', 'Could not save changes. Please check your connection.');
           }
         });
       } else {
@@ -455,11 +458,12 @@ function PresetsScreen() {
               ...p,
               isActive: p.isScheduled ? p.isActive : p.id === preset.id,
             })));
+            showModal('Connection Error', 'Could not save changes. Please check your connection.');
           }
         });
       }
     }
-  }, [userEmail_safe, syncScheduledPresetsToNative, presets, sharedIsLocked]);
+  }, [userEmail_safe, syncScheduledPresetsToNative, presets, sharedIsLocked, showModal]);
 
 
   const handleLongPressPreset = useCallback((preset: Preset) => {
@@ -511,9 +515,10 @@ function PresetsScreen() {
         if (wasActiveNonScheduled) {
           setActivePresetId(presetId);
         }
+        showModal('Connection Error', 'Could not delete preset. Please check your connection.');
       }
     });
-  }, [presetToDelete, userEmail_safe, activePresetId, presets, syncScheduledPresetsToNative]);
+  }, [presetToDelete, userEmail_safe, activePresetId, presets, syncScheduledPresetsToNative, showModal]);
 
   // Show "Preset Saved" toast with fade animation
   const showSavedToastAnimation = useCallback(() => {
@@ -605,12 +610,14 @@ function PresetsScreen() {
       } else {
         // Revert on failure
         setPresets(previousPresets);
+        showModal('Connection Error', 'Could not save preset. Please check your connection.');
       }
     } catch (_) {
       // Revert on error
       setPresets(previousPresets);
+      showModal('Connection Error', 'Could not save preset. Please check your connection.');
     }
-  }, [userEmail_safe, syncScheduledPresetsToNative, presets, showSavedToastAnimation]);
+  }, [userEmail_safe, syncScheduledPresetsToNative, presets, showSavedToastAnimation, showModal]);
 
   // Wire handleSavePreset into PresetSaveContext so child screens can call it
   useEffect(() => {
@@ -730,7 +737,7 @@ function PresetsScreen() {
       <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
         {showSpinner && (
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-            <LoadingSpinner size={s(48)} />
+            <LoadingSpinner size={s(48)} slideIn />
           </View>
         )}
       </View>

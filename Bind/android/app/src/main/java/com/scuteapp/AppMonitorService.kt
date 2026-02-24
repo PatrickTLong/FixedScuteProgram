@@ -265,8 +265,13 @@ class AppMonitorService(private val context: Context) {
         val prefs = context.getSharedPreferences(UninstallBlockerService.PREFS_NAME, Context.MODE_PRIVATE)
         val strictMode = prefs.getBoolean("strict_mode", true)
         val customBlockedText = prefs.getString("custom_blocked_text", "") ?: ""
+        val customBlockedTextColor = prefs.getString("custom_blocked_text_color", "") ?: ""
+        val customOverlayImage = prefs.getString("custom_overlay_image", "") ?: ""
+
+        Log.d(TAG, "showBlockedOverlay: pkg=$packageName, customBlockedText='$customBlockedText', customBlockedTextColor='$customBlockedTextColor', customOverlayImage='$customOverlayImage'")
 
         val blockedType = if (isSettingsApp(packageName)) {
+            Log.d(TAG, "Detected settings app blocked: $packageName")
             BlockedOverlayManager.TYPE_SETTINGS
         } else {
             BlockedOverlayManager.TYPE_APP
@@ -285,12 +290,12 @@ class AppMonitorService(private val context: Context) {
         pauseMedia()
 
         // Show overlay instantly with app name
-        val shown = overlayManager?.show(blockedType, packageName, appName, strictMode, customBlockedText) ?: false
+        val shown = overlayManager?.show(blockedType, packageName, appName, strictMode, customBlockedText, customBlockedTextColor, customOverlayImage) ?: false
 
         if (!shown) {
             Log.w(TAG, "Failed to show overlay, falling back to activity")
             // Fallback: launch BlockedActivity (no HOME action - just show activity)
-            BlockedActivity.launchNoAnimation(context, blockedType, packageName, strictMode, customBlockedText)
+            BlockedActivity.launchNoAnimation(context, blockedType, packageName, strictMode, customBlockedText, customBlockedTextColor, customOverlayImage)
         }
     }
 

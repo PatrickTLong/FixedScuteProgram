@@ -3,12 +3,17 @@ package com.scuteapp
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.graphics.BitmapFactory
+import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.view.WindowManager
+import android.widget.ImageView
 import android.widget.TextView
+import java.net.URL
+import kotlin.concurrent.thread
 
 /**
  * Full-screen overlay activity displayed when user tries to open a blocked app,
@@ -28,6 +33,8 @@ class BlockedActivity : Activity() {
         private const val EXTRA_BLOCKED_ITEM = "blocked_item"
         private const val EXTRA_STRICT_MODE = "strict_mode"
         private const val EXTRA_CUSTOM_BLOCKED_TEXT = "custom_blocked_text"
+        private const val EXTRA_CUSTOM_BLOCKED_TEXT_COLOR = "custom_blocked_text_color"
+        private const val EXTRA_CUSTOM_OVERLAY_IMAGE = "custom_overlay_image"
 
         const val TYPE_APP = "app"
         const val TYPE_WEBSITE = "website"
@@ -40,7 +47,7 @@ class BlockedActivity : Activity() {
         /**
          * Launch the blocked overlay activity (no animation)
          */
-        fun launch(context: Context, blockedType: String = TYPE_APP, blockedItem: String? = null, strictMode: Boolean = true, customBlockedText: String = "") {
+        fun launch(context: Context, blockedType: String = TYPE_APP, blockedItem: String? = null, strictMode: Boolean = true, customBlockedText: String = "", customBlockedTextColor: String = "", customOverlayImage: String = "") {
             val intent = Intent(context, BlockedActivity::class.java).apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
@@ -50,6 +57,8 @@ class BlockedActivity : Activity() {
                 putExtra(EXTRA_BLOCKED_ITEM, blockedItem)
                 putExtra(EXTRA_STRICT_MODE, strictMode)
                 putExtra(EXTRA_CUSTOM_BLOCKED_TEXT, customBlockedText)
+                putExtra(EXTRA_CUSTOM_BLOCKED_TEXT_COLOR, customBlockedTextColor)
+                putExtra(EXTRA_CUSTOM_OVERLAY_IMAGE, customOverlayImage)
             }
             context.startActivity(intent)
         }
@@ -57,8 +66,8 @@ class BlockedActivity : Activity() {
         /**
          * Launch with explicit no animation (called from AccessibilityService)
          */
-        fun launchNoAnimation(context: Context, blockedType: String = TYPE_APP, blockedItem: String? = null, strictMode: Boolean = true, customBlockedText: String = "") {
-            launch(context, blockedType, blockedItem, strictMode, customBlockedText)
+        fun launchNoAnimation(context: Context, blockedType: String = TYPE_APP, blockedItem: String? = null, strictMode: Boolean = true, customBlockedText: String = "", customBlockedTextColor: String = "", customOverlayImage: String = "") {
+            launch(context, blockedType, blockedItem, strictMode, customBlockedText, customBlockedTextColor, customOverlayImage)
         }
     }
 
@@ -90,6 +99,10 @@ class BlockedActivity : Activity() {
         blockedItem = intent.getStringExtra(EXTRA_BLOCKED_ITEM)
         isStrictMode = intent.getBooleanExtra(EXTRA_STRICT_MODE, true)
         val customBlockedText = intent.getStringExtra(EXTRA_CUSTOM_BLOCKED_TEXT) ?: ""
+        val customBlockedTextColor = intent.getStringExtra(EXTRA_CUSTOM_BLOCKED_TEXT_COLOR) ?: ""
+        val customOverlayImage = intent.getStringExtra(EXTRA_CUSTOM_OVERLAY_IMAGE) ?: ""
+
+        Log.d(TAG, "onCreate: type=$blockedType, item=$blockedItem, customText='$customBlockedText', customTextColor='$customBlockedTextColor', customImage='$customOverlayImage'")
 
         val messageView = findViewById<TextView>(R.id.blocked_message)
 
@@ -100,6 +113,37 @@ class BlockedActivity : Activity() {
                 TYPE_WEBSITE -> "This website is blocked."
                 TYPE_SETTINGS -> "Settings are blocked."
                 else -> "This app is blocked."
+            }
+        }
+
+        // Apply custom text color if provided
+        if (customBlockedTextColor.isNotEmpty()) {
+            try {
+                messageView.setTextColor(Color.parseColor(customBlockedTextColor))
+            } catch (e: Exception) {
+                Log.w(TAG, "Invalid custom text color: $customBlockedTextColor", e)
+            }
+        }
+
+        // Load custom overlay image if provided (replaces center icon)
+        if (customOverlayImage.isNotEmpty()) {
+            val appIconView = findViewById<ImageView>(R.id.blocked_app_icon)
+            if (appIconView != null) {
+                thread {
+                    try {
+                        val inputStream = URL(customOverlayImage).openStream()
+                        val bitmap = BitmapFactory.decodeStream(inputStream)
+                        inputStream.close()
+                        if (bitmap != null) {
+                            runOnUiThread {
+                                appIconView.setImageBitmap(bitmap)
+                                appIconView.visibility = View.VISIBLE
+                            }
+                        }
+                    } catch (e: Exception) {
+                        Log.w(TAG, "Failed to load custom overlay image", e)
+                    }
+                }
             }
         }
 

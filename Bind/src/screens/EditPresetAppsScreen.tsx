@@ -554,6 +554,9 @@ function EditPresetAppsScreen() {
               style={{ color: colors.text, flex: 1, marginLeft: s(8), paddingVertical: 0, includeFontPadding: false, textAlignVertical: 'center' }}
               className={`${textSize.small} ${fontFamily.semibold}`}
             />
+            <Text style={{ color: colors.textMuted, marginLeft: s(8) }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>
+              {name.length}/50
+            </Text>
           </View>
         </View>
 
@@ -685,7 +688,7 @@ function EditPresetAppsScreen() {
                 {/* Apps List - loading dots on first load, then persists */}
                 {loadingApps ? (
                   <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }} pointerEvents="none">
-                    <LoadingSpinner size={s(48)} />
+                    <LoadingSpinner size={s(48)} slideIn />
                   </View>
                 ) : (
                   <FlatList

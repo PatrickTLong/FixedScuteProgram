@@ -18,9 +18,13 @@ import android.view.WindowManager
 import android.view.animation.DecelerateInterpolator
 import android.os.VibrationEffect
 import android.os.Vibrator
+import android.graphics.Color
 import android.widget.ImageView
 import android.widget.TextView
 import java.io.ByteArrayOutputStream
+import java.io.InputStream
+import java.net.URL
+import kotlin.concurrent.thread
 
 /**
  * Manages a WindowManager-based overlay that appears INSTANTLY when a blocked app is detected.
@@ -58,6 +62,12 @@ class BlockedOverlayManager(private val context: Context) {
     private var currentBlockedName: String? = null
     private var currentStrictMode: Boolean = true
     private var currentCustomBlockedText: String = ""
+    private var currentCustomBlockedTextColor: String = ""
+    private var currentCustomOverlayImage: String = ""
+
+    // Cache for downloaded overlay image
+    private var cachedImageUrl: String = ""
+    private var cachedImageBitmap: Bitmap? = null
 
     /**
      * Check if we have permission to draw overlays
@@ -76,10 +86,10 @@ class BlockedOverlayManager(private val context: Context) {
      * Note: TYPE_ACCESSIBILITY_OVERLAY doesn't require SYSTEM_ALERT_WINDOW permission
      * when called from an AccessibilityService.
      */
-    fun show(blockedType: String, blockedItem: String?, blockedName: String?, strictMode: Boolean, customBlockedText: String = ""): Boolean {
+    fun show(blockedType: String, blockedItem: String?, blockedName: String?, strictMode: Boolean, customBlockedText: String = "", customBlockedTextColor: String = "", customOverlayImage: String = ""): Boolean {
         if (isShowing) {
             Log.d(TAG, "Overlay already showing, updating content")
-            updateContent(blockedType, blockedItem, blockedName, strictMode, customBlockedText)
+            updateContent(blockedType, blockedItem, blockedName, strictMode, customBlockedText, customBlockedTextColor, customOverlayImage)
             return true
         }
 
@@ -92,6 +102,8 @@ class BlockedOverlayManager(private val context: Context) {
             currentBlockedName = blockedName
             currentStrictMode = strictMode
             currentCustomBlockedText = customBlockedText
+            currentCustomBlockedTextColor = customBlockedTextColor
+            currentCustomOverlayImage = customOverlayImage
 
             windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
 
@@ -138,7 +150,7 @@ class BlockedOverlayManager(private val context: Context) {
             }
 
             // Update content based on block type
-            updateViewContent(blockedType, blockedItem, blockedName, strictMode, customBlockedText)
+            updateViewContent(blockedType, blockedItem, blockedName, strictMode, customBlockedText, customBlockedTextColor, customOverlayImage)
 
             // Hide navigation and status bar (matching BlockedActivity's fullscreen theme)
             overlayView?.systemUiVisibility = (View.SYSTEM_UI_FLAG_LAYOUT_STABLE
@@ -228,19 +240,23 @@ class BlockedOverlayManager(private val context: Context) {
     /**
      * Update the content of an already showing overlay
      */
-    private fun updateContent(blockedType: String, blockedItem: String?, blockedName: String?, strictMode: Boolean, customBlockedText: String = "") {
+    private fun updateContent(blockedType: String, blockedItem: String?, blockedName: String?, strictMode: Boolean, customBlockedText: String = "", customBlockedTextColor: String = "", customOverlayImage: String = "") {
         currentBlockedType = blockedType
         currentBlockedItem = blockedItem
         currentBlockedName = blockedName
         currentStrictMode = strictMode
         currentCustomBlockedText = customBlockedText
-        updateViewContent(blockedType, blockedItem, blockedName, strictMode, customBlockedText)
+        currentCustomBlockedTextColor = customBlockedTextColor
+        currentCustomOverlayImage = customOverlayImage
+        updateViewContent(blockedType, blockedItem, blockedName, strictMode, customBlockedText, customBlockedTextColor, customOverlayImage)
     }
 
     /**
      * Update the view content based on block type
      */
-    private fun updateViewContent(blockedType: String, blockedItem: String?, blockedName: String?, strictMode: Boolean, customBlockedText: String = "") {
+    private fun updateViewContent(blockedType: String, blockedItem: String?, blockedName: String?, strictMode: Boolean, customBlockedText: String = "", customBlockedTextColor: String = "", customOverlayImage: String = "") {
+        Log.d(TAG, "updateViewContent: type=$blockedType, item=$blockedItem, customText='$customBlockedText', customTextColor='$customBlockedTextColor', customImage='$customOverlayImage'")
+
         // Get views
         val appIconView = overlayView?.findViewById<ImageView>(R.id.overlay_app_icon)
         val messageView = overlayView?.findViewById<TextView>(R.id.overlay_message)
@@ -262,9 +278,52 @@ class BlockedOverlayManager(private val context: Context) {
             }
         }
 
-        // Always show the blocked app/website icon in the center
+        // Apply custom text color if provided
+        if (customBlockedTextColor.isNotEmpty()) {
+            try {
+                messageView?.setTextColor(Color.parseColor(customBlockedTextColor))
+            } catch (e: Exception) {
+                Log.w(TAG, "Invalid custom text color: $customBlockedTextColor", e)
+            }
+        }
+
+        // Custom overlay image replaces the center icon
+        if (customOverlayImage.isNotEmpty()) {
+            appIconView?.visibility = View.VISIBLE
+            // Check if we have this image cached
+            if (cachedImageUrl == customOverlayImage && cachedImageBitmap != null) {
+                appIconView?.setImageBitmap(cachedImageBitmap)
+            } else {
+                // Download in background and set when ready
+                thread {
+                    try {
+                        val inputStream: InputStream = URL(customOverlayImage).openStream()
+                        val bitmap = BitmapFactory.decodeStream(inputStream)
+                        inputStream.close()
+                        if (bitmap != null) {
+                            cachedImageUrl = customOverlayImage
+                            cachedImageBitmap = bitmap
+                            appIconView?.post {
+                                appIconView.setImageBitmap(bitmap)
+                            }
+                        }
+                    } catch (e: Exception) {
+                        Log.w(TAG, "Failed to load custom overlay image", e)
+                        // Fall back to default icon
+                        appIconView?.post {
+                            setDefaultIcon(appIconView, blockedType)
+                        }
+                    }
+                }
+            }
+        } else {
+            setDefaultIcon(appIconView, blockedType)
+        }
+
+    }
+
+    private fun setDefaultIcon(appIconView: ImageView?, blockedType: String) {
         if (blockedType == TYPE_APP || blockedType == TYPE_SETTINGS) {
-            // For apps and settings, show Android icon
             try {
                 appIconView?.setImageResource(R.drawable.ic_android)
                 appIconView?.visibility = View.VISIBLE
@@ -273,7 +332,6 @@ class BlockedOverlayManager(private val context: Context) {
                 appIconView?.visibility = View.GONE
             }
         } else if (blockedType == TYPE_WEBSITE) {
-            // For websites, show globe icon
             try {
                 appIconView?.setImageResource(R.drawable.ic_globe)
                 appIconView?.visibility = View.VISIBLE
@@ -282,10 +340,8 @@ class BlockedOverlayManager(private val context: Context) {
                 appIconView?.visibility = View.GONE
             }
         } else {
-            // For unknown types, hide the center icon (Scute logo is in top-left)
             appIconView?.visibility = View.GONE
         }
-
     }
 
     /**

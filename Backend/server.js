@@ -7,6 +7,9 @@ const jwt = require('jsonwebtoken');
 const { createClient } = require('@supabase/supabase-js');
 
 const path = require('path');
+const multer = require('multer');
+
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } }); // 5MB max
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -1025,6 +1028,10 @@ app.get('/api/presets', authenticateToken, async (req, res) => {
       strictMode: p.strict_mode ?? false, // Default to false (slide-to-unlock available)
       // Custom blocked message - replaces default "X is blocked." overlay text
       customBlockedText: p.custom_blocked_text || '',
+      // Custom overlay text color (hex code)
+      customBlockedTextColor: p.custom_blocked_text_color || '',
+      // Custom overlay image URL (replaces center icon)
+      customOverlayImage: p.custom_overlay_image || '',
     }));
 
     console.log('[presets:get] Returning', presets.length, 'presets for user:', normalizedEmail);
@@ -1089,6 +1096,10 @@ app.post('/api/presets', authenticateToken, async (req, res) => {
       strict_mode: preset.strictMode ?? false, // Default to false (slide-to-unlock available)
       // Custom blocked message - replaces default "X is blocked." overlay text
       custom_blocked_text: preset.customBlockedText || '',
+      // Custom overlay text color (hex code)
+      custom_blocked_text_color: preset.customBlockedTextColor || '',
+      // Custom overlay image URL (replaces center icon)
+      custom_overlay_image: preset.customOverlayImage || '',
     };
 
     console.log('[presets:save] Preset data:', {
@@ -1363,6 +1374,86 @@ app.post('/api/presets/reset', authenticateToken, async (req, res) => {
   } catch (error) {
     console.error('Reset presets error:', error);
     res.status(500).json({ error: 'Failed to reset presets' });
+  }
+});
+
+// ============ OVERLAY IMAGE UPLOAD ============
+
+// POST /api/overlay-image - Upload a custom overlay image to Supabase Storage (PROTECTED)
+app.post('/api/overlay-image', authenticateToken, upload.single('image'), async (req, res) => {
+  const normalizedEmail = req.userEmail;
+  const presetId = req.body.presetId;
+
+  console.log(`[overlay-image] POST received — email: ${normalizedEmail}, presetId: ${presetId}, hasFile: ${!!req.file}`);
+  if (req.file) {
+    console.log(`[overlay-image] File details — name: ${req.file.originalname}, type: ${req.file.mimetype}, size: ${req.file.size} bytes`);
+  }
+
+  if (!req.file) {
+    console.error('[overlay-image] No image file in request');
+    return res.status(400).json({ error: 'No image file provided' });
+  }
+  if (!presetId) {
+    console.error('[overlay-image] No presetId in request');
+    return res.status(400).json({ error: 'presetId is required' });
+  }
+
+  try {
+    const ext = req.file.originalname.split('.').pop() || 'jpg';
+    const filePath = `${normalizedEmail}/${presetId}.${ext}`;
+    console.log(`[overlay-image] Uploading to Supabase Storage — path: ${filePath}, contentType: ${req.file.mimetype}, bufferSize: ${req.file.buffer.length}`);
+
+    // Upload to Supabase Storage (upsert to overwrite existing)
+    const { error: uploadError } = await supabase.storage
+      .from('overlay-images')
+      .upload(filePath, req.file.buffer, {
+        contentType: req.file.mimetype,
+        upsert: true,
+      });
+
+    if (uploadError) {
+      console.error('[overlay-image] Supabase upload error:', JSON.stringify(uploadError));
+      return res.status(500).json({ error: 'Failed to upload image' });
+    }
+
+    // Get the public URL
+    const { data: urlData } = supabase.storage
+      .from('overlay-images')
+      .getPublicUrl(filePath);
+
+    console.log(`[overlay-image] Upload success — URL: ${urlData.publicUrl}`);
+    res.json({ url: urlData.publicUrl });
+  } catch (error) {
+    console.error('[overlay-image] Exception:', error);
+    res.status(500).json({ error: 'Failed to upload image' });
+  }
+});
+
+// DELETE /api/overlay-image - Remove a custom overlay image (PROTECTED)
+app.delete('/api/overlay-image', authenticateToken, async (req, res) => {
+  const normalizedEmail = req.userEmail;
+  const { presetId } = req.body;
+
+  if (!presetId) {
+    return res.status(400).json({ error: 'presetId is required' });
+  }
+
+  try {
+    // List files in the user's preset folder to find the image
+    const { data: files } = await supabase.storage
+      .from('overlay-images')
+      .list(normalizedEmail, { search: presetId });
+
+    if (files && files.length > 0) {
+      const filePaths = files.map(f => `${normalizedEmail}/${f.name}`);
+      await supabase.storage.from('overlay-images').remove(filePaths);
+      console.log(`[overlay-image] Deleted for ${normalizedEmail}, preset ${presetId}`);
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Overlay image delete error:', error);
+    res.status(500).json({ error: 'Failed to delete image' });
   }
 });
 

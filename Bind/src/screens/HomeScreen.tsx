@@ -223,6 +223,8 @@ function HomeScreen() {
           isScheduled: true,
           strictMode: preset.strictMode ?? false,
           customBlockedText: preset.customBlockedText ?? '',
+          customBlockedTextColor: preset.customBlockedTextColor ?? '',
+          customOverlayImage: preset.customOverlayImage ?? '',
         };
         console.log('[SCHED-DEBUG] Calling BlockingModule.startBlocking:', JSON.stringify(blockingConfig));
         await BlockingModule.startBlocking(blockingConfig);
@@ -932,6 +934,8 @@ function HomeScreen() {
               isScheduled: activePreset.isScheduled || false,
               strictMode: activePreset.strictMode ?? false,
               customBlockedText: activePreset.customBlockedText ?? '',
+              customBlockedTextColor: activePreset.customBlockedTextColor ?? '',
+              customOverlayImage: activePreset.customOverlayImage ?? '',
             });
           }
 
@@ -1014,7 +1018,7 @@ function HomeScreen() {
   if (loading) {
     return (
       <View style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center', paddingTop: insets.top }}>
-        <LoadingSpinner size={s(48)} />
+        <LoadingSpinner size={s(48)} slideIn />
       </View>
     );
   }

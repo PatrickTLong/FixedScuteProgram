@@ -265,6 +265,12 @@ export interface Preset {
   // Strict mode - when enabled, presets are locked and require emergency tapout to unlock
   // When disabled, slide-to-unlock is available for all presets
   strictMode?: boolean;
+  // Custom blocked message - replaces default "X is blocked." overlay text
+  customBlockedText?: string;
+  // Custom overlay text color (hex code like '#FF5733')
+  customBlockedTextColor?: string;
+  // Custom overlay image URL (replaces center icon)
+  customOverlayImage?: string;
 }
 
 /**

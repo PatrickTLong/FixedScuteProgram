@@ -6,7 +6,8 @@ import {
   NativeSyntheticEvent,
   NativeScrollEvent,
 } from 'react-native';
-import { useTheme, fontFamily } from '../context/ThemeContext';
+import { useTheme, fontFamily, haptics } from '../context/ThemeContext';
+import { triggerHaptic } from '../utils/haptics';
 import { useResponsive } from '../utils/responsive';
 
 const BASE_ITEM_HEIGHT = 40;
@@ -33,6 +34,7 @@ interface WheelProps {
 const Wheel = memo(({ values, selectedValue, onValueChange, label, textColor, textMutedColor, labelColor, itemHeight, wheelWidth, selectedFontSize, unselectedFontSize, labelFontSize, labelMarginTop, parentScrollRef }: WheelProps) => {
   const scrollRef = useRef<ScrollView>(null);
   const scrolledByUser = useRef(false);
+  const lastTickIndex = useRef(values.indexOf(selectedValue));
 
   const selectedIndex = values.indexOf(selectedValue);
   const [windowStart, setWindowStart] = useState(() => Math.max(0, selectedIndex - WINDOW_BUFFER));
@@ -66,6 +68,13 @@ const Wheel = memo(({ values, selectedValue, onValueChange, label, textColor, te
     const offsetY = event.nativeEvent.contentOffset.y;
     const currentIndex = Math.round(offsetY / itemHeight);
     const clampedIndex = Math.max(0, Math.min(currentIndex, values.length - 1));
+
+    if (clampedIndex !== lastTickIndex.current) {
+      lastTickIndex.current = clampedIndex;
+      if (haptics.timeWheel.enabled) {
+        triggerHaptic(haptics.timeWheel.type);
+      }
+    }
 
     updateWindow(clampedIndex);
   }, [values.length, itemHeight, updateWindow]);

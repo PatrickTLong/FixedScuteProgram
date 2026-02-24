@@ -35,6 +35,8 @@ export interface FinalSettingsState {
   recurringValue: string;
   recurringUnit: 'minutes' | 'hours' | 'days' | 'weeks' | 'months';
   customBlockedText: string;
+  customBlockedTextColor: string;
+  customOverlayImage: string;
 }
 
 // Params passed to the DatePicker screen

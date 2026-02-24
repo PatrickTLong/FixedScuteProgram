@@ -159,7 +159,7 @@ function ForgotPasswordScreen() {
   if (loading) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }}>
-        <LoadingSpinner size={s(48)} />
+        <LoadingSpinner size={s(48)} slideIn />
       </SafeAreaView>
     );
   }

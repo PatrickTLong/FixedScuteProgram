@@ -10,7 +10,15 @@ import {
   Platform,
   NativeSyntheticEvent,
   NativeScrollEvent,
+  Image,
+  PanResponder,
+  LayoutChangeEvent,
+  Alert,
 } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
+import { launchImageLibrary } from 'react-native-image-picker';
+import { getAuthToken } from '../services/cardApi';
+import { API_URL } from '../config/api';
 import AnimatedSwitch from '../components/AnimatedSwitch';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -273,6 +281,7 @@ interface RecurrenceWheelProps {
 const RecurrenceWheel = memo(({ values, selectedValue, onValueChange, textColor, textMutedColor, itemHeight, wheelWidth, selectedFontSize, unselectedFontSize, formatValue, parentScrollRef }: RecurrenceWheelProps) => {
   const scrollRef = useRef<ScrollView>(null);
   const scrolledByUser = useRef(false);
+  const lastTickIndex = useRef(values.indexOf(selectedValue));
 
   const selectedIndex = values.indexOf(selectedValue);
   const [windowStart, setWindowStart] = useState(() => Math.max(0, selectedIndex - RECURRENCE_WINDOW_BUFFER));
@@ -304,6 +313,13 @@ const RecurrenceWheel = memo(({ values, selectedValue, onValueChange, textColor,
     const offsetY = event.nativeEvent.contentOffset.y;
     const currentIndex = Math.round(offsetY / itemHeight);
     const clampedIndex = Math.max(0, Math.min(currentIndex, values.length - 1));
+
+    if (clampedIndex !== lastTickIndex.current) {
+      lastTickIndex.current = clampedIndex;
+      if (haptics.timeWheel.enabled) {
+        triggerHaptic(haptics.timeWheel.type);
+      }
+    }
 
     updateWindow(clampedIndex);
   }, [values.length, itemHeight, updateWindow]);
@@ -442,7 +458,7 @@ function PresetSettingsScreen() {
   const blockedWebsites = paramsSnapshot?.blockedWebsites ?? [];
   const installedApps = paramsSnapshot?.installedApps ?? [];
   const iosSelectedAppsCount = paramsSnapshot?.iosSelectedAppsCount ?? 0;
-  const { tapoutStatus } = useAuth();
+  const { tapoutStatus, userEmail } = useAuth();
   const { colors } = useTheme();
   const { s } = useResponsive();
   const insets = useSafeAreaInsets();
@@ -502,6 +518,16 @@ function PresetSettingsScreen() {
   const [customBlockedText, setCustomBlockedText] = useState('');
   const [customBlockedTextEnabled, setCustomBlockedTextEnabled] = useState(false);
 
+  // Custom text color (hex code)
+  const [customBlockedTextColor, setCustomBlockedTextColor] = useState('');
+  const [customBlockedTextColorEnabled, setCustomBlockedTextColorEnabled] = useState(false);
+  const [colorPickerWidth, setColorPickerWidth] = useState(0);
+
+  // Custom overlay image
+  const [customOverlayImage, setCustomOverlayImage] = useState('');
+  const [customOverlayImageEnabled, setCustomOverlayImageEnabled] = useState(false);
+  const [imageUploading, setImageUploading] = useState(false);
+
   // Expandable info dropdowns
   const [expandedInfo, setExpandedInfo] = useState<Record<string, boolean>>({});
   const toggleInfo = useCallback((key: string) => {
@@ -544,6 +570,8 @@ function PresetSettingsScreen() {
   const recurringValueRef = useRef(recurringValue);
   const recurringUnitRef = useRef(recurringUnit);
   const customBlockedTextRef = useRef(customBlockedText);
+  const customBlockedTextColorRef = useRef(customBlockedTextColor);
+  const customOverlayImageRef = useRef(customOverlayImage);
 
   // Keep refs in sync with state
   blockSettingsRef.current = blockSettings;
@@ -564,6 +592,8 @@ function PresetSettingsScreen() {
   recurringValueRef.current = recurringValue;
   recurringUnitRef.current = recurringUnit;
   customBlockedTextRef.current = customBlockedText;
+  customBlockedTextColorRef.current = customBlockedTextColor;
+  customOverlayImageRef.current = customOverlayImage;
 
   // ============ Reinitialize from editingPreset each time screen gains focus ============
   // Restores from saved finalSettingsState if returning from EditPresetApps (back-and-forward),
@@ -593,6 +623,10 @@ function PresetSettingsScreen() {
         setRecurringUnit(savedState.recurringUnit);
         setCustomBlockedText(savedState.customBlockedText ?? '');
         setCustomBlockedTextEnabled(!!(savedState.customBlockedText));
+        setCustomBlockedTextColor(savedState.customBlockedTextColor ?? '');
+        setCustomBlockedTextColorEnabled(!!(savedState.customBlockedTextColor));
+        setCustomOverlayImage(savedState.customOverlayImage ?? '');
+        setCustomOverlayImageEnabled(!!(savedState.customOverlayImage));
       } else {
         const editingPreset = getEditingPreset();
         if (editingPreset) {
@@ -615,6 +649,10 @@ function PresetSettingsScreen() {
           setRecurringUnit(editingPreset.repeat_unit ?? 'hours');
           setCustomBlockedText(editingPreset.customBlockedText ?? '');
           setCustomBlockedTextEnabled(!!(editingPreset.customBlockedText));
+          setCustomBlockedTextColor(editingPreset.customBlockedTextColor ?? '');
+          setCustomBlockedTextColorEnabled(!!(editingPreset.customBlockedTextColor));
+          setCustomOverlayImage(editingPreset.customOverlayImage ?? '');
+          setCustomOverlayImageEnabled(!!(editingPreset.customOverlayImage));
         } else {
           // New preset defaults
           setBlockSettings(false);
@@ -636,6 +674,10 @@ function PresetSettingsScreen() {
           setRecurringUnit('hours');
           setCustomBlockedText('');
           setCustomBlockedTextEnabled(false);
+          setCustomBlockedTextColor('');
+          setCustomBlockedTextColorEnabled(false);
+          setCustomOverlayImage('');
+          setCustomOverlayImageEnabled(false);
         }
       }
       // Apply date picker result if returning from DatePicker screen
@@ -691,6 +733,8 @@ function PresetSettingsScreen() {
           recurringValue: recurringValueRef.current,
           recurringUnit: recurringUnitRef.current,
           customBlockedText: customBlockedTextRef.current,
+          customBlockedTextColor: customBlockedTextColorRef.current,
+          customOverlayImage: customOverlayImageRef.current,
         });
       };
     }, [getEditingPreset, getFinalSettingsState, setFinalSettingsState, getDatePickerResult, setDatePickerResult])
@@ -731,6 +775,130 @@ function PresetSettingsScreen() {
     setDatePickerResult(null);
     navigation.navigate('DatePicker');
   }, [targetDate, scheduleStartDate, scheduleEndDate, navigation, setDatePickerParams, setDatePickerResult]);
+
+  // ============ Color Picker Helper ============
+  const SPECTRUM_COLORS = ['#FF0000', '#FF8000', '#FFFF00', '#00FF00', '#00FFFF', '#0000FF', '#8000FF', '#FF00FF', '#FF0000'];
+
+  const getColorFromPosition = useCallback((x: number, width: number): string => {
+    if (width <= 0) return '#FFFFFF';
+    const ratio = Math.max(0, Math.min(1, x / width));
+    const segment = ratio * (SPECTRUM_COLORS.length - 1);
+    const index = Math.floor(segment);
+    const t = segment - index;
+    const c1 = SPECTRUM_COLORS[Math.min(index, SPECTRUM_COLORS.length - 1)];
+    const c2 = SPECTRUM_COLORS[Math.min(index + 1, SPECTRUM_COLORS.length - 1)];
+    // Interpolate between two colors
+    const r1 = parseInt(c1.slice(1, 3), 16), g1 = parseInt(c1.slice(3, 5), 16), b1 = parseInt(c1.slice(5, 7), 16);
+    const r2 = parseInt(c2.slice(1, 3), 16), g2 = parseInt(c2.slice(3, 5), 16), b2 = parseInt(c2.slice(5, 7), 16);
+    const r = Math.round(r1 + (r2 - r1) * t);
+    const g = Math.round(g1 + (g2 - g1) * t);
+    const b = Math.round(b1 + (b2 - b1) * t);
+    return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`.toUpperCase();
+  }, []);
+
+  const colorPickerPanResponder = useMemo(() => PanResponder.create({
+    onStartShouldSetPanResponder: () => true,
+    onMoveShouldSetPanResponder: () => true,
+    onPanResponderGrant: (evt) => {
+      const x = evt.nativeEvent.locationX;
+      setCustomBlockedTextColor(getColorFromPosition(x, colorPickerWidth));
+    },
+    onPanResponderMove: (evt) => {
+      const x = evt.nativeEvent.locationX;
+      setCustomBlockedTextColor(getColorFromPosition(x, colorPickerWidth));
+    },
+  }), [colorPickerWidth, getColorFromPosition]);
+
+  // ============ Image Picker Handler ============
+  const handlePickImage = useCallback(async () => {
+    console.log('[OverlayImage] handlePickImage called');
+    try {
+      console.log('[OverlayImage] Launching image library...');
+      const result = await launchImageLibrary({
+        mediaType: 'photo',
+        maxWidth: 512,
+        maxHeight: 512,
+        quality: 0.8,
+      });
+
+      console.log('[OverlayImage] Image picker result:', JSON.stringify({
+        didCancel: result.didCancel,
+        errorCode: result.errorCode,
+        errorMessage: result.errorMessage,
+        assetCount: result.assets?.length ?? 0,
+      }));
+
+      if (result.didCancel) {
+        console.log('[OverlayImage] User cancelled image picker');
+        return;
+      }
+      if (result.errorCode) {
+        console.error('[OverlayImage] Image picker error:', result.errorCode, result.errorMessage);
+        Alert.alert('Picker Error', result.errorMessage || result.errorCode);
+        return;
+      }
+      if (!result.assets?.[0]?.uri) {
+        console.error('[OverlayImage] No asset URI returned');
+        return;
+      }
+
+      const asset = result.assets[0];
+      console.log('[OverlayImage] Selected asset:', JSON.stringify({
+        uri: asset.uri,
+        type: asset.type,
+        fileName: asset.fileName,
+        fileSize: asset.fileSize,
+        width: asset.width,
+        height: asset.height,
+      }));
+      setImageUploading(true);
+
+      // Upload to backend
+      console.log('[OverlayImage] Getting auth token...');
+      const token = await getAuthToken();
+      console.log('[OverlayImage] Auth token received:', !!token);
+
+      const formData = new FormData();
+      formData.append('image', {
+        uri: asset.uri,
+        type: asset.type || 'image/jpeg',
+        name: asset.fileName || 'overlay.jpg',
+      } as any);
+
+      const editingPreset = getEditingPreset();
+      const presetId = editingPreset?.id || 'new';
+      formData.append('presetId', presetId);
+
+      const uploadUrl = `${API_URL}/api/overlay-image`;
+      console.log('[OverlayImage] Uploading to:', uploadUrl, 'presetId:', presetId);
+
+      const response = await fetch(uploadUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      console.log('[OverlayImage] Response status:', response.status, response.statusText);
+      const data = await response.json();
+      console.log('[OverlayImage] Response data:', JSON.stringify(data));
+
+      if (data.url) {
+        console.log('[OverlayImage] Upload success, URL:', data.url);
+        setCustomOverlayImage(data.url);
+      } else {
+        console.error('[OverlayImage] Upload failed:', data.error);
+        Alert.alert('Upload Failed', data.error || 'Could not upload image');
+      }
+    } catch (error: any) {
+      console.error('[OverlayImage] Exception:', error?.message || error, error?.stack);
+      Alert.alert('Error', 'Failed to pick or upload image');
+    } finally {
+      setImageUploading(false);
+      console.log('[OverlayImage] handlePickImage finished');
+    }
+  }, [getEditingPreset]);
 
   // ============ Validation Logic ============
   const hasTimerValue = useMemo(() =>
@@ -805,6 +973,8 @@ function PresetSettingsScreen() {
       repeat_unit: isScheduled && isRecurring ? recurringUnit : undefined,
       repeat_interval: isScheduled && isRecurring ? finalRecurringInterval : undefined,
       customBlockedText: customBlockedTextEnabled ? customBlockedText.trim() : undefined,
+      customBlockedTextColor: customBlockedTextColorEnabled ? customBlockedTextColor : undefined,
+      customOverlayImage: customOverlayImageEnabled ? customOverlayImage : undefined,
     };
 
     // Navigate immediately — save happens in the background
@@ -812,7 +982,7 @@ function PresetSettingsScreen() {
     setPresetSettingsParams(null);
     navigation.navigate({ name: 'Presets' } as any);
     onSave(newPreset);
-  }, [name, canSave, getEditingPreset, getExistingPresets, installedSelectedApps, blockedWebsites, blockSettings, noTimeLimit, timerDays, timerHours, timerMinutes, timerSeconds, targetDate, onSave, allowEmergencyTapout, strictMode, isScheduled, scheduleStartDate, scheduleEndDate, isRecurring, recurringValue, recurringUnit, navigation, setFinalSettingsState, customBlockedText, customBlockedTextEnabled]);
+  }, [name, canSave, getEditingPreset, getExistingPresets, installedSelectedApps, blockedWebsites, blockSettings, noTimeLimit, timerDays, timerHours, timerMinutes, timerSeconds, targetDate, onSave, allowEmergencyTapout, strictMode, isScheduled, scheduleStartDate, scheduleEndDate, isRecurring, recurringValue, recurringUnit, navigation, setFinalSettingsState, customBlockedText, customBlockedTextEnabled, customBlockedTextColor, customBlockedTextColorEnabled, customOverlayImage, customOverlayImageEnabled]);
 
 
   // ============ Render ============
@@ -1501,6 +1671,193 @@ function PresetSettingsScreen() {
               <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-2 text-right`}>
                 {customBlockedText.length}/200
               </Text>
+
+              {/* ---- Text Color Picker ---- */}
+              <View style={{ marginTop: s(12), backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card, padding: s(14) }} className={radius.xl}>
+                <View className="flex-row items-center justify-between" style={{ marginBottom: s(10) }}>
+                  <View className="flex-row items-center">
+                    <MaterialCommunityIcons name="color-wheel" size={s(20)} color={colors.text} style={{ marginRight: s(8) }} />
+                    <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>Text Color</Text>
+                  </View>
+                  <AnimatedSwitch
+                    size="small"
+                    value={customBlockedTextColorEnabled}
+                    animate={!skipSwitchAnimation}
+                    onValueChange={(value: boolean) => {
+                      setCustomBlockedTextColorEnabled(value);
+                      if (!value) {
+                        setCustomBlockedTextColor('');
+                      }
+                    }}
+                  />
+                </View>
+                <ExpandableInfo expanded={customBlockedTextColorEnabled}>
+                  <View>
+                    {/* Gradient spectrum bar */}
+                    <View
+                      onLayout={(e: LayoutChangeEvent) => setColorPickerWidth(e.nativeEvent.layout.width)}
+                      style={{ height: s(40), borderRadius: s(8), overflow: 'hidden' }}
+                      {...colorPickerPanResponder.panHandlers}
+                    >
+                      <LinearGradient
+                        colors={SPECTRUM_COLORS}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 0 }}
+                        style={{ flex: 1 }}
+                      />
+                    </View>
+                    {/* Hex code input */}
+                    <View className="flex-row items-center" style={{ marginTop: s(10) }}>
+                      <TextInput
+                        value={customBlockedTextColor}
+                        onChangeText={(text) => {
+                          // Allow typing hex codes
+                          let cleaned = text.toUpperCase();
+                          if (!cleaned.startsWith('#')) cleaned = '#' + cleaned;
+                          if (cleaned.length <= 7) setCustomBlockedTextColor(cleaned);
+                        }}
+                        placeholder="#FFFFFF"
+                        placeholderTextColor={colors.textSecondary}
+                        maxLength={7}
+                        autoCapitalize="characters"
+                        style={{
+                          flex: 1,
+                          backgroundColor: colors.bg,
+                          color: colors.text,
+                          borderWidth: 1,
+                          borderColor: colors.border,
+                          padding: s(10),
+                          borderRadius: s(8),
+                        }}
+                        className={`${textSize.small} ${fontFamily.semibold}`}
+                      />
+                      <TouchableOpacity
+                        onPress={() => setCustomBlockedTextColor('')}
+                        style={{ marginLeft: s(10), backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.border, borderRadius: s(8), padding: s(10) }}
+                      >
+                        <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.semibold}`}>Reset</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </ExpandableInfo>
+              </View>
+
+              {/* ---- Custom Icon Image ---- */}
+              <View style={{ marginTop: s(12), backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card, padding: s(14) }} className={radius.xl}>
+                <View className="flex-row items-center justify-between" style={{ marginBottom: customOverlayImageEnabled ? s(10) : 0 }}>
+                  <View className="flex-row items-center">
+                    <MaterialCommunityIcons name="image-plus" size={s(20)} color={colors.text} style={{ marginRight: s(8) }} />
+                    <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>Custom Icon</Text>
+                  </View>
+                  <AnimatedSwitch
+                    size="small"
+                    value={customOverlayImageEnabled}
+                    animate={!skipSwitchAnimation}
+                    onValueChange={(value: boolean) => {
+                      setCustomOverlayImageEnabled(value);
+                      if (!value) {
+                        setCustomOverlayImage('');
+                      }
+                    }}
+                  />
+                </View>
+                <ExpandableInfo expanded={customOverlayImageEnabled}>
+                  <View>
+                    {customOverlayImage ? (
+                      <View className="items-center">
+                        <Image
+                          source={{ uri: customOverlayImage }}
+                          style={{ width: s(80), height: s(80), borderRadius: s(12), marginBottom: s(10) }}
+                          resizeMode="cover"
+                        />
+                        <View className="flex-row">
+                          <TouchableOpacity
+                            onPress={handlePickImage}
+                            disabled={imageUploading}
+                            style={{ backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.border, borderRadius: s(8), paddingVertical: s(8), paddingHorizontal: s(14), marginRight: s(8) }}
+                          >
+                            <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>Change</Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            onPress={() => setCustomOverlayImage('')}
+                            style={{ backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.red, borderRadius: s(8), paddingVertical: s(8), paddingHorizontal: s(14) }}
+                          >
+                            <Text style={{ color: colors.red }} className={`${textSize.small} ${fontFamily.semibold}`}>Remove</Text>
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    ) : (
+                      <TouchableOpacity
+                        onPress={handlePickImage}
+                        disabled={imageUploading}
+                        style={{ backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.border, borderRadius: s(8), paddingVertical: s(14), alignItems: 'center' }}
+                      >
+                        <MaterialCommunityIcons name="image-plus" size={s(24)} color={colors.textSecondary} />
+                        <Text style={{ color: colors.textSecondary, marginTop: s(4) }} className={`${textSize.small} ${fontFamily.semibold}`}>
+                          {imageUploading ? 'Uploading...' : 'Choose Image'}
+                        </Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                </ExpandableInfo>
+              </View>
+
+              {/* ---- Overlay Preview ---- */}
+              <View style={{ marginTop: s(16), backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card, padding: s(14) }} className={radius.xl}>
+                <Text style={{ color: colors.text, marginBottom: s(10) }} className={`${textSize.small} ${fontFamily.semibold}`}>Preview</Text>
+                <View style={{
+                  backgroundColor: '#28282B',
+                  borderRadius: s(12),
+                  overflow: 'hidden',
+                  aspectRatio: 9 / 16,
+                  width: '100%',
+                }}>
+                  {/* Mini Scute logo - top left */}
+                  <Image
+                    source={require('../frontassets/scute_logo.png')}
+                    style={{
+                      position: 'absolute',
+                      top: s(-6),
+                      left: s(-2),
+                      width: s(40),
+                      height: s(40),
+                      tintColor: '#FFFFFF',
+                    }}
+                    resizeMode="contain"
+                  />
+                  {/* Center content */}
+                  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: s(16) }}>
+                    {/* Icon or custom image */}
+                    {customOverlayImageEnabled && customOverlayImage ? (
+                      <Image
+                        source={{ uri: customOverlayImage }}
+                        style={{ width: s(48), height: s(48), borderRadius: s(8), marginBottom: s(10) }}
+                        resizeMode="cover"
+                      />
+                    ) : (
+                      <MaterialCommunityIcons name="android" size={s(48)} color="#FFFFFF" style={{ marginBottom: s(10) }} />
+                    )}
+                    {/* Message text */}
+                    <Text style={{
+                      color: customBlockedTextColorEnabled && customBlockedTextColor ? customBlockedTextColor : '#FFFFFF',
+                      textAlign: 'center',
+                      fontSize: s(11),
+                      lineHeight: s(15),
+                    }} className={fontFamily.bold}>
+                      {customBlockedText.trim() || 'This app is blocked.'}
+                    </Text>
+                    {/* Tap to dismiss hint */}
+                    <Text style={{
+                      color: '#FFFFFF',
+                      fontSize: s(6),
+                      marginTop: s(10),
+                      opacity: 0.7,
+                    }} className={fontFamily.bold}>
+                      Tap anywhere to dismiss
+                    </Text>
+                  </View>
+                </View>
+              </View>
             </View>
           </ExpandableInfo>
         </View>
