@@ -5,7 +5,6 @@ import {
   FlatList,
   TouchableOpacity,
   NativeModules,
-  Image,
   Platform,
   RefreshControl,
   Animated,
@@ -696,28 +695,23 @@ function PresetsScreen() {
   const keyExtractor = useCallback((item: Preset) => item.id, []);
 
   const ListEmptyComponent = useCallback(() => (
-    <View className="items-center py-12" style={{ marginTop: s(-40) }}>
+    <View style={{ alignItems: 'center', paddingTop: s(60), paddingHorizontal: s(32) }}>
       {!loading && (
         <>
-          <View className="items-center">
-            <Image
-              source={require('../frontassets/TrueScute-Photoroom.png')}
-              style={{
-                width: s(250),
-                height: s(250),
-                tintColor: colors.textMuted,
-                opacity: 0.3,
-                marginBottom: s(-80),
-              }}
-              resizeMode="contain"
-            />
-            <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular}`}>
-              No presets yet
-            </Text>
-          </View>
-          <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-1`}>
-            Tap + to create one
+          <Svg width={s(48)} height={s(48)} viewBox="0 0 24 24" fill={colors.textMuted}>
+              <Path d="M21 6.375c0 2.692-4.03 4.875-9 4.875S3 9.067 3 6.375 7.03 1.5 12 1.5s9 2.183 9 4.875Z" />
+              <Path d="M12 12.75c2.685 0 5.19-.586 7.078-1.609a8.283 8.283 0 0 0 1.897-1.384c.016.121.025.244.025.368C21 12.817 16.97 15 12 15s-9-2.183-9-4.875c0-.124.009-.247.025-.368a8.285 8.285 0 0 0 1.897 1.384C6.809 12.164 9.315 12.75 12 12.75Z" />
+              <Path d="M12 16.5c2.685 0 5.19-.586 7.078-1.609a8.282 8.282 0 0 0 1.897-1.384c.016.121.025.244.025.368 0 2.692-4.03 4.875-9 4.875s-9-2.183-9-4.875c0-.124.009-.247.025-.368a8.284 8.284 0 0 0 1.897 1.384C6.809 15.914 9.315 16.5 12 16.5Z" />
+              <Path d="M12 20.25c2.685 0 5.19-.586 7.078-1.609a8.282 8.282 0 0 0 1.897-1.384c.016.121.025.244.025.368 0 2.692-4.03 4.875-9 4.875s-9-2.183-9-4.875c0-.124.009-.247.025-.368a8.284 8.284 0 0 0 1.897 1.384C6.809 19.664 9.315 20.25 12 20.25Z" />
+            </Svg>
+          <Text style={{ color: colors.textSecondary, textAlign: 'center', marginTop: s(12) }} className={`${textSize.small} ${fontFamily.regular}`}>
+            No presets yet
           </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: s(4) }}>
+            <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>Tap </Text>
+            <BoxiconsFilled name="bx-plus-circle" size={s(14)} color={colors.textMuted} />
+            <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular}`}> to create one</Text>
+          </View>
         </>
       )}
     </View>

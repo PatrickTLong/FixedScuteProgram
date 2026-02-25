@@ -5,6 +5,8 @@ import Svg, { Path, Rect, Line, G } from 'react-native-svg';
 
 const AnimatedLine = Animated.createAnimatedComponent(Line);
 
+import BoxiconsFilled from './BoxiconsFilled';
+import BoxiconsRegular from './BoxiconsRegular';
 import { useTheme , textSize, fontFamily, shadow, iconSize, buttonPadding, haptics } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { triggerHaptic } from '../utils/haptics';
@@ -16,12 +18,13 @@ interface TabItemProps {
   label: string;
   isActive: boolean;
   onPress: () => void;
-  renderIcon: (color: string, filled: boolean, iconRef?: React.RefObject<AnimatedStatsIconRef | AnimatedPresetsIconRef | null>) => React.ReactNode;
+  renderIcon: (color: string, filled: boolean, iconRef?: React.RefObject<AnimatedStatsIconRef | AnimatedPresetsIconRef | AnimatedOverlaysIconRef | null>) => React.ReactNode;
   activeColor: string;
   inactiveColor: string;
   isSettings?: boolean;
   isStats?: boolean;
   isPresets?: boolean;
+  isOverlays?: boolean;
 }
 
 const HomeIcon = ({ color, filled }: { color: string; filled?: boolean }) => (
@@ -347,37 +350,92 @@ const SettingsIcon = ({ color }: { color: string }) => (
 
 // Overlays tab icon — paint palette (Heroicons)
 const OverlaysIcon = ({ color, filled }: { color: string; filled?: boolean }) => (
-  <Svg width={iconSize.lg} height={iconSize.lg} viewBox="0 0 24 24" fill={filled ? color : "none"}>
-    {filled ? (
-      <Path
-        fillRule="evenodd"
-        clipRule="evenodd"
-        d="M20.599 1.5c-.376 0-.743.111-1.055.32l-5.08 3.385a18.747 18.747 0 0 0-3.471 2.987 10.04 10.04 0 0 1 4.815 4.815 18.748 18.748 0 0 0 2.987-3.472l3.386-5.079A1.902 1.902 0 0 0 20.599 1.5Zm-8.3 14.025a18.76 18.76 0 0 0 1.896-1.207 8.554 8.554 0 0 0-4.512-4.512A18.78 18.78 0 0 0 8.475 11.7l-.278.5a5.26 5.26 0 0 1 3.602 3.602l.5-.278ZM6.75 13.5A3.75 3.75 0 0 0 3 17.25a1.5 1.5 0 0 1-1.601 1.497.75.75 0 0 0-.7 1.123 5.25 5.25 0 0 0 9.8-2.62 3.75 3.75 0 0 0-3.75-3.75Z"
-        fill={color}
-      />
-    ) : (
-      <Path
-        d="M9.53 16.122a3 3 0 0 0-5.78 1.128 2.25 2.25 0 0 1-2.4 2.245 4.5 4.5 0 0 0 8.4-2.245c0-.399-.078-.78-.22-1.128Zm0 0a15.998 15.998 0 0 0 3.388-1.62m-5.043-.025a15.994 15.994 0 0 1 1.622-3.395m3.42 3.42a15.995 15.995 0 0 0 4.764-4.648l3.876-5.814a1.151 1.151 0 0 0-1.597-1.597L14.146 6.32a15.996 15.996 0 0 0-4.649 4.763m3.42 3.42a6.776 6.776 0 0 0-3.42-3.42"
-        stroke={color}
-        strokeWidth={1.5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    )}
-  </Svg>
+  filled
+    ? <BoxiconsFilled name="bx-brush-sparkles" size={iconSize.lg} color={color} />
+    : <BoxiconsRegular name="bx-brush-sparkles" size={iconSize.lg} color={color} />
+);
+
+// Animated OverlaysIcon with sparkles that appear one by one
+export interface AnimatedOverlaysIconRef {
+  animate: () => void;
+}
+
+export const AnimatedOverlaysIcon = forwardRef<AnimatedOverlaysIconRef, { color: string; filled?: boolean }>(
+  ({ color, filled }, ref) => {
+    // Each sparkle animates opacity
+    const sparkle1Anim = useRef(new Animated.Value(1)).current;
+    const sparkle2Anim = useRef(new Animated.Value(1)).current;
+
+    const animate = useCallback(() => {
+      // Reset sparkles to hidden
+      sparkle1Anim.setValue(0);
+      sparkle2Anim.setValue(0);
+
+      // Staggered animation - sparkles appear one by one
+      Animated.stagger(120, [
+        Animated.timing(sparkle1Anim, {
+          toValue: 1,
+          duration: 250,
+          easing: Easing.out(Easing.back(1.5)),
+          useNativeDriver: false,
+        }),
+        Animated.timing(sparkle2Anim, {
+          toValue: 1,
+          duration: 250,
+          easing: Easing.out(Easing.back(1.5)),
+          useNativeDriver: false,
+        }),
+      ]).start();
+    }, [sparkle1Anim, sparkle2Anim]);
+
+    useImperativeHandle(ref, () => ({ animate }), [animate]);
+
+    // Interpolate scale for sparkles (pop-in effect)
+    const sparkle1Scale = sparkle1Anim.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0.3, 1],
+    });
+    const sparkle2Scale = sparkle2Anim.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0.3, 1],
+    });
+
+    if (!filled) {
+      // Outline mode — use font icon (no animation needed for outline)
+      return <BoxiconsRegular name="bx-brush-sparkles" size={iconSize.lg} color={color} />;
+    }
+
+    return (
+      <Svg width={iconSize.lg} height={iconSize.lg} viewBox="0 0 24 24" fill={color}>
+        {/* Paint blob - static */}
+        <Path d="m10.05,12.18c-1.27-.64-2.99-.54-4.26.25-1.17.72-1.81,1.89-1.81,3.29,0,.3.02.59.04.86.08,1.03.11,1.42-1.47,2.21-.32.16-.53.47-.55.82s.14.69.43.89c1,.69,2.76,1.49,4.62,1.49,1.35,0,2.74-.42,3.92-1.6,1.2-1.2,1.8-3.1,1.52-4.84-.24-1.5-1.11-2.7-2.44-3.36Z" />
+        {/* Brush diagonal - static */}
+        <Path d="m21.08,2.91c-1.22-1.22-3.2-1.22-4.41,0l-7.88,7.88c.61.07,1.19.23,1.71.49,1.51.76,2.52,2.08,2.89,3.73l7.69-7.69c1.22-1.22,1.22-3.2,0-4.41Z" />
+        {/* Sparkle 1 (upper-left) - animated */}
+        <AnimatedG opacity={sparkle1Anim} scale={sparkle1Scale} origin="6, 6">
+          <Path d="m2.32,6.49l2.21.98.98,2.21c.09.19.28.32.49.32s.4-.12.49-.32l.98-2.21,2.21-.98c.19-.09.32-.28.32-.49s-.12-.4-.32-.49l-2.21-.98-.98-2.21c-.08-.19-.27-.32-.48-.32-.21-.02-.4.12-.49.31l-.99,2.14-2.23,1.07c-.19.09-.3.28-.3.49s.13.39.32.48Z" />
+        </AnimatedG>
+        {/* Sparkle 2 (lower-right) - animated */}
+        <AnimatedG opacity={sparkle2Anim} scale={sparkle2Scale} origin="20, 19">
+          <Path d="m21.76,18.63l-1.66-.74-.74-1.66c-.06-.14-.21-.24-.36-.24-.16-.01-.3.09-.37.23l-.74,1.6-1.67.8c-.14.07-.23.21-.23.37,0,.16.1.3.24.36l1.66.74.74,1.66c.06.14.21.24.37.24s.3-.09.37-.24l.74-1.66,1.66-.74c.14-.06.24-.21.24-.37s-.09-.3-.24-.37Z" />
+        </AnimatedG>
+      </Svg>
+    );
+  }
 );
 
 const FLASH_SIZE = 80;
 
-const TabItem = memo(({ label, isActive, onPress, renderIcon, activeColor, inactiveColor, isSettings = false, isStats = false, isPresets = false }: TabItemProps) => {
+const TabItem = memo(({ label, isActive, onPress, renderIcon, activeColor, inactiveColor, isSettings = false, isStats = false, isPresets = false, isOverlays = false }: TabItemProps) => {
   const flashOpacity = useRef(new Animated.Value(0)).current;
   const iconScale = useRef(new Animated.Value(1)).current;
   const iconRotation = useRef(new Animated.Value(0)).current;
   const statsIconRef = useRef<AnimatedStatsIconRef>(null);
   const presetsIconRef = useRef<AnimatedPresetsIconRef>(null);
+  const overlaysIconRef = useRef<AnimatedOverlaysIconRef>(null);
   const [pressed, setPressed] = useState(false);
 
-  const hasCustomAnimation = isStats || isPresets;
+  const hasCustomAnimation = isStats || isPresets || isOverlays;
 
   const triggerFlash = useCallback(() => {
     setPressed(true);
@@ -424,7 +482,12 @@ const TabItem = memo(({ label, isActive, onPress, renderIcon, activeColor, inact
     if (isPresets && presetsIconRef.current) {
       presetsIconRef.current.animate();
     }
-  }, [flashOpacity, iconScale, iconRotation, isSettings, isStats, isPresets, hasCustomAnimation]);
+
+    // Overlays sparkles animation
+    if (isOverlays && overlaysIconRef.current) {
+      overlaysIconRef.current.animate();
+    }
+  }, [flashOpacity, iconScale, iconRotation, isSettings, isStats, isPresets, isOverlays, hasCustomAnimation]);
 
   const displayColor = pressed ? '#ffffff' : (isActive ? activeColor : inactiveColor);
 
@@ -458,7 +521,7 @@ const TabItem = memo(({ label, isActive, onPress, renderIcon, activeColor, inact
             { rotate: isSettings ? rotateInterpolate : '0deg' },
           ]
         }}>
-          {renderIcon(displayColor, isActive, isStats ? statsIconRef : isPresets ? presetsIconRef : undefined)}
+          {renderIcon(displayColor, isActive, isStats ? statsIconRef : isPresets ? presetsIconRef : isOverlays ? overlaysIconRef : undefined)}
         </Animated.View>
         <Text
           style={{ color: displayColor }}
@@ -525,7 +588,8 @@ function BottomTabBar({ state, navigation }: RNBottomTabBarProps) {
     iconRef ? <AnimatedPresetsIcon ref={iconRef} color={color} filled={filled} /> : <PresetsIcon color={color} filled={filled} />, []);
   const renderStatsIcon = useCallback((color: string, filled: boolean, iconRef?: React.RefObject<AnimatedStatsIconRef | null>) =>
     iconRef ? <AnimatedStatsIcon ref={iconRef} color={color} filled={filled} barColor={colors.bg} /> : <StatsIcon color={color} filled={filled} />, [colors.bg]);
-  const renderOverlaysIcon = useCallback((color: string, filled: boolean) => <OverlaysIcon color={color} filled={filled} />, []);
+  const renderOverlaysIcon = useCallback((color: string, filled: boolean, iconRef?: React.RefObject<AnimatedOverlaysIconRef | null>) =>
+    iconRef ? <AnimatedOverlaysIcon ref={iconRef} color={color} filled={filled} /> : <OverlaysIcon color={color} filled={filled} />, []);
   const renderSettingsIcon = useCallback((color: string) => <SettingsIcon color={color} />, []);
 
   // Hide tab bar on preset editing screens (after all hooks)
@@ -567,6 +631,7 @@ function BottomTabBar({ state, navigation }: RNBottomTabBarProps) {
           renderIcon={renderOverlaysIcon}
           activeColor={colors.text}
           inactiveColor={colors.textMuted}
+          isOverlays
         />
         <TabItem
           label="Stats"

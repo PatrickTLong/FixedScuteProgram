@@ -9,9 +9,11 @@ import {
   Pressable,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import LoadingSpinner from '../components/LoadingSpinner';
 import Svg, { Path } from 'react-native-svg';
 import BoxiconsFilled from '../components/BoxiconsFilled';
 import HeaderIconButton from '../components/HeaderIconButton';
+import { AnimatedOverlaysIcon, AnimatedOverlaysIconRef } from '../components/BottomTabBar';
 import ConfirmationModal from '../components/ConfirmationModal';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import {
@@ -146,7 +148,12 @@ function OverlaysScreen() {
   const overlayPresets = sharedOverlayPresets;
   const setOverlayPresets = setSharedOverlayPresets;
 
+  // Header icon animation - only when coming from other tabs, not from edit screens
+  const headerIconRef = useRef<AnimatedOverlaysIconRef>(null);
+  const isReturningFromEdit = useRef(false);
+
   const [loading, setLoading] = useState(true);
+  const [showSpinner, setShowSpinner] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [presetToDelete, setPresetToDelete] = useState<OverlayPreset | null>(null);
@@ -154,10 +161,21 @@ function OverlaysScreen() {
   // Load overlay presets on mount
   useEffect(() => {
     if (!userEmail_safe) return;
-    (async () => {
+    let spinnerTimeout: ReturnType<typeof setTimeout>;
+
+    async function init() {
+      setLoading(true);
+      spinnerTimeout = setTimeout(() => setShowSpinner(true), 50);
+
       await refreshOverlayPresets();
+
+      clearTimeout(spinnerTimeout);
+      setShowSpinner(false);
       setLoading(false);
-    })();
+    }
+    init();
+
+    return () => { clearTimeout(spinnerTimeout); };
   }, [userEmail_safe]);
 
   // Refresh on focus (e.g., returning from editor)
@@ -167,6 +185,19 @@ function OverlaysScreen() {
         refreshOverlayPresets();
       }
     }, [userEmail_safe])
+  );
+
+  // Animate header icon on tab focus (skip when returning from editor)
+  useFocusEffect(
+    useCallback(() => {
+      if (isReturningFromEdit.current) {
+        isReturningFromEdit.current = false;
+        return;
+      }
+      if (headerIconRef.current) {
+        headerIconRef.current.animate();
+      }
+    }, [])
   );
 
   // Save handler — called by OverlayEditorScreen via context
@@ -191,11 +222,13 @@ function OverlaysScreen() {
   }, [handleSaveOverlayPreset, setOnOverlaySave]);
 
   const handleAddPreset = useCallback(() => {
+    isReturningFromEdit.current = true;
     setEditingOverlayPreset(null); // null = new preset
     navigation.navigate('OverlayEditor');
   }, [navigation, setEditingOverlayPreset]);
 
   const handleEditPreset = useCallback((preset: OverlayPreset) => {
+    isReturningFromEdit.current = true;
     setEditingOverlayPreset(preset);
     navigation.navigate('OverlayEditor');
   }, [navigation, setEditingOverlayPreset]);
@@ -251,15 +284,28 @@ function OverlaysScreen() {
 
   const ListEmptyComponent = useCallback(() => (
     <View style={{ alignItems: 'center', paddingTop: s(60), paddingHorizontal: s(32) }}>
-      <BoxiconsFilled name="bx-palette" size={s(48)} color={colors.textMuted} />
-      <Text style={{ color: colors.textMuted, textAlign: 'center', marginTop: s(16) }} className={`${textSize.base} ${fontFamily.regular}`}>
-        No overlay presets yet. Tap + to create one.
+      <BoxiconsFilled name="bx-brush-sparkles" size={s(48)} color={colors.textMuted} />
+      <Text style={{ color: colors.textSecondary, textAlign: 'center', marginTop: s(12) }} className={`${textSize.small} ${fontFamily.regular}`}>
+        No overlay presets yet
       </Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: s(4) }}>
+        <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>Tap </Text>
+        <BoxiconsFilled name="bx-plus-circle" size={s(14)} color={colors.textMuted} />
+        <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular}`}> to create one</Text>
+      </View>
     </View>
   ), [colors, s]);
 
   if (loading) {
-    return <View style={{ flex: 1, backgroundColor: colors.bg }} />;
+    return (
+      <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
+        {showSpinner && (
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+            <LoadingSpinner size={s(48)} slideIn />
+          </View>
+        )}
+      </View>
+    );
   }
 
   return (
@@ -268,6 +314,9 @@ function OverlaysScreen() {
       <View className="flex-row items-center justify-between px-6 py-4">
         <View className="flex-row items-center">
           <Text style={{ color: colors.text }} className={`${textSize['2xLarge']} ${fontFamily.bold}`}>Overlays</Text>
+          <View style={{ marginLeft: s(8) }}>
+            <AnimatedOverlaysIcon ref={headerIconRef} color={colors.text} filled />
+          </View>
         </View>
         <HeaderIconButton onPress={handleAddPreset}>
           <BoxiconsFilled name="bx-plus-circle" size={s(iconSize.headerNav)} color="#fff" />
