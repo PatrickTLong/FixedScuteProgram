@@ -15,7 +15,7 @@ import {
 import Svg, { Path } from 'react-native-svg';
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 import BoxiconsFilled from '../components/BoxiconsFilled';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+
 import HeaderIconButton from '../components/HeaderIconButton';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -31,9 +31,9 @@ import { useAuth } from '../context/AuthContext';
 
 const { BlockingModule, PermissionsModule } = NativeModules;
 
-// Clock icon for schedule badges (using MaterialCommunityIcons)
-const ClockIcon = ({ size = 12, color = '#FFFFFF' }: { size?: number; color?: string }) => (
-  <MaterialCommunityIcons name="clock" size={size} color={color} />
+// Alarm icon for schedule badges (using Boxicons)
+const AlarmIcon = ({ size = 12, color = '#FFFFFF' }: { size?: number; color?: string }) => (
+  <BoxiconsFilled name="bx-alarm" size={size} color={color} />
 );
 
 
@@ -1140,7 +1140,7 @@ function HomeScreen() {
               >
                 {/* Status clock icon */}
                 <View style={{ marginRight: s(8) }}>
-                  <ClockIcon size={s(14)} color={scheduledDotColor} />
+                  <AlarmIcon size={s(14)} color={scheduledDotColor} />
                 </View>
                 <Text style={{ color: colors.text }} className={`${textSize.extraSmall} ${fontFamily.semibold}`}>
                   {scheduledPresets.length} Scheduled
@@ -1279,7 +1279,7 @@ function HomeScreen() {
                       {/* Left side: Clock icon + text */}
                       <View className="flex-row items-center flex-1">
                         <View style={{ marginRight: s(15) }}>
-                          <ClockIcon size={14} color={isCurrentlyActive ? colors.green : colors.yellow} />
+                          <AlarmIcon size={14} color={isCurrentlyActive ? colors.green : colors.yellow} />
                         </View>
                         <View className="flex-1">
                           <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>

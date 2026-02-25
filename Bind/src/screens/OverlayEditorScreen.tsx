@@ -305,7 +305,7 @@ function OverlayEditorScreen() {
     },
   }), [getColorFromPosition]);
 
-  // ============ Draggable Preview Elements ============
+  // ============ Draggable Preview Elements (with collision detection) ============
   const findFreePosition = useCallback((desiredX: number, desiredY: number, excludeKey: PreviewElement) => {
     const others = [
       { key: 'icon', x: iconPosXRef.current, y: iconPosYRef.current, visible: iconVisibleRef.current },
@@ -313,14 +313,30 @@ function OverlayEditorScreen() {
       { key: 'dismissText', x: dismissTextPosXRef.current, y: dismissTextPosYRef.current, visible: dismissTextVisibleRef.current },
     ].filter(e => e.key !== excludeKey && e.visible);
 
-    const isOccupied = (x: number, y: number) => others.some(e => e.x === x && e.y === y);
+    // Generous half-height collision zones (percentage of screen)
+    // Icon is large (~15% of screen), text blocks have visual padding
+    const halfH = (key: string): number => {
+      if (key === 'icon') return 10;
+      if (key === 'blockedText') return 6;
+      return 4;
+    };
 
-    if (!isOccupied(desiredX, desiredY)) return { x: desiredX, y: desiredY };
+    // Elements collide if within 30% horizontally AND bounding boxes overlap vertically
+    const collides = (x: number, y: number) => {
+      const dragH = halfH(excludeKey);
+      return others.some(e => {
+        const otherH = halfH(e.key);
+        return Math.abs(x - e.x) < 30 && Math.abs(y - e.y) < (dragH + otherH);
+      });
+    };
 
+    if (!collides(desiredX, desiredY)) return { x: desiredX, y: desiredY };
+
+    // Find nearest non-colliding position
     let best = { x: desiredX, y: desiredY, dist: Infinity };
     for (let gx = 0; gx <= 100; gx += GRID_SNAP) {
       for (let gy = 0; gy <= 100; gy += GRID_SNAP) {
-        if (isOccupied(gx, gy)) continue;
+        if (collides(gx, gy)) continue;
         const dist = Math.abs(gx - desiredX) + Math.abs(gy - desiredY);
         if (dist < best.dist) best = { x: gx, y: gy, dist };
       }
@@ -687,6 +703,9 @@ function OverlayEditorScreen() {
             </View>
           )}
 
+          {/* Element layers — only render after layout measured to prevent shift */}
+          {previewWidth > 0 && previewHeight > 0 && (
+          <>
           {/* Icon layer */}
           {iconVisible && (
             <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, justifyContent: 'center', alignItems: 'center' }} pointerEvents="box-none">
@@ -839,6 +858,8 @@ function OverlayEditorScreen() {
                 </GestureDetector>
               )}
             </View>
+          )}
+          </>
           )}
         </View>
       </GestureDetector>
@@ -1088,7 +1109,7 @@ function OverlayEditorScreen() {
       {!colorPickerTarget && (iconPosX !== 50 || iconPosY !== 42 || blockedTextPosX !== 50 || blockedTextPosY !== 57 || dismissTextPosX !== 50 || dismissTextPosY !== 63) && (
         <View style={{
           position: 'absolute',
-          top: s(12),
+          top: insets.top + s(56),
           left: 0,
           right: 0,
           alignItems: 'center',

@@ -6,13 +6,14 @@ import {
   Animated,
 } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import BoxiconsFilled from './BoxiconsFilled';
 import { useTheme , textSize, fontFamily, radius, shadow, buttonPadding, iconSize, haptics } from '../context/ThemeContext';
 import { triggerHaptic } from '../utils/haptics';
 import { useResponsive } from '../utils/responsive';
 import { useAuth } from '../context/AuthContext';
 import AnimatedSwitch from './AnimatedSwitch';
 
-// Removed SVG ClockIcon — now using MaterialCommunityIcons inline
+// Schedule status uses BoxiconsFilled alarm variants
 
 // Pure date formatting helper - no component state dependency
 function formatScheduleDate(dateStr: string): string {
@@ -297,9 +298,7 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, onExpire
 
   const handleLongPress = useCallback(() => {
     if (!disabled) {
-      if (haptics.headerButton.enabled) {
-        triggerHaptic(haptics.headerButton.type);
-      }
+      triggerHaptic('impactHeavy');
       onLongPress();
     }
   }, [disabled, onLongPress]);
@@ -360,8 +359,8 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, onExpire
             </Text>
             {status !== null && (
               <View className="ml-2">
-                <MaterialCommunityIcons
-                  name={status === 'expired' ? 'clock-alert' : status === 'blocking' ? 'clock-check' : 'clock'}
+                <BoxiconsFilled
+                  name={status === 'expired' ? 'bx-alarm-exclamation' : status === 'blocking' ? 'bx-alarm-z' : 'bx-alarm'}
                   size={iconSize.sm}
                   color={getClockColor()}
                 />
