@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useRef, useState, useImperativeHandle, forwardRef } from 'react';
+import React, { memo, useCallback, useRef, useState, useImperativeHandle, forwardRef, useEffect } from 'react';
 import { View, TouchableOpacity, Text, Animated, StyleSheet, Easing } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path, Rect, Line, G } from 'react-native-svg';
@@ -390,6 +390,15 @@ export const AnimatedOverlaysIcon = forwardRef<AnimatedOverlaysIconRef, { color:
 
     useImperativeHandle(ref, () => ({ animate }), [animate]);
 
+    // Auto-animate when filled changes to true (tab switch case)
+    const prevFilledRef = useRef(filled);
+    useEffect(() => {
+      if (filled && !prevFilledRef.current) {
+        animate();
+      }
+      prevFilledRef.current = filled;
+    }, [filled, animate]);
+
     // Interpolate scale for sparkles (pop-in effect)
     const sparkle1Scale = sparkle1Anim.interpolate({
       inputRange: [0, 1],
@@ -447,20 +456,22 @@ const TabItem = memo(({ label, isActive, onPress, renderIcon, activeColor, inact
       useNativeDriver: !hasCustomAnimation,
     }).start(() => setPressed(false));
 
-    // Icon scale animation - quick pop
-    iconScale.setValue(1);
-    Animated.sequence([
-      Animated.timing(iconScale, {
-        toValue: 1.2,
-        duration: 100,
-        useNativeDriver: !hasCustomAnimation,
-      }),
-      Animated.timing(iconScale, {
-        toValue: 1,
-        duration: 100,
-        useNativeDriver: !hasCustomAnimation,
-      }),
-    ]).start();
+    // Icon scale animation - quick pop (skip for overlays to avoid conflicting with SVG sparkle scale)
+    if (!isOverlays) {
+      iconScale.setValue(1);
+      Animated.sequence([
+        Animated.timing(iconScale, {
+          toValue: 1.2,
+          duration: 100,
+          useNativeDriver: !hasCustomAnimation,
+        }),
+        Animated.timing(iconScale, {
+          toValue: 1,
+          duration: 100,
+          useNativeDriver: !hasCustomAnimation,
+        }),
+      ]).start();
+    }
 
     // Gear rotation for settings tab
     if (isSettings) {
@@ -483,11 +494,11 @@ const TabItem = memo(({ label, isActive, onPress, renderIcon, activeColor, inact
       presetsIconRef.current.animate();
     }
 
-    // Overlays sparkles animation
-    if (isOverlays && overlaysIconRef.current) {
+    // Overlays sparkles animation - only on re-tap (tab switch handled by filled-change detection)
+    if (isOverlays && overlaysIconRef.current && isActive) {
       overlaysIconRef.current.animate();
     }
-  }, [flashOpacity, iconScale, iconRotation, isSettings, isStats, isPresets, isOverlays, hasCustomAnimation]);
+  }, [flashOpacity, iconScale, iconRotation, isSettings, isStats, isPresets, isOverlays, isActive, hasCustomAnimation]);
 
   const displayColor = pressed ? '#ffffff' : (isActive ? activeColor : inactiveColor);
 
