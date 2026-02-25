@@ -298,7 +298,9 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, onExpire
 
   const handleLongPress = useCallback(() => {
     if (!disabled) {
-      triggerHaptic('impactHeavy');
+      if (haptics.presetCard.enabled) {
+        triggerHaptic(haptics.presetCard.type);
+      }
       onLongPress();
     }
   }, [disabled, onLongPress]);

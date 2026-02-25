@@ -313,35 +313,35 @@ function OverlayEditorScreen() {
       { key: 'dismissText', x: dismissTextPosXRef.current, y: dismissTextPosYRef.current, visible: dismissTextVisibleRef.current },
     ].filter(e => e.key !== excludeKey && e.visible);
 
-    // Generous half-height collision zones (percentage of screen)
-    // Icon is large (~15% of screen), text blocks have visual padding
+    // Half-height collision zones (% of screen) — tight to actual element sizes
+    // Icon ~120dp on ~760dp screen ≈ 16%, half ≈ 8% → use 6 (snug fit)
+    // Blocked text ~29dp ≈ 4%, half ≈ 2% → use 3
+    // Dismiss text ~13dp ≈ 2%, half ≈ 1% → use 2
     const halfH = (key: string): number => {
-      if (key === 'icon') return 10;
-      if (key === 'blockedText') return 6;
-      return 4;
+      if (key === 'icon') return 6;
+      if (key === 'blockedText') return 3;
+      return 2;
     };
 
-    // Elements collide if within 30% horizontally AND bounding boxes overlap vertically
+    // Collision: horizontally within 15% AND vertical bounding boxes overlap
     const collides = (x: number, y: number) => {
       const dragH = halfH(excludeKey);
       return others.some(e => {
         const otherH = halfH(e.key);
-        return Math.abs(x - e.x) < 30 && Math.abs(y - e.y) < (dragH + otherH);
+        return Math.abs(x - e.x) < 15 && Math.abs(y - e.y) < (dragH + otherH);
       });
     };
 
     if (!collides(desiredX, desiredY)) return { x: desiredX, y: desiredY };
 
-    // Find nearest non-colliding position
-    let best = { x: desiredX, y: desiredY, dist: Infinity };
-    for (let gx = 0; gx <= 100; gx += GRID_SNAP) {
-      for (let gy = 0; gy <= 100; gy += GRID_SNAP) {
-        if (collides(gx, gy)) continue;
-        const dist = Math.abs(gx - desiredX) + Math.abs(gy - desiredY);
-        if (dist < best.dist) best = { x: gx, y: gy, dist };
-      }
+    // Push vertically only — keep X, search up and down for nearest free Y
+    for (let dist = 1; dist <= 100; dist++) {
+      const upY = desiredY - dist;
+      const downY = desiredY + dist;
+      if (upY >= 0 && !collides(desiredX, upY)) return { x: desiredX, y: upY };
+      if (downY <= 100 && !collides(desiredX, downY)) return { x: desiredX, y: downY };
     }
-    return { x: best.x, y: best.y };
+    return { x: desiredX, y: desiredY };
   }, []);
 
   // ============ Gesture API — Element Gesture Factory ============
@@ -394,10 +394,10 @@ function OverlayEditorScreen() {
           setPosY(free.y);
           const snapPixelX = ((free.x - 50) / 100) * pw;
           const snapPixelY = ((free.y - 50) / 100) * ph;
-          Animated.spring(pan, {
+          Animated.timing(pan, {
             toValue: { x: snapPixelX, y: snapPixelY },
+            duration: 180,
             useNativeDriver: false,
-            friction: 7,
           }).start(() => { isDragging.current = false; });
         } else {
           isDragging.current = false;
@@ -411,7 +411,9 @@ function OverlayEditorScreen() {
         setSelectedElement(elementKey);
         setContextMenuTarget(elementKey);
         setContextMenuVisible(true);
-        triggerHaptic('impactMedium');
+        if (haptics.presetCard.enabled) {
+          triggerHaptic(haptics.presetCard.type);
+        }
       });
 
     const isTextElement = elementKey === 'blockedText' || elementKey === 'dismissText';
@@ -480,7 +482,9 @@ function OverlayEditorScreen() {
         setSelectedElement('background');
         setContextMenuTarget('background');
         setContextMenuVisible(true);
-        triggerHaptic('impactMedium');
+        if (haptics.presetCard.enabled) {
+          triggerHaptic(haptics.presetCard.type);
+        }
       });
 
     return Gesture.Race(longPress, tap);
@@ -670,8 +674,25 @@ function OverlayEditorScreen() {
         <View
           style={{ flex: 1 }}
           onLayout={(e: LayoutChangeEvent) => {
-            setPreviewWidth(e.nativeEvent.layout.width);
-            setPreviewHeight(e.nativeEvent.layout.height);
+            const w = e.nativeEvent.layout.width;
+            const h = e.nativeEvent.layout.height;
+            // Set pan values BEFORE state update so elements appear at correct position on first render
+            if (!isDragging.current && w > 0 && h > 0) {
+              iconPan.setValue({
+                x: ((iconPosXRef.current - 50) / 100) * w,
+                y: ((iconPosYRef.current - 50) / 100) * h,
+              });
+              blockedTextPan.setValue({
+                x: ((blockedTextPosXRef.current - 50) / 100) * w,
+                y: ((blockedTextPosYRef.current - 50) / 100) * h,
+              });
+              dismissTextPan.setValue({
+                x: ((dismissTextPosXRef.current - 50) / 100) * w,
+                y: ((dismissTextPosYRef.current - 50) / 100) * h,
+              });
+            }
+            setPreviewWidth(w);
+            setPreviewHeight(h);
           }}
         >
           {/* Background tap/long-press layer */}

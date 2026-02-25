@@ -171,6 +171,7 @@ const TimePresetCircle = memo(({ label, onPress, onLongPressAdd }: {
   const didLongPress = useRef(false);
   const activeRef = useRef(false);
   const scaleAnim = useRef(new Animated.Value(1)).current;
+  const borderAnim = useRef(new Animated.Value(0)).current;
 
   const clearTimers = useCallback(() => {
     activeRef.current = false;
@@ -194,6 +195,7 @@ const TimePresetCircle = memo(({ label, onPress, onLongPressAdd }: {
     didLongPress.current = false;
     activeRef.current = true;
     Animated.timing(scaleAnim, { toValue: 0.9, useNativeDriver: true, duration: 30 }).start();
+    Animated.timing(borderAnim, { toValue: 1, useNativeDriver: false, duration: 30 }).start();
     timeoutRef.current = setTimeout(() => {
       didLongPress.current = true;
       if (haptics.bubbleButton.enabled) {
@@ -202,12 +204,13 @@ const TimePresetCircle = memo(({ label, onPress, onLongPressAdd }: {
       onLongPressAddRef.current();
       scheduleNext(LONG_PRESS_START_INTERVAL);
     }, LONG_PRESS_INITIAL_DELAY);
-  }, [scheduleNext, scaleAnim]);
+  }, [scheduleNext, scaleAnim, borderAnim]);
 
   const handlePressOut = useCallback(() => {
     clearTimers();
     Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true, speed: 12, bounciness: 14 }).start();
-  }, [clearTimers, scaleAnim]);
+    Animated.timing(borderAnim, { toValue: 0, useNativeDriver: false, duration: 200 }).start();
+  }, [clearTimers, scaleAnim, borderAnim]);
 
   const handlePress = useCallback(() => {
     if (!didLongPress.current) {
@@ -222,31 +225,45 @@ const TimePresetCircle = memo(({ label, onPress, onLongPressAdd }: {
 
   const circleSize = s(90);
 
+  const animatedBorderColor = borderAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [colors.border, '#FFFFFF'],
+  });
+
   return (
     <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
-      <TouchableOpacity
-        onPress={handlePress}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
-        activeOpacity={0.7}
+      <Animated.View
         style={{
           width: circleSize,
           height: circleSize,
           borderRadius: circleSize / 2,
           backgroundColor: colors.card,
           borderWidth: 1,
-          borderColor: colors.border,
+          borderColor: animatedBorderColor,
           alignItems: 'center',
           justifyContent: 'center',
         }}
       >
-        <Text
-          style={{ color: colors.text, fontSize: s(12) }}
-          className={fontFamily.semibold}
+        <TouchableOpacity
+          onPress={handlePress}
+          onPressIn={handlePressIn}
+          onPressOut={handlePressOut}
+          activeOpacity={0.7}
+          style={{
+            width: '100%',
+            height: '100%',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
         >
-          {label}
-        </Text>
-      </TouchableOpacity>
+          <Text
+            style={{ color: colors.text, fontSize: s(12) }}
+            className={fontFamily.semibold}
+          >
+            {label}
+          </Text>
+        </TouchableOpacity>
+      </Animated.View>
     </Animated.View>
   );
 });
