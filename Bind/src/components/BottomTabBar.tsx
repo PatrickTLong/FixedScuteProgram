@@ -127,6 +127,15 @@ export const AnimatedPresetsIcon = forwardRef<AnimatedPresetsIconRef, { color: s
 
     useImperativeHandle(ref, () => ({ animate }), [animate]);
 
+    // Auto-animate when filled changes to true (tab switch case)
+    const prevFilledRef = useRef(filled);
+    useEffect(() => {
+      if (filled && !prevFilledRef.current) {
+        animate();
+      }
+      prevFilledRef.current = filled;
+    }, [filled, animate]);
+
     // Interpolate Y translations - all discs rise from below
     const disc1Y = disc1Anim.interpolate({
       inputRange: [0, 1],
@@ -259,6 +268,15 @@ export const AnimatedStatsIcon = forwardRef<AnimatedStatsIconRef, { color: strin
     }, [bar1Anim, bar2Anim, bar3Anim, bar4Anim]);
 
     useImperativeHandle(ref, () => ({ animate }), [animate]);
+
+    // Auto-animate when filled changes to true (tab switch case)
+    const prevFilledRef = useRef(filled);
+    useEffect(() => {
+      if (filled && !prevFilledRef.current) {
+        animate();
+      }
+      prevFilledRef.current = filled;
+    }, [filled, animate]);
 
     // Interpolate bar heights (y1 is top, y2 is bottom at 16.5)
     const bar1Y1 = bar1Anim.interpolate({
@@ -456,8 +474,8 @@ const TabItem = memo(({ label, isActive, onPress, renderIcon, activeColor, inact
       useNativeDriver: !hasCustomAnimation,
     }).start(() => setPressed(false));
 
-    // Icon scale animation - quick pop (skip for overlays to avoid conflicting with SVG sparkle scale)
-    if (!isOverlays) {
+    // Icon scale animation - quick pop (skip for stats/presets/overlays to avoid conflicting with SVG animations)
+    if (!isOverlays && !isPresets && !isStats) {
       iconScale.setValue(1);
       Animated.sequence([
         Animated.timing(iconScale, {
@@ -484,13 +502,13 @@ const TabItem = memo(({ label, isActive, onPress, renderIcon, activeColor, inact
       }).start();
     }
 
-    // Stats bars animation
-    if (isStats && statsIconRef.current) {
+    // Stats bars animation - only on re-tap (tab switch handled by filled-change detection)
+    if (isStats && statsIconRef.current && isActive) {
       statsIconRef.current.animate();
     }
 
-    // Presets discs animation
-    if (isPresets && presetsIconRef.current) {
+    // Presets discs animation - only on re-tap (tab switch handled by filled-change detection)
+    if (isPresets && presetsIconRef.current && isActive) {
       presetsIconRef.current.animate();
     }
 

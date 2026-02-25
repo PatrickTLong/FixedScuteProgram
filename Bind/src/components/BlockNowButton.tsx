@@ -25,7 +25,6 @@ interface BlockNowButtonProps {
   isLocked?: boolean;
   hasActiveTimer?: boolean; // true when there's a countdown or elapsed time showing
   strictMode?: boolean; // when false, slide-to-unlock is available even for timed presets
-  onInteractionChange?: (interacting: boolean) => void;
 }
 
 function BlockNowButton({
@@ -36,7 +35,6 @@ function BlockNowButton({
   isLocked = false,
   hasActiveTimer = false,
   strictMode = false,
-  onInteractionChange,
 }: BlockNowButtonProps) {
   const { colors } = useTheme();
   const { s } = useResponsive();
@@ -63,8 +61,6 @@ function BlockNowButton({
   onActivateRef.current = onActivate;
   const onSlideUnlockRef = useRef(onSlideUnlock);
   onSlideUnlockRef.current = onSlideUnlock;
-  const onInteractionChangeRef = useRef(onInteractionChange);
-  onInteractionChangeRef.current = onInteractionChange;
   const isUnlockingRef = useRef(isUnlocking);
   isUnlockingRef.current = isUnlocking;
 
@@ -85,6 +81,7 @@ function BlockNowButton({
   const startAnimation = useCallback(() => {
     if (!canActivateRef.current) return;
 
+    console.log('[BLOCK-BTN] Hold-to-lock STARTED');
     setIsPressed(true);
     fillAnimation.setValue(0);
     holdHalfwayFired.current = false;
@@ -106,6 +103,7 @@ function BlockNowButton({
     animationRef.current.start(({ finished }) => {
       fillAnimation.removeListener(listenerId);
       if (finished) {
+        console.log('[BLOCK-BTN] Hold-to-lock COMPLETED — triggering onActivate');
         if (haptics.blockNowHold.enabled) {
           triggerHaptic(haptics.blockNowHold.completionType);
         }
@@ -117,6 +115,7 @@ function BlockNowButton({
   }, [fillAnimation]);
 
   const cancelAnimation = useCallback(() => {
+    console.log('[BLOCK-BTN] Hold-to-lock CANCELLED — released early');
     animationRef.current?.stop();
     setIsPressed(false);
     Animated.timing(fillAnimation, {
@@ -136,6 +135,7 @@ function BlockNowButton({
   }, [slidePosition]);
 
   const handleSlideComplete = useCallback(async () => {
+    console.log('[SLIDE-UNLOCK] Slide threshold reached — triggering unlock');
     if (haptics.slideToUnlock.enabled) {
       triggerHaptic(haptics.slideToUnlock.completionType);
     }
@@ -143,6 +143,9 @@ function BlockNowButton({
     isUnlockingRef.current = true;
     try {
       await onSlideUnlockRef.current?.();
+      console.log('[SLIDE-UNLOCK] Unlock callback completed successfully');
+    } catch (err) {
+      console.log('[SLIDE-UNLOCK] Unlock callback FAILED:', err);
     } finally {
       setIsUnlocking(false);
       isUnlockingRef.current = false;
@@ -162,9 +165,10 @@ function BlockNowButton({
       PanResponder.create({
         onStartShouldSetPanResponder: () => canActivateRef.current,
         onMoveShouldSetPanResponder: () => false,
-        onPanResponderGrant: () => { onInteractionChangeRef.current?.(true); startAnimation(); },
-        onPanResponderRelease: () => { onInteractionChangeRef.current?.(false); cancelAnimation(); },
-        onPanResponderTerminate: () => { onInteractionChangeRef.current?.(false); cancelAnimation(); },
+        onPanResponderTerminationRequest: () => false,
+        onPanResponderGrant: () => { startAnimation(); },
+        onPanResponderRelease: () => { cancelAnimation(); },
+        onPanResponderTerminate: () => { cancelAnimation(); },
       }),
     [startAnimation, cancelAnimation]
   );
@@ -174,25 +178,32 @@ function BlockNowButton({
     PanResponder.create({
       onStartShouldSetPanResponder: () => !isUnlockingRef.current,
       onMoveShouldSetPanResponder: (_, g) => !isUnlockingRef.current && Math.abs(g.dx) > 5,
+      onPanResponderTerminationRequest: () => false,
       onPanResponderGrant: () => {
-          onInteractionChangeRef.current?.(true);
+          console.log('[SLIDE-UNLOCK] Slide STARTED — finger down');
         },
       onPanResponderMove: (_, g) => {
         const maxSlide = buttonWidthRef.current;
         const pos = Math.max(0, Math.min(g.dx, maxSlide));
+        const pct = Math.round((pos / maxSlide) * 100);
+        if (pct % 25 === 0 && pct > 0) {
+          console.log(`[SLIDE-UNLOCK] Slide progress: ${pct}%`);
+        }
         slidePosition.setValue(pos);
       },
       onPanResponderRelease: (_, g) => {
-        onInteractionChangeRef.current?.(false);
         const maxSlide = buttonWidthRef.current;
         const pos = Math.max(0, Math.min(g.dx, maxSlide));
+        const pct = Math.round((pos / maxSlide) * 100);
         if (pos >= maxSlide * 0.85) {
+          console.log(`[SLIDE-UNLOCK] Slide RELEASED at ${pct}% — THRESHOLD MET, unlocking`);
           handleSlideCompleteRef.current();
         } else {
+          console.log(`[SLIDE-UNLOCK] Slide RELEASED at ${pct}% — below threshold, resetting`);
           resetSliderRef.current();
         }
       },
-      onPanResponderTerminate: () => { onInteractionChangeRef.current?.(false); resetSliderRef.current(); },
+      onPanResponderTerminate: () => { console.log('[SLIDE-UNLOCK] Slide TERMINATED — resetting'); resetSliderRef.current(); },
     })
   ).current;
 

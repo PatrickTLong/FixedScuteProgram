@@ -4,13 +4,13 @@ import {
   Text,
   TouchableOpacity,
   TextInput,
-  ScrollView,
+  Modal,
   Animated,
   Image,
   PanResponder,
   LayoutChangeEvent,
 } from 'react-native';
-import { PinchGestureHandler, State as GHState } from 'react-native-gesture-handler';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import LinearGradient from 'react-native-linear-gradient';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { getAuthToken } from '../services/cardApi';
@@ -47,8 +47,13 @@ type PreviewElement = 'icon' | 'blockedText' | 'dismissText' | 'background';
 // ============ Spectrum Colors ============
 const SPECTRUM_COLORS = ['#FF0000', '#FF8000', '#FFFF00', '#00FF00', '#00FFFF', '#0000FF', '#8000FF', '#FF00FF', '#FF0000'];
 
+// ============ Constants (matching Android overlay_blocked.xml) ============
+const OVERLAY_DEFAULT_BG = '#28282B';
+const DEFAULT_BLOCKED_TEXT_SIZE = 22;
+const DEFAULT_DISMISS_TEXT_SIZE = 10;
+
 // ============ Grid / Gesture Constants ============
-const GRID_SNAP = 10;
+const GRID_SNAP = 1;
 const LONG_PRESS_MS = 500;
 const DOUBLE_TAP_MS = 300;
 const DRAG_THRESHOLD = 4;
@@ -88,11 +93,11 @@ function OverlayEditorScreen() {
 
   // Overlay element positions (percentage 0-100, 50=center)
   const [iconPosX, setIconPosX] = useState(50);
-  const [iconPosY, setIconPosY] = useState(30);
+  const [iconPosY, setIconPosY] = useState(42);
   const [blockedTextPosX, setBlockedTextPosX] = useState(50);
-  const [blockedTextPosY, setBlockedTextPosY] = useState(50);
+  const [blockedTextPosY, setBlockedTextPosY] = useState(57);
   const [dismissTextPosX, setDismissTextPosX] = useState(50);
-  const [dismissTextPosY, setDismissTextPosY] = useState(70);
+  const [dismissTextPosY, setDismissTextPosY] = useState(63);
   const [previewWidth, setPreviewWidth] = useState(0);
   const [previewHeight, setPreviewHeight] = useState(0);
 
@@ -108,8 +113,8 @@ function OverlayEditorScreen() {
   const [iconVisible, setIconVisible] = useState(true);
   const [blockedTextVisible, setBlockedTextVisible] = useState(true);
   const [dismissTextVisible, setDismissTextVisible] = useState(true);
-  const [blockedTextSize, setBlockedTextSize] = useState(11);
-  const [dismissTextSize, setDismissTextSize] = useState(7);
+  const [blockedTextSize, setBlockedTextSize] = useState(DEFAULT_BLOCKED_TEXT_SIZE);
+  const [dismissTextSize, setDismissTextSize] = useState(DEFAULT_DISMISS_TEXT_SIZE);
   const [contextMenuVisible, setContextMenuVisible] = useState(false);
   const [contextMenuTarget, setContextMenuTarget] = useState<PreviewElement | null>(null);
   const [colorPickerTarget, setColorPickerTarget] = useState<PreviewElement | null>(null);
@@ -117,10 +122,29 @@ function OverlayEditorScreen() {
   const editInputRef = useRef<TextInput>(null);
   const lastTapTimeRef = useRef<Record<string, number>>({});
 
-  // Refs for current values (used in save and gesture callbacks)
-  const mainScrollRef = useRef<ScrollView>(null);
+  // Save modal state
+  const [saveModalVisible, setSaveModalVisible] = useState(false);
+
+  // Refs for current values (used in gesture callbacks — always current)
   const hasSaved = useRef(false);
   const editingPresetIdRef = useRef<string | null>(null);
+
+  const previewWidthRef = useRef(0);
+  const previewHeightRef = useRef(0);
+  previewWidthRef.current = previewWidth;
+  previewHeightRef.current = previewHeight;
+
+  const selectedElementRef = useRef<PreviewElement | null>(null);
+  selectedElementRef.current = selectedElement;
+
+  const blockedTextSizeRef = useRef(DEFAULT_BLOCKED_TEXT_SIZE);
+  blockedTextSizeRef.current = blockedTextSize;
+
+  const dismissTextSizeRef = useRef(DEFAULT_DISMISS_TEXT_SIZE);
+  dismissTextSizeRef.current = dismissTextSize;
+
+  const customOverlayImageSizeRef = useRef(120);
+  customOverlayImageSizeRef.current = customOverlayImageSize;
 
   const iconPosXRef = useRef(iconPosX);
   const iconPosYRef = useRef(iconPosY);
@@ -163,16 +187,16 @@ function OverlayEditorScreen() {
         setCustomOverlayImage(preset.customOverlayImage ?? '');
         setCustomOverlayImageSize(preset.customOverlayImageSize ?? 120);
         setIconPosX(preset.iconPosX ?? 50);
-        setIconPosY(preset.iconPosY ?? 30);
+        setIconPosY(preset.iconPosY ?? 42);
         setBlockedTextPosX(preset.blockedTextPosX ?? 50);
-        setBlockedTextPosY(preset.blockedTextPosY ?? 50);
+        setBlockedTextPosY(preset.blockedTextPosY ?? 57);
         setDismissTextPosX(preset.dismissTextPosX ?? 50);
-        setDismissTextPosY(preset.dismissTextPosY ?? 70);
+        setDismissTextPosY(preset.dismissTextPosY ?? 63);
         setIconVisible(preset.iconVisible ?? true);
         setBlockedTextVisible(preset.blockedTextVisible ?? true);
         setDismissTextVisible(preset.dismissTextVisible ?? true);
-        setBlockedTextSize(preset.blockedTextSize ?? 11);
-        setDismissTextSize(preset.dismissTextSize ?? 7);
+        setBlockedTextSize(preset.blockedTextSize ?? DEFAULT_BLOCKED_TEXT_SIZE);
+        setDismissTextSize(preset.dismissTextSize ?? DEFAULT_DISMISS_TEXT_SIZE);
       } else {
         // New overlay preset defaults
         setName('');
@@ -184,16 +208,16 @@ function OverlayEditorScreen() {
         setCustomOverlayImage('');
         setCustomOverlayImageSize(120);
         setIconPosX(50);
-        setIconPosY(30);
+        setIconPosY(42);
         setBlockedTextPosX(50);
-        setBlockedTextPosY(50);
+        setBlockedTextPosY(57);
         setDismissTextPosX(50);
-        setDismissTextPosY(70);
+        setDismissTextPosY(63);
         setIconVisible(true);
         setBlockedTextVisible(true);
         setDismissTextVisible(true);
-        setBlockedTextSize(11);
-        setDismissTextSize(7);
+        setBlockedTextSize(DEFAULT_BLOCKED_TEXT_SIZE);
+        setDismissTextSize(DEFAULT_DISMISS_TEXT_SIZE);
       }
 
       // Reset UI state
@@ -201,6 +225,7 @@ function OverlayEditorScreen() {
       setEditingText(null);
       setContextMenuVisible(false);
       setColorPickerTarget(null);
+      setSaveModalVisible(false);
     }, [getEditingOverlayPreset])
   );
 
@@ -240,7 +265,7 @@ function OverlayEditorScreen() {
     }
   }, []);
 
-  // Throttled color picker PanResponder factory
+  // Throttled color picker PanResponder factory (kept as PanResponder — no conflict with pinch)
   const colorRafRef = useRef<{ [key: string]: number | null }>({});
   const pendingColorRef = useRef<{ [key: string]: string }>({});
 
@@ -303,125 +328,177 @@ function OverlayEditorScreen() {
     return { x: best.x, y: best.y };
   }, []);
 
-  const makeDraggablePanResponder = useCallback((
+  // ============ Gesture API — Element Gesture Factory ============
+  // All callbacks use refs to access latest values (avoids stale closures)
+  const makeElementGesture = useCallback((
+    elementKey: PreviewElement,
     pan: Animated.ValueXY,
-    setPosX: (x: number) => void,
-    setPosY: (y: number) => void,
     currentPosXRef: React.MutableRefObject<number>,
     currentPosYRef: React.MutableRefObject<number>,
-    elementKey: PreviewElement,
+    setPosX: (x: number) => void,
+    setPosY: (y: number) => void,
   ) => {
-    let startOffset = { x: 0, y: 0 };
-    let hasDragged = false;
-    let longPressTimer: ReturnType<typeof setTimeout> | null = null;
-    let longPressFired = false;
+    // Mutable drag start position — persists across gesture callbacks
+    const startOffset = { x: 0, y: 0 };
 
-    return PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: (_, gs) => Math.abs(gs.dx) > DRAG_THRESHOLD || Math.abs(gs.dy) > DRAG_THRESHOLD,
-      onPanResponderGrant: () => {
-        hasDragged = false;
-        longPressFired = false;
-        mainScrollRef.current?.setNativeProps({ scrollEnabled: false });
-        longPressTimer = setTimeout(() => {
-          longPressFired = true;
-          if (!hasDragged) {
-            setSelectedElement(elementKey);
-            setContextMenuTarget(elementKey);
-            setContextMenuVisible(true);
-            triggerHaptic('impactMedium');
-          }
-        }, LONG_PRESS_MS);
-        if (previewWidth > 0 && previewHeight > 0) {
-          startOffset = {
-            x: ((currentPosXRef.current - 50) / 100) * previewWidth,
-            y: ((currentPosYRef.current - 50) / 100) * previewHeight,
-          };
-        }
-        pan.setOffset(startOffset);
-        pan.setValue({ x: 0, y: 0 });
-      },
-      onPanResponderMove: (evt, gs) => {
-        if (Math.abs(gs.dx) > DRAG_THRESHOLD || Math.abs(gs.dy) > DRAG_THRESHOLD) {
-          if (!hasDragged) {
-            hasDragged = true;
-            isDragging.current = true;
-            setSelectedElement(elementKey);
-            setEditingText(null);
-            setContextMenuVisible(false);
-            if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
-          }
-          // @ts-ignore - Animated.event returns a function
-          Animated.event([null, { dx: pan.x, dy: pan.y }], { useNativeDriver: false })(evt, gs);
-        }
-      },
-      onPanResponderRelease: (_, gs) => {
-        mainScrollRef.current?.setNativeProps({ scrollEnabled: true });
-        if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
-
-        if (hasDragged) {
-          pan.flattenOffset();
-          if (previewWidth > 0 && previewHeight > 0) {
-            const rawPctX = 50 + ((startOffset.x + gs.dx) / previewWidth) * 100;
-            const rawPctY = 50 + ((startOffset.y + gs.dy) / previewHeight) * 100;
-            const rawSnappedX = Math.max(0, Math.min(100, Math.round(rawPctX / GRID_SNAP) * GRID_SNAP));
-            const rawSnappedY = Math.max(0, Math.min(100, Math.round(rawPctY / GRID_SNAP) * GRID_SNAP));
-            const free = findFreePosition(rawSnappedX, rawSnappedY, elementKey);
-            const snappedX = free.x;
-            const snappedY = free.y;
-            setPosX(snappedX);
-            setPosY(snappedY);
-            const snapPixelX = ((snappedX - 50) / 100) * previewWidth;
-            const snapPixelY = ((snappedY - 50) / 100) * previewHeight;
-            Animated.spring(pan, {
-              toValue: { x: snapPixelX, y: snapPixelY },
-              useNativeDriver: false,
-              friction: 7,
-            }).start(() => { isDragging.current = false; });
-          } else {
-            isDragging.current = false;
-          }
-        } else if (!longPressFired) {
-          pan.flattenOffset();
-          const now = Date.now();
-          const lastTap = lastTapTimeRef.current[elementKey] || 0;
-          if (now - lastTap < DOUBLE_TAP_MS && (elementKey === 'blockedText' || elementKey === 'dismissText')) {
-            setSelectedElement(elementKey);
-            setEditingText(elementKey);
-            lastTapTimeRef.current[elementKey] = 0;
-          } else {
-            setSelectedElement(prev => prev === elementKey ? null : elementKey);
-            setEditingText(null);
-            setContextMenuVisible(false);
-            lastTapTimeRef.current[elementKey] = now;
-          }
+    const panGesture = Gesture.Pan()
+      .runOnJS(true)
+      .maxPointers(1) // Single-finger only — leaves 2-finger for pinch
+      .activeOffsetX([-DRAG_THRESHOLD, DRAG_THRESHOLD])
+      .activeOffsetY([-DRAG_THRESHOLD, DRAG_THRESHOLD])
+      .onStart(() => {
+        const pw = previewWidthRef.current;
+        const ph = previewHeightRef.current;
+        startOffset.x = ((currentPosXRef.current - 50) / 100) * pw;
+        startOffset.y = ((currentPosYRef.current - 50) / 100) * ph;
+        isDragging.current = true;
+        setSelectedElement(elementKey);
+        setEditingText(null);
+        setContextMenuVisible(false);
+      })
+      .onUpdate((e) => {
+        // Direct setValue — no setOffset/flattenOffset dance (fixes flicker)
+        pan.setValue({
+          x: startOffset.x + e.translationX,
+          y: startOffset.y + e.translationY,
+        });
+      })
+      .onEnd((e) => {
+        const pw = previewWidthRef.current;
+        const ph = previewHeightRef.current;
+        if (pw > 0 && ph > 0) {
+          const finalX = startOffset.x + e.translationX;
+          const finalY = startOffset.y + e.translationY;
+          const rawPctX = 50 + (finalX / pw) * 100;
+          const rawPctY = 50 + (finalY / ph) * 100;
+          const snappedX = Math.max(0, Math.min(100, Math.round(rawPctX / GRID_SNAP) * GRID_SNAP));
+          const snappedY = Math.max(0, Math.min(100, Math.round(rawPctY / GRID_SNAP) * GRID_SNAP));
+          const free = findFreePosition(snappedX, snappedY, elementKey);
+          setPosX(free.x);
+          setPosY(free.y);
+          const snapPixelX = ((free.x - 50) / 100) * pw;
+          const snapPixelY = ((free.y - 50) / 100) * ph;
+          Animated.spring(pan, {
+            toValue: { x: snapPixelX, y: snapPixelY },
+            useNativeDriver: false,
+            friction: 7,
+          }).start(() => { isDragging.current = false; });
         } else {
-          pan.flattenOffset();
+          isDragging.current = false;
         }
-      },
-      onPanResponderTerminate: () => {
-        mainScrollRef.current?.setNativeProps({ scrollEnabled: true });
-        if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
-        pan.flattenOffset();
-        isDragging.current = false;
-      },
-    });
-  }, [previewWidth, previewHeight, findFreePosition]);
+      });
 
-  const iconPanResponder = useMemo(
-    () => makeDraggablePanResponder(iconPan, setIconPosX, setIconPosY, iconPosXRef, iconPosYRef, 'icon'),
-    [makeDraggablePanResponder]
+    const longPressGesture = Gesture.LongPress()
+      .runOnJS(true)
+      .minDuration(LONG_PRESS_MS)
+      .onStart(() => {
+        setSelectedElement(elementKey);
+        setContextMenuTarget(elementKey);
+        setContextMenuVisible(true);
+        triggerHaptic('impactMedium');
+      });
+
+    const isTextElement = elementKey === 'blockedText' || elementKey === 'dismissText';
+
+    const doubleTapGesture = Gesture.Tap()
+      .runOnJS(true)
+      .numberOfTaps(2)
+      .maxDelay(DOUBLE_TAP_MS)
+      .onEnd(() => {
+        if (isTextElement) {
+          setSelectedElement(elementKey);
+          setEditingText(elementKey as 'blockedText' | 'dismissText');
+        }
+      });
+
+    const singleTapGesture = Gesture.Tap()
+      .runOnJS(true)
+      .numberOfTaps(1)
+      .onEnd(() => {
+        setSelectedElement(prev => prev === elementKey ? null : elementKey);
+        setEditingText(null);
+        setContextMenuVisible(false);
+      });
+
+    // Double tap takes priority over single tap for text elements
+    const taps = isTextElement
+      ? Gesture.Exclusive(doubleTapGesture, singleTapGesture)
+      : singleTapGesture;
+
+    // Race: first gesture to activate wins, others cancelled
+    return Gesture.Race(panGesture, longPressGesture, taps);
+  }, [findFreePosition]);
+
+  // Create element gestures (stable — all values accessed via refs)
+  const iconGesture = useMemo(
+    () => makeElementGesture('icon', iconPan, iconPosXRef, iconPosYRef, setIconPosX, setIconPosY),
+    [makeElementGesture]
   );
 
-  const blockedTextPanResponder = useMemo(
-    () => makeDraggablePanResponder(blockedTextPan, setBlockedTextPosX, setBlockedTextPosY, blockedTextPosXRef, blockedTextPosYRef, 'blockedText'),
-    [makeDraggablePanResponder]
+  const blockedTextGesture = useMemo(
+    () => makeElementGesture('blockedText', blockedTextPan, blockedTextPosXRef, blockedTextPosYRef, setBlockedTextPosX, setBlockedTextPosY),
+    [makeElementGesture]
   );
 
-  const dismissTextPanResponder = useMemo(
-    () => makeDraggablePanResponder(dismissTextPan, setDismissTextPosX, setDismissTextPosY, dismissTextPosXRef, dismissTextPosYRef, 'dismissText'),
-    [makeDraggablePanResponder]
+  const dismissTextGesture = useMemo(
+    () => makeElementGesture('dismissText', dismissTextPan, dismissTextPosXRef, dismissTextPosYRef, setDismissTextPosX, setDismissTextPosY),
+    [makeElementGesture]
   );
+
+  // ============ Background Gesture ============
+  const backgroundGesture = useMemo(() => {
+    const tap = Gesture.Tap()
+      .runOnJS(true)
+      .onEnd(() => {
+        if (!isDragging.current) {
+          setSelectedElement(prev => prev === 'background' ? null : 'background');
+          setEditingText(null);
+          setContextMenuVisible(false);
+        }
+      });
+
+    const longPress = Gesture.LongPress()
+      .runOnJS(true)
+      .minDuration(500)
+      .onStart(() => {
+        setSelectedElement('background');
+        setContextMenuTarget('background');
+        setContextMenuVisible(true);
+        triggerHaptic('impactMedium');
+      });
+
+    return Gesture.Race(longPress, tap);
+  }, []);
+
+  // ============ Pinch Gesture (on parent — works with 2 fingers) ============
+  const pinchBaseSize = useRef(0);
+
+  const pinchGesture = useMemo(() => {
+    return Gesture.Pinch()
+      .runOnJS(true)
+      .onStart(() => {
+        const sel = selectedElementRef.current;
+        if (sel === 'blockedText') pinchBaseSize.current = blockedTextSizeRef.current;
+        else if (sel === 'dismissText') pinchBaseSize.current = dismissTextSizeRef.current;
+        else if (sel === 'icon') pinchBaseSize.current = customOverlayImageSizeRef.current;
+        else pinchBaseSize.current = 0;
+      })
+      .onUpdate((e) => {
+        if (pinchBaseSize.current === 0) return;
+        const sel = selectedElementRef.current;
+        const scale = e.scale;
+        if (sel === 'blockedText') {
+          setBlockedTextSize(Math.max(8, Math.min(36, Math.round(pinchBaseSize.current * scale))));
+        } else if (sel === 'dismissText') {
+          setDismissTextSize(Math.max(5, Math.min(20, Math.round(pinchBaseSize.current * scale))));
+        } else if (sel === 'icon') {
+          setCustomOverlayImageSize(Math.max(30, Math.min(300, Math.round(pinchBaseSize.current * scale / 10) * 10)));
+        }
+      })
+      .onEnd(() => {
+        pinchBaseSize.current = 0;
+      });
+  }, []);
 
   // Handle color change from inline picker
   const handleColorPickerChange = useCallback((color: string) => {
@@ -452,39 +529,6 @@ function OverlayEditorScreen() {
   const setActiveColor = useCallback((color: string) => {
     handleColorPickerChange(color);
   }, [handleColorPickerChange]);
-
-  // Pinch-to-resize
-  const pinchBaseSize = useRef(0);
-  const pinchRafRef = useRef<number | null>(null);
-
-  const handlePreviewPinchStateChange = useCallback(({ nativeEvent }: any) => {
-    if (nativeEvent.oldState === GHState.UNDETERMINED && nativeEvent.state === GHState.BEGAN) {
-      if (selectedElement === 'blockedText') pinchBaseSize.current = blockedTextSize;
-      else if (selectedElement === 'dismissText') pinchBaseSize.current = dismissTextSize;
-      else if (selectedElement === 'icon') pinchBaseSize.current = customOverlayImageSize;
-      else pinchBaseSize.current = 0;
-    }
-    if (nativeEvent.state === GHState.END || nativeEvent.state === GHState.CANCELLED) {
-      pinchBaseSize.current = 0;
-      if (pinchRafRef.current) { cancelAnimationFrame(pinchRafRef.current); pinchRafRef.current = null; }
-    }
-  }, [selectedElement, blockedTextSize, dismissTextSize, customOverlayImageSize]);
-
-  const handlePreviewPinch = useCallback(({ nativeEvent }: any) => {
-    if (!selectedElement || selectedElement === 'background' || pinchBaseSize.current === 0) return;
-    if (pinchRafRef.current) return;
-    pinchRafRef.current = requestAnimationFrame(() => {
-      pinchRafRef.current = null;
-      const scale = nativeEvent.scale;
-      if (selectedElement === 'blockedText') {
-        setBlockedTextSize(Math.max(5, Math.min(20, Math.round(pinchBaseSize.current * scale))));
-      } else if (selectedElement === 'dismissText') {
-        setDismissTextSize(Math.max(4, Math.min(14, Math.round(pinchBaseSize.current * scale))));
-      } else if (selectedElement === 'icon') {
-        setCustomOverlayImageSize(Math.max(30, Math.min(300, Math.round(pinchBaseSize.current * scale / 10) * 10)));
-      }
-    });
-  }, [selectedElement]);
 
   // Sync percentage positions to Animated pixel values (skip during active drag)
   useEffect(() => {
@@ -563,8 +607,13 @@ function OverlayEditorScreen() {
   const canSave = useMemo(() => name.trim().length > 0, [name]);
 
   const handleSave = useCallback(() => {
+    setSaveModalVisible(true);
+  }, []);
+
+  const handleConfirmSave = useCallback(() => {
     if (!canSave || hasSaved.current) return;
     hasSaved.current = true;
+    setSaveModalVisible(false);
 
     const preset: OverlayPreset = {
       id: editingPresetIdRef.current || `overlay-${Date.now()}`,
@@ -577,16 +626,16 @@ function OverlayEditorScreen() {
       customOverlayImage: (iconVisible && customOverlayImage) ? customOverlayImage : undefined,
       customOverlayImageSize: (iconVisible && customOverlayImage) ? customOverlayImageSize : undefined,
       iconPosX: iconPosX !== 50 ? iconPosX : undefined,
-      iconPosY: iconPosY !== 30 ? iconPosY : undefined,
+      iconPosY: iconPosY !== 42 ? iconPosY : undefined,
       blockedTextPosX: blockedTextPosX !== 50 ? blockedTextPosX : undefined,
-      blockedTextPosY: blockedTextPosY !== 50 ? blockedTextPosY : undefined,
+      blockedTextPosY: blockedTextPosY !== 57 ? blockedTextPosY : undefined,
       dismissTextPosX: dismissTextPosX !== 50 ? dismissTextPosX : undefined,
-      dismissTextPosY: dismissTextPosY !== 70 ? dismissTextPosY : undefined,
+      dismissTextPosY: dismissTextPosY !== 63 ? dismissTextPosY : undefined,
       iconVisible: iconVisible === false ? false : undefined,
       blockedTextVisible: blockedTextVisible === false ? false : undefined,
       dismissTextVisible: dismissTextVisible === false ? false : undefined,
-      blockedTextSize: blockedTextSize !== 11 ? blockedTextSize : undefined,
-      dismissTextSize: dismissTextSize !== 7 ? dismissTextSize : undefined,
+      blockedTextSize: blockedTextSize !== DEFAULT_BLOCKED_TEXT_SIZE ? blockedTextSize : undefined,
+      dismissTextSize: dismissTextSize !== DEFAULT_DISMISS_TEXT_SIZE ? dismissTextSize : undefined,
     };
 
     navigation.navigate('Overlays');
@@ -599,110 +648,49 @@ function OverlayEditorScreen() {
 
   // ============ Render ============
   return (
-    <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
-      {/* Header */}
-      <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight, overflow: 'hidden' }} className="flex-row items-center justify-between px-4 py-3.5">
-        <HeaderIconButton onPress={handleBack} style={{ width: s(40) }}>
-          <BackArrowIcon size={s(iconSize.headerNav)} color="#FFFFFF" />
-        </HeaderIconButton>
-        <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.bold}`}>
-          {editingPresetIdRef.current ? 'Edit Overlay' : 'New Overlay'}
-        </Text>
-        <HeaderIconButton onPress={handleSave} disabled={!canSave} style={{ width: s(40) }}>
-          <FileIcon size={s(iconSize.headerNav)} color={canSave ? '#FFFFFF' : colors.textMuted} />
-        </HeaderIconButton>
-      </View>
+    <View style={{ flex: 1, backgroundColor: customOverlayBgColor || OVERLAY_DEFAULT_BG }}>
+      {/* Full-screen interactive preview — pinch wraps everything */}
+      <GestureDetector gesture={pinchGesture}>
+        <View
+          style={{ flex: 1 }}
+          onLayout={(e: LayoutChangeEvent) => {
+            setPreviewWidth(e.nativeEvent.layout.width);
+            setPreviewHeight(e.nativeEvent.layout.height);
+          }}
+        >
+          {/* Background tap/long-press layer */}
+          <GestureDetector gesture={backgroundGesture}>
+            <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, zIndex: 0 }} />
+          </GestureDetector>
 
-      <ScrollView ref={mainScrollRef} className="flex-1" contentContainerStyle={{ paddingBottom: s(100) }}>
-        {/* Name Input */}
-        <View className="px-6" style={{ paddingTop: s(20), paddingBottom: s(14) }}>
-          <Text style={{ color: colors.text, marginBottom: s(8) }} className={`${textSize.small} ${fontFamily.semibold}`}>Overlay Name</Text>
-          <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card, height: s(44) }} className={radius.xl}>
-            <TextInput
-              value={name}
-              onChangeText={(text) => { if (text.length <= 40) setName(text); }}
-              placeholder="e.g. Dark Mode, Motivational..."
-              placeholderTextColor={colors.textSecondary}
-              maxLength={40}
-              style={{ flex: 1, color: colors.text, height: s(44) }}
-              className={`px-4 ${textSize.base} ${fontFamily.semibold}`}
-            />
-          </View>
-        </View>
+          {/* Grid dots */}
+          {previewWidth > 0 && previewHeight > 0 && (
+            <View style={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0 }} pointerEvents="none">
+              {[10, 20, 30, 40, 50, 60, 70, 80, 90].map(py => (
+                [10, 20, 30, 40, 50, 60, 70, 80, 90].map(px => (
+                  <View
+                    key={`${px}-${py}`}
+                    style={{
+                      position: 'absolute',
+                      left: `${px}%`,
+                      top: `${py}%`,
+                      width: s(3),
+                      height: s(3),
+                      borderRadius: s(1.5),
+                      backgroundColor: 'rgba(255,255,255,0.05)',
+                      marginLeft: -s(1.5),
+                      marginTop: -s(1.5),
+                    }}
+                  />
+                ))
+              ))}
+            </View>
+          )}
 
-        {/* ---- Interactive Overlay Preview ---- */}
-        <View className="px-6" style={{ paddingVertical: s(14) }}>
-          <Text style={{ color: '#FFFFFF', marginBottom: s(10) }} className={`${textSize.small} ${fontFamily.semibold}`}>Preview</Text>
-          <Text style={{ color: colors.textMuted, marginBottom: s(10) }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>
-            Drag elements to reposition. Double-tap text to edit. Long-press for options. Pinch to resize.
-          </Text>
-          <PinchGestureHandler
-            onGestureEvent={handlePreviewPinch}
-            onHandlerStateChange={handlePreviewPinchStateChange}
-          >
-          <View
-            onLayout={(e: LayoutChangeEvent) => {
-              setPreviewWidth(e.nativeEvent.layout.width);
-              setPreviewHeight(e.nativeEvent.layout.height);
-            }}
-            style={{
-              alignSelf: 'center',
-              width: s(185),
-              aspectRatio: 9 / 19.5,
-              backgroundColor: customOverlayBgColor || colors.bg,
-              borderRadius: s(20),
-              overflow: 'hidden',
-              borderWidth: s(3),
-              borderColor: selectedElement === 'background' ? 'rgba(255,255,255,0.6)' : '#3A3A3C',
-            }}
-          >
-            {/* Background tap layer */}
-            <TouchableOpacity
-              activeOpacity={1}
-              style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, zIndex: 0 }}
-              onPress={() => {
-                if (!isDragging.current) {
-                  setSelectedElement(prev => prev === 'background' ? null : 'background');
-                  setEditingText(null);
-                  setContextMenuVisible(false);
-                }
-              }}
-              onLongPress={() => {
-                setSelectedElement('background');
-                setContextMenuTarget('background');
-                setContextMenuVisible(true);
-                triggerHaptic('impactMedium');
-              }}
-              delayLongPress={500}
-            />
-
-            {/* Grid dots */}
-            {previewWidth > 0 && previewHeight > 0 && (
-              <View style={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0 }} pointerEvents="none">
-                {[10, 20, 30, 40, 50, 60, 70, 80, 90].map(py => (
-                  [10, 20, 30, 40, 50, 60, 70, 80, 90].map(px => (
-                    <View
-                      key={`${px}-${py}`}
-                      style={{
-                        position: 'absolute',
-                        left: `${px}%`,
-                        top: `${py}%`,
-                        width: s(3),
-                        height: s(3),
-                        borderRadius: s(1.5),
-                        backgroundColor: 'rgba(255,255,255,0.05)',
-                        marginLeft: -s(1.5),
-                        marginTop: -s(1.5),
-                      }}
-                    />
-                  ))
-                ))}
-              </View>
-            )}
-
-            {/* Icon layer */}
-            {iconVisible && (
-              <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, justifyContent: 'center', alignItems: 'center' }} pointerEvents="box-none">
+          {/* Icon layer */}
+          {iconVisible && (
+            <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, justifyContent: 'center', alignItems: 'center' }} pointerEvents="box-none">
+              <GestureDetector gesture={iconGesture}>
                 <Animated.View
                   style={[
                     { transform: iconPan.getTranslateTransform() },
@@ -714,28 +702,29 @@ function OverlayEditorScreen() {
                       padding: s(4),
                     },
                   ]}
-                  {...iconPanResponder.panHandlers}
                 >
                   {customOverlayImage ? (
                     <Image
                       source={{ uri: customOverlayImage }}
-                      style={{ width: s(customOverlayImageSize * 0.5), height: s(customOverlayImageSize * 0.5), borderRadius: s(8) }}
+                      style={{ width: customOverlayImageSize, height: customOverlayImageSize, borderRadius: s(8) }}
                       resizeMode="cover"
                     />
                   ) : (
-                    <MaterialCommunityIcons name="android" size={s(60)} color="#FFFFFF" />
+                    <MaterialCommunityIcons name="android" size={customOverlayImageSize} color="#FFFFFF" />
                   )}
                 </Animated.View>
-              </View>
-            )}
+              </GestureDetector>
+            </View>
+          )}
 
-            {/* Blocked text layer */}
-            {blockedTextVisible && (
-              <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, justifyContent: 'center', alignItems: 'center' }} pointerEvents="box-none">
+          {/* Blocked text layer */}
+          {blockedTextVisible && (
+            <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, justifyContent: 'center', alignItems: 'center' }} pointerEvents="box-none">
+              {editingText === 'blockedText' ? (
                 <Animated.View
                   style={[
                     { transform: blockedTextPan.getTranslateTransform(), paddingHorizontal: s(8) },
-                    selectedElement === 'blockedText' && {
+                    {
                       borderWidth: 1,
                       borderColor: 'rgba(255,255,255,0.7)',
                       borderStyle: 'dashed' as const,
@@ -743,51 +732,63 @@ function OverlayEditorScreen() {
                       padding: s(4),
                     },
                   ]}
-                  {...(editingText !== 'blockedText' ? blockedTextPanResponder.panHandlers : {})}
                 >
-                  {editingText === 'blockedText' ? (
-                    <TextInput
-                      ref={editInputRef}
-                      value={customBlockedText}
-                      onChangeText={(text) => {
-                        if (text.length <= 200) setCustomBlockedText(text);
-                      }}
-                      style={{
-                        color: customBlockedTextColor || '#FFFFFF',
-                        textAlign: 'center',
-                        fontSize: s(blockedTextSize),
-                        lineHeight: s(blockedTextSize * 1.4),
-                        padding: 0,
-                        minWidth: s(60),
-                      }}
-                      className={fontFamily.bold}
-                      autoFocus
-                      multiline
-                      onBlur={() => setEditingText(null)}
-                      placeholderTextColor="rgba(255,255,255,0.3)"
-                      placeholder="Blocked text..."
-                    />
-                  ) : (
+                  <TextInput
+                    ref={editInputRef}
+                    value={customBlockedText}
+                    onChangeText={(text) => {
+                      if (text.length <= 200) setCustomBlockedText(text);
+                    }}
+                    style={{
+                      color: customBlockedTextColor || '#FFFFFF',
+                      textAlign: 'center',
+                      fontSize: s(blockedTextSize),
+                      lineHeight: s(blockedTextSize * 1.3),
+                      padding: 0,
+                      minWidth: s(60),
+                    }}
+                    className={fontFamily.bold}
+                    autoFocus
+                    multiline
+                    onBlur={() => setEditingText(null)}
+                  />
+                </Animated.View>
+              ) : (
+                <GestureDetector gesture={blockedTextGesture}>
+                  <Animated.View
+                    style={[
+                      { transform: blockedTextPan.getTranslateTransform(), paddingHorizontal: s(8) },
+                      selectedElement === 'blockedText' && {
+                        borderWidth: 1,
+                        borderColor: 'rgba(255,255,255,0.7)',
+                        borderStyle: 'dashed' as const,
+                        borderRadius: s(4),
+                        padding: s(4),
+                      },
+                    ]}
+                  >
                     <Text style={{
                       color: customBlockedTextColor || '#FFFFFF',
                       textAlign: 'center',
                       fontSize: s(blockedTextSize),
-                      lineHeight: s(blockedTextSize * 1.4),
+                      lineHeight: s(blockedTextSize * 1.3),
                     }} className={fontFamily.bold}>
                       {customBlockedText.trim() || 'This app is blocked.'}
                     </Text>
-                  )}
-                </Animated.View>
-              </View>
-            )}
+                  </Animated.View>
+                </GestureDetector>
+              )}
+            </View>
+          )}
 
-            {/* Dismiss text layer */}
-            {dismissTextVisible && (
-              <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, justifyContent: 'center', alignItems: 'center' }} pointerEvents="box-none">
+          {/* Dismiss text layer */}
+          {dismissTextVisible && (
+            <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, justifyContent: 'center', alignItems: 'center' }} pointerEvents="box-none">
+              {editingText === 'dismissText' ? (
                 <Animated.View
                   style={[
                     { transform: dismissTextPan.getTranslateTransform() },
-                    selectedElement === 'dismissText' && {
+                    {
                       borderWidth: 1,
                       borderColor: 'rgba(255,255,255,0.7)',
                       borderStyle: 'dashed' as const,
@@ -795,28 +796,38 @@ function OverlayEditorScreen() {
                       padding: s(4),
                     },
                   ]}
-                  {...(editingText !== 'dismissText' ? dismissTextPanResponder.panHandlers : {})}
                 >
-                  {editingText === 'dismissText' ? (
-                    <TextInput
-                      ref={editInputRef}
-                      value={customDismissText}
-                      onChangeText={(text) => {
-                        if (text.length <= 100) setCustomDismissText(text);
-                      }}
-                      style={{
-                        color: customDismissColor || 'rgba(255,255,255,0.5)',
-                        fontSize: s(dismissTextSize),
-                        padding: 0,
-                        minWidth: s(60),
-                      }}
-                      className={fontFamily.bold}
-                      autoFocus
-                      onBlur={() => setEditingText(null)}
-                      placeholderTextColor="rgba(255,255,255,0.2)"
-                      placeholder="Dismiss text..."
-                    />
-                  ) : (
+                  <TextInput
+                    ref={editInputRef}
+                    value={customDismissText}
+                    onChangeText={(text) => {
+                      if (text.length <= 100) setCustomDismissText(text);
+                    }}
+                    style={{
+                      color: customDismissColor || 'rgba(255,255,255,0.5)',
+                      fontSize: s(dismissTextSize),
+                      padding: 0,
+                      minWidth: s(60),
+                    }}
+                    className={fontFamily.bold}
+                    autoFocus
+                    onBlur={() => setEditingText(null)}
+                  />
+                </Animated.View>
+              ) : (
+                <GestureDetector gesture={dismissTextGesture}>
+                  <Animated.View
+                    style={[
+                      { transform: dismissTextPan.getTranslateTransform() },
+                      selectedElement === 'dismissText' && {
+                        borderWidth: 1,
+                        borderColor: 'rgba(255,255,255,0.7)',
+                        borderStyle: 'dashed' as const,
+                        borderRadius: s(4),
+                        padding: s(4),
+                      },
+                    ]}
+                  >
                     <Text style={{
                       color: customDismissColor || '#FFFFFF',
                       fontSize: s(dismissTextSize),
@@ -824,235 +835,335 @@ function OverlayEditorScreen() {
                     }} className={fontFamily.bold}>
                       {customDismissText.trim() || 'Tap anywhere to dismiss'}
                     </Text>
-                  )}
-                </Animated.View>
-              </View>
-            )}
-          </View>
-          </PinchGestureHandler>
-
-          {/* Context Menu */}
-          {contextMenuVisible && contextMenuTarget && (
-            <View style={{
-              flexDirection: 'row',
-              alignSelf: 'center',
-              marginTop: s(10),
-              backgroundColor: colors.card,
-              borderRadius: s(12),
-              paddingVertical: s(8),
-              paddingHorizontal: s(12),
-              ...shadow.card,
-              gap: s(8),
-            }}>
-              {contextMenuTarget !== 'icon' && (
-                <TouchableOpacity
-                  onPress={() => {
-                    setColorPickerTarget(contextMenuTarget);
-                    setContextMenuVisible(false);
-                  }}
-                  activeOpacity={0.7}
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    backgroundColor: 'rgba(255,255,255,0.1)',
-                    borderRadius: s(8),
-                    paddingHorizontal: s(10),
-                    paddingVertical: s(6),
-                  }}
-                >
-                  <BoxiconsFilled name="bx-palette" size={s(16)} color="#FFFFFF" />
-                  <Text style={{ color: '#FFFFFF', marginLeft: s(6) }} className={`${textSize.extraSmall} ${fontFamily.semibold}`}>Color</Text>
-                </TouchableOpacity>
-              )}
-              {contextMenuTarget === 'icon' && (
-                <TouchableOpacity
-                  onPress={() => {
-                    handlePickImage();
-                    setContextMenuVisible(false);
-                  }}
-                  activeOpacity={0.7}
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    backgroundColor: 'rgba(255,255,255,0.1)',
-                    borderRadius: s(8),
-                    paddingHorizontal: s(10),
-                    paddingVertical: s(6),
-                  }}
-                >
-                  <BoxiconsFilled name="bx-image-plus" size={s(16)} color="#FFFFFF" />
-                  <Text style={{ color: '#FFFFFF', marginLeft: s(6) }} className={`${textSize.extraSmall} ${fontFamily.semibold}`}>Change Image</Text>
-                </TouchableOpacity>
-              )}
-              {contextMenuTarget !== 'background' && (
-                <TouchableOpacity
-                  onPress={() => {
-                    if (contextMenuTarget === 'icon') setIconVisible(false);
-                    else if (contextMenuTarget === 'blockedText') setBlockedTextVisible(false);
-                    else if (contextMenuTarget === 'dismissText') setDismissTextVisible(false);
-                    setContextMenuVisible(false);
-                    setSelectedElement(null);
-                  }}
-                  activeOpacity={0.7}
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    backgroundColor: 'rgba(239,68,68,0.2)',
-                    borderRadius: s(8),
-                    paddingHorizontal: s(10),
-                    paddingVertical: s(6),
-                  }}
-                >
-                  <Svg width={s(16)} height={s(16)} viewBox="0 0 24 24" fill={colors.red}>
-                    <Path
-                      fillRule="evenodd"
-                      clipRule="evenodd"
-                      d="M16.5 4.478v.227a48.816 48.816 0 0 1 3.878.512.75.75 0 1 1-.256 1.478l-.209-.035-1.005 13.07a3 3 0 0 1-2.991 2.77H8.084a3 3 0 0 1-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 0 1-.256-1.478A48.567 48.567 0 0 1 7.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 0 1 3.369 0c1.603.051 2.815 1.387 2.815 2.951Zm-6.136-1.452a51.196 51.196 0 0 1 3.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 0 0-6 0v-.113c0-.794.609-1.428 1.364-1.452Zm-.355 5.945a.75.75 0 1 0-1.5.058l.347 9a.75.75 0 1 0 1.499-.058l-.346-9Zm5.48.058a.75.75 0 1 0-1.498-.058l-.347 9a.75.75 0 0 0 1.5.058l.345-9Z"
-                    />
-                  </Svg>
-                  <Text style={{ color: colors.red, marginLeft: s(6) }} className={`${textSize.extraSmall} ${fontFamily.semibold}`}>Delete</Text>
-                </TouchableOpacity>
+                  </Animated.View>
+                </GestureDetector>
               )}
             </View>
-          )}
-
-          {/* Inline Color Picker */}
-          {colorPickerTarget && (
-            <View style={{ marginTop: s(10) }}>
-              <View className="flex-row items-center justify-between" style={{ marginBottom: s(8) }}>
-                <Text style={{ color: '#FFFFFF' }} className={`${textSize.extraSmall} ${fontFamily.semibold}`}>
-                  {colorPickerTarget === 'background' ? 'Background' : colorPickerTarget === 'blockedText' ? 'Blocked Message' : 'Dismiss Message'} Color
-                </Text>
-                <TouchableOpacity onPress={() => setColorPickerTarget(null)} activeOpacity={0.7}>
-                  <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.semibold}`}>Done</Text>
-                </TouchableOpacity>
-              </View>
-              <View
-                onLayout={(e: LayoutChangeEvent) => setColorPickerActiveWidth(e.nativeEvent.layout.width)}
-                {...activeColorPanResponder.panHandlers}
-              >
-                <View style={{ height: s(28), borderRadius: s(14), overflow: 'hidden', ...shadow.card }}>
-                  <LinearGradient
-                    colors={SPECTRUM_COLORS}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                    style={{ flex: 1 }}
-                  />
-                </View>
-              </View>
-              <View className="flex-row items-center" style={{ marginTop: s(10) }}>
-                <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card, height: s(38) }} className={radius.xl}>
-                  <View style={{ width: s(16), height: s(16), borderRadius: s(8), backgroundColor: getActiveColor() || '#FFFFFF', marginLeft: s(12) }} />
-                  <TextInput
-                    value={getActiveColor()}
-                    onChangeText={(text) => {
-                      let cleaned = text.replace(/[^#0-9A-Fa-f]/g, '').toUpperCase();
-                      if (!cleaned.startsWith('#')) cleaned = '#' + cleaned;
-                      if (cleaned.length <= 7) setActiveColor(cleaned);
-                    }}
-                    placeholder="#FFFFFF"
-                    placeholderTextColor={colors.textSecondary}
-                    maxLength={7}
-                    autoCapitalize="characters"
-                    autoCorrect={false}
-                    style={{ flex: 1, color: colors.text, height: s(38) }}
-                    className={`px-3 ${textSize.extraSmall} ${fontFamily.semibold}`}
-                  />
-                </View>
-                <TouchableOpacity
-                  onPress={() => {
-                    if (colorPickerTarget === 'background') {
-                      setCustomOverlayBgColor('');
-                    } else if (colorPickerTarget === 'blockedText') {
-                      setCustomBlockedTextColor('');
-                    } else if (colorPickerTarget === 'dismissText') {
-                      setCustomDismissColor('');
-                    }
-                  }}
-                  activeOpacity={0.7}
-                  style={{ marginLeft: s(10) }}
-                >
-                  <BoxiconsFilled name="bx-refresh-cw-alt" size={s(iconSize.headerNav)} color="#FFFFFF" />
-                </TouchableOpacity>
-              </View>
-            </View>
-          )}
-
-          {/* Hidden Elements Restore */}
-          {(!iconVisible || !blockedTextVisible || !dismissTextVisible) && (
-            <View style={{ marginTop: s(10), flexDirection: 'row', flexWrap: 'wrap', gap: s(8), justifyContent: 'center' }}>
-              {!iconVisible && (
-                <TouchableOpacity
-                  onPress={() => setIconVisible(true)}
-                  activeOpacity={0.7}
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    backgroundColor: 'rgba(255,255,255,0.08)',
-                    borderRadius: s(8),
-                    paddingHorizontal: s(10),
-                    paddingVertical: s(6),
-                  }}
-                >
-                  <BoxiconsFilled name="bx-plus" size={s(14)} color={colors.textMuted} />
-                  <Text style={{ color: colors.textMuted, marginLeft: s(4) }} className={`${textSize.extraSmall} ${fontFamily.semibold}`}>Icon</Text>
-                </TouchableOpacity>
-              )}
-              {!blockedTextVisible && (
-                <TouchableOpacity
-                  onPress={() => setBlockedTextVisible(true)}
-                  activeOpacity={0.7}
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    backgroundColor: 'rgba(255,255,255,0.08)',
-                    borderRadius: s(8),
-                    paddingHorizontal: s(10),
-                    paddingVertical: s(6),
-                  }}
-                >
-                  <BoxiconsFilled name="bx-plus" size={s(14)} color={colors.textMuted} />
-                  <Text style={{ color: colors.textMuted, marginLeft: s(4) }} className={`${textSize.extraSmall} ${fontFamily.semibold}`}>Blocked Message</Text>
-                </TouchableOpacity>
-              )}
-              {!dismissTextVisible && (
-                <TouchableOpacity
-                  onPress={() => setDismissTextVisible(true)}
-                  activeOpacity={0.7}
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    backgroundColor: 'rgba(255,255,255,0.08)',
-                    borderRadius: s(8),
-                    paddingHorizontal: s(10),
-                    paddingVertical: s(6),
-                  }}
-                >
-                  <BoxiconsFilled name="bx-plus" size={s(14)} color={colors.textMuted} />
-                  <Text style={{ color: colors.textMuted, marginLeft: s(4) }} className={`${textSize.extraSmall} ${fontFamily.semibold}`}>Dismiss Message</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          )}
-
-          {/* Reset positions button */}
-          {(iconPosX !== 50 || iconPosY !== 30 || blockedTextPosX !== 50 || blockedTextPosY !== 50 || dismissTextPosX !== 50 || dismissTextPosY !== 70) && (
-            <TouchableOpacity
-              onPress={() => {
-                setIconPosX(50); setIconPosY(30);
-                setBlockedTextPosX(50); setBlockedTextPosY(50);
-                setDismissTextPosX(50); setDismissTextPosY(70);
-              }}
-              activeOpacity={0.7}
-              style={{ alignSelf: 'center', marginTop: s(10) }}
-              className="flex-row items-center"
-            >
-              <BoxiconsFilled name="bx-refresh-cw-alt" size={s(iconSize.sm)} color={colors.textMuted} />
-              <Text style={{ color: colors.textMuted, marginLeft: s(4) }} className={`${textSize.extraSmall} ${fontFamily.semibold}`}>Reset Layout</Text>
-            </TouchableOpacity>
           )}
         </View>
-      </ScrollView>
+      </GestureDetector>
+
+      {/* Floating back button — top-left */}
+      <View style={{ position: 'absolute', top: insets.top + s(16), left: s(16) }}>
+        <HeaderIconButton onPress={handleBack}>
+          <BackArrowIcon size={s(iconSize.headerNav)} color="#FFFFFF" />
+        </HeaderIconButton>
+      </View>
+
+      {/* Floating save button — top-right */}
+      <View style={{ position: 'absolute', top: insets.top + s(16), right: s(16) }}>
+        <HeaderIconButton onPress={handleSave}>
+          <FileIcon size={s(iconSize.headerNav)} color="#FFFFFF" />
+        </HeaderIconButton>
+      </View>
+
+      {/* Floating context menu */}
+      {contextMenuVisible && contextMenuTarget && (
+        <View style={{
+          position: 'absolute',
+          bottom: insets.bottom + s(100),
+          left: 0,
+          right: 0,
+          alignItems: 'center',
+        }}>
+          <View style={{
+            flexDirection: 'row',
+            backgroundColor: colors.card,
+            borderRadius: s(12),
+            paddingVertical: s(8),
+            paddingHorizontal: s(12),
+            ...shadow.card,
+            gap: s(8),
+          }}>
+            {contextMenuTarget !== 'icon' && (
+              <TouchableOpacity
+                onPress={() => {
+                  setColorPickerTarget(contextMenuTarget);
+                  setContextMenuVisible(false);
+                }}
+                activeOpacity={0.7}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  backgroundColor: 'rgba(255,255,255,0.1)',
+                  borderRadius: s(8),
+                  paddingHorizontal: s(10),
+                  paddingVertical: s(6),
+                }}
+              >
+                <BoxiconsFilled name="bx-palette" size={s(16)} color="#FFFFFF" />
+                <Text style={{ color: '#FFFFFF', marginLeft: s(6) }} className={`${textSize.extraSmall} ${fontFamily.semibold}`}>Color</Text>
+              </TouchableOpacity>
+            )}
+            {contextMenuTarget === 'icon' && (
+              <TouchableOpacity
+                onPress={() => {
+                  handlePickImage();
+                  setContextMenuVisible(false);
+                }}
+                activeOpacity={0.7}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  backgroundColor: 'rgba(255,255,255,0.1)',
+                  borderRadius: s(8),
+                  paddingHorizontal: s(10),
+                  paddingVertical: s(6),
+                }}
+              >
+                <BoxiconsFilled name="bx-image-plus" size={s(16)} color="#FFFFFF" />
+                <Text style={{ color: '#FFFFFF', marginLeft: s(6) }} className={`${textSize.extraSmall} ${fontFamily.semibold}`}>Change Image</Text>
+              </TouchableOpacity>
+            )}
+            {contextMenuTarget !== 'background' && (
+              <TouchableOpacity
+                onPress={() => {
+                  if (contextMenuTarget === 'icon') setIconVisible(false);
+                  else if (contextMenuTarget === 'blockedText') setBlockedTextVisible(false);
+                  else if (contextMenuTarget === 'dismissText') setDismissTextVisible(false);
+                  setContextMenuVisible(false);
+                  setSelectedElement(null);
+                }}
+                activeOpacity={0.7}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  backgroundColor: 'rgba(239,68,68,0.2)',
+                  borderRadius: s(8),
+                  paddingHorizontal: s(10),
+                  paddingVertical: s(6),
+                }}
+              >
+                <Svg width={s(16)} height={s(16)} viewBox="0 0 24 24" fill={colors.red}>
+                  <Path
+                    fillRule="evenodd"
+                    clipRule="evenodd"
+                    d="M16.5 4.478v.227a48.816 48.816 0 0 1 3.878.512.75.75 0 1 1-.256 1.478l-.209-.035-1.005 13.07a3 3 0 0 1-2.991 2.77H8.084a3 3 0 0 1-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 0 1-.256-1.478A48.567 48.567 0 0 1 7.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 0 1 3.369 0c1.603.051 2.815 1.387 2.815 2.951Zm-6.136-1.452a51.196 51.196 0 0 1 3.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 0 0-6 0v-.113c0-.794.609-1.428 1.364-1.452Zm-.355 5.945a.75.75 0 1 0-1.5.058l.347 9a.75.75 0 1 0 1.499-.058l-.346-9Zm5.48.058a.75.75 0 1 0-1.498-.058l-.347 9a.75.75 0 0 0 1.5.058l.345-9Z"
+                  />
+                </Svg>
+                <Text style={{ color: colors.red, marginLeft: s(6) }} className={`${textSize.extraSmall} ${fontFamily.semibold}`}>Delete</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+      )}
+
+      {/* Floating color picker */}
+      {colorPickerTarget && (
+        <View style={{
+          position: 'absolute',
+          bottom: insets.bottom + s(20),
+          left: s(16),
+          right: s(16),
+          backgroundColor: 'rgba(30,30,30,0.9)',
+          borderRadius: s(16),
+          padding: s(14),
+          ...shadow.card,
+        }}>
+          <View className="flex-row items-center justify-between" style={{ marginBottom: s(8) }}>
+            <Text style={{ color: '#FFFFFF' }} className={`${textSize.extraSmall} ${fontFamily.semibold}`}>
+              {colorPickerTarget === 'background' ? 'Background' : colorPickerTarget === 'blockedText' ? 'Blocked Message' : 'Dismiss Message'} Color
+            </Text>
+            <TouchableOpacity onPress={() => setColorPickerTarget(null)} activeOpacity={0.7}>
+              <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.semibold}`}>Done</Text>
+            </TouchableOpacity>
+          </View>
+          <View
+            onLayout={(e: LayoutChangeEvent) => setColorPickerActiveWidth(e.nativeEvent.layout.width)}
+            {...activeColorPanResponder.panHandlers}
+          >
+            <View style={{ height: s(28), borderRadius: s(14), overflow: 'hidden', ...shadow.card }}>
+              <LinearGradient
+                colors={SPECTRUM_COLORS}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={{ flex: 1 }}
+              />
+            </View>
+          </View>
+          <View className="flex-row items-center" style={{ marginTop: s(10) }}>
+            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card, height: s(38) }} className={radius.xl}>
+              <View style={{ width: s(16), height: s(16), borderRadius: s(8), backgroundColor: getActiveColor() || '#FFFFFF', marginLeft: s(12) }} />
+              <TextInput
+                value={getActiveColor()}
+                onChangeText={(text) => {
+                  let cleaned = text.replace(/[^#0-9A-Fa-f]/g, '').toUpperCase();
+                  if (!cleaned.startsWith('#')) cleaned = '#' + cleaned;
+                  if (cleaned.length <= 7) setActiveColor(cleaned);
+                }}
+                placeholder="#FFFFFF"
+                placeholderTextColor={colors.textSecondary}
+                maxLength={7}
+                autoCapitalize="characters"
+                autoCorrect={false}
+                style={{ flex: 1, color: colors.text, height: s(38) }}
+                className={`px-3 ${textSize.extraSmall} ${fontFamily.semibold}`}
+              />
+            </View>
+            <TouchableOpacity
+              onPress={() => {
+                if (colorPickerTarget === 'background') {
+                  setCustomOverlayBgColor('');
+                } else if (colorPickerTarget === 'blockedText') {
+                  setCustomBlockedTextColor('');
+                } else if (colorPickerTarget === 'dismissText') {
+                  setCustomDismissColor('');
+                }
+              }}
+              activeOpacity={0.7}
+              style={{ marginLeft: s(10) }}
+            >
+              <BoxiconsFilled name="bx-refresh-cw-alt" size={s(iconSize.headerNav)} color="#FFFFFF" />
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
+      {/* Floating hidden elements restore */}
+      {!colorPickerTarget && (!iconVisible || !blockedTextVisible || !dismissTextVisible) && (
+        <View style={{
+          position: 'absolute',
+          bottom: insets.bottom + s(20),
+          left: 0,
+          right: 0,
+          alignItems: 'center',
+        }}>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: s(8), justifyContent: 'center' }}>
+            {!iconVisible && (
+              <TouchableOpacity
+                onPress={() => setIconVisible(true)}
+                activeOpacity={0.7}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  backgroundColor: 'rgba(255,255,255,0.08)',
+                  borderRadius: s(8),
+                  paddingHorizontal: s(10),
+                  paddingVertical: s(6),
+                }}
+              >
+                <BoxiconsFilled name="bx-plus" size={s(14)} color={colors.textMuted} />
+                <Text style={{ color: colors.textMuted, marginLeft: s(4) }} className={`${textSize.extraSmall} ${fontFamily.semibold}`}>Icon</Text>
+              </TouchableOpacity>
+            )}
+            {!blockedTextVisible && (
+              <TouchableOpacity
+                onPress={() => setBlockedTextVisible(true)}
+                activeOpacity={0.7}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  backgroundColor: 'rgba(255,255,255,0.08)',
+                  borderRadius: s(8),
+                  paddingHorizontal: s(10),
+                  paddingVertical: s(6),
+                }}
+              >
+                <BoxiconsFilled name="bx-plus" size={s(14)} color={colors.textMuted} />
+                <Text style={{ color: colors.textMuted, marginLeft: s(4) }} className={`${textSize.extraSmall} ${fontFamily.semibold}`}>Blocked Message</Text>
+              </TouchableOpacity>
+            )}
+            {!dismissTextVisible && (
+              <TouchableOpacity
+                onPress={() => setDismissTextVisible(true)}
+                activeOpacity={0.7}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  backgroundColor: 'rgba(255,255,255,0.08)',
+                  borderRadius: s(8),
+                  paddingHorizontal: s(10),
+                  paddingVertical: s(6),
+                }}
+              >
+                <BoxiconsFilled name="bx-plus" size={s(14)} color={colors.textMuted} />
+                <Text style={{ color: colors.textMuted, marginLeft: s(4) }} className={`${textSize.extraSmall} ${fontFamily.semibold}`}>Dismiss Message</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+      )}
+
+      {/* Floating reset layout */}
+      {!colorPickerTarget && (iconPosX !== 50 || iconPosY !== 42 || blockedTextPosX !== 50 || blockedTextPosY !== 57 || dismissTextPosX !== 50 || dismissTextPosY !== 63) && (
+        <View style={{
+          position: 'absolute',
+          top: insets.top + s(20),
+          left: 0,
+          right: 0,
+          alignItems: 'center',
+        }}>
+          <TouchableOpacity
+            onPress={() => {
+              setIconPosX(50); setIconPosY(42);
+              setBlockedTextPosX(50); setBlockedTextPosY(57);
+              setDismissTextPosX(50); setDismissTextPosY(63);
+            }}
+            activeOpacity={0.7}
+            className="flex-row items-center"
+          >
+            <BoxiconsFilled name="bx-refresh-cw-alt" size={s(iconSize.sm)} color="#FFFFFF" />
+            <Text style={{ color: '#FFFFFF', marginLeft: s(4) }} className={`${textSize.extraSmall} ${fontFamily.semibold}`}>Reset Layout</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {/* Save Name Modal */}
+      <Modal
+        visible={saveModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setSaveModalVisible(false)}
+      >
+        <View className="flex-1 bg-black/70 justify-center items-center px-8">
+          <View
+            style={{
+              backgroundColor: colors.card,
+              borderWidth: 1,
+              borderColor: colors.border,
+              ...shadow.modal,
+              width: '100%',
+            }}
+            className={`${radius['2xl']} overflow-hidden`}
+          >
+            <View className="p-6">
+              <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.bold} text-center mb-4`}>
+                Name Your Overlay
+              </Text>
+              <View style={{ backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.border, height: s(44) }} className={radius.xl}>
+                <TextInput
+                  value={name}
+                  onChangeText={(text) => { if (text.length <= 40) setName(text); }}
+                  placeholder="e.g. Dark Mode, Motivational..."
+                  placeholderTextColor={colors.textSecondary}
+                  maxLength={40}
+                  autoFocus
+                  style={{ flex: 1, color: colors.text, height: s(44) }}
+                  className={`px-4 ${textSize.base} ${fontFamily.semibold}`}
+                />
+              </View>
+            </View>
+            <View style={{ borderTopWidth: 1, borderTopColor: colors.divider }} className="flex-row">
+              <TouchableOpacity
+                onPress={() => setSaveModalVisible(false)}
+                activeOpacity={0.7}
+                style={{ borderRightWidth: 1, borderRightColor: colors.divider }}
+                className="flex-1 py-4 items-center justify-center"
+              >
+                <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular}`}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleConfirmSave}
+                activeOpacity={0.7}
+                disabled={!canSave}
+                className="flex-1 py-4 items-center justify-center"
+              >
+                <Text style={{ color: canSave ? colors.text : colors.textMuted }} className={`${textSize.small} ${fontFamily.semibold}`}>Save</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       {/* Image Upload Error Modal */}
       <InfoModal

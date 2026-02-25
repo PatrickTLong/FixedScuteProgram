@@ -99,8 +99,6 @@ function HomeScreen() {
 
   // Pull-to-refresh state
   const [refreshing, setRefreshing] = useState(false);
-  const [buttonInteracting, setButtonInteracting] = useState(false);
-  const buttonAreaRef = useRef<View>(null);
 
 
 
@@ -733,6 +731,7 @@ function HomeScreen() {
 
   // Memoize unlock press handler for timed presets (shows emergency tapout modal)
   const handleUnlockPress = useCallback(() => {
+    console.log('[UNBLOCKING] handleUnlockPress — showing emergency tapout modal');
     // Timed preset - show emergency tapout modal
     setEmergencyTapoutModalVisible(true);
   }, []);
@@ -748,7 +747,7 @@ function HomeScreen() {
 
     try {
       // Optimistic UI update — instant unlock, clear timer in same render
-      console.log('[UNLOCK-DEBUG] slideUnlock: setting optimistic unlock state');
+      console.log('[UNBLOCKING] slideUnlock: setting optimistic unlock state — isLocked=false');
       setTimeRemaining(null);
       setElapsedTime(null);
       setSharedLockStatus({ isLocked: false, lockStartedAt: null, lockEndsAt: null });
@@ -765,24 +764,25 @@ function HomeScreen() {
       // Fire-and-forget: native unlock + backend sync
       (async () => {
         try {
-          console.log('[UNLOCK-DEBUG] slideUnlock: calling forceUnlock...');
+          console.log('[UNBLOCKING] slideUnlock: calling forceUnlock...');
           if (BlockingModule) {
             await BlockingModule.forceUnlock();
+            console.log('[UNBLOCKING] slideUnlock: forceUnlock done');
           }
           if (isScheduledPreset) {
-            console.log('[UNLOCK-DEBUG] slideUnlock: calling useEmergencyTapout for scheduled...');
+            console.log('[UNBLOCKING] slideUnlock: calling useEmergencyTapout for scheduled...');
             await useEmergencyTapout(email, presetIdToKeep, true);
           } else {
-            console.log('[UNLOCK-DEBUG] slideUnlock: calling updateLockStatus...');
+            console.log('[UNBLOCKING] slideUnlock: calling updateLockStatus(false)...');
             await updateLockStatus(email, false, null);
             if (presetIdToKeep) {
               await activatePreset(email, presetIdToKeep);
             }
           }
           invalidateUserCaches(email);
-          console.log('[UNLOCK-DEBUG] slideUnlock: backend sync complete');
-        } catch {
-          console.log('[UNLOCK-DEBUG] slideUnlock: backend sync failed');
+          console.log('[UNBLOCKING] slideUnlock: backend sync complete — fully unblocked');
+        } catch (err) {
+          console.log('[UNBLOCKING] slideUnlock: backend sync FAILED:', err);
         }
       })();
 
@@ -793,8 +793,10 @@ function HomeScreen() {
   }, [email, showModal, activePreset]);
 
   const handleBlockNow = useCallback(() => {
+    console.log('[BLOCKING] handleBlockNow called', { preset: activePreset?.name, presetId: activePreset?.id, strictMode: activePreset?.strictMode, noTimeLimit: activePreset?.noTimeLimit });
     try {
       if (!activePreset) {
+        console.log('[BLOCKING] No preset selected — showing modal');
         showModal(
           'No Preset Selected',
           'Please toggle a preset in the Presets tab before you can start blocking.'
@@ -871,6 +873,7 @@ function HomeScreen() {
         }
       }
 
+      console.log('[BLOCKING] Validation passed, locking now', { calculatedLockEndsAt, isScheduled: activePreset.isScheduled });
       // Optimistic UI update — fires immediately, no awaits above
       const nowISO = new Date().toISOString();
       if (calculatedLockEndsAt) {
@@ -886,6 +889,7 @@ function HomeScreen() {
         setElapsedTime('0s');
       }
       setSharedLockStatus({ isLocked: true, lockStartedAt: nowISO, lockEndsAt: calculatedLockEndsAt });
+      console.log('[BLOCKING] Optimistic UI updated — isLocked=true, lockEndsAt=', calculatedLockEndsAt);
 
       // Fire-and-forget: permissions, backend, and native blocking all run after UI is updated
       (async () => {
@@ -913,7 +917,9 @@ function HomeScreen() {
             }
           }
 
+          console.log('[BLOCKING] Permission check passed, calling updateLockStatus...');
           await updateLockStatus(email, true, calculatedLockEndsAt);
+          console.log('[BLOCKING] updateLockStatus done, calling BlockingModule.startBlocking...');
 
           if (BlockingModule) {
             const lockEndTimeMs = calculatedLockEndsAt
@@ -942,12 +948,14 @@ function HomeScreen() {
           }
 
           invalidateUserCaches(email);
-        } catch {
-          // Backend/native sync failed — state will reconcile on next app foreground
+          console.log('[BLOCKING] Blocking session fully started — native + backend synced');
+        } catch (err) {
+          console.log('[BLOCKING] Backend/native sync FAILED:', err);
         }
       })();
 
     } catch (error) {
+      console.log('[BLOCKING] handleBlockNow ERROR:', error);
       showModal('Error', 'Failed to start blocking session.');
     }
   }, [activePreset, email, showModal, scheduledPresets, formatScheduleDate, loadStats]);
@@ -1006,11 +1014,8 @@ function HomeScreen() {
     ) : null;
   }, [getPresetTimingSubtext, colors.textMuted]);
 
-  const refreshEnabled = !buttonInteracting;
-
   // Pull-to-refresh handler
   const onRefresh = useCallback(async () => {
-    if (!refreshEnabled) return;
     setRefreshing(true);
     invalidateUserCaches(email);
     await loadStats(true, false);
@@ -1066,7 +1071,6 @@ function HomeScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            enabled={refreshEnabled}
             tintColor={colors.text}
             colors={[colors.text]}
             progressBackgroundColor={colors.card}
@@ -1126,63 +1130,58 @@ function HomeScreen() {
             )}
           </View>
         </View>
-
-        {/* Action Button - clean matte style */}
-        <View
-          ref={buttonAreaRef}
-          className="mb-10"
-          style={{ position: 'relative' }}
-          onTouchStart={() => setButtonInteracting(true)}
-          onTouchEnd={() => setButtonInteracting(false)}
-          onTouchCancel={() => setButtonInteracting(false)}
-        >
-          {/* Success checkmark — pops in on lock/unlock, then fades out */}
-          <Animated.View
-            pointerEvents="none"
-            style={{
-              position: 'absolute',
-              bottom: '100%',
-              left: 0,
-              right: 0,
-              alignItems: 'center',
-              marginBottom: s(16),
-              opacity: checkmarkOpacity,
-              transform: [{ scale: checkmarkScale }],
-            }}
-          >
-            <View style={{
-              width: s(28),
-              height: s(28),
-              borderRadius: s(14),
-              backgroundColor: colors.green,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}>
-              <Svg width={s(16)} height={s(16)} viewBox="0 0 24 24" fill="none">
-                <AnimatedPath
-                  d="M4 12l5 5L20 6"
-                  stroke="#FFFFFF"
-                  strokeWidth={3.5}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeDasharray={100}
-                  strokeDashoffset={checkmarkStroke}
-                />
-              </Svg>
-            </View>
-          </Animated.View>
-          <BlockNowButton
-            onActivate={handleBlockNow}
-            onUnlockPress={handleUnlockPress}
-            onSlideUnlock={handleSlideUnlock}
-            disabled={!currentPreset}
-            isLocked={isLocked}
-            hasActiveTimer={!!timeRemaining}
-            strictMode={activePreset?.strictMode ?? false}
-            onInteractionChange={setButtonInteracting}
-          />
-        </View>
       </ScrollView>
+
+      {/* Action Button - outside ScrollView so RefreshControl can't steal gestures */}
+      <View
+        className="mb-10 px-6"
+        style={{ position: 'relative' }}
+      >
+        {/* Success checkmark — pops in on lock/unlock, then fades out */}
+        <Animated.View
+          pointerEvents="none"
+          style={{
+            position: 'absolute',
+            bottom: '100%',
+            left: 0,
+            right: 0,
+            alignItems: 'center',
+            marginBottom: s(16),
+            opacity: checkmarkOpacity,
+            transform: [{ scale: checkmarkScale }],
+          }}
+        >
+          <View style={{
+            width: s(28),
+            height: s(28),
+            borderRadius: s(14),
+            backgroundColor: colors.green,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+            <Svg width={s(16)} height={s(16)} viewBox="0 0 24 24" fill="none">
+              <AnimatedPath
+                d="M4 12l5 5L20 6"
+                stroke="#FFFFFF"
+                strokeWidth={3.5}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeDasharray={100}
+                strokeDashoffset={checkmarkStroke}
+              />
+            </Svg>
+          </View>
+        </Animated.View>
+        <BlockNowButton
+          onActivate={handleBlockNow}
+          onUnlockPress={handleUnlockPress}
+          onSlideUnlock={handleSlideUnlock}
+          disabled={!currentPreset}
+          isLocked={isLocked}
+          hasActiveTimer={!!timeRemaining}
+          strictMode={activePreset?.strictMode ?? false}
+        />
+      </View>
 
 
       {/* Info Modal */}
