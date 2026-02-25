@@ -13,6 +13,7 @@ import {
   useEmergencyTapout,
   savePreset,
   Preset,
+  OverlayPreset,
   LockStatus,
   EmergencyTapoutStatus,
   invalidateUserCaches,
@@ -21,6 +22,7 @@ import {
   isFirstLoad,
   clearAllCaches,
   markInitialLoadComplete,
+  getOverlayPresets,
 } from '../services/cardApi';
 import type { RootStackParamList } from '../navigation/types';
 
@@ -75,10 +77,14 @@ interface AuthContextValue {
   sharedLockStatus: LockStatus;
   setSharedLockStatus: React.Dispatch<React.SetStateAction<LockStatus>>;
   sharedIsLocked: boolean; // derived read-only from sharedLockStatus.isLocked
+  // Shared overlay presets state
+  sharedOverlayPresets: OverlayPreset[];
+  setSharedOverlayPresets: React.Dispatch<React.SetStateAction<OverlayPreset[]>>;
   // Centralized refresh functions
   refreshPresets: (skipCache?: boolean) => Promise<Preset[]>;
   refreshLockStatus: (skipCache?: boolean) => Promise<LockStatus>;
   refreshTapoutStatus: (skipCache?: boolean) => Promise<EmergencyTapoutStatus>;
+  refreshOverlayPresets: (skipCache?: boolean) => Promise<OverlayPreset[]>;
   refreshAll: (skipCache?: boolean) => Promise<{ presets: Preset[]; lockStatus: LockStatus; tapoutStatus: EmergencyTapoutStatus }>;
 }
 
@@ -101,6 +107,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Shared presets state - single source of truth across all mounted screens
   const [sharedPresets, setSharedPresets] = useState<Preset[]>([]);
   const [sharedPresetsLoaded, setSharedPresetsLoaded] = useState(false);
+
+  // Shared overlay presets state
+  const [sharedOverlayPresets, setSharedOverlayPresets] = useState<OverlayPreset[]>([]);
 
   // Shared lock status - single source of truth across all mounted screens
   const [sharedLockStatus, _setSharedLockStatus] = useState<LockStatus>({
@@ -172,6 +181,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const tapout = await getEmergencyTapoutStatus(userEmail, skipCache);
     setTapoutStatus(tapout);
     return tapout;
+  }, [userEmail]);
+
+  const refreshOverlayPresets = useCallback(async (skipCache = false): Promise<OverlayPreset[]> => {
+    if (!userEmail) return [];
+    const presets = await getOverlayPresets(userEmail, skipCache);
+    setSharedOverlayPresets(presets);
+    return presets;
   }, [userEmail]);
 
   const refreshAll = useCallback(async (skipCache = false): Promise<{ presets: Preset[]; lockStatus: LockStatus; tapoutStatus: EmergencyTapoutStatus }> => {
@@ -401,6 +417,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     setSharedPresets([]);
     setSharedPresetsLoaded(false);
+    setSharedOverlayPresets([]);
     await AsyncStorage.removeItem('user_email');
     await clearAuthToken();
     setUserEmail('');
@@ -709,12 +726,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     sharedPresets,
     setSharedPresets,
     sharedPresetsLoaded,
+    sharedOverlayPresets,
+    setSharedOverlayPresets,
     sharedLockStatus,
     setSharedLockStatus,
     sharedIsLocked: sharedLockStatus.isLocked,
     refreshPresets,
     refreshLockStatus,
     refreshTapoutStatus,
+    refreshOverlayPresets,
     refreshAll,
   };
 

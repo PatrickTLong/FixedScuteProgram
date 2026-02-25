@@ -83,6 +83,8 @@ export interface Preset {
   // Text sizes (interactive preview pinch-to-resize)
   blockedTextSize?: number;
   dismissTextSize?: number;
+  // Overlay preset reference (links to a saved overlay preset)
+  overlayPresetId?: string;
 }
 
 interface PresetCardProps {

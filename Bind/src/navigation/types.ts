@@ -25,10 +25,12 @@ export type PresetsStackParamList = {
 export type MainTabParamList = {
   Home: undefined;
   Presets: NavigatorScreenParams<PresetsStackParamList>;
+  Overlays: undefined;
   Stats: undefined;
   Settings: undefined;
   EditPresetApps: undefined;
   PresetSettings: undefined;
+  OverlayEditor: undefined;
   DatePicker: undefined;
 };
 

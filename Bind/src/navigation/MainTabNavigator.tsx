@@ -2,10 +2,12 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import HomeScreen from '../screens/HomeScreen';
 import PresetsStack from './PresetsStack';
+import OverlaysScreen from '../screens/OverlaysScreen';
 import StatsScreen from '../screens/StatsScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import EditPresetAppsScreen from '../screens/EditPresetAppsScreen';
 import PresetSettingsScreen from '../screens/PresetSettingsScreen';
+import OverlayEditorScreen from '../screens/OverlayEditorScreen';
 import DatePickerScreen from '../screens/DatePickerScreen';
 import BottomTabBar from '../components/BottomTabBar';
 import type { MainTabParamList } from './types';
@@ -25,10 +27,12 @@ export default function MainTabNavigator() {
     >
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Presets" component={PresetsStack} />
+      <Tab.Screen name="Overlays" component={OverlaysScreen} />
       <Tab.Screen name="Stats" component={StatsScreen} />
       <Tab.Screen name="Settings" component={SettingsScreen} />
       <Tab.Screen name="EditPresetApps" component={EditPresetAppsScreen} options={{ lazy: false }} />
       <Tab.Screen name="PresetSettings" component={PresetSettingsScreen} options={{ lazy: false }} />
+      <Tab.Screen name="OverlayEditor" component={OverlayEditorScreen} options={{ lazy: false }} />
       <Tab.Screen name="DatePicker" component={DatePickerScreen} options={{ lazy: false }} />
     </Tab.Navigator>
   );

@@ -98,6 +98,7 @@ export function invalidateUserCaches(email: string): void {
   invalidateCache(`presets:${normalizedEmail}`);
   invalidateCache(`lockStatus:${normalizedEmail}`);
   invalidateCache(`tapoutStatus:${normalizedEmail}`);
+  invalidateCache(`overlayPresets:${normalizedEmail}`);
 }
 
 /**
@@ -291,6 +292,32 @@ export interface Preset {
   blockedTextVisible?: boolean;
   dismissTextVisible?: boolean;
   // Text sizes (interactive preview pinch-to-resize)
+  blockedTextSize?: number;
+  dismissTextSize?: number;
+  // Overlay preset reference (links to a saved overlay preset)
+  overlayPresetId?: string;
+}
+
+// ============ Overlay Preset Interface ============
+export interface OverlayPreset {
+  id: string;
+  name: string;
+  customBlockedText?: string;
+  customDismissText?: string;
+  customBlockedTextColor?: string;
+  customOverlayBgColor?: string;
+  customDismissColor?: string;
+  customOverlayImage?: string;
+  customOverlayImageSize?: number;
+  iconPosX?: number;
+  iconPosY?: number;
+  blockedTextPosX?: number;
+  blockedTextPosY?: number;
+  dismissTextPosX?: number;
+  dismissTextPosY?: number;
+  iconVisible?: boolean;
+  blockedTextVisible?: boolean;
+  dismissTextVisible?: boolean;
   blockedTextSize?: number;
   dismissTextSize?: number;
 }
@@ -827,6 +854,92 @@ export async function saveUserTheme(email: string, theme: ThemeType): Promise<{ 
   }
 }
 
+// ============ Overlay Preset Functions ============
+
+/**
+ * Get all overlay presets for a user (cached + deduplicated)
+ */
+export async function getOverlayPresets(email: string, skipCache = false): Promise<OverlayPreset[]> {
+  const normalizedEmail = email.toLowerCase();
+  const cacheKey = `overlayPresets:${normalizedEmail}`;
+
+  if (!skipCache) {
+    const cached = getCached<OverlayPreset[]>(cacheKey);
+    if (cached) return cached;
+  }
+
+  return deduplicatedRequest(cacheKey, async () => {
+    try {
+      const headers = await getAuthHeaders();
+      const response = await fetch(`${API_URL}/api/overlay-presets`, { headers });
+      const data = await response.json();
+
+      if (!response.ok || data.error) {
+        return [];
+      }
+
+      const presets = data.presets || [];
+      setCache(cacheKey, presets);
+      return presets;
+    } catch (error) {
+      return [];
+    }
+  });
+}
+
+/**
+ * Save an overlay preset (create or update)
+ */
+export async function saveOverlayPreset(email: string, preset: OverlayPreset): Promise<{ success: boolean; id?: string; error?: string }> {
+  const normalizedEmail = email.toLowerCase();
+
+  try {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_URL}/api/overlay-presets`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ preset }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      return { success: false, error: data.error };
+    }
+
+    invalidateCache(`overlayPresets:${normalizedEmail}`);
+    return { success: true, id: data.id };
+  } catch (error) {
+    return { success: false, error: 'Network error' };
+  }
+}
+
+/**
+ * Delete an overlay preset
+ */
+export async function deleteOverlayPreset(email: string, presetId: string): Promise<{ success: boolean; error?: string }> {
+  const normalizedEmail = email.toLowerCase();
+
+  try {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_URL}/api/overlay-presets/${presetId}`, {
+      method: 'DELETE',
+      headers,
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      return { success: false, error: data.error };
+    }
+
+    invalidateCache(`overlayPresets:${normalizedEmail}`);
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: 'Network error' };
+  }
+}
+
 export default {
   // Auth token functions
   setAuthToken,
@@ -845,6 +958,10 @@ export default {
   resetPresets,
   deactivateAllPresets,
   updatePresetSchedule,
+  // Overlay preset functions
+  getOverlayPresets,
+  saveOverlayPreset,
+  deleteOverlayPreset,
   // Lock status functions
   updateLockStatus,
   getLockStatus,
