@@ -53,7 +53,7 @@ const DEFAULT_BLOCKED_TEXT_SIZE = 22;
 const DEFAULT_DISMISS_TEXT_SIZE = 10;
 
 // ============ Grid / Gesture Constants ============
-const GRID_SNAP = 1;
+const GRID_SNAP = 5;
 const LONG_PRESS_MS = 500;
 const DOUBLE_TAP_MS = 300;
 const DRAG_THRESHOLD = 4;
@@ -85,7 +85,7 @@ function OverlayEditorScreen() {
   // Custom overlay image
   const [customOverlayImage, setCustomOverlayImage] = useState('');
   const [imageUploading, setImageUploading] = useState(false);
-  const [customOverlayImageSize, setCustomOverlayImageSize] = useState(120);
+  const [customOverlayImageSize, setCustomOverlayImageSize] = useState(150);
 
   // Image upload error modal
   const [imageErrorModalVisible, setImageErrorModalVisible] = useState(false);
@@ -93,11 +93,11 @@ function OverlayEditorScreen() {
 
   // Overlay element positions (percentage 0-100, 50=center)
   const [iconPosX, setIconPosX] = useState(50);
-  const [iconPosY, setIconPosY] = useState(42);
+  const [iconPosY, setIconPosY] = useState(40);
   const [blockedTextPosX, setBlockedTextPosX] = useState(50);
-  const [blockedTextPosY, setBlockedTextPosY] = useState(57);
+  const [blockedTextPosY, setBlockedTextPosY] = useState(55);
   const [dismissTextPosX, setDismissTextPosX] = useState(50);
-  const [dismissTextPosY, setDismissTextPosY] = useState(63);
+  const [dismissTextPosY, setDismissTextPosY] = useState(60);
   const [previewWidth, setPreviewWidth] = useState(0);
   const [previewHeight, setPreviewHeight] = useState(0);
 
@@ -185,13 +185,13 @@ function OverlayEditorScreen() {
         setCustomOverlayBgColor(preset.customOverlayBgColor ?? '');
         setCustomDismissColor(preset.customDismissColor ?? '');
         setCustomOverlayImage(preset.customOverlayImage ?? '');
-        setCustomOverlayImageSize(preset.customOverlayImageSize ?? 120);
+        setCustomOverlayImageSize(preset.customOverlayImageSize ?? 150);
         setIconPosX(preset.iconPosX ?? 50);
-        setIconPosY(preset.iconPosY ?? 42);
+        setIconPosY(preset.iconPosY ?? 40);
         setBlockedTextPosX(preset.blockedTextPosX ?? 50);
-        setBlockedTextPosY(preset.blockedTextPosY ?? 57);
+        setBlockedTextPosY(preset.blockedTextPosY ?? 55);
         setDismissTextPosX(preset.dismissTextPosX ?? 50);
-        setDismissTextPosY(preset.dismissTextPosY ?? 63);
+        setDismissTextPosY(preset.dismissTextPosY ?? 60);
         setIconVisible(preset.iconVisible ?? true);
         setBlockedTextVisible(preset.blockedTextVisible ?? true);
         setDismissTextVisible(preset.dismissTextVisible ?? true);
@@ -206,13 +206,13 @@ function OverlayEditorScreen() {
         setCustomOverlayBgColor('');
         setCustomDismissColor('');
         setCustomOverlayImage('');
-        setCustomOverlayImageSize(120);
+        setCustomOverlayImageSize(150);
         setIconPosX(50);
-        setIconPosY(42);
+        setIconPosY(40);
         setBlockedTextPosX(50);
-        setBlockedTextPosY(57);
+        setBlockedTextPosY(55);
         setDismissTextPosX(50);
-        setDismissTextPosY(63);
+        setDismissTextPosY(60);
         setIconVisible(true);
         setBlockedTextVisible(true);
         setDismissTextVisible(true);
@@ -646,11 +646,11 @@ function OverlayEditorScreen() {
       customOverlayImage: (iconVisible && customOverlayImage) ? customOverlayImage : undefined,
       customOverlayImageSize: (iconVisible && customOverlayImage) ? customOverlayImageSize : undefined,
       iconPosX: iconPosX !== 50 ? iconPosX : undefined,
-      iconPosY: iconPosY !== 42 ? iconPosY : undefined,
+      iconPosY: iconPosY !== 40 ? iconPosY : undefined,
       blockedTextPosX: blockedTextPosX !== 50 ? blockedTextPosX : undefined,
-      blockedTextPosY: blockedTextPosY !== 57 ? blockedTextPosY : undefined,
+      blockedTextPosY: blockedTextPosY !== 55 ? blockedTextPosY : undefined,
       dismissTextPosX: dismissTextPosX !== 50 ? dismissTextPosX : undefined,
-      dismissTextPosY: dismissTextPosY !== 63 ? dismissTextPosY : undefined,
+      dismissTextPosY: dismissTextPosY !== 60 ? dismissTextPosY : undefined,
       iconVisible: iconVisible === false ? false : undefined,
       blockedTextVisible: blockedTextVisible === false ? false : undefined,
       dismissTextVisible: dismissTextVisible === false ? false : undefined,
@@ -1127,7 +1127,7 @@ function OverlayEditorScreen() {
       )}
 
       {/* Floating reset layout */}
-      {!colorPickerTarget && (iconPosX !== 50 || iconPosY !== 42 || blockedTextPosX !== 50 || blockedTextPosY !== 57 || dismissTextPosX !== 50 || dismissTextPosY !== 63) && (
+      {!colorPickerTarget && (iconPosX !== 50 || iconPosY !== 40 || blockedTextPosX !== 50 || blockedTextPosY !== 55 || dismissTextPosX !== 50 || dismissTextPosY !== 60) && (
         <View style={{
           position: 'absolute',
           top: insets.top + s(56),
@@ -1137,9 +1137,9 @@ function OverlayEditorScreen() {
         }}>
           <TouchableOpacity
             onPress={() => {
-              setIconPosX(50); setIconPosY(42);
-              setBlockedTextPosX(50); setBlockedTextPosY(57);
-              setDismissTextPosX(50); setDismissTextPosY(63);
+              setIconPosX(50); setIconPosY(40);
+              setBlockedTextPosX(50); setBlockedTextPosY(55);
+              setDismissTextPosX(50); setDismissTextPosY(60);
             }}
             activeOpacity={0.7}
             className="flex-row items-center"
