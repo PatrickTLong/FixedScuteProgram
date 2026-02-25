@@ -82,6 +82,8 @@ function HomeScreen() {
   const appStateRef = useRef(AppState.currentState);
   // Guard to prevent handleTimerExpired from firing multiple times while backgrounded
   const timerExpiredRef = useRef(false);
+  // Guard to prevent loadStats from overwriting optimistic lock/unlock state while backend sync is in-flight
+  const optimisticLockGuardRef = useRef(false);
 
   // Reset checkmark when screen loses focus so it doesn't freeze mid-animation
   useEffect(() => {
@@ -370,7 +372,12 @@ function HomeScreen() {
 
       // Sync lock status to shared state (refreshAll returns data without setting it,
       // so this is the single setter for the normal non-expired path)
-      setSharedLockStatus(lockStatus);
+      // Skip if an optimistic lock/unlock is in-flight — stale backend data would overwrite it
+      if (optimisticLockGuardRef.current) {
+        console.log('[RACE-GUARD] loadStats: skipping setSharedLockStatus — optimistic update in-flight');
+      } else {
+        setSharedLockStatus(lockStatus);
+      }
       setTapoutStatus(tapout);
       hideLoading();
     } catch (error) {
@@ -407,6 +414,7 @@ function HomeScreen() {
       if (result.success) {
         // Unlock UI — clear timer in same render for smooth transition
         console.log('[UNLOCK-DEBUG] emergencyTapout: setting optimistic unlock state');
+        optimisticLockGuardRef.current = true;
         setEmergencyTapoutModalVisible(false);
         setTapoutLoading(false);
         setLoading(false);
@@ -439,6 +447,8 @@ function HomeScreen() {
             invalidateUserCaches(email);
           } catch {
             // Backend sync failed silently — state will reconcile on next app foreground
+          } finally {
+            optimisticLockGuardRef.current = false;
           }
         })();
       } else {
@@ -552,6 +562,7 @@ function HomeScreen() {
       // will handle the clean transition when the user returns (single animation play).
       if (appStateRef.current === 'active') {
         console.log('[UNLOCK-DEBUG] timerExpired: setting optimistic unlock state (foreground)');
+        optimisticLockGuardRef.current = true;
         setTimeRemaining(null);
         setElapsedTime(null);
         setSharedLockStatus({ isLocked: false, lockStartedAt: null, lockEndsAt: null });
@@ -571,6 +582,8 @@ function HomeScreen() {
           console.log('[UNLOCK-DEBUG] timerExpired: backend sync complete');
         } catch {
           console.log('[UNLOCK-DEBUG] timerExpired: backend sync failed');
+        } finally {
+          optimisticLockGuardRef.current = false;
         }
       })();
     } catch (error) {
@@ -748,6 +761,7 @@ function HomeScreen() {
     try {
       // Optimistic UI update — instant unlock, clear timer in same render
       console.log('[UNBLOCKING] slideUnlock: setting optimistic unlock state — isLocked=false');
+      optimisticLockGuardRef.current = true;
       setTimeRemaining(null);
       setElapsedTime(null);
       setSharedLockStatus({ isLocked: false, lockStartedAt: null, lockEndsAt: null });
@@ -783,6 +797,8 @@ function HomeScreen() {
           console.log('[UNBLOCKING] slideUnlock: backend sync complete — fully unblocked');
         } catch (err) {
           console.log('[UNBLOCKING] slideUnlock: backend sync FAILED:', err);
+        } finally {
+          optimisticLockGuardRef.current = false;
         }
       })();
 
@@ -874,6 +890,7 @@ function HomeScreen() {
       }
 
       console.log('[BLOCKING] Validation passed, locking now', { calculatedLockEndsAt, isScheduled: activePreset.isScheduled });
+      optimisticLockGuardRef.current = true;
       // Optimistic UI update — fires immediately, no awaits above
       const nowISO = new Date().toISOString();
       if (calculatedLockEndsAt) {
@@ -951,6 +968,8 @@ function HomeScreen() {
           console.log('[BLOCKING] Blocking session fully started — native + backend synced');
         } catch (err) {
           console.log('[BLOCKING] Backend/native sync FAILED:', err);
+        } finally {
+          optimisticLockGuardRef.current = false;
         }
       })();
 
