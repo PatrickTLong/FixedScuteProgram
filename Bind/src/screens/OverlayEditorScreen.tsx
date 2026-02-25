@@ -567,7 +567,7 @@ function OverlayEditorScreen() {
     hasSaved.current = true;
 
     const preset: OverlayPreset = {
-      id: editingPresetIdRef.current || '',
+      id: editingPresetIdRef.current || `overlay-${Date.now()}`,
       name: name.trim(),
       customBlockedText: customBlockedText.trim() || undefined,
       customDismissText: customDismissText.trim() || undefined,
