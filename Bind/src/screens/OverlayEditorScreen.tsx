@@ -1088,7 +1088,7 @@ function OverlayEditorScreen() {
       {!colorPickerTarget && (iconPosX !== 50 || iconPosY !== 42 || blockedTextPosX !== 50 || blockedTextPosY !== 57 || dismissTextPosX !== 50 || dismissTextPosY !== 63) && (
         <View style={{
           position: 'absolute',
-          top: insets.top + s(20),
+          top: s(12),
           left: 0,
           right: 0,
           alignItems: 'center',

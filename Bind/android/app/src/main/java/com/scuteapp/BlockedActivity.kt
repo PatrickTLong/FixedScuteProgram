@@ -10,6 +10,8 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.view.WindowManager
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.widget.ImageView
 import android.widget.TextView
 import java.net.URL
@@ -160,8 +162,19 @@ class BlockedActivity : Activity() {
         // Get root view for click handling (no animation - instant appear)
         val rootView = findViewById<View>(R.id.blocked_root)
 
-        // Tap anywhere to dismiss and go to home
+        // Tap anywhere to dismiss and go to home (with heavy haptic)
         rootView.setOnClickListener {
+            try {
+                val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
+                if (vibrator?.hasVibrator() == true) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        vibrator.vibrate(VibrationEffect.createOneShot(50L, VibrationEffect.DEFAULT_AMPLITUDE))
+                    } else {
+                        @Suppress("DEPRECATION")
+                        vibrator.vibrate(50L)
+                    }
+                }
+            } catch (_: Exception) {}
             dismissAndGoHome()
         }
 

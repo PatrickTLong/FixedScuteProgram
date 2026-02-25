@@ -43,8 +43,8 @@ class BlockedOverlayManager(private val context: Context) {
         const val TYPE_WEBSITE = "website"
         const val TYPE_SETTINGS = "settings"
 
-        // Haptic feedback on tap-to-dismiss — flip to true to enable
-        const val HAPTIC_ON_DISMISS = false
+        // Haptic feedback on tap-to-dismiss
+        const val HAPTIC_ON_DISMISS = true
         const val HAPTIC_DURATION_MS = 50L
     }
 

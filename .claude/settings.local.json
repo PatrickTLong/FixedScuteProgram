@@ -67,7 +67,8 @@
       "Bash(node:*)",
       "WebFetch(domain:docs.swmansion.com)",
       "WebFetch(domain:gist.github.com)",
-      "WebFetch(domain:github.com)"
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:icon-sets.iconify.design)"
     ],
     "additionalDirectories": [
       "c:\\Users\\Shado\\OneDrive\\Desktop\\ScuteProgram\\Bind\\src"
