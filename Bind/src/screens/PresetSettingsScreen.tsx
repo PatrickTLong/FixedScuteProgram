@@ -477,13 +477,8 @@ function PresetSettingsScreen() {
 
   // Emergency tapout feature
   const tapoutHeartBeat = useRef(new Animated.Value(1)).current;
-  const tapoutsRemaining = tapoutStatus?.remaining ?? 0;
 
   useEffect(() => {
-    if (tapoutsRemaining === 0) {
-      tapoutHeartBeat.setValue(1);
-      return;
-    }
     const beat = Animated.loop(
       Animated.sequence([
         Animated.timing(tapoutHeartBeat, { toValue: 1.15, duration: 90, easing: Easing.out(Easing.ease), useNativeDriver: true }),
@@ -496,7 +491,7 @@ function PresetSettingsScreen() {
     );
     beat.start();
     return () => beat.stop();
-  }, [tapoutHeartBeat, tapoutsRemaining]);
+  }, [tapoutHeartBeat]);
 
   const [allowEmergencyTapout, setAllowEmergencyTapout] = useState(false);
   const [noTapoutsModalVisible, setNoTapoutsModalVisible] = useState(false);

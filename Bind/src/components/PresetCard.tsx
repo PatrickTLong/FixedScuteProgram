@@ -295,6 +295,9 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, onExpire
 
   const handleLongPress = useCallback(() => {
     if (!disabled) {
+      if (haptics.headerButton.enabled) {
+        triggerHaptic(haptics.headerButton.type);
+      }
       onLongPress();
     }
   }, [disabled, onLongPress]);
