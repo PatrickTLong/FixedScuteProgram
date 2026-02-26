@@ -412,10 +412,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const handleLogout = useCallback(async () => {
     if (userEmail) {
+      try {
+        if (BlockingModule) await BlockingModule.forceUnlock();
+      } catch (e) {}
       await deactivateAllPresets(userEmail);
+      await updateLockStatus(userEmail, false, null);
       await ScheduleModule?.saveScheduledPresets('[]');
       invalidateUserCaches(userEmail);
     }
+    setSharedLockStatus({ isLocked: false, lockStartedAt: null, lockEndsAt: null });
     setSharedPresets([]);
     setSharedPresetsLoaded(false);
     setSharedOverlayPresets([]);
@@ -427,7 +432,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const handleResetAccount = useCallback(async (): Promise<{ success: boolean; error?: string }> => {
     try {
+      try {
+        if (BlockingModule) await BlockingModule.forceUnlock();
+      } catch (e) {}
       await ScheduleModule?.saveScheduledPresets('[]');
+      await updateLockStatus(userEmail, false, null);
       const result = await resetPresets(userEmail);
       if (!result.success) {
         return { success: false, error: result.error || 'Failed to reset presets' };
@@ -444,7 +453,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const handleDeleteAccount = useCallback(async (): Promise<{ success: boolean; error?: string }> => {
     try {
+      try {
+        if (BlockingModule) await BlockingModule.forceUnlock();
+      } catch (e) {}
       await ScheduleModule?.saveScheduledPresets('[]');
+      await updateLockStatus(userEmail, false, null);
       const result = await deleteAccount(userEmail);
       if (!result.success) {
         return { success: false, error: result.error || 'Failed to delete account' };
@@ -583,8 +596,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const membership = await getMembershipStatus(userEmail, true);
       if (membership.trialExpired && !membership.isMember) {
-        await deactivateAllPresets(userEmail);
-        await ScheduleModule?.saveScheduledPresets('[]');
+        try {
+          if (BlockingModule) await BlockingModule.forceUnlock();
+          await deactivateAllPresets(userEmail);
+          await updateLockStatus(userEmail, false, null);
+          await ScheduleModule?.saveScheduledPresets('[]');
+          invalidateUserCaches(userEmail);
+        } catch (e) {
+          // Best effort cleanup
+        }
+        setSharedLockStatus({ isLocked: false, lockStartedAt: null, lockEndsAt: null });
+        setSharedPresets(prev => prev.map(p => ({ ...p, isActive: false })));
         setAuthState('membership');
       }
     } catch (error) {
@@ -605,33 +627,74 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Schedule exact trial expiry timer so membership screen shows instantly when trial ends
   useEffect(() => {
-    if (!userEmail || authState !== 'main') return;
+    console.log(`[TRIAL-TIMER] useEffect fired — userEmail=${userEmail}, authState=${authState}`);
+    if (!userEmail || authState !== 'main') {
+      console.log('[TRIAL-TIMER] Skipping — no email or not in main state');
+      return;
+    }
 
     let expiryTimeout: ReturnType<typeof setTimeout> | null = null;
 
     const scheduleExpiryTimer = async () => {
       try {
-        const membership = await getMembershipStatus(userEmail, false);
-        if (membership.isMember || membership.trialExpired || !membership.trialEnd) return;
+        const membership = await getMembershipStatus(userEmail, true);
+        console.log(`[TRIAL-TIMER] Membership data — isMember=${membership.isMember}, trialExpired=${membership.trialExpired}, trialEnd=${membership.trialEnd}`);
 
-        const msUntilExpiry = new Date(membership.trialEnd).getTime() - Date.now();
-        if (msUntilExpiry <= 0) {
-          checkMembershipOnForeground();
+        if (membership.isMember || membership.trialExpired || !membership.trialEnd) {
+          console.log('[TRIAL-TIMER] Skipping timer — already member, expired, or no trialEnd');
           return;
         }
 
-        expiryTimeout = setTimeout(checkMembershipOnForeground, msUntilExpiry);
+        const msUntilExpiry = new Date(membership.trialEnd).getTime() - Date.now();
+        console.log(`[TRIAL-TIMER] ms until expiry: ${msUntilExpiry} (${Math.round(msUntilExpiry / 1000)}s)`);
+
+        if (msUntilExpiry <= 0) {
+          console.log('[TRIAL-TIMER] Already expired — triggering immediately');
+          try {
+            if (BlockingModule) await BlockingModule.forceUnlock();
+            await deactivateAllPresets(userEmail);
+            await updateLockStatus(userEmail, false, null);
+            await ScheduleModule?.saveScheduledPresets('[]');
+            invalidateUserCaches(userEmail);
+          } catch (e) {
+            console.log('[TRIAL-TIMER] Error deactivating presets:', e);
+          }
+          setSharedLockStatus({ isLocked: false, lockStartedAt: null, lockEndsAt: null });
+          setSharedPresets(prev => prev.map(p => ({ ...p, isActive: false })));
+          setAuthState('membership');
+          return;
+        }
+
+        console.log(`[TRIAL-TIMER] Scheduling setTimeout for ${Math.round(msUntilExpiry / 1000)}s from now`);
+        expiryTimeout = setTimeout(async () => {
+          console.log('[TRIAL-TIMER] ⏰ TIMER FIRED — trial expired, showing membership screen');
+          try {
+            if (BlockingModule) await BlockingModule.forceUnlock();
+            await deactivateAllPresets(userEmail);
+            await updateLockStatus(userEmail, false, null);
+            await ScheduleModule?.saveScheduledPresets('[]');
+            invalidateUserCaches(userEmail);
+          } catch (e) {
+            console.log('[TRIAL-TIMER] Error deactivating presets:', e);
+          }
+          setSharedLockStatus({ isLocked: false, lockStartedAt: null, lockEndsAt: null });
+          setSharedPresets(prev => prev.map(p => ({ ...p, isActive: false })));
+          setAuthState('membership');
+        }, msUntilExpiry);
       } catch (error) {
-        // Failed to schedule - foreground check will catch it
+        console.log('[TRIAL-TIMER] Error scheduling timer:', error);
       }
     };
 
     scheduleExpiryTimer();
 
     return () => {
-      if (expiryTimeout) clearTimeout(expiryTimeout);
+      if (expiryTimeout) {
+        console.log('[TRIAL-TIMER] Cleanup — clearing timeout');
+        clearTimeout(expiryTimeout);
+      }
     };
-  }, [userEmail, authState, checkMembershipOnForeground]);
+  }, [userEmail, authState]);
 
   // AppState listener
   useEffect(() => {
