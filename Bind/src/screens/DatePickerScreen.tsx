@@ -3,6 +3,8 @@ import {
   View,
   Text,
   TouchableOpacity,
+  Pressable,
+  Animated,
   ScrollView,
   BackHandler,
   NativeSyntheticEvent,
@@ -199,21 +201,28 @@ interface DayCellProps {
 
 const DayCell = memo(({ day, selectable, selected, isToday: todayDay, textColor, textMutedColor, onSelect, cellHeight }: DayCellProps) => {
   const { colors } = useTheme();
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  const handlePress = useCallback(() => {
+    Animated.timing(scaleAnim, { toValue: 0.75, useNativeDriver: true, duration: 30 }).start(() => {
+      Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true, speed: 20, bounciness: 10 }).start();
+      onSelect(day);
+    });
+  }, [scaleAnim, onSelect, day]);
 
   return (
     <View style={{ width: '14.28%', height: cellHeight }}>
-      <TouchableOpacity
-        onPress={() => onSelect(day)}
+      <Pressable
+        onPress={handlePress}
         disabled={!selectable}
-        activeOpacity={0.7}
-        style={{ flex: 1 }}
-        className="items-center justify-center"
+        style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}
       >
-        <View
+        <Animated.View
           style={{
             backgroundColor: selected ? colors.green : 'transparent',
-            borderColor: todayDay && !selected ? colors.text : 'transparent',
-            borderWidth: todayDay && !selected ? 1 : 0,
+            borderColor: 'transparent',
+            borderWidth: 0,
+            transform: [{ scale: scaleAnim }],
           }}
           className={`w-9 h-9 ${radius.full} items-center justify-center`}
         >
@@ -225,8 +234,8 @@ const DayCell = memo(({ day, selectable, selected, isToday: todayDay, textColor,
           >
             {day}
           </Text>
-        </View>
-      </TouchableOpacity>
+        </Animated.View>
+      </Pressable>
     </View>
   );
 });
@@ -244,6 +253,13 @@ interface AmPmSelectorProps {
 
 const AmPmSelector = memo(({ value, onChange, cardColor }: AmPmSelectorProps) => {
   const { colors } = useTheme();
+  const sunScale = useRef(new Animated.Value(value === 'AM' ? 1.3 : 1)).current;
+  const moonScale = useRef(new Animated.Value(value === 'PM' ? 1.3 : 1)).current;
+
+  useEffect(() => {
+    Animated.spring(sunScale, { toValue: value === 'AM' ? 1.3 : 1, useNativeDriver: true, speed: 12, bounciness: 14 }).start();
+    Animated.spring(moonScale, { toValue: value === 'PM' ? 1.3 : 1, useNativeDriver: true, speed: 12, bounciness: 14 }).start();
+  }, [value, sunScale, moonScale]);
 
   return (
     <View className="ml-2">
@@ -259,9 +275,9 @@ const AmPmSelector = memo(({ value, onChange, cardColor }: AmPmSelectorProps) =>
             AM
           </Text>
         </TouchableOpacity>
-        <View style={{ position: 'absolute', right: -26 }}>
+        <Animated.View style={{ position: 'absolute', right: -26, transform: [{ scale: sunScale }] }}>
           <SunIcon size={18} color={value === 'AM' ? colors.yellow : colors.textMuted} />
-        </View>
+        </Animated.View>
       </View>
       {/* PM button with moon icon */}
       <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
@@ -275,9 +291,9 @@ const AmPmSelector = memo(({ value, onChange, cardColor }: AmPmSelectorProps) =>
             PM
           </Text>
         </TouchableOpacity>
-        <View style={{ position: 'absolute', right: -26 }}>
+        <Animated.View style={{ position: 'absolute', right: -26, transform: [{ scale: moonScale }] }}>
           <MoonIcon size={18} color={value === 'PM' ? colors.text : colors.textMuted} />
-        </View>
+        </Animated.View>
       </View>
     </View>
   );

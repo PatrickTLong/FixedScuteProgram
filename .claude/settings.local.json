@@ -73,7 +73,8 @@
       "Bash(__NEW_LINE_88db7326320e1036__ for weight in ExtraLight Light Regular Medium SemiBold Bold ExtraBold)",
       "Bash(do)",
       "Bash(echo:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(npm info:*)"
     ],
     "additionalDirectories": [
       "c:\\Users\\Shado\\OneDrive\\Desktop\\ScuteProgram\\Bind\\src"

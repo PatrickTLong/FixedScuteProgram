@@ -21,6 +21,8 @@ export default function LoadingSpinner({ size, color = colors.spinner, fullScree
   const slideValue = useRef(new Animated.Value(slideIn ? 1 : 0)).current;
   const iconSize = size ?? s(32);
 
+  const jumpValue = useRef(new Animated.Value(0)).current;
+  const jumpTimeout = useRef<ReturnType<typeof setTimeout>>();
   const spinRef = useRef<Animated.CompositeAnimation | null>(null);
 
   const startSpin = () => {
@@ -37,6 +39,30 @@ export default function LoadingSpinner({ size, color = colors.spinner, fullScree
     spinRef.current.start();
   };
 
+  const startJump = () => {
+    const jump = () => {
+      const height = -(3 + Math.random() * 3);
+      Animated.sequence([
+        Animated.timing(jumpValue, {
+          toValue: height,
+          duration: 180 + Math.random() * 60,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }),
+        Animated.timing(jumpValue, {
+          toValue: 0,
+          duration: 350 + Math.random() * 100,
+          easing: Easing.bounce,
+          useNativeDriver: true,
+        }),
+      ]).start(() => {
+        jumpTimeout.current = setTimeout(jump, 50 + Math.random() * 100);
+      });
+    };
+    // Immediate first jump so it's obvious
+    jump();
+  };
+
   useEffect(() => {
     if (slideIn) {
       Animated.spring(slideValue, {
@@ -44,8 +70,14 @@ export default function LoadingSpinner({ size, color = colors.spinner, fullScree
         speed: 28,
         bounciness: 14,
         useNativeDriver: true,
-      }).start();
+      }).start(() => {
+        startJump();
+      });
     }
+
+    return () => {
+      if (jumpTimeout.current) clearTimeout(jumpTimeout.current);
+    };
   }, []);
 
   useEffect(() => {
@@ -79,7 +111,7 @@ export default function LoadingSpinner({ size, color = colors.spinner, fullScree
   });
 
   const icon = (
-    <Animated.View style={slideIn ? { transform: [{ translateY: slideTranslateY }], opacity: slideOpacity } : undefined}>
+    <Animated.View style={slideIn ? { transform: [{ translateY: slideTranslateY }, { translateY: jumpValue }], opacity: slideOpacity } : undefined}>
       <Animated.View style={{ transform: [{ rotate }] }}>
         <Svg width={iconSize} height={iconSize} viewBox="0 0 24 24">
           <Path d={SEAL_PATH} fill={color} />

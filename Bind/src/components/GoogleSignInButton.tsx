@@ -1,5 +1,5 @@
-import React, { memo, useState } from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import React, { memo, useState, useRef, useEffect } from 'react';
+import { View, Text, TouchableOpacity, Animated, Easing } from 'react-native';
 import {
   GoogleSignin,
   statusCodes,
@@ -50,6 +50,41 @@ function GoogleSignInBtn({ onSuccess, onError, disabled }: Props) {
   const { colors } = useTheme();
   const { s } = useResponsive();
   const [loading, setLoading] = useState(false);
+  const jumpValue = useRef(new Animated.Value(0)).current;
+
+  // Jump animation while loading (small jumps to stay within button bounds)
+  useEffect(() => {
+    if (!loading) {
+      jumpValue.setValue(0);
+      return;
+    }
+
+    let timeout: ReturnType<typeof setTimeout>;
+
+    const jump = () => {
+      const height = -(3 + Math.random() * 3); // 3-6px up, stays in bounds
+      Animated.sequence([
+        Animated.timing(jumpValue, {
+          toValue: height,
+          duration: 180 + Math.random() * 60,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }),
+        Animated.timing(jumpValue, {
+          toValue: 0,
+          duration: 350 + Math.random() * 100,
+          easing: Easing.bounce,
+          useNativeDriver: true,
+        }),
+      ]).start(() => {
+        timeout = setTimeout(jump, 50 + Math.random() * 100);
+      });
+    };
+
+    timeout = setTimeout(jump, 80 + Math.random() * 80);
+
+    return () => clearTimeout(timeout);
+  }, [loading]);
 
   async function handleGoogleSignIn() {
     setLoading(true);
@@ -128,7 +163,9 @@ function GoogleSignInBtn({ onSuccess, onError, disabled }: Props) {
       </View>
       {loading && (
         <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center' }}>
-          <LoadingSpinner size={s(22)} />
+          <Animated.View style={{ transform: [{ translateY: jumpValue }] }}>
+            <LoadingSpinner size={s(22)} />
+          </Animated.View>
         </View>
       )}
     </TouchableOpacity>
