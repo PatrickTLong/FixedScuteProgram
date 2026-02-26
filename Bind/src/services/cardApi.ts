@@ -788,7 +788,7 @@ export async function getMembershipStatus(email: string, skipCache = false): Pro
     const data = await response.json();
 
     if (!response.ok || data.error) {
-      return { isMember: false, trialEnd: null, trialExpired: true };
+      throw new Error('Failed to fetch membership status');
     }
 
     const result: MembershipStatus = {
@@ -803,7 +803,7 @@ export async function getMembershipStatus(email: string, skipCache = false): Pro
 
     return result;
   } catch (error) {
-    return { isMember: false, trialEnd: null, trialExpired: true };
+    throw error;
   }
 }
 

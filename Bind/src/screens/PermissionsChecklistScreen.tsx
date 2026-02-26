@@ -369,10 +369,7 @@ function PermissionsChecklistScreen() {
           </Text>
         </View>
 
-        {/* Subtitle */}
-        <Text style={{ color: colors.textSecondary }} className={`text-center ${textSize.small} ${fontFamily.regular} mb-8 px-4`}>
-          Scute needs these permissions to block distractions & cheats.
-        </Text>
+        <View style={{ height: s(24) }} />
 
         {/* Permission Cards */}
         {permissions.filter(p => !p.isGranted).map((permission) => (
@@ -411,9 +408,6 @@ function PermissionsChecklistScreen() {
         {/* Granted permissions (collapsed) */}
         {grantedCount > 0 && (
           <View className="mt-4">
-            <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} mb-2`}>
-              Enabled:
-            </Text>
             {permissions.filter(p => p.isGranted).map((permission) => (
               <View
                 key={permission.id}

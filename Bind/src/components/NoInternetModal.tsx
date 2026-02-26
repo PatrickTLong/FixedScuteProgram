@@ -91,7 +91,7 @@ function NoInternetModal() {
               No Internet Connection
             </Text>
             <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular} text-center leading-5`}>
-              Scute requires internet for all features to work properly.
+              This app requires internet for all features to work properly.
             </Text>
           </View>
 
