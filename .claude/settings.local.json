@@ -68,7 +68,12 @@
       "WebFetch(domain:docs.swmansion.com)",
       "WebFetch(domain:gist.github.com)",
       "WebFetch(domain:github.com)",
-      "WebFetch(domain:icon-sets.iconify.design)"
+      "WebFetch(domain:icon-sets.iconify.design)",
+      "Bash(FONTS_DIR=\"/c/Users/Shado/OneDrive/Desktop/ScuteProgram/Bind/android/app/src/main/assets/fonts\")",
+      "Bash(__NEW_LINE_88db7326320e1036__ for weight in ExtraLight Light Regular Medium SemiBold Bold ExtraBold)",
+      "Bash(do)",
+      "Bash(echo:*)",
+      "Bash(curl:*)"
     ],
     "additionalDirectories": [
       "c:\\Users\\Shado\\OneDrive\\Desktop\\ScuteProgram\\Bind\\src"

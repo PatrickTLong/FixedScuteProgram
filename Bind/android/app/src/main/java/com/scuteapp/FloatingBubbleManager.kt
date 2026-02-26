@@ -791,7 +791,7 @@ class FloatingBubbleManager(private val context: Context) {
                     text = appName
                     setTextColor(0xFFFFFFFF.toInt())
                     textSize = 12f
-                    typeface = ResourcesCompat.getFont(context, R.font.nunito_bold)
+                    typeface = ResourcesCompat.getFont(context, R.font.plusjakartasans_bold)
                     maxLines = 1
                     ellipsize = TextUtils.TruncateAt.END
                     layoutParams = LinearLayout.LayoutParams(
@@ -837,7 +837,7 @@ class FloatingBubbleManager(private val context: Context) {
                 text = website
                 setTextColor(0xFFFFFFFF.toInt())
                 textSize = 12f
-                typeface = ResourcesCompat.getFont(context, R.font.nunito_bold)
+                typeface = ResourcesCompat.getFont(context, R.font.plusjakartasans_bold)
                 maxLines = 1
                 ellipsize = TextUtils.TruncateAt.END
                 layoutParams = LinearLayout.LayoutParams(
