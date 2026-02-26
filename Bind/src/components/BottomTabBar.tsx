@@ -462,34 +462,29 @@ const TabItem = memo(({ label, isActive, onPress, renderIcon, activeColor, inact
   const overlaysIconRef = useRef<AnimatedOverlaysIconRef>(null);
   const [pressed, setPressed] = useState(false);
 
-  const hasCustomAnimation = isStats || isPresets || isOverlays;
-
   const triggerFlash = useCallback(() => {
     setPressed(true);
     flashOpacity.setValue(0.3);
     Animated.timing(flashOpacity, {
       toValue: 0,
       duration: 300,
-      // Use JS driver for tabs with custom SVG animations to prevent conflict
-      useNativeDriver: !hasCustomAnimation,
+      useNativeDriver: false,
     }).start(() => setPressed(false));
 
-    // Icon scale animation - quick pop (skip for stats/presets/overlays to avoid conflicting with SVG animations)
-    if (!isOverlays && !isPresets && !isStats) {
-      iconScale.setValue(1);
-      Animated.sequence([
-        Animated.timing(iconScale, {
-          toValue: 1.2,
-          duration: 100,
-          useNativeDriver: !hasCustomAnimation,
-        }),
-        Animated.timing(iconScale, {
-          toValue: 1,
-          duration: 100,
-          useNativeDriver: !hasCustomAnimation,
-        }),
-      ]).start();
-    }
+    // Icon scale animation - quick pop (all tabs)
+    iconScale.setValue(1);
+    Animated.sequence([
+      Animated.timing(iconScale, {
+        toValue: 1.2,
+        duration: 100,
+        useNativeDriver: false,
+      }),
+      Animated.timing(iconScale, {
+        toValue: 1,
+        duration: 100,
+        useNativeDriver: false,
+      }),
+    ]).start();
 
     // Gear rotation for settings tab
     if (isSettings) {
@@ -498,7 +493,7 @@ const TabItem = memo(({ label, isActive, onPress, renderIcon, activeColor, inact
         toValue: 1,
         duration: 400,
         easing: Easing.out(Easing.back(1.5)),
-        useNativeDriver: true,
+        useNativeDriver: false,
       }).start();
     }
 
@@ -516,7 +511,7 @@ const TabItem = memo(({ label, isActive, onPress, renderIcon, activeColor, inact
     if (isOverlays && overlaysIconRef.current && isActive) {
       overlaysIconRef.current.animate();
     }
-  }, [flashOpacity, iconScale, iconRotation, isSettings, isStats, isPresets, isOverlays, isActive, hasCustomAnimation]);
+  }, [flashOpacity, iconScale, iconRotation, isSettings, isStats, isPresets, isOverlays, isActive]);
 
   const displayColor = pressed ? '#ffffff' : (isActive ? activeColor : inactiveColor);
 
