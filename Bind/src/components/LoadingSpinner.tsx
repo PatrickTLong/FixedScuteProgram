@@ -41,7 +41,7 @@ export default function LoadingSpinner({ size, color = colors.spinner, fullScree
 
   const startJump = () => {
     const jump = () => {
-      const height = -(3 + Math.random() * 3);
+      const height = -(13 + Math.random() * 7);
       Animated.sequence([
         Animated.timing(jumpValue, {
           toValue: height,

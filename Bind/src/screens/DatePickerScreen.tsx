@@ -126,10 +126,13 @@ const TimeWheel = memo(({ values, selectedValue, onValueChange, padZero = true, 
     const clampedIndex = Math.max(0, Math.min(currentIndex, values.length - 1));
 
     if (clampedIndex !== lastTickIndex.current) {
-      lastTickIndex.current = clampedIndex;
       if (haptics.timeWheel.enabled) {
-        triggerHaptic(haptics.timeWheel.type);
+        const steps = Math.abs(clampedIndex - lastTickIndex.current);
+        for (let i = 0; i < steps; i++) {
+          triggerHaptic(haptics.timeWheel.type);
+        }
       }
+      lastTickIndex.current = clampedIndex;
     }
 
     updateWindow(clampedIndex);

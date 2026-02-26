@@ -146,7 +146,7 @@ function PermissionsChecklistScreen() {
     let timeout: ReturnType<typeof setTimeout>;
 
     const jump = () => {
-      const height = -(6 + Math.random() * 8);
+      const height = -(13 + Math.random() * 7);
       Animated.sequence([
         Animated.timing(jumpValue, {
           toValue: height,
@@ -161,11 +161,11 @@ function PermissionsChecklistScreen() {
           useNativeDriver: true,
         }),
       ]).start(() => {
-        timeout = setTimeout(jump, 500 + Math.random() * 1000);
+        timeout = setTimeout(jump, 50 + Math.random() * 100);
       });
     };
 
-    timeout = setTimeout(jump, 600 + Math.random() * 400);
+    timeout = setTimeout(jump, 80 + Math.random() * 80);
 
     return () => clearTimeout(timeout);
   }, []);

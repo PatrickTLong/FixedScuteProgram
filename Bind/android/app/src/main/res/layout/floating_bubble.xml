@@ -75,7 +75,8 @@
                         android:text="0:00"
                         android:textSize="17sp"
                         android:textColor="#FFFFFF"
-                        android:fontFamily="@font/plusjakartasans_bold" />
+                        android:fontFamily="@font/plusjakartasans_bold"
+                        android:includeFontPadding="false" />
 
                 </LinearLayout>
 
