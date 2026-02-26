@@ -1,8 +1,6 @@
-import React, { useState, useEffect, useCallback, useMemo, memo, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo, memo, useRef } from 'react';
 import {
   Text,
-  View,
-  ScrollView,
   TouchableOpacity,
   Linking,
   Platform,
@@ -16,14 +14,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import BoxiconsFilled from '../components/BoxiconsFilled';
 import Svg, { Path } from 'react-native-svg';
 import { useAuth } from '../context/AuthContext';
-import { useTheme , textSize, fontFamily, radius, shadow, iconSize } from '../context/ThemeContext';
+import { useTheme, textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 
 const { PermissionsModule } = NativeModules;
-
-const ChevronRightIcon = ({ size = iconSize.chevron, color = "#FFFFFF" }: { size?: number; color?: string }) => (
-  <BoxiconsFilled name="bx-caret-right-circle" size={size} color={color} />
-);
 
 interface Permission {
   id: string;
@@ -78,14 +72,6 @@ const ANDROID_PERMISSIONS: Permission[] = [
     androidIntent: 'android.settings.action.MANAGE_OVERLAY_PERMISSION',
   },
   {
-    id: 'postNotifications',
-    title: 'Show Notifications',
-    description: 'Display blocking status and alerts.',
-    icon: 'bx-message-circle-notification',
-    isGranted: false,
-    androidIntent: 'android.settings.APP_NOTIFICATION_SETTINGS',
-  },
-  {
     id: 'batteryOptimization',
     title: 'Unrestricted Battery',
     description: 'Ensure scheduled presets work reliably even when the app is closed.',
@@ -134,41 +120,93 @@ function PermissionsChecklistScreen() {
   const [permissions, setPermissions] = useState<Permission[]>(DEFAULT_PERMISSIONS);
   const [isLoading, setIsLoading] = useState(true);
 
-  const grantedCount = useMemo(() => permissions.filter(p => p.isGranted).length, [permissions]);
+  // Derived data
+  const ungrantedPermissions = useMemo(() => permissions.filter(p => !p.isGranted), [permissions]);
+  const allGranted = ungrantedPermissions.length === 0;
   const totalCount = permissions.length;
-  const allGranted = grantedCount === totalCount;
-  const missingCount = totalCount - grantedCount;
 
-  // Jump animation for the spinner icon
-  const jumpValue = useRef(new Animated.Value(0)).current;
+  // Animation refs
+  const iconSlide = useRef(new Animated.Value(1)).current;
+  const textOpacity = useRef(new Animated.Value(0)).current;
+  const btnPulse = useRef(new Animated.Value(1)).current;
+  const exitOpacity = useRef(new Animated.Value(1)).current;
+  const exitSlideY = useRef(new Animated.Value(0)).current;
 
+  // Track previous ungranted list to detect transitions
+  const prevUngrantedRef = useRef<string[]>([]);
+  const hasPlayedEntrance = useRef(false);
+
+  const currentPermission = ungrantedPermissions[0];
+
+  // Entrance animation (matches LandingScreen)
+  const playEntrance = useCallback(() => {
+    iconSlide.setValue(1);
+    textOpacity.setValue(0);
+    exitOpacity.setValue(1);
+    exitSlideY.setValue(0);
+
+    Animated.spring(iconSlide, {
+      toValue: 0,
+      speed: 14,
+      bounciness: 16,
+      useNativeDriver: true,
+    }).start(() => {
+      Animated.timing(textOpacity, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: true,
+      }).start();
+    });
+  }, [iconSlide, textOpacity, exitOpacity, exitSlideY]);
+
+  // Exit then entrance transition (quick & smooth)
+  const playExitThenEntrance = useCallback(() => {
+    Animated.parallel([
+      Animated.timing(exitOpacity, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+      Animated.timing(exitSlideY, {
+        toValue: -60,
+        duration: 200,
+        easing: Easing.in(Easing.ease),
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      playEntrance();
+    });
+  }, [exitOpacity, exitSlideY, playEntrance]);
+
+  // Button pulse animation (matches MembershipContent)
   useEffect(() => {
-    let timeout: ReturnType<typeof setTimeout>;
-
-    const jump = () => {
-      const height = -(13 + Math.random() * 7);
+    Animated.loop(
       Animated.sequence([
-        Animated.timing(jumpValue, {
-          toValue: height,
-          duration: 180 + Math.random() * 60,
-          easing: Easing.out(Easing.quad),
+        Animated.timing(btnPulse, {
+          toValue: 1.03,
+          duration: 1000,
+          easing: Easing.inOut(Easing.ease),
           useNativeDriver: true,
         }),
-        Animated.timing(jumpValue, {
-          toValue: 0,
-          duration: 350 + Math.random() * 100,
-          easing: Easing.bounce,
+        Animated.timing(btnPulse, {
+          toValue: 1,
+          duration: 1000,
+          easing: Easing.inOut(Easing.ease),
           useNativeDriver: true,
         }),
-      ]).start(() => {
-        timeout = setTimeout(jump, 50 + Math.random() * 100);
-      });
-    };
-
-    timeout = setTimeout(jump, 80 + Math.random() * 80);
-
-    return () => clearTimeout(timeout);
+      ])
+    ).start();
   }, []);
+
+  // Interpolations
+  const iconTranslateY = iconSlide.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 300],
+  });
+  const iconOpacity = iconSlide.interpolate({
+    inputRange: [0, 0.5, 1],
+    outputRange: [1, 0.5, 0],
+  });
 
   // Check all permissions from native module
   const checkPermissions = useCallback(async () => {
@@ -220,6 +258,31 @@ function PermissionsChecklistScreen() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [allGranted, isLoading, onComplete]);
+
+  // Play entrance when loading finishes
+  useEffect(() => {
+    if (!isLoading && ungrantedPermissions.length > 0 && !hasPlayedEntrance.current) {
+      hasPlayedEntrance.current = true;
+      prevUngrantedRef.current = ungrantedPermissions.map(p => p.id);
+      playEntrance();
+    }
+  }, [isLoading, ungrantedPermissions, playEntrance]);
+
+  // Detect permission grant and transition to next
+  useEffect(() => {
+    if (isLoading || !hasPlayedEntrance.current) return;
+
+    const currentIds = ungrantedPermissions.map(p => p.id);
+    const prevIds = prevUngrantedRef.current;
+
+    // If the list shrank, a permission was granted — transition
+    if (prevIds.length > 0 && currentIds.length < prevIds.length && currentIds.length > 0) {
+      prevUngrantedRef.current = currentIds;
+      playExitThenEntrance();
+    } else {
+      prevUngrantedRef.current = currentIds;
+    }
+  }, [ungrantedPermissions, isLoading, playExitThenEntrance]);
 
   async function openPermissionSettings(permission: Permission) {
     // iOS permission handling
@@ -353,87 +416,85 @@ function PermissionsChecklistScreen() {
     );
   }
 
+  const grantedCount = totalCount - ungrantedPermissions.length;
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
-      <ScrollView
-        className="flex-1"
-        contentContainerStyle={{ paddingHorizontal: s(24), paddingTop: s(32), paddingBottom: s(16) }}
-      >
-        {/* Title */}
-        <View className="flex-row items-center justify-center mb-3">
-          <Animated.View style={{ transform: [{ translateY: jumpValue }], marginRight: s(10) }}>
-            <LoadingSpinner size={s(28)} />
-          </Animated.View>
-          <Text style={{ color: colors.text }} className={`${textSize['2xLarge']} ${fontFamily.bold}`}>
-            {missingCount} permission{missingCount !== 1 ? 's' : ''} missing
-          </Text>
-        </View>
-
-        <View style={{ height: s(24) }} />
-
-        {/* Permission Cards */}
-        {permissions.filter(p => !p.isGranted).map((permission) => (
-          <TouchableOpacity
-            key={permission.id}
-            onPress={() => openPermissionSettings(permission)}
-            activeOpacity={0.7}
-            style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
-            className={`flex-row items-center p-4 ${radius['2xl']} mb-3`}
+      {currentPermission ? (
+        <Animated.View
+          style={{
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            paddingHorizontal: s(32),
+            opacity: exitOpacity,
+            transform: [{ translateY: exitSlideY }],
+          }}
+        >
+          {/* Large Icon — bounces in from bottom */}
+          <Animated.View
+            style={{
+              transform: [{ translateY: iconTranslateY }],
+              opacity: iconOpacity,
+              marginBottom: s(32),
+            }}
           >
-            {SVG_PATHS[permission.id] ? (
-              <Svg width={s(iconSize.toggleRow)} height={s(iconSize.toggleRow)} viewBox="0 -960 960 960" style={{ marginRight: s(14) }}>
-                <Path d={SVG_PATHS[permission.id]} fill={colors.text} />
+            {SVG_PATHS[currentPermission.id] ? (
+              <Svg width={s(90)} height={s(90)} viewBox="0 -960 960 960">
+                <Path d={SVG_PATHS[currentPermission.id]} fill={colors.text} />
               </Svg>
             ) : (
               <BoxiconsFilled
-                name={permission.icon}
-                size={s(iconSize.toggleRow)}
+                name={currentPermission.icon}
+                size={s(90)}
                 color={colors.text}
-                style={{ marginRight: s(14) }}
               />
             )}
-            <View className="flex-1 mr-4">
-              <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>
-                {permission.title}
-              </Text>
-              <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-1`}>
-                {permission.description}
-              </Text>
-            </View>
+          </Animated.View>
 
-            <ChevronRightIcon size={s(iconSize.chevron)} color={colors.text} />
-          </TouchableOpacity>
-        ))}
+          {/* Title + Description + Button — fade in after icon lands */}
+          <Animated.View style={{ opacity: textOpacity, alignItems: 'center', width: '100%' }}>
+            <Text
+              style={{ color: colors.text }}
+              className={`${textSize['2xLarge']} ${fontFamily.bold} text-center`}
+            >
+              {currentPermission.title}
+            </Text>
 
-        {/* Granted permissions (collapsed) */}
-        {grantedCount > 0 && (
-          <View className="mt-4">
-            {permissions.filter(p => p.isGranted).map((permission) => (
-              <View
-                key={permission.id}
-                style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
-                className={`flex-row items-center py-3 px-4 ${radius.xl} mb-2`}
+            <Text
+              style={{ color: colors.textSecondary, marginTop: s(12) }}
+              className={`${textSize.base} ${fontFamily.regular} text-center`}
+            >
+              {currentPermission.description}
+            </Text>
+
+            {/* Enable Button — membership modal style with pulse */}
+            <Animated.View style={{ transform: [{ scale: btnPulse }], marginTop: s(40), width: '100%' }}>
+              <TouchableOpacity
+                onPress={() => openPermissionSettings(currentPermission)}
+                activeOpacity={0.8}
+                style={{ backgroundColor: colors.text, ...shadow.card }}
+                className={`${radius.full} py-4 items-center`}
               >
-                {SVG_PATHS[permission.id] ? (
-                  <Svg width={s(iconSize.toggleRow)} height={s(iconSize.toggleRow)} viewBox="0 -960 960 960" style={{ marginRight: s(14) }}>
-                    <Path d={SVG_PATHS[permission.id]} fill={colors.green} />
-                  </Svg>
-                ) : (
-                  <BoxiconsFilled
-                    name={permission.icon}
-                    size={s(iconSize.toggleRow)}
-                    color={colors.green}
-                    style={{ marginRight: s(14) }}
-                  />
-                )}
-                <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular}`}>
-                  {permission.title}
+                <Text
+                  style={{ color: colors.bg }}
+                  className={`${textSize.small} ${fontFamily.bold}`}
+                >
+                  Enable
                 </Text>
-              </View>
-            ))}
-          </View>
-        )}
-      </ScrollView>
+              </TouchableOpacity>
+            </Animated.View>
+
+            {/* Progress */}
+            <Text
+              style={{ color: colors.textMuted, marginTop: s(24) }}
+              className={`${textSize.extraSmall} ${fontFamily.regular}`}
+            >
+              {grantedCount + 1} of {totalCount}
+            </Text>
+          </Animated.View>
+        </Animated.View>
+      ) : null}
     </SafeAreaView>
   );
 }

@@ -269,7 +269,7 @@ const TimePresetCircle = memo(({ label, onPress, onLongPressAdd }: {
 });
 
 // ============ Recurrence Wheel Picker Component ============
-const RECURRENCE_ITEM_HEIGHT = 34;
+const RECURRENCE_ITEM_HEIGHT = 40;
 const RECURRENCE_VISIBLE_ITEMS = 3;
 const RECURRENCE_WINDOW_BUFFER = 5;
 const RECURRENCE_VALUES = Array.from({ length: 99 }, (_, i) => i + 1);
@@ -287,10 +287,9 @@ interface RecurrenceWheelProps {
   unselectedFontSize: number;
   formatValue?: (value: number | string) => string;
   parentScrollRef?: React.RefObject<ScrollView | null>;
-  onScrollActivity?: () => void;
 }
 
-const RecurrenceWheel = memo(({ values, selectedValue, onValueChange, textColor, textMutedColor, itemHeight, wheelWidth, selectedFontSize, unselectedFontSize, formatValue, parentScrollRef, onScrollActivity }: RecurrenceWheelProps) => {
+const RecurrenceWheel = memo(({ values, selectedValue, onValueChange, textColor, textMutedColor, itemHeight, wheelWidth, selectedFontSize, unselectedFontSize, formatValue, parentScrollRef }: RecurrenceWheelProps) => {
   const scrollRef = useRef<ScrollView>(null);
   const scrolledByUser = useRef(false);
   const lastTickIndex = useRef(values.indexOf(selectedValue));
@@ -352,11 +351,6 @@ const RecurrenceWheel = memo(({ values, selectedValue, onValueChange, textColor,
 
   const paddingVertical = (itemHeight * (RECURRENCE_VISIBLE_ITEMS - 1)) / 2;
 
-  const handleScrollNotify = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    onScrollActivity?.();
-    handleScroll(event);
-  }, [onScrollActivity, handleScroll]);
-
   return (
     <View
       style={{ alignItems: 'center' }}
@@ -370,7 +364,7 @@ const RecurrenceWheel = memo(({ values, selectedValue, onValueChange, textColor,
           showsVerticalScrollIndicator={false}
           snapToInterval={itemHeight}
           decelerationRate="fast"
-          onScroll={handleScrollNotify}
+          onScroll={handleScroll}
           scrollEventThrottle={16}
           onMomentumScrollEnd={handleScrollEnd}
           onScrollEndDrag={(e) => {
@@ -417,61 +411,39 @@ const RecurrenceWheelPicker = memo(({ value, unit, onValueChange, onUnitChange, 
   const { colors } = useTheme();
   const { s } = useResponsive();
   const itemHeight = s(RECURRENCE_ITEM_HEIGHT);
-  const numberWheelWidth = s(60);
+  const numberWheelWidth = s(50);
   const unitWheelWidth = s(100);
   const textMutedColor = colors.text === '#ffffff' ? 'rgba(255,255,255,0.3)' : 'rgba(26,26,26,0.3)';
-  const selectedFontSize = s(18);
-  const unselectedFontSize = s(13);
-
-  const caretSize = selectedFontSize * 0.6;
-  const caretOpacity = useRef(new Animated.Value(0)).current;
-  const scrollingTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const handleScrollActivity = useCallback(() => {
-    if (scrollingTimeout.current) clearTimeout(scrollingTimeout.current);
-    Animated.timing(caretOpacity, { toValue: 1, duration: 80, useNativeDriver: true }).start();
-    scrollingTimeout.current = setTimeout(() => {
-      Animated.timing(caretOpacity, { toValue: 0, duration: 600, useNativeDriver: true }).start();
-    }, 800);
-  }, [caretOpacity]);
+  const selectedFontSize = s(24);
+  const unselectedFontSize = s(18);
 
   return (
-    <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
-      <Animated.View style={{ opacity: caretOpacity, marginRight: s(4) }}>
-        <BoxiconsFilled name="bx-caret-big-right" size={caretSize} color={colors.text} />
-      </Animated.View>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: s(16) }}>
-        <RecurrenceWheel
-          values={RECURRENCE_VALUES}
-          selectedValue={value}
-          onValueChange={(val) => onValueChange(val as number)}
-          textColor={colors.text}
-          textMutedColor={textMutedColor}
-          itemHeight={itemHeight}
-          wheelWidth={numberWheelWidth}
-          selectedFontSize={selectedFontSize}
-          unselectedFontSize={unselectedFontSize}
-          formatValue={(v) => String(v).padStart(2, '0')}
-          parentScrollRef={parentScrollRef}
-          onScrollActivity={handleScrollActivity}
-        />
-        <RecurrenceWheel
-          values={RECURRENCE_UNITS}
-          selectedValue={unit}
-          onValueChange={(val) => onUnitChange(val as RecurringUnit)}
-          textColor={colors.text}
-          textMutedColor={textMutedColor}
-          itemHeight={itemHeight}
-          wheelWidth={unitWheelWidth}
-          selectedFontSize={selectedFontSize}
-          unselectedFontSize={unselectedFontSize}
-          parentScrollRef={parentScrollRef}
-          onScrollActivity={handleScrollActivity}
-        />
-      </View>
-      <Animated.View style={{ opacity: caretOpacity, marginLeft: s(4) }}>
-        <BoxiconsFilled name="bx-caret-big-left" size={caretSize} color={colors.text} />
-      </Animated.View>
+    <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: s(8) }}>
+      <RecurrenceWheel
+        values={RECURRENCE_VALUES}
+        selectedValue={value}
+        onValueChange={(val) => onValueChange(val as number)}
+        textColor={colors.text}
+        textMutedColor={textMutedColor}
+        itemHeight={itemHeight}
+        wheelWidth={numberWheelWidth}
+        selectedFontSize={selectedFontSize}
+        unselectedFontSize={unselectedFontSize}
+        formatValue={(v) => String(v).padStart(2, '0')}
+        parentScrollRef={parentScrollRef}
+      />
+      <RecurrenceWheel
+        values={RECURRENCE_UNITS}
+        selectedValue={unit}
+        onValueChange={(val) => onUnitChange(val as RecurringUnit)}
+        textColor={colors.text}
+        textMutedColor={textMutedColor}
+        itemHeight={itemHeight}
+        wheelWidth={unitWheelWidth}
+        selectedFontSize={selectedFontSize}
+        unselectedFontSize={unselectedFontSize}
+        parentScrollRef={parentScrollRef}
+      />
     </View>
   );
 });
