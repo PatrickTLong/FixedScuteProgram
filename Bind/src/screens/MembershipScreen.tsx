@@ -7,7 +7,7 @@ function MembershipScreen() {
   const { colors } = useTheme();
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }} edges={['top']}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }} edges={['top', 'bottom']}>
       <MembershipContent />
     </SafeAreaView>
   );

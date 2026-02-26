@@ -292,7 +292,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         if (PermissionsModule) {
           const states = await PermissionsModule.checkAllPermissions();
-          const requiredPermissions = ['notification', 'accessibility', 'usageAccess', 'displayOverlay', 'postNotifications', 'batteryOptimization', 'deviceAdmin'];
+          const requiredPermissions = ['notification', 'accessibility', 'usageAccess', 'displayOverlay', 'batteryOptimization', 'deviceAdmin'];
           const allGranted = requiredPermissions.every((perm: string) => states[perm]);
 
           if (allGranted) {
@@ -335,7 +335,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       if (PermissionsModule) {
         const states = await PermissionsModule.checkAllPermissions();
-        const requiredPermissions = ['notification', 'accessibility', 'usageAccess', 'displayOverlay', 'postNotifications', 'alarms', 'deviceAdmin'];
+        const requiredPermissions = ['notification', 'accessibility', 'usageAccess', 'displayOverlay', 'batteryOptimization', 'deviceAdmin'];
         const allGranted = requiredPermissions.every((perm: string) => states[perm]);
 
         if (allGranted) {
@@ -365,7 +365,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       if (PermissionsModule) {
         const states = await PermissionsModule.checkAllPermissions();
-        const requiredPermissions = ['notification', 'accessibility', 'usageAccess', 'displayOverlay', 'postNotifications', 'alarms', 'deviceAdmin'];
+        const requiredPermissions = ['notification', 'accessibility', 'usageAccess', 'displayOverlay', 'batteryOptimization', 'deviceAdmin'];
         const allGranted = requiredPermissions.every((perm: string) => states[perm]);
 
         if (allGranted) {
@@ -564,7 +564,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       if (PermissionsModule) {
         const states = await PermissionsModule.checkAllPermissions();
-        const requiredPermissions = ['notification', 'accessibility', 'usageAccess', 'displayOverlay', 'postNotifications', 'deviceAdmin'];
+        const requiredPermissions = ['notification', 'accessibility', 'usageAccess', 'displayOverlay', 'batteryOptimization', 'deviceAdmin'];
         const missingPermission = requiredPermissions.some((perm: string) => !states[perm]);
 
         if (missingPermission) {
@@ -573,6 +573,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     } catch (error) {
       // Failed to check permissions
+    }
+  }, [userEmail, authState]);
+
+  // Check membership when app comes to foreground
+  const checkMembershipOnForeground = useCallback(async () => {
+    if (!userEmail || authState !== 'main') return;
+
+    try {
+      const membership = await getMembershipStatus(userEmail, true);
+      if (membership.trialExpired && !membership.isMember) {
+        await deactivateAllPresets(userEmail);
+        await ScheduleModule?.saveScheduledPresets('[]');
+        setAuthState('membership');
+      }
+    } catch (error) {
+      // Failed to check membership
     }
   }, [userEmail, authState]);
 
@@ -592,6 +608,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const subscription = AppState.addEventListener('change', (nextAppState) => {
       if (nextAppState === 'active') {
         checkPermissionsOnForeground();
+        checkMembershipOnForeground();
         checkScheduledPresetLaunch();
         checkBlockedOverlayLaunch();
         checkActiveScheduledPreset();
@@ -599,7 +616,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     return () => subscription.remove();
-  }, [checkPermissionsOnForeground, checkScheduledPresetLaunch, checkBlockedOverlayLaunch, checkActiveScheduledPreset]);
+  }, [checkPermissionsOnForeground, checkMembershipOnForeground, checkScheduledPresetLaunch, checkBlockedOverlayLaunch, checkActiveScheduledPreset]);
 
   // Global expiration check - runs whenever sharedPresets changes AND sets a timer for next expiration
   // This ensures expired presets are marked inactive regardless of which screen is active
