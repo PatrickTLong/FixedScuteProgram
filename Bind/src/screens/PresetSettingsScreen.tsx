@@ -412,13 +412,13 @@ const RecurrenceWheelPicker = memo(({ value, unit, onValueChange, onUnitChange, 
   const { s } = useResponsive();
   const itemHeight = s(RECURRENCE_ITEM_HEIGHT);
   const numberWheelWidth = s(50);
-  const unitWheelWidth = s(100);
+  const unitWheelWidth = s(115);
   const textMutedColor = colors.text === '#ffffff' ? 'rgba(255,255,255,0.3)' : 'rgba(26,26,26,0.3)';
   const selectedFontSize = s(24);
   const unselectedFontSize = s(18);
 
   return (
-    <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: s(8) }}>
+    <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: s(16) }}>
       <RecurrenceWheel
         values={RECURRENCE_VALUES}
         selectedValue={value}

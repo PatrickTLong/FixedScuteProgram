@@ -462,6 +462,45 @@ const TabItem = memo(({ label, isActive, onPress, renderIcon, activeColor, inact
   const overlaysIconRef = useRef<AnimatedOverlaysIconRef>(null);
   const [pressed, setPressed] = useState(false);
 
+  // Auto-animate gear rotation when settings tab becomes active (same pattern as other icons)
+  const prevActiveRef = useRef(isActive);
+  const triggerGearTorque = useCallback(() => {
+    iconRotation.setValue(0);
+    Animated.sequence([
+      Animated.timing(iconRotation, {
+        toValue: 0.85,
+        duration: 180,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: false,
+      }),
+      Animated.timing(iconRotation, {
+        toValue: 1.12,
+        duration: 200,
+        easing: Easing.out(Easing.quad),
+        useNativeDriver: false,
+      }),
+      Animated.timing(iconRotation, {
+        toValue: 0.95,
+        duration: 150,
+        easing: Easing.inOut(Easing.ease),
+        useNativeDriver: false,
+      }),
+      Animated.timing(iconRotation, {
+        toValue: 1,
+        duration: 120,
+        easing: Easing.out(Easing.ease),
+        useNativeDriver: false,
+      }),
+    ]).start();
+  }, [iconRotation]);
+
+  useEffect(() => {
+    if (isSettings && isActive && !prevActiveRef.current) {
+      triggerGearTorque();
+    }
+    prevActiveRef.current = isActive;
+  }, [isActive, isSettings, triggerGearTorque]);
+
   const triggerFlash = useCallback(() => {
     setPressed(true);
     flashOpacity.setValue(0.3);
@@ -488,13 +527,7 @@ const TabItem = memo(({ label, isActive, onPress, renderIcon, activeColor, inact
 
     // Gear rotation for settings tab
     if (isSettings) {
-      iconRotation.setValue(0);
-      Animated.timing(iconRotation, {
-        toValue: 1,
-        duration: 400,
-        easing: Easing.out(Easing.back(1.5)),
-        useNativeDriver: false,
-      }).start();
+      triggerGearTorque();
     }
 
     // Stats bars animation - only on re-tap (tab switch handled by filled-change detection)
@@ -511,13 +544,13 @@ const TabItem = memo(({ label, isActive, onPress, renderIcon, activeColor, inact
     if (isOverlays && overlaysIconRef.current && isActive) {
       overlaysIconRef.current.animate();
     }
-  }, [flashOpacity, iconScale, iconRotation, isSettings, isStats, isPresets, isOverlays, isActive]);
+  }, [flashOpacity, iconScale, triggerGearTorque, isSettings, isStats, isPresets, isOverlays, isActive]);
 
   const displayColor = pressed ? '#ffffff' : (isActive ? activeColor : inactiveColor);
 
   const rotateInterpolate = iconRotation.interpolate({
     inputRange: [0, 1],
-    outputRange: ['0deg', '70deg'],
+    outputRange: ['0deg', '120deg'],
   });
 
   return (

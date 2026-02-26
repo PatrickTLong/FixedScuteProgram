@@ -70,9 +70,8 @@ export default function LoadingSpinner({ size, color = colors.spinner, fullScree
         speed: 28,
         bounciness: 14,
         useNativeDriver: true,
-      }).start(() => {
-        startJump();
-      });
+      }).start();
+      startJump();
     }
 
     return () => {

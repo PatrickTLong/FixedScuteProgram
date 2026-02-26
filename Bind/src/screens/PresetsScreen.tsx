@@ -24,7 +24,8 @@ import {
   invalidateUserCaches,
 } from '../services/cardApi';
 import { AnimatedPresetsIcon, AnimatedPresetsIconRef } from '../components/BottomTabBar';
-import { useTheme , textSize, fontFamily, radius, shadow, iconSize } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius, shadow, iconSize, haptics } from '../context/ThemeContext';
+import { triggerHaptic } from '../utils/haptics';
 import { useResponsive } from '../utils/responsive';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -466,6 +467,7 @@ function PresetsScreen() {
 
 
   const handleLongPressPreset = useCallback((preset: Preset) => {
+    if (haptics.longPressDelete.enabled) triggerHaptic(haptics.longPressDelete.type);
     // Block deleting active presets while locked
     if (sharedIsLocked && preset.isActive) {
       setLockedModalTitle('Preset Active');

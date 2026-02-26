@@ -234,7 +234,7 @@ function OverlaysScreen() {
   }, [navigation, setEditingOverlayPreset]);
 
   const handleLongPressPreset = useCallback((preset: OverlayPreset) => {
-    if (haptics.headerButton.enabled) triggerHaptic(haptics.headerButton.type);
+    if (haptics.longPressDelete.enabled) triggerHaptic(haptics.longPressDelete.type);
     setPresetToDelete(preset);
     setDeleteModalVisible(true);
   }, []);

@@ -105,6 +105,7 @@ export const haptics = {
   planTab: { enabled: false, type: 'impactLight' as const },
   presetCard: { enabled: false, type: 'impactLight' as const },
   recurrenceWheel: { enabled: true, type: 'impact' as const },
+  longPressDelete: { enabled: true, type: 'impactHeavy' as const },
 };
 
 // Colors
