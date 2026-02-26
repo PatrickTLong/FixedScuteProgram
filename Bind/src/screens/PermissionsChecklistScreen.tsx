@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo, memo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, memo, useRef } from 'react';
 import {
   Text,
   View,
@@ -8,11 +8,13 @@ import {
   Platform,
   NativeModules,
   AppState,
+  Animated,
+  Easing,
 } from 'react-native';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import BoxiconsFilled from '../components/BoxiconsFilled';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import Svg, { Path } from 'react-native-svg';
 import { useAuth } from '../context/AuthContext';
 import { useTheme , textSize, fontFamily, radius, shadow, iconSize } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
@@ -28,11 +30,18 @@ interface Permission {
   title: string;
   description: string;
   icon: string;
+  svgPath?: string;
   isGranted: boolean;
   androidIntent?: string;
   iosAction?: 'screenTime' | 'notifications' | 'openSettings';
   descriptionStyle?: string;
 }
+
+const SVG_PATHS: Record<string, string> = {
+  notification: 'M320-480v80q0 66 47 113t113 47q66 0 113-47t47-113v-80H320Zm160 180q-42 0-71-29t-29-71v-20h200v20q0 42-29 71t-71 29ZM272.5-652.5Q243-625 231-577l58 14q6-26 20-41.5t31-15.5q17 0 31 15.5t20 41.5l58-14q-12-48-41.5-75.5T340-680q-38 0-67.5 27.5Zm280 0Q523-625 511-577l58 14q6-26 20-41.5t31-15.5q17 0 31 15.5t20 41.5l58-14q-12-48-41.5-75.5T620-680q-38 0-67.5 27.5ZM324-111.5Q251-143 197-197t-85.5-127Q80-397 80-480t31.5-156Q143-709 197-763t127-85.5Q397-880 480-880t156 31.5Q709-817 763-763t85.5 127Q880-563 880-480t-31.5 156Q817-251 763-197t-127 85.5Q563-80 480-80t-156-31.5Z',
+  batteryOptimization: 'M160-240q-50 0-85-35t-35-85v-240q0-50 35-85t85-35h562l-64 80H160q-17 0-28.5 11.5T120-600v240q0 17 11.5 28.5T160-320h473l-15 80H160Zm547-40 28-160H600l192-240h21l-28 160h135L728-280h-21Zm-547-80v-240h466L434-360H160Z',
+  deviceAdmin: 'M325-111.5q-73-31.5-127.5-86t-86-127.5Q80-398 80-480.5t31.5-155q31.5-72.5 86-127t127.5-86Q398-880 480-880q32 0 61.5 4.5T600-862v102q0 33-23.5 56.5T520-680h-80v80q0 17-11.5 28.5T400-560h-80v80h240q17 0 28.5 11.5T600-440v120h40q27 0 47.5 16t28.5 40q39-44 61.5-98.5T800-480q0-11-1-20t-3-20h82q2 11 2 20v20q0 82-31.5 155t-86 127.5q-54.5 54.5-127 86T480.5-80Q398-80 325-111.5ZM440-162v-78q-33 0-56.5-23.5T360-320v-40L168-552q-3 18-5.5 36t-2.5 36q0 124 80.5 213.5T440-162Zm280-438q-17 0-28.5-11.5T680-640v-120q0-17 11.5-28.5T720-800v-40q0-33 23.5-56.5T800-920q33 0 56.5 23.5T880-840v40q17 0 28.5 11.5T920-760v120q0 17-11.5 28.5T880-600H720Zm40-200h80v-40q0-17-11.5-28.5T800-880q-17 0-28.5 11.5T760-840v40Z',
+};
 
 // Android permissions (7 total)
 const ANDROID_PERMISSIONS: Permission[] = [
@@ -129,6 +138,37 @@ function PermissionsChecklistScreen() {
   const totalCount = permissions.length;
   const allGranted = grantedCount === totalCount;
   const missingCount = totalCount - grantedCount;
+
+  // Jump animation for the spinner icon
+  const jumpValue = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    let timeout: ReturnType<typeof setTimeout>;
+
+    const jump = () => {
+      const height = -(6 + Math.random() * 8);
+      Animated.sequence([
+        Animated.timing(jumpValue, {
+          toValue: height,
+          duration: 180 + Math.random() * 60,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }),
+        Animated.timing(jumpValue, {
+          toValue: 0,
+          duration: 350 + Math.random() * 100,
+          easing: Easing.bounce,
+          useNativeDriver: true,
+        }),
+      ]).start(() => {
+        timeout = setTimeout(jump, 500 + Math.random() * 1000);
+      });
+    };
+
+    timeout = setTimeout(jump, 600 + Math.random() * 400);
+
+    return () => clearTimeout(timeout);
+  }, []);
 
   // Check all permissions from native module
   const checkPermissions = useCallback(async () => {
@@ -321,7 +361,9 @@ function PermissionsChecklistScreen() {
       >
         {/* Title */}
         <View className="flex-row items-center justify-center mb-3">
-          <MaterialCommunityIcons name="hammer-wrench" size={s(28)} color={colors.text} style={{ marginRight: s(10) }} />
+          <Animated.View style={{ transform: [{ translateY: jumpValue }], marginRight: s(10) }}>
+            <LoadingSpinner size={s(28)} />
+          </Animated.View>
           <Text style={{ color: colors.text }} className={`${textSize['2xLarge']} ${fontFamily.bold}`}>
             {missingCount} permission{missingCount !== 1 ? 's' : ''} missing
           </Text>
@@ -341,12 +383,18 @@ function PermissionsChecklistScreen() {
             style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
             className={`flex-row items-center p-4 ${radius['2xl']} mb-3`}
           >
-            <BoxiconsFilled
-              name={permission.icon}
-              size={s(iconSize.toggleRow)}
-              color={colors.text}
-              style={{ marginRight: s(14) }}
-            />
+            {SVG_PATHS[permission.id] ? (
+              <Svg width={s(iconSize.toggleRow)} height={s(iconSize.toggleRow)} viewBox="0 -960 960 960" style={{ marginRight: s(14) }}>
+                <Path d={SVG_PATHS[permission.id]} fill={colors.text} />
+              </Svg>
+            ) : (
+              <BoxiconsFilled
+                name={permission.icon}
+                size={s(iconSize.toggleRow)}
+                color={colors.text}
+                style={{ marginRight: s(14) }}
+              />
+            )}
             <View className="flex-1 mr-4">
               <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>
                 {permission.title}
@@ -372,12 +420,18 @@ function PermissionsChecklistScreen() {
                 style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
                 className={`flex-row items-center py-3 px-4 ${radius.xl} mb-2`}
               >
-                <BoxiconsFilled
-                  name={permission.icon}
-                  size={s(iconSize.toggleRow)}
-                  color={colors.green}
-                  style={{ marginRight: s(14) }}
-                />
+                {SVG_PATHS[permission.id] ? (
+                  <Svg width={s(iconSize.toggleRow)} height={s(iconSize.toggleRow)} viewBox="0 -960 960 960" style={{ marginRight: s(14) }}>
+                    <Path d={SVG_PATHS[permission.id]} fill={colors.green} />
+                  </Svg>
+                ) : (
+                  <BoxiconsFilled
+                    name={permission.icon}
+                    size={s(iconSize.toggleRow)}
+                    color={colors.green}
+                    style={{ marginRight: s(14) }}
+                  />
+                )}
                 <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular}`}>
                   {permission.title}
                 </Text>

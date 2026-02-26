@@ -104,6 +104,7 @@ export const haptics = {
   modalButton: { enabled: false, type: 'impactMedium' as const },
   planTab: { enabled: false, type: 'impactLight' as const },
   presetCard: { enabled: false, type: 'impactLight' as const },
+  recurrenceWheel: { enabled: true, type: 'impactLight' as const },
 };
 
 // Colors

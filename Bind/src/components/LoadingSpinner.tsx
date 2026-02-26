@@ -12,9 +12,10 @@ interface LoadingSpinnerProps {
   color?: string;
   fullScreen?: boolean;
   slideIn?: boolean;
+  spinDuration?: number;
 }
 
-export default function LoadingSpinner({ size, color = colors.spinner, fullScreen = false, slideIn = false }: LoadingSpinnerProps) {
+export default function LoadingSpinner({ size, color = colors.spinner, fullScreen = false, slideIn = false, spinDuration = 700 }: LoadingSpinnerProps) {
   const { s } = useResponsive();
   const spinValue = useRef(new Animated.Value(0)).current;
   const slideValue = useRef(new Animated.Value(slideIn ? 1 : 0)).current;
@@ -28,7 +29,7 @@ export default function LoadingSpinner({ size, color = colors.spinner, fullScree
     spinRef.current = Animated.loop(
       Animated.timing(spinValue, {
         toValue: 1,
-        duration: 700,
+        duration: spinDuration,
         easing: Easing.linear,
         useNativeDriver: true,
       }),

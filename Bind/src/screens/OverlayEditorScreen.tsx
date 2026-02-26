@@ -58,6 +58,43 @@ const LONG_PRESS_MS = 500;
 const DOUBLE_TAP_MS = 300;
 const DRAG_THRESHOLD = 4;
 
+// ============ Inline Text Editor (isolated to prevent parent re-renders) ============
+const InlineTextEditor = memo(({
+  initialValue,
+  onUpdate,
+  onEnd,
+  maxLength,
+  style,
+  fontClassName,
+  multiline,
+}: {
+  initialValue: string;
+  onUpdate: (text: string) => void;
+  onEnd: (text: string) => void;
+  maxLength: number;
+  style: any;
+  fontClassName?: string;
+  multiline?: boolean;
+}) => {
+  const [text, setText] = useState(initialValue);
+  return (
+    <TextInput
+      value={text}
+      onChangeText={(t) => {
+        if (t.length <= maxLength) {
+          setText(t);
+          onUpdate(t);
+        }
+      }}
+      style={style}
+      className={fontClassName}
+      autoFocus
+      multiline={multiline}
+      onBlur={() => onEnd(text)}
+    />
+  );
+});
+
 // ============ Main Screen Component ============
 function OverlayEditorScreen() {
   const navigation = useNavigation<OverlayEditorNavigationProp>();
@@ -119,7 +156,7 @@ function OverlayEditorScreen() {
   const [contextMenuTarget, setContextMenuTarget] = useState<PreviewElement | null>(null);
   const [colorPickerTarget, setColorPickerTarget] = useState<PreviewElement | null>(null);
   const [colorPickerActiveWidth, setColorPickerActiveWidth] = useState(0);
-  const editInputRef = useRef<TextInput>(null);
+  const editingBufferRef = useRef('');
   const lastTapTimeRef = useRef<Record<string, number>>({});
 
   // Save modal state
@@ -145,6 +182,12 @@ function OverlayEditorScreen() {
 
   const customOverlayImageSizeRef = useRef(120);
   customOverlayImageSizeRef.current = customOverlayImageSize;
+
+  const blockedTextContentRef = useRef(customBlockedText);
+  blockedTextContentRef.current = customBlockedText;
+
+  const dismissTextContentRef = useRef(customDismissText);
+  dismissTextContentRef.current = customDismissText;
 
   const iconPosXRef = useRef(iconPosX);
   const iconPosYRef = useRef(iconPosY);
@@ -305,45 +348,6 @@ function OverlayEditorScreen() {
     },
   }), [getColorFromPosition]);
 
-  // ============ Draggable Preview Elements (with collision detection) ============
-  const findFreePosition = useCallback((desiredX: number, desiredY: number, excludeKey: PreviewElement) => {
-    const others = [
-      { key: 'icon', x: iconPosXRef.current, y: iconPosYRef.current, visible: iconVisibleRef.current },
-      { key: 'blockedText', x: blockedTextPosXRef.current, y: blockedTextPosYRef.current, visible: blockedTextVisibleRef.current },
-      { key: 'dismissText', x: dismissTextPosXRef.current, y: dismissTextPosYRef.current, visible: dismissTextVisibleRef.current },
-    ].filter(e => e.key !== excludeKey && e.visible);
-
-    // Half-height collision zones (% of screen) — tight to actual element sizes
-    // Icon ~120dp on ~760dp screen ≈ 16%, half ≈ 8% → use 6 (snug fit)
-    // Blocked text ~29dp ≈ 4%, half ≈ 2% → use 3
-    // Dismiss text ~13dp ≈ 2%, half ≈ 1% → use 2
-    const halfH = (key: string): number => {
-      if (key === 'icon') return 6;
-      if (key === 'blockedText') return 3;
-      return 2;
-    };
-
-    // Collision: horizontally within 15% AND vertical bounding boxes overlap
-    const collides = (x: number, y: number) => {
-      const dragH = halfH(excludeKey);
-      return others.some(e => {
-        const otherH = halfH(e.key);
-        return Math.abs(x - e.x) < 15 && Math.abs(y - e.y) < (dragH + otherH);
-      });
-    };
-
-    if (!collides(desiredX, desiredY)) return { x: desiredX, y: desiredY };
-
-    // Push vertically only — keep X, search up and down for nearest free Y
-    for (let dist = 1; dist <= 100; dist++) {
-      const upY = desiredY - dist;
-      const downY = desiredY + dist;
-      if (upY >= 0 && !collides(desiredX, upY)) return { x: desiredX, y: upY };
-      if (downY <= 100 && !collides(desiredX, downY)) return { x: desiredX, y: downY };
-    }
-    return { x: desiredX, y: desiredY };
-  }, []);
-
   // ============ Gesture API — Element Gesture Factory ============
   // All callbacks use refs to access latest values (avoids stale closures)
   const makeElementGesture = useCallback((
@@ -389,11 +393,10 @@ function OverlayEditorScreen() {
           const rawPctY = 50 + (finalY / ph) * 100;
           const snappedX = Math.max(0, Math.min(100, Math.round(rawPctX / GRID_SNAP) * GRID_SNAP));
           const snappedY = Math.max(0, Math.min(100, Math.round(rawPctY / GRID_SNAP) * GRID_SNAP));
-          const free = findFreePosition(snappedX, snappedY, elementKey);
-          setPosX(free.x);
-          setPosY(free.y);
-          const snapPixelX = ((free.x - 50) / 100) * pw;
-          const snapPixelY = ((free.y - 50) / 100) * ph;
+          setPosX(snappedX);
+          setPosY(snappedY);
+          const snapPixelX = ((snappedX - 50) / 100) * pw;
+          const snapPixelY = ((snappedY - 50) / 100) * ph;
           Animated.timing(pan, {
             toValue: { x: snapPixelX, y: snapPixelY },
             duration: 180,
@@ -424,6 +427,16 @@ function OverlayEditorScreen() {
       .maxDelay(DOUBLE_TAP_MS)
       .onEnd(() => {
         if (isTextElement) {
+          // Pre-fill with default text if empty so user sees the text to edit
+          if (elementKey === 'blockedText') {
+            const text = blockedTextContentRef.current.trim() || 'This app is blocked.';
+            if (!blockedTextContentRef.current.trim()) setCustomBlockedText(text);
+            editingBufferRef.current = text;
+          } else if (elementKey === 'dismissText') {
+            const text = dismissTextContentRef.current.trim() || 'Tap anywhere to dismiss';
+            if (!dismissTextContentRef.current.trim()) setCustomDismissText(text);
+            editingBufferRef.current = text;
+          }
           setSelectedElement(elementKey);
           setEditingText(elementKey as 'blockedText' | 'dismissText');
         }
@@ -445,7 +458,7 @@ function OverlayEditorScreen() {
 
     // Race: first gesture to activate wins, others cancelled
     return Gesture.Race(panGesture, longPressGesture, taps);
-  }, [findFreePosition]);
+  }, []);
 
   // Create element gestures (stable — all values accessed via refs)
   const iconGesture = useMemo(
@@ -627,8 +640,16 @@ function OverlayEditorScreen() {
   const canSave = useMemo(() => name.trim().length > 0, [name]);
 
   const handleSave = useCallback(() => {
+    // Flush any in-progress inline edit to state before saving
+    if (editingText === 'blockedText') {
+      setCustomBlockedText(editingBufferRef.current);
+      setEditingText(null);
+    } else if (editingText === 'dismissText') {
+      setCustomDismissText(editingBufferRef.current);
+      setEditingText(null);
+    }
     setSaveModalVisible(true);
-  }, []);
+  }, [editingText]);
 
   const handleConfirmSave = useCallback(() => {
     if (!canSave || hasSaved.current) return;
@@ -773,12 +794,14 @@ function OverlayEditorScreen() {
                     },
                   ]}
                 >
-                  <TextInput
-                    ref={editInputRef}
-                    value={customBlockedText}
-                    onChangeText={(text) => {
-                      if (text.length <= 200) setCustomBlockedText(text);
+                  <InlineTextEditor
+                    initialValue={customBlockedText}
+                    onUpdate={(text) => { editingBufferRef.current = text; }}
+                    onEnd={(text) => {
+                      setCustomBlockedText(text);
+                      setEditingText(null);
                     }}
+                    maxLength={200}
                     style={{
                       color: customBlockedTextColor || '#FFFFFF',
                       textAlign: 'center',
@@ -787,10 +810,8 @@ function OverlayEditorScreen() {
                       padding: 0,
                       minWidth: s(60),
                     }}
-                    className={fontFamily.bold}
-                    autoFocus
+                    fontClassName={fontFamily.bold}
                     multiline
-                    onBlur={() => setEditingText(null)}
                   />
                 </Animated.View>
               ) : (
@@ -837,21 +858,22 @@ function OverlayEditorScreen() {
                     },
                   ]}
                 >
-                  <TextInput
-                    ref={editInputRef}
-                    value={customDismissText}
-                    onChangeText={(text) => {
-                      if (text.length <= 100) setCustomDismissText(text);
+                  <InlineTextEditor
+                    initialValue={customDismissText}
+                    onUpdate={(text) => { editingBufferRef.current = text; }}
+                    onEnd={(text) => {
+                      setCustomDismissText(text);
+                      setEditingText(null);
                     }}
+                    maxLength={100}
                     style={{
                       color: customDismissColor || 'rgba(255,255,255,0.5)',
                       fontSize: s(dismissTextSize),
+                      textAlign: 'center',
                       padding: 0,
                       minWidth: s(60),
                     }}
-                    className={fontFamily.bold}
-                    autoFocus
-                    onBlur={() => setEditingText(null)}
+                    fontClassName={fontFamily.bold}
                   />
                 </Animated.View>
               ) : (
@@ -1126,15 +1148,16 @@ function OverlayEditorScreen() {
         </View>
       )}
 
-      {/* Floating reset layout */}
+      {/* Floating reset layout — top center, aligned with header buttons */}
       {!colorPickerTarget && (iconPosX !== 50 || iconPosY !== 40 || blockedTextPosX !== 50 || blockedTextPosY !== 55 || dismissTextPosX !== 50 || dismissTextPosY !== 60) && (
         <View style={{
           position: 'absolute',
-          top: insets.top + s(56),
+          top: insets.top + s(16),
           left: 0,
           right: 0,
           alignItems: 'center',
-        }}>
+          zIndex: 10,
+        }} pointerEvents="box-none">
           <TouchableOpacity
             onPress={() => {
               setIconPosX(50); setIconPosY(40);
@@ -1143,6 +1166,12 @@ function OverlayEditorScreen() {
             }}
             activeOpacity={0.7}
             className="flex-row items-center"
+            style={{
+              backgroundColor: 'rgba(255,255,255,0.1)',
+              borderRadius: s(8),
+              paddingHorizontal: s(10),
+              paddingVertical: s(6),
+            }}
           >
             <BoxiconsFilled name="bx-refresh-cw-alt" size={s(iconSize.sm)} color="#FFFFFF" />
             <Text style={{ color: '#FFFFFF', marginLeft: s(4) }} className={`${textSize.extraSmall} ${fontFamily.semibold}`}>Reset Layout</Text>

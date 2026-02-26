@@ -8,6 +8,7 @@ import { AuthProvider, useAuth, navigationRef } from './src/context/AuthContext'
 import RootNavigator from './src/navigation/RootNavigator';
 import InfoModal from './src/components/InfoModal';
 import EmergencyTapoutModal from './src/components/EmergencyTapoutModal';
+import NoInternetModal from './src/components/NoInternetModal';
 
 function GlobalModals() {
   const {
@@ -53,6 +54,7 @@ function App() {
               <RootNavigator />
             </NavigationContainer>
             <GlobalModals />
+            <NoInternetModal />
           </AuthProvider>
         </SafeAreaProvider>
       </ThemeProvider>
