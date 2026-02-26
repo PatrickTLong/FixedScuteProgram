@@ -2,6 +2,7 @@ import React, { memo, useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
+  ScrollView,
   TouchableOpacity,
   Animated,
   Easing,
@@ -10,7 +11,7 @@ import {
   UIManager,
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import BoxiconsFilled from './BoxiconsFilled';
 import { useTheme, textSize, fontFamily, radius, shadow, buttonPadding, haptics } from '../context/ThemeContext';
 import { triggerHaptic } from '../utils/haptics';
 import { useResponsive } from '../utils/responsive';
@@ -50,11 +51,12 @@ type PlanKey = keyof typeof PLANS;
 const PLAN_KEYS: PlanKey[] = ['monthly', 'yearly', 'lifetime'];
 
 const FEATURES: { label: string; icon: string }[] = [
-  { label: 'Unlimited presets', icon: 'all-inclusive' },
-  { label: 'Emergency tapout access', icon: 'emergency' },
-  { label: 'Scheduled blocking sessions', icon: 'perm-contact-calendar' },
-  { label: 'Priority support', icon: 'support-agent' },
-  { label: 'All future updates included', icon: 'system-update' },
+  { label: 'Unlimited presets', icon: 'bx-infinite' },
+  { label: 'Unlock Overlay Editor', icon: 'bx-palette' },
+  { label: 'Emergency tapout access', icon: 'bx-door-open-alt' },
+  { label: 'Scheduled blocking sessions', icon: 'bx-calendar-check' },
+  { label: 'Priority support', icon: 'bx-paper-plane' },
+  { label: 'All future updates included', icon: 'bx-refresh-cw' },
 ];
 
 const SEAL_ONLY_PATH = "M480-80q-24 0-46-9t-39-26q-29-29-50-38t-63-9q-50 0-85-35t-35-85q0-42-9-63t-38-50q-17-17-26-39t-9-46q0-24 9-46t26-39q29-29 38-50t9-63q0-50 35-85t85-35q42 0 63-9t50-38q17-17 39-26t46-9q24 0 46 9t39 26q29 29 50 38t63 9q50 0 85 35t35 85q0 42 9 63t38 50q17 17 26 39t9 46q0 24-9 46t-26 39q-29 29-38 50t-9 63q0 50-35 85t-85 35q-42 0-63 9t-50 38q-17 17-39 26t-46 9Z";
@@ -187,9 +189,9 @@ function MembershipContent() {
   const plan = PLANS[selectedPlan];
 
   return (
-    <View style={{ flex: 1, paddingHorizontal: s(20), paddingVertical: s(24), justifyContent: 'space-between' }}>
+    <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: s(20), paddingTop: s(24), paddingBottom: s(12) }} showsVerticalScrollIndicator={false} bounces={false}>
       {/* Top Section */}
-      <View style={{ flex: 1 }}>
+      <View>
         {/* Tab Selector */}
         <View style={{ backgroundColor: colors.card, borderRadius: s(50), borderWidth: 1, borderColor: colors.border, padding: s(4), flexDirection: 'row', ...shadow.card, marginBottom: s(24) }}>
           {PLAN_KEYS.map((key) => (
@@ -250,7 +252,7 @@ function MembershipContent() {
                   transform: [{ translateY: featureAnims[index].interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }],
                 }}
               >
-                <MaterialIcons name={feature.icon} size={s(22)} color={colors.text} />
+                <BoxiconsFilled name={feature.icon} size={s(22)} color={colors.text} />
                 <Text style={{ color: colors.text, marginLeft: s(12) }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>
                   {feature.label}
                 </Text>
@@ -261,7 +263,7 @@ function MembershipContent() {
       </View>
 
       {/* Bottom Section */}
-      <View>
+      <View style={{ marginTop: s(32) }}>
         {/* Subscribe Button */}
         <Animated.View style={{ transform: [{ scale: btnPulse }], marginBottom: s(12) }}>
           <TouchableOpacity
@@ -288,7 +290,7 @@ function MembershipContent() {
           By subscribing, you agree to our Terms of Service and Privacy Policy. Subscriptions auto-renew unless cancelled.
         </Text>
       </View>
-    </View>
+    </ScrollView>
   );
 }
 

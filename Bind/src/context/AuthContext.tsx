@@ -603,6 +603,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     checkBlockedOverlayLaunch();
   }, []);
 
+  // Schedule exact trial expiry timer so membership screen shows instantly when trial ends
+  useEffect(() => {
+    if (!userEmail || authState !== 'main') return;
+
+    let expiryTimeout: ReturnType<typeof setTimeout> | null = null;
+
+    const scheduleExpiryTimer = async () => {
+      try {
+        const membership = await getMembershipStatus(userEmail, false);
+        if (membership.isMember || membership.trialExpired || !membership.trialEnd) return;
+
+        const msUntilExpiry = new Date(membership.trialEnd).getTime() - Date.now();
+        if (msUntilExpiry <= 0) {
+          checkMembershipOnForeground();
+          return;
+        }
+
+        expiryTimeout = setTimeout(checkMembershipOnForeground, msUntilExpiry);
+      } catch (error) {
+        // Failed to schedule - foreground check will catch it
+      }
+    };
+
+    scheduleExpiryTimer();
+
+    return () => {
+      if (expiryTimeout) clearTimeout(expiryTimeout);
+    };
+  }, [userEmail, authState, checkMembershipOnForeground]);
+
   // AppState listener
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextAppState) => {

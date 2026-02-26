@@ -62,7 +62,7 @@ function GoogleSignInBtn({ onSuccess, onError, disabled }: Props) {
     let timeout: ReturnType<typeof setTimeout>;
 
     const jump = () => {
-      const height = -(13 + Math.random() * 7);
+      const height = -(5 + Math.random() * 4);
       Animated.sequence([
         Animated.timing(jumpValue, {
           toValue: height,

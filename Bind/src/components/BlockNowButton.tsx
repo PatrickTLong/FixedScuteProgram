@@ -6,6 +6,7 @@ import {
   PanResponder,
   TouchableOpacity,
   Dimensions,
+  Easing,
 } from 'react-native';
 
 import { useTheme , textSize, fontFamily, radius, shadow, colors, haptics } from '../context/ThemeContext';
@@ -44,6 +45,10 @@ function BlockNowButton({
   const fillAnimation = useRef(new Animated.Value(0)).current;
   const animationRef = useRef<Animated.CompositeAnimation | null>(null);
 
+  // Pulse animation (like membership button)
+  const btnPulse = useRef(new Animated.Value(1)).current;
+  const pulseRef = useRef<Animated.CompositeAnimation | null>(null);
+
   // Haptic tracking refs
   const holdHalfwayFired = useRef(false);
 
@@ -77,11 +82,40 @@ function BlockNowButton({
     }
   }, [showSlideToUnlock, slidePosition]);
 
+  // Pulse when button is actionable (slide-to-unlock or hold-to-lock)
+  const shouldPulse = showSlideToUnlock || canActivate;
+
+  const startPulse = useCallback(() => {
+    pulseRef.current = Animated.loop(
+      Animated.sequence([
+        Animated.timing(btnPulse, { toValue: 1.03, duration: 1000, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        Animated.timing(btnPulse, { toValue: 1, duration: 1000, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+      ])
+    );
+    pulseRef.current.start();
+  }, [btnPulse]);
+
+  const stopPulse = useCallback(() => {
+    pulseRef.current?.stop();
+    btnPulse.setValue(1);
+  }, [btnPulse]);
+
+  useEffect(() => {
+    if (shouldPulse) {
+      startPulse();
+    } else {
+      stopPulse();
+    }
+    return () => { pulseRef.current?.stop(); };
+  }, [shouldPulse, startPulse, stopPulse]);
+
   // Hold-to-lock animation functions
   const startAnimation = useCallback(() => {
     if (!canActivateRef.current) return;
 
     console.log('[BLOCK-BTN] Hold-to-lock STARTED');
+    pulseRef.current?.stop();
+    btnPulse.setValue(1);
     setIsPressed(true);
     fillAnimation.setValue(0);
     holdHalfwayFired.current = false;
@@ -110,9 +144,10 @@ function BlockNowButton({
         onActivateRef.current();
         setIsPressed(false);
         fillAnimation.setValue(0);
+        startPulse();
       }
     });
-  }, [fillAnimation]);
+  }, [fillAnimation, startPulse]);
 
   const cancelAnimation = useCallback(() => {
     console.log('[BLOCK-BTN] Hold-to-lock CANCELLED — released early');
@@ -122,8 +157,8 @@ function BlockNowButton({
       toValue: 0,
       duration: 150,
       useNativeDriver: false,
-    }).start();
-  }, [fillAnimation]);
+    }).start(() => startPulse());
+  }, [fillAnimation, startPulse]);
 
   // Slide-to-unlock functions
   const resetSlider = useCallback(() => {
@@ -150,6 +185,7 @@ function BlockNowButton({
       setIsUnlocking(false);
       isUnlockingRef.current = false;
       slidePosition.setValue(0);
+      startPulseRef.current();
     }
   }, [slidePosition]);
 
@@ -158,6 +194,10 @@ function BlockNowButton({
   handleSlideCompleteRef.current = handleSlideComplete;
   const resetSliderRef = useRef(resetSlider);
   resetSliderRef.current = resetSlider;
+  const stopPulseRef = useRef(stopPulse);
+  stopPulseRef.current = stopPulse;
+  const startPulseRef = useRef(startPulse);
+  startPulseRef.current = startPulse;
 
   // Hold-to-lock PanResponder
   const holdPanResponder = useMemo(
@@ -181,6 +221,7 @@ function BlockNowButton({
       onPanResponderTerminationRequest: () => false,
       onPanResponderGrant: () => {
           console.log('[SLIDE-UNLOCK] Slide STARTED — finger down');
+          stopPulseRef.current();
         },
       onPanResponderMove: (_, g) => {
         const maxSlide = buttonWidthRef.current;
@@ -201,9 +242,10 @@ function BlockNowButton({
         } else {
           console.log(`[SLIDE-UNLOCK] Slide RELEASED at ${pct}% — below threshold, resetting`);
           resetSliderRef.current();
+          startPulseRef.current();
         }
       },
-      onPanResponderTerminate: () => { console.log('[SLIDE-UNLOCK] Slide TERMINATED — resetting'); resetSliderRef.current(); },
+      onPanResponderTerminate: () => { console.log('[SLIDE-UNLOCK] Slide TERMINATED — resetting'); resetSliderRef.current(); startPulseRef.current(); },
     })
   ).current;
 
@@ -249,9 +291,48 @@ function BlockNowButton({
     });
 
     return (
+      <Animated.View style={{ transform: [{ scale: btnPulse }] }}>
+        <View
+          onLayout={(e) => { buttonWidthRef.current = e.nativeEvent.layout.width; }}
+          {...slidePanResponder.panHandlers}
+          className={`h-14 ${radius.full} overflow-hidden`}
+          style={{
+            backgroundColor: colors.card,
+            borderWidth: 1,
+            borderColor: colors.border,
+            ...shadow.card,
+          }}
+        >
+          {/* Text - always visible, positioned below the fill */}
+          <View className="flex-1 flex-row items-center justify-center" style={{ zIndex: 1 }}>
+            <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
+              {isUnlocking ? 'Unlocking...' : 'Slide to Unlock'}
+            </Text>
+          </View>
+
+          {/* Slide fill animation - overlaps the text */}
+          <Animated.View
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              bottom: 0,
+              width: slideFillWidth,
+              backgroundColor: FILL_COLOR,
+              borderRadius: s(28),
+              zIndex: 2,
+            }}
+          />
+        </View>
+      </Animated.View>
+    );
+  }
+
+  // Default: Hold to begin locking
+  return (
+    <Animated.View style={{ transform: [{ scale: btnPulse }] }}>
       <View
-        onLayout={(e) => { buttonWidthRef.current = e.nativeEvent.layout.width; }}
-        {...slidePanResponder.panHandlers}
+        {...(canActivate ? holdPanResponder.panHandlers : {})}
         className={`h-14 ${radius.full} overflow-hidden`}
         style={{
           backgroundColor: colors.card,
@@ -260,42 +341,6 @@ function BlockNowButton({
           ...shadow.card,
         }}
       >
-        {/* Text - always visible, positioned below the fill */}
-        <View className="flex-1 flex-row items-center justify-center" style={{ zIndex: 1 }}>
-          <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
-            {isUnlocking ? 'Unlocking...' : 'Slide to Unlock'}
-          </Text>
-        </View>
-
-        {/* Slide fill animation - overlaps the text */}
-        <Animated.View
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            bottom: 0,
-            width: slideFillWidth,
-            backgroundColor: FILL_COLOR,
-            borderRadius: s(28),
-            zIndex: 2,
-          }}
-        />
-      </View>
-    );
-  }
-
-  // Default: Hold to begin locking
-  return (
-    <View
-      {...(canActivate ? holdPanResponder.panHandlers : {})}
-      className={`h-14 ${radius.full} overflow-hidden`}
-      style={{
-        backgroundColor: colors.card,
-        borderWidth: 1,
-        borderColor: colors.border,
-        ...shadow.card,
-      }}
-    >
       {/* Button Content */}
       <View className="flex-1 flex-row items-center justify-center" style={{ zIndex: 1, opacity: !canActivate ? 0.6 : 1 }}>
         <Text
@@ -321,7 +366,8 @@ function BlockNowButton({
           }}
         />
       )}
-    </View>
+      </View>
+    </Animated.View>
   );
 }
 
