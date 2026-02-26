@@ -89,7 +89,7 @@ function OTPInput({ value, onChange, length = 6, disabled = false, autoFocus = f
                   style={{
                     color: colors.text,
                     fontSize: s(18),
-                    fontFamily: 'Nunito-Bold',
+                    fontFamily: 'PlusJakartaSans-Bold',
                     textAlign: 'center',
                     width: '100%',
                     height: '100%',

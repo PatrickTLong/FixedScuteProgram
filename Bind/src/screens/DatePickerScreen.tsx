@@ -170,7 +170,7 @@ const TimeWheel = memo(({ values, selectedValue, onValueChange, padZero = true, 
               <Text
                 style={{
                   fontSize: isSelected ? selectedFontSize : unselectedFontSize,
-                  fontFamily: isSelected ? 'Nunito-Bold' : 'Nunito-Regular',
+                  fontFamily: isSelected ? 'PlusJakartaSans-Bold' : 'PlusJakartaSans-Regular',
                   color: isSelected ? textColor : textMutedColor,
                 }}
               >

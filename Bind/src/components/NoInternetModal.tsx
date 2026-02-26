@@ -77,6 +77,7 @@ function NoInternetModal() {
     <Modal
       visible={visible}
       transparent
+      statusBarTranslucent
       animationType="fade"
       onRequestClose={() => {}}
     >
