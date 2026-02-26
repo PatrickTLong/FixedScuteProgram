@@ -86,6 +86,7 @@ interface AuthContextValue {
   refreshTapoutStatus: (skipCache?: boolean) => Promise<EmergencyTapoutStatus>;
   refreshOverlayPresets: (skipCache?: boolean) => Promise<OverlayPreset[]>;
   refreshAll: (skipCache?: boolean) => Promise<{ presets: Preset[]; lockStatus: LockStatus; tapoutStatus: EmergencyTapoutStatus }>;
+  handleReconnect: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -463,6 +464,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [userEmail]);
 
+  // Handle internet reconnection — clear all caches and re-initialize
+  const handleReconnect = useCallback(async () => {
+    clearAllCaches();
+    if (userEmail) {
+      invalidateUserCaches(userEmail);
+    }
+    setSharedPresets([]);
+    setSharedPresetsLoaded(false);
+    setSharedOverlayPresets([]);
+    setSharedLockStatus({ isLocked: false, lockStartedAt: null, lockEndsAt: null });
+    setTapoutStatus(null);
+    setIsInitializing(true);
+    await checkLoginStatus();
+    setRefreshTrigger(prev => prev + 1);
+  }, [userEmail, checkLoginStatus]);
+
   // Check if any scheduled preset is currently active
   const checkActiveScheduledPreset = useCallback(async () => {
     if (!userEmail || authState !== 'main') return;
@@ -736,6 +753,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     refreshTapoutStatus,
     refreshOverlayPresets,
     refreshAll,
+    handleReconnect,
   };
 
   return (

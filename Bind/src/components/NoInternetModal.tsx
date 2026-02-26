@@ -10,35 +10,52 @@ import {
 import NetInfo from '@react-native-community/netinfo';
 import { useTheme, textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
+import { useAuth } from '../context/AuthContext';
 import Svg, { Path } from 'react-native-svg';
 
 function NoInternetModal() {
   const { colors } = useTheme();
   const { s } = useResponsive();
+  const { handleReconnect } = useAuth();
   const [visible, setVisible] = useState(false);
+  const wasDisconnectedRef = useRef(false);
   const flash = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     // Subscribe to connectivity changes
     const unsubscribe = NetInfo.addEventListener(state => {
-      setVisible(state.isConnected === false);
+      const isDisconnected = state.isConnected === false;
+      if (isDisconnected) {
+        wasDisconnectedRef.current = true;
+      } else if (wasDisconnectedRef.current) {
+        wasDisconnectedRef.current = false;
+        handleReconnect();
+      }
+      setVisible(isDisconnected);
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [handleReconnect]);
 
   // Also re-check when app comes to foreground
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextState) => {
       if (nextState === 'active') {
         NetInfo.fetch().then(state => {
-          setVisible(state.isConnected === false);
+          const isDisconnected = state.isConnected === false;
+          if (isDisconnected) {
+            wasDisconnectedRef.current = true;
+          } else if (wasDisconnectedRef.current) {
+            wasDisconnectedRef.current = false;
+            handleReconnect();
+          }
+          setVisible(isDisconnected);
         });
       }
     });
 
     return () => subscription.remove();
-  }, []);
+  }, [handleReconnect]);
 
   const triggerFlash = useCallback((anim: Animated.Value) => {
     anim.setValue(0.3);
@@ -47,9 +64,14 @@ function NoInternetModal() {
 
   const handleRetry = useCallback(() => {
     NetInfo.fetch().then(state => {
-      setVisible(state.isConnected === false);
+      const isDisconnected = state.isConnected === false;
+      if (!isDisconnected && wasDisconnectedRef.current) {
+        wasDisconnectedRef.current = false;
+        handleReconnect();
+      }
+      setVisible(isDisconnected);
     });
-  }, []);
+  }, [handleReconnect]);
 
   return (
     <Modal
