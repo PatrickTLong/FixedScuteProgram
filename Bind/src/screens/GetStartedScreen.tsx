@@ -1,4 +1,4 @@
-import React, { useState, memo } from 'react';
+import React, { useState, useRef, memo } from 'react';
 import {
   Text,
   View,
@@ -23,10 +23,13 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { setAuthToken } from '../services/cardApi';
 import { API_URL } from '../config/api';
 import { useAuth } from '../context/AuthContext';
+import ScreenTransition from '../components/ScreenTransition';
+import type { ScreenTransitionRef } from '../components/ScreenTransition';
 import type { AuthStackParamList } from '../navigation/types';
 
 function GetStartedScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
+  const transitionRef = useRef<ScreenTransitionRef>(null);
   const { handleLogin } = useAuth();
   const onSuccess = (email: string) => handleLogin(email);
   const onSignIn = () => navigation.navigate('SignIn');
@@ -149,7 +152,8 @@ function GetStartedScreen() {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
+    <ScreenTransition ref={transitionRef}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
       {/* Progress Bar */}
       <ProgressBar currentStep={step === 'form' ? 1 : 2} totalSteps={3} />
 
@@ -321,7 +325,8 @@ function GetStartedScreen() {
         message={modalMessage}
         onClose={() => setModalVisible(false)}
       />
-    </SafeAreaView>
+      </SafeAreaView>
+    </ScreenTransition>
   );
 }
 

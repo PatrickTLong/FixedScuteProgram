@@ -21,14 +21,16 @@
             android:layout_height="0dp"
             android:layout_weight="0.15" />
 
-        <!-- Scute Logo (250dp to match React Native overlay size) -->
-        <ImageView
+        <!-- Scute Text -->
+        <TextView
             android:id="@+id/blocked_logo"
-            android:layout_width="250dp"
-            android:layout_height="250dp"
-            android:src="@drawable/scute_logo"
-            android:tint="#FFFFFF"
-            android:layout_marginBottom="-60dp" />
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Scute"
+            android:textColor="#FFFFFF"
+            android:textSize="48sp"
+            android:fontFamily="@font/plusjakartasans_bold"
+            android:layout_marginBottom="24dp" />
 
         <!-- Custom overlay image (hidden by default, shown when user has custom icon) -->
         <ImageView

@@ -38,10 +38,10 @@
 
                     <ImageView
                         android:id="@+id/bubble_logo"
-                        android:layout_width="65dp"
-                        android:layout_height="65dp"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
                         android:layout_gravity="center"
-                        android:src="@drawable/scute_logo"
+                        android:src="@drawable/heart_face"
                         android:scaleType="fitCenter" />
 
                 </FrameLayout>

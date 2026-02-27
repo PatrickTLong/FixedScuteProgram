@@ -1,4 +1,4 @@
-import React, { useState, memo } from 'react';
+import React, { useState, useRef, memo } from 'react';
 import {
   Text,
   View,
@@ -22,14 +22,20 @@ import HeaderIconButton from '../components/HeaderIconButton';
 import { useTheme , textSize, fontFamily, radius, shadow, iconSize } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { useAuth } from '../context/AuthContext';
+import ScreenTransition from '../components/ScreenTransition';
+import type { ScreenTransitionRef } from '../components/ScreenTransition';
 import type { AuthStackParamList } from '../navigation/types';
 import { setAuthToken } from '../services/cardApi';
 import { API_URL } from '../config/api';
 
 function SignInScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
+  const transitionRef = useRef<ScreenTransitionRef>(null);
   const { handleLogin } = useAuth();
-  const onBack = () => navigation.goBack();
+  const onBack = async () => {
+    await transitionRef.current?.animateOut();
+    navigation.goBack();
+  };
   const onSuccess = (email: string) => handleLogin(email);
   const onForgotPassword = () => navigation.navigate('ForgotPassword');
   const { colors } = useTheme();
@@ -155,7 +161,8 @@ function SignInScreen() {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
+    <ScreenTransition ref={transitionRef}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
       {/* Back Button */}
       <View className="absolute top-12 left-0 z-10">
         <BackButton onPress={step === 'credentials' ? onBack : () => setStep('credentials')} />
@@ -333,7 +340,8 @@ function SignInScreen() {
         message={modalMessage}
         onClose={() => setModalVisible(false)}
       />
-    </SafeAreaView>
+      </SafeAreaView>
+    </ScreenTransition>
   );
 }
 

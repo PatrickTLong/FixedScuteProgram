@@ -80,7 +80,8 @@
       "WebFetch(domain:www.jsdocs.io)",
       "WebFetch(domain:www.notjust.dev)",
       "WebFetch(domain:medium.com)",
-      "WebFetch(domain:m3.material.io)"
+      "WebFetch(domain:m3.material.io)",
+      "Bash(npm uninstall:*)"
     ],
     "additionalDirectories": [
       "c:\\Users\\Shado\\OneDrive\\Desktop\\ScuteProgram\\Bind\\src"

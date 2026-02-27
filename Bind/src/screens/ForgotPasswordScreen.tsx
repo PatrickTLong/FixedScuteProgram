@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, memo } from 'react';
+import React, { useState, useRef, useCallback, useMemo, memo } from 'react';
 import {
   Text,
   View,
@@ -20,12 +20,21 @@ import { useResponsive } from '../utils/responsive';
 import { API_URL } from '../config/api';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import ScreenTransition from '../components/ScreenTransition';
+import type { ScreenTransitionRef } from '../components/ScreenTransition';
 import type { AuthStackParamList } from '../navigation/types';
 
 function ForgotPasswordScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
-  const onBack = () => navigation.goBack();
-  const onSuccess = () => navigation.goBack();
+  const transitionRef = useRef<ScreenTransitionRef>(null);
+  const onBack = async () => {
+    await transitionRef.current?.animateOut();
+    navigation.goBack();
+  };
+  const onSuccess = async () => {
+    await transitionRef.current?.animateOut();
+    navigation.goBack();
+  };
   const { colors } = useTheme();
   const { s } = useResponsive();
   const [email, setEmail] = useState('');
@@ -169,7 +178,8 @@ function ForgotPasswordScreen() {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
+    <ScreenTransition ref={transitionRef}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
       {/* Back Button */}
       <View className="absolute top-12 left-0 z-10">
         <BackButton onPress={handleBack} />
@@ -363,7 +373,8 @@ function ForgotPasswordScreen() {
         message={modalMessage}
         onClose={() => setModalVisible(false)}
       />
-    </SafeAreaView>
+      </SafeAreaView>
+    </ScreenTransition>
   );
 }
 
