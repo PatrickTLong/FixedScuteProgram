@@ -32,7 +32,10 @@ function GetStartedScreen() {
   const transitionRef = useRef<ScreenTransitionRef>(null);
   const { handleLogin } = useAuth();
   const onSuccess = (email: string) => handleLogin(email);
-  const onSignIn = () => navigation.navigate('SignIn');
+  const onSignIn = async () => {
+    await transitionRef.current?.animateOut();
+    navigation.navigate('SignIn');
+  };
   const { colors } = useTheme();
   const { s } = useResponsive();
   const [email, setEmail] = useState('');

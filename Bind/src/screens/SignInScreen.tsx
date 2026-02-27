@@ -37,7 +37,10 @@ function SignInScreen() {
     navigation.goBack();
   };
   const onSuccess = (email: string) => handleLogin(email);
-  const onForgotPassword = () => navigation.navigate('ForgotPassword');
+  const onForgotPassword = async () => {
+    await transitionRef.current?.animateOut();
+    navigation.navigate('ForgotPassword');
+  };
   const { colors } = useTheme();
   const { s } = useResponsive();
   const [email, setEmail] = useState('');
