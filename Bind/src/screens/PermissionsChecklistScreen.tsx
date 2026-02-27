@@ -139,7 +139,7 @@ function PermissionsChecklistScreen() {
   const prevUngrantedRef = useRef<string[]>([]);
   const hasPlayedEntrance = useRef(false);
 
-  const currentPermission = ungrantedPermissions[0];
+  const [displayedPermission, setDisplayedPermission] = useState<Permission | null>(null);
 
   // Entrance animation (matches LandingScreen)
   const playEntrance = useCallback(() => {
@@ -161,25 +161,6 @@ function PermissionsChecklistScreen() {
       }).start();
     });
   }, [iconSlide, textOpacity, exitOpacity, exitSlideY]);
-
-  // Exit then entrance transition (quick & smooth)
-  const playExitThenEntrance = useCallback(() => {
-    Animated.parallel([
-      Animated.timing(exitOpacity, {
-        toValue: 0,
-        duration: 200,
-        useNativeDriver: true,
-      }),
-      Animated.timing(exitSlideY, {
-        toValue: -60,
-        duration: 200,
-        easing: Easing.in(Easing.ease),
-        useNativeDriver: true,
-      }),
-    ]).start(() => {
-      playEntrance();
-    });
-  }, [exitOpacity, exitSlideY, playEntrance]);
 
   // Button pulse animation (matches MembershipContent)
   useEffect(() => {
@@ -268,6 +249,7 @@ function PermissionsChecklistScreen() {
     if (!isLoading && ungrantedPermissions.length > 0 && !hasPlayedEntrance.current) {
       hasPlayedEntrance.current = true;
       prevUngrantedRef.current = ungrantedPermissions.map(p => p.id);
+      setDisplayedPermission(ungrantedPermissions[0]);
       playEntrance();
     }
   }, [isLoading, ungrantedPermissions, playEntrance]);
@@ -279,14 +261,29 @@ function PermissionsChecklistScreen() {
     const currentIds = ungrantedPermissions.map(p => p.id);
     const prevIds = prevUngrantedRef.current;
 
-    // If the list shrank, a permission was granted — transition
+    // If the list shrank, a permission was granted — exit old, then show & enter new
     if (prevIds.length > 0 && currentIds.length < prevIds.length && currentIds.length > 0) {
       prevUngrantedRef.current = currentIds;
-      playExitThenEntrance();
+      Animated.parallel([
+        Animated.timing(exitOpacity, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(exitSlideY, {
+          toValue: -60,
+          duration: 200,
+          easing: Easing.in(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ]).start(() => {
+        setDisplayedPermission(ungrantedPermissions[0]);
+        playEntrance();
+      });
     } else {
       prevUngrantedRef.current = currentIds;
     }
-  }, [ungrantedPermissions, isLoading, playExitThenEntrance]);
+  }, [ungrantedPermissions, isLoading, exitOpacity, exitSlideY, playEntrance]);
 
   async function openPermissionSettings(permission: Permission) {
     // iOS permission handling
@@ -427,7 +424,7 @@ function PermissionsChecklistScreen() {
   return (
     <ScreenTransition ref={transitionRef}>
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
-      {currentPermission ? (
+      {displayedPermission ? (
         <Animated.View
           style={{
             flex: 1,
@@ -446,13 +443,13 @@ function PermissionsChecklistScreen() {
               marginBottom: s(32),
             }}
           >
-            {SVG_PATHS[currentPermission.id] ? (
+            {SVG_PATHS[displayedPermission.id] ? (
               <Svg width={s(90)} height={s(90)} viewBox="0 -960 960 960">
-                <Path d={SVG_PATHS[currentPermission.id]} fill={colors.text} />
+                <Path d={SVG_PATHS[displayedPermission.id]} fill={colors.text} />
               </Svg>
             ) : (
               <BoxiconsFilled
-                name={currentPermission.icon}
+                name={displayedPermission.icon}
                 size={s(90)}
                 color={colors.text}
               />
@@ -465,20 +462,20 @@ function PermissionsChecklistScreen() {
               style={{ color: colors.text }}
               className={`${textSize['2xLarge']} ${fontFamily.bold} text-center`}
             >
-              {currentPermission.title}
+              {displayedPermission.title}
             </Text>
 
             <Text
               style={{ color: colors.textSecondary, marginTop: s(12) }}
               className={`${textSize.base} ${fontFamily.regular} text-center`}
             >
-              {currentPermission.description}
+              {displayedPermission.description}
             </Text>
 
             {/* Enable Button — membership modal style with pulse */}
             <Animated.View style={{ transform: [{ scale: btnPulse }], marginTop: s(40), width: '100%' }}>
               <TouchableOpacity
-                onPress={() => openPermissionSettings(currentPermission)}
+                onPress={() => openPermissionSettings(displayedPermission)}
                 activeOpacity={0.8}
                 style={{ backgroundColor: colors.text }}
                 className={`${radius.full} py-4 items-center`}
