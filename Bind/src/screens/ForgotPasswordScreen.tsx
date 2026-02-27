@@ -24,14 +24,8 @@ import type { AuthStackParamList } from '../navigation/types';
 
 function ForgotPasswordScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
-  const onBack = () => {
-    navigation.setOptions({ animation: 'none' });
-    navigation.goBack();
-  };
-  const onSuccess = () => {
-    navigation.setOptions({ animation: 'none' });
-    navigation.goBack();
-  };
+  const onBack = () => navigation.goBack();
+  const onSuccess = () => navigation.goBack();
   const { colors } = useTheme();
   const { s } = useResponsive();
   const [email, setEmail] = useState('');

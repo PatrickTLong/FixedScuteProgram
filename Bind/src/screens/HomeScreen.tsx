@@ -63,6 +63,7 @@ function HomeScreen() {
 
   // Scheduled presets expandable modal
   const [scheduledPresetsModalVisible, setScheduledPresetsModalVisible] = useState(false);
+  const closeFlash = useRef(new Animated.Value(0)).current;
 
   // Silent notifications toggle
   const [silentNotifications, setSilentNotifications] = useState(false);
@@ -1307,10 +1308,15 @@ function HomeScreen() {
             {/* Close Button */}
             <View style={{ borderTopWidth: 1, borderTopColor: colors.divider }}>
               <TouchableOpacity
+                onPressIn={() => {
+                  closeFlash.setValue(0.3);
+                  Animated.timing(closeFlash, { toValue: 0, duration: 300, useNativeDriver: true }).start();
+                }}
                 onPress={() => { setScheduledPresetsModalVisible(false); }}
-                activeOpacity={0.7}
-                className="py-4 items-center"
+                activeOpacity={1}
+                className="py-4 items-center justify-center"
               >
+                <Animated.View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#ffffff', opacity: closeFlash }} />
                 <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.semibold}`}>
                   Close
                 </Text>

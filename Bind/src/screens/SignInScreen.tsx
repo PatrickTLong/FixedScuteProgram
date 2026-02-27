@@ -29,10 +29,7 @@ import { API_URL } from '../config/api';
 function SignInScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
   const { handleLogin } = useAuth();
-  const onBack = () => {
-    navigation.setOptions({ animation: 'none' });
-    navigation.goBack();
-  };
+  const onBack = () => navigation.goBack();
   const onSuccess = (email: string) => handleLogin(email);
   const onForgotPassword = () => navigation.navigate('ForgotPassword');
   const { colors } = useTheme();
