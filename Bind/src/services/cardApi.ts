@@ -940,6 +940,33 @@ export async function deleteOverlayPreset(email: string, presetId: string): Prom
   }
 }
 
+/**
+ * Reset (delete all) overlay presets for a user
+ */
+export async function resetOverlayPresets(email: string): Promise<{ success: boolean; error?: string }> {
+  const normalizedEmail = email.toLowerCase();
+
+  try {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_URL}/api/overlay-presets/reset`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({}),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      return { success: false, error: data.error };
+    }
+
+    invalidateCache(`overlayPresets:${normalizedEmail}`);
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: 'Network error' };
+  }
+}
+
 export default {
   // Auth token functions
   setAuthToken,

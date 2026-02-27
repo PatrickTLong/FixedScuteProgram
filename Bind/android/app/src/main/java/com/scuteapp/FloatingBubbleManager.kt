@@ -76,6 +76,7 @@ class FloatingBubbleManager(private val context: Context) {
     private var bubbleAppList: LinearLayout? = null
     private var bubbleAppListContainer: LinearLayout? = null
     private var bubbleAppListScroll: ScrollView? = null
+    private var isAppListPopulated = false
     private var density: Float = 1f
 
     private val handler = Handler(Looper.getMainLooper())
@@ -118,9 +119,9 @@ class FloatingBubbleManager(private val context: Context) {
         hideHideButton()
     }
 
-    // Auto-collapse runnable
+    // Auto-collapse runnable (only collapses if app list isn't open)
     private val autoCollapseRunnable = Runnable {
-        if (isExpanded) {
+        if (isExpanded && !isAppListShown) {
             collapse()
         }
     }
@@ -224,9 +225,6 @@ class FloatingBubbleManager(private val context: Context) {
             bubbleAppList = bubbleView?.findViewById(R.id.bubble_app_list)
             bubbleAppListContainer = bubbleView?.findViewById(R.id.bubble_app_list_container)
             bubbleAppListScroll = bubbleView?.findViewById(R.id.bubble_app_list_scroll)
-
-            // Populate the app list from blocked apps
-            populateAppList()
 
             // Set up window parameters - LEFT side, fixed position
             layoutParams = WindowManager.LayoutParams().apply {
@@ -348,9 +346,6 @@ class FloatingBubbleManager(private val context: Context) {
             bubbleAppList = bubbleView?.findViewById(R.id.bubble_app_list)
             bubbleAppListContainer = bubbleView?.findViewById(R.id.bubble_app_list_container)
             bubbleAppListScroll = bubbleView?.findViewById(R.id.bubble_app_list_scroll)
-
-            // Populate the app list from blocked apps
-            populateAppList()
 
             // Set up window parameters - LEFT side, fixed position
             layoutParams = WindowManager.LayoutParams().apply {
@@ -852,17 +847,13 @@ class FloatingBubbleManager(private val context: Context) {
             container.addView(entryView)
         }
 
-        // Constrain ScrollView height programmatically after layout pass
-        bubbleAppListScroll?.post {
-            val maxH = (200 * density).toInt()
-            bubbleAppListScroll?.let { scroll ->
-                val contentHeight = scroll.getChildAt(0)?.height ?: 0
-                if (contentHeight > maxH) {
-                    scroll.layoutParams = scroll.layoutParams.apply {
-                        height = maxH
-                    }
-                    scroll.requestLayout()
-                }
+        // If more than 8 items, cap the ScrollView so it becomes scrollable
+        val totalItems = container.childCount
+        if (totalItems > 8) {
+            val itemHeight = (32 * density).toInt()   // 22dp icon + 10dp padding
+            val containerPadding = (16 * density).toInt()  // 8dp top + 8dp bottom
+            bubbleAppListScroll?.layoutParams = bubbleAppListScroll?.layoutParams?.apply {
+                height = (itemHeight * 8) + containerPadding
             }
         }
     }
@@ -872,6 +863,12 @@ class FloatingBubbleManager(private val context: Context) {
      */
     private fun showAppList() {
         isAppListShown = true
+
+        // Lazy-populate the app list on first open
+        if (!isAppListPopulated) {
+            populateAppList()
+            isAppListPopulated = true
+        }
 
         // Extend auto-collapse delay while viewing app list
         handler.removeCallbacks(autoCollapseRunnable)
@@ -906,9 +903,6 @@ class FloatingBubbleManager(private val context: Context) {
                 Log.e(TAG, "Error updating layout for app list", e)
             }
         }
-
-        // Schedule auto-collapse with longer delay
-        handler.postDelayed(autoCollapseRunnable, APP_LIST_COLLAPSE_DELAY)
 
         Log.d(TAG, "App list shown")
     }
@@ -1038,6 +1032,7 @@ class FloatingBubbleManager(private val context: Context) {
         isShowing = false
         isExpanded = false
         isAppListShown = false
+        isAppListPopulated = false  // Reset so next session re-fetches
         isHidden = false  // Reset for next session
         isNoTimeLimit = false  // Reset mode for next session
         startTime = 0

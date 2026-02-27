@@ -14,7 +14,6 @@ export default function LoadingSpinner({ size, color = colors.text, fullScreen =
   const baseSize = size ?? s(32);
   const dotSize = Math.max(4, Math.round(baseSize * 0.22));
   const dotGap = Math.max(3, Math.round(baseSize * 0.15));
-  const bounce = Math.max(4, Math.round(baseSize * 0.2));
 
   const dot1 = useRef(new Animated.Value(0)).current;
   const dot2 = useRef(new Animated.Value(0)).current;
@@ -27,9 +26,9 @@ export default function LoadingSpinner({ size, color = colors.text, fullScreen =
     dots.forEach((dot, i) => {
       const loop = Animated.loop(
         Animated.sequence([
-          Animated.delay(i * 150),
-          Animated.timing(dot, { toValue: -bounce, duration: 250, easing: Easing.out(Easing.quad), useNativeDriver: true }),
-          Animated.timing(dot, { toValue: 0, duration: 250, easing: Easing.in(Easing.quad), useNativeDriver: true }),
+          Animated.delay(i * 100),
+          Animated.timing(dot, { toValue: -6, duration: 160, easing: Easing.out(Easing.quad), useNativeDriver: false }),
+          Animated.timing(dot, { toValue: 0, duration: 160, easing: Easing.in(Easing.quad), useNativeDriver: false }),
         ]),
       );
       loops.push(loop);
@@ -37,7 +36,7 @@ export default function LoadingSpinner({ size, color = colors.text, fullScreen =
     });
 
     return () => loops.forEach(l => l.stop());
-  }, [dot1, dot2, dot3, bounce]);
+  }, []);
 
   const dots = (
     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: dotGap, height: baseSize, width: baseSize }}>

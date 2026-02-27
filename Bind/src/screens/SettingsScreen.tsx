@@ -677,7 +677,7 @@ function SettingsScreen() {
       <ConfirmationModal
         visible={resetModalVisible}
         title="Reset Account Data"
-        message="This will delete all your presets and settings. Your account and membership status will be preserved."
+        message="This will delete all your presets, overlays, and settings. Your account and membership status will be preserved."
         confirmText="Reset"
         cancelText="Cancel"
         isDestructive

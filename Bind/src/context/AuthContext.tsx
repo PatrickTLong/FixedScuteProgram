@@ -23,6 +23,7 @@ import {
   clearAllCaches,
   markInitialLoadComplete,
   getOverlayPresets,
+  resetOverlayPresets,
 } from '../services/cardApi';
 import type { RootStackParamList } from '../navigation/types';
 
@@ -437,9 +438,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } catch (e) {}
       await ScheduleModule?.saveScheduledPresets('[]');
       await updateLockStatus(userEmail, false, null);
-      const result = await resetPresets(userEmail);
-      if (!result.success) {
-        return { success: false, error: result.error || 'Failed to reset presets' };
+      const [presetsResult, overlaysResult] = await Promise.all([
+        resetPresets(userEmail),
+        resetOverlayPresets(userEmail),
+      ]);
+      if (!presetsResult.success) {
+        return { success: false, error: presetsResult.error || 'Failed to reset presets' };
+      }
+      if (!overlaysResult.success) {
+        return { success: false, error: overlaysResult.error || 'Failed to reset overlay presets' };
       }
       // Clear caches, then re-fetch so shared state has fresh data before spinner dismisses
       invalidateUserCaches(userEmail);

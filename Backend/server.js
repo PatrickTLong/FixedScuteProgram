@@ -1640,6 +1640,29 @@ app.delete('/api/overlay-presets/:id', authenticateToken, async (req, res) => {
   }
 });
 
+// POST /api/overlay-presets/reset - Delete all overlay presets (PROTECTED)
+app.post('/api/overlay-presets/reset', authenticateToken, async (req, res) => {
+  const normalizedEmail = req.userEmail;
+
+  try {
+    const { error: deleteError } = await supabase
+      .from('user_overlay_presets')
+      .delete()
+      .eq('email', normalizedEmail);
+
+    if (deleteError) {
+      console.error('Error deleting overlay presets:', deleteError);
+      return res.status(500).json({ error: 'Failed to delete overlay presets' });
+    }
+
+    console.log(`Overlay presets reset for ${normalizedEmail}`);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Reset overlay presets error:', error);
+    res.status(500).json({ error: 'Failed to reset overlay presets' });
+  }
+});
+
 // ============ LOCK STATUS ENDPOINTS ============
 
 // POST /api/lock-status - Update user's lock status (PROTECTED)

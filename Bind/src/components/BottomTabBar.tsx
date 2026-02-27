@@ -649,7 +649,7 @@ function BottomTabBar({ state, navigation }: RNBottomTabBarProps) {
     iconRef ? <AnimatedOverlaysIcon ref={iconRef} color={color} filled={filled} /> : <OverlaysIcon color={color} filled={filled} />, []);
   const renderSettingsIcon = useCallback((color: string) => <SettingsIcon color={color} />, []);
 
-  // Hide tab bar on preset editing screens (after all hooks)
+  // Hide tab bar on preset editing screens
   if (HIDDEN_ROUTES.includes(currentRouteName)) {
     return null;
   }
