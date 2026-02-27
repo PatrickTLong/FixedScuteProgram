@@ -39,6 +39,9 @@ function ForgotPasswordScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalTitle, setModalTitle] = useState('');
   const [modalMessage, setModalMessage] = useState('');
+  const [emailFocused, setEmailFocused] = useState(false);
+  const [newPasswordFocused, setNewPasswordFocused] = useState(false);
+  const [confirmPasswordFocused, setConfirmPasswordFocused] = useState(false);
 
   function showModal(title: string, message: string) {
     setModalTitle(title);
@@ -200,18 +203,23 @@ function ForgotPasswordScreen() {
                   <Text style={{ color: colors.text, position: 'absolute', top: s(-30), left: s(8) }} className={`${textSize.small} ${fontFamily.regular}`}>
                     Email
                   </Text>
-                  <TextInput
-                    value={email}
-                    onChangeText={setEmail}
-                    placeholder="Enter your email"
-                    placeholderTextColor={colors.textSecondary}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    editable={!loading}
-                    style={{ backgroundColor: colors.card, color: colors.text, height: s(48), borderWidth: 1, borderColor: colors.border, ...shadow.card }}
-                    className={`${radius.xl} px-5 ${textSize.small} ${fontFamily.regular}`}
-                  />
+                  <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, height: s(48), borderWidth: 1, borderColor: emailFocused ? colors.textSecondary : colors.border, ...shadow.card, overflow: 'hidden', paddingHorizontal: s(20) }} className={radius.xl}>
+                    <BoxiconsFilled name="bx-user-check" size={s(iconSize.headerNav)} color={colors.textSecondary} />
+                    <TextInput
+                      value={email}
+                      onChangeText={setEmail}
+                      placeholder="Enter your email"
+                      placeholderTextColor={colors.textSecondary}
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                      editable={!loading}
+                      onFocus={() => setEmailFocused(true)}
+                      onBlur={() => setEmailFocused(false)}
+                      style={{ flex: 1, color: colors.text, marginLeft: s(8) }}
+                      className={`${textSize.small} ${fontFamily.regular}`}
+                    />
+                  </View>
                 </View>
               </>
             )}
@@ -263,7 +271,8 @@ function ForgotPasswordScreen() {
                   <Text style={{ color: colors.text, position: 'absolute', top: s(-30), left: s(8) }} className={`${textSize.small} ${fontFamily.regular}`}>
                     New Password
                   </Text>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, height: s(48), borderWidth: 1, borderColor: colors.border, ...shadow.card, overflow: 'hidden' }} className={radius.xl}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, height: s(48), borderWidth: 1, borderColor: newPasswordFocused ? colors.textSecondary : colors.border, ...shadow.card, overflow: 'hidden', paddingLeft: s(20) }} className={radius.xl}>
+                    <BoxiconsFilled name="bx-key" size={s(iconSize.headerNav)} color={colors.textSecondary} />
                     <TextInput
                       value={newPassword}
                       onChangeText={setNewPassword}
@@ -273,8 +282,10 @@ function ForgotPasswordScreen() {
                       autoCapitalize="none"
                       autoCorrect={false}
                       editable={!loading}
-                      style={{ flex: 1, color: colors.text }}
-                      className={`px-5 ${textSize.small} ${fontFamily.regular}`}
+                      onFocus={() => setNewPasswordFocused(true)}
+                      onBlur={() => setNewPasswordFocused(false)}
+                      style={{ flex: 1, color: colors.text, marginLeft: s(8) }}
+                      className={`${textSize.small} ${fontFamily.regular}`}
                     />
                     <View style={{ justifyContent: 'center', alignItems: 'center', paddingHorizontal: s(8), height: '100%' }}>
                       <HeaderIconButton onPress={() => setShowNewPassword(!showNewPassword)}>
@@ -288,7 +299,8 @@ function ForgotPasswordScreen() {
                   <Text style={{ color: colors.text, position: 'absolute', top: s(-30), left: s(8) }} className={`${textSize.small} ${fontFamily.regular}`}>
                     Confirm New Password
                   </Text>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, height: s(48), borderWidth: 1, borderColor: colors.border, ...shadow.card, overflow: 'hidden' }} className={radius.xl}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, height: s(48), borderWidth: 1, borderColor: confirmPasswordFocused ? colors.textSecondary : colors.border, ...shadow.card, overflow: 'hidden', paddingLeft: s(20) }} className={radius.xl}>
+                    <BoxiconsFilled name="bx-key" size={s(iconSize.headerNav)} color={colors.textSecondary} />
                     <TextInput
                       value={confirmPassword}
                       onChangeText={setConfirmPassword}
@@ -297,9 +309,11 @@ function ForgotPasswordScreen() {
                       secureTextEntry={!showConfirmPassword}
                       autoCapitalize="none"
                       autoCorrect={false}
+                      onFocus={() => setConfirmPasswordFocused(true)}
+                      onBlur={() => setConfirmPasswordFocused(false)}
                       editable={!loading}
-                      style={{ flex: 1, color: colors.text }}
-                      className={`px-5 ${textSize.small} ${fontFamily.regular}`}
+                      style={{ flex: 1, color: colors.text, marginLeft: s(8) }}
+                      className={`${textSize.small} ${fontFamily.regular}`}
                     />
                     <View style={{ justifyContent: 'center', alignItems: 'center', paddingHorizontal: s(8), height: '100%' }}>
                       <HeaderIconButton onPress={() => setShowConfirmPassword(!showConfirmPassword)}>

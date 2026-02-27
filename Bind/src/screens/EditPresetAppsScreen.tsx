@@ -302,6 +302,9 @@ function EditPresetAppsScreen() {
   const [iosSelectedAppsCount, setIosSelectedAppsCount] = useState(0);
   const [excludedAppsInfoVisible, setExcludedAppsInfoVisible] = useState(false);
   const [svgKey, setSvgKey] = useState(0);
+  const [nameInputFocused, setNameInputFocused] = useState(false);
+  const [searchInputFocused, setSearchInputFocused] = useState(false);
+  const [websiteInputFocused, setWebsiteInputFocused] = useState(false);
   const appsLoadedRef = useRef(false);
 
   // Load installed apps once on mount (screen is eagerly mounted, not lazy)
@@ -541,7 +544,7 @@ function EditPresetAppsScreen() {
         {/* Preset Name Input */}
         <View className="px-6 py-4">
           <View
-            style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
+            style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: nameInputFocused ? colors.textSecondary : colors.border, ...shadow.card }}
             className={`${radius.xl} px-5 h-12 flex-row items-center`}
           >
             <EditIcon size={s(iconSize.headerNav)} color={colors.textSecondary} />
@@ -551,6 +554,8 @@ function EditPresetAppsScreen() {
               value={name}
               onChangeText={setName}
               maxLength={50}
+              onFocus={() => setNameInputFocused(true)}
+              onBlur={() => setNameInputFocused(false)}
               style={{ color: colors.text, flex: 1, marginLeft: s(8), paddingVertical: 0, includeFontPadding: false, textAlignVertical: 'center' }}
               className={`${textSize.small} ${fontFamily.semibold}`}
             />
@@ -625,7 +630,7 @@ function EditPresetAppsScreen() {
                 {/* Search */}
                 <View className="px-6 mb-4">
                   <View
-                    style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
+                    style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: searchInputFocused ? colors.textSecondary : colors.border, ...shadow.card }}
                     className={`${radius.xl} px-5 h-12 flex-row items-center`}
                   >
                     <SearchIcon size={s(iconSize.headerNav)} color={colors.textSecondary} />
@@ -634,6 +639,8 @@ function EditPresetAppsScreen() {
                       placeholderTextColor={colors.textSecondary}
                       value={searchQuery}
                       onChangeText={setSearchQuery}
+                      onFocus={() => setSearchInputFocused(true)}
+                      onBlur={() => setSearchInputFocused(false)}
                       style={{ color: colors.text, flex: 1, marginLeft: s(8), paddingVertical: 0, includeFontPadding: false, textAlignVertical: 'center' }}
                       className={`${textSize.small} ${fontFamily.semibold}`}
                     />
@@ -715,7 +722,7 @@ function EditPresetAppsScreen() {
               {/* Website Input */}
               <View className="flex-row items-center mb-4">
                 <View
-                  style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card, flex: 1 }}
+                  style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: websiteInputFocused ? colors.textSecondary : colors.border, ...shadow.card, flex: 1 }}
                   className={`${radius.xl} px-5 h-12 flex-row items-center mr-2`}
                 >
                   <BoxiconsFilled name="bx-cursor-add" size={s(iconSize.md)} color={colors.textSecondary} />
@@ -726,6 +733,8 @@ function EditPresetAppsScreen() {
                     onChangeText={setWebsiteInput}
                     autoCapitalize="none"
                     keyboardType="url"
+                    onFocus={() => setWebsiteInputFocused(true)}
+                    onBlur={() => setWebsiteInputFocused(false)}
                     style={{ color: colors.text, flex: 1, marginLeft: s(8), paddingVertical: 0, includeFontPadding: false, textAlignVertical: 'center' }}
                     className={`${textSize.small} ${fontFamily.semibold}`}
                   />

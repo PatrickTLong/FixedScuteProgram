@@ -43,6 +43,8 @@ function SignInScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalTitle, setModalTitle] = useState('');
   const [modalMessage, setModalMessage] = useState('');
+  const [emailFocused, setEmailFocused] = useState(false);
+  const [passwordFocused, setPasswordFocused] = useState(false);
 
   function showModal(title: string, message: string) {
     setModalTitle(title);
@@ -185,18 +187,23 @@ function SignInScreen() {
                   <Text style={{ color: colors.text, position: 'absolute', top: s(-30), left: s(8) }} className={`${textSize.small} ${fontFamily.regular}`}>
                     Email
                   </Text>
-                  <TextInput
-                    value={email}
-                    onChangeText={setEmail}
-                    placeholder="Enter your email"
-                    placeholderTextColor={colors.textSecondary}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    editable={!loading}
-                    style={{ backgroundColor: colors.card, color: colors.text, height: s(48), borderWidth: 1, borderColor: colors.border, ...shadow.card }}
-                    className={`${radius.xl} px-5 ${textSize.small} ${fontFamily.regular}`}
-                  />
+                  <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, height: s(48), borderWidth: 1, borderColor: emailFocused ? colors.textSecondary : colors.border, ...shadow.card, overflow: 'hidden', paddingHorizontal: s(20) }} className={radius.xl}>
+                    <BoxiconsFilled name="bx-user-check" size={s(iconSize.headerNav)} color={colors.textSecondary} />
+                    <TextInput
+                      value={email}
+                      onChangeText={setEmail}
+                      placeholder="Enter your email"
+                      placeholderTextColor={colors.textSecondary}
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                      editable={!loading}
+                      onFocus={() => setEmailFocused(true)}
+                      onBlur={() => setEmailFocused(false)}
+                      style={{ flex: 1, color: colors.text, marginLeft: s(8) }}
+                      className={`${textSize.small} ${fontFamily.regular}`}
+                    />
+                  </View>
                 </View>
 
                 {/* Password Input */}
@@ -204,7 +211,8 @@ function SignInScreen() {
                   <Text style={{ color: colors.text, position: 'absolute', top: s(-30), left: s(8) }} className={`${textSize.small} ${fontFamily.regular}`}>
                     Password
                   </Text>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, height: s(48), borderWidth: 1, borderColor: colors.border, ...shadow.card, overflow: 'hidden' }} className={radius.xl}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, height: s(48), borderWidth: 1, borderColor: passwordFocused ? colors.textSecondary : colors.border, ...shadow.card, overflow: 'hidden', paddingLeft: s(20) }} className={radius.xl}>
+                    <BoxiconsFilled name="bx-key" size={s(iconSize.headerNav)} color={colors.textSecondary} />
                     <TextInput
                       value={password}
                       onChangeText={setPassword}
@@ -214,8 +222,10 @@ function SignInScreen() {
                       autoCapitalize="none"
                       autoCorrect={false}
                       editable={!loading}
-                      style={{ flex: 1, color: colors.text }}
-                      className={`px-5 ${textSize.small} ${fontFamily.regular}`}
+                      onFocus={() => setPasswordFocused(true)}
+                      onBlur={() => setPasswordFocused(false)}
+                      style={{ flex: 1, color: colors.text, marginLeft: s(8) }}
+                      className={`${textSize.small} ${fontFamily.regular}`}
                     />
                     <View style={{ justifyContent: 'center', alignItems: 'center', paddingHorizontal: s(8), height: '100%' }}>
                       <HeaderIconButton onPress={() => setShowPassword(!showPassword)}>
