@@ -542,7 +542,7 @@ function EditPresetAppsScreen() {
         <View className="px-6 py-4">
           <View
             style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
-            className={`${radius.xl} px-4 h-12 flex-row items-center`}
+            className={`${radius.xl} px-5 h-12 flex-row items-center`}
           >
             <EditIcon size={s(iconSize.headerNav)} color={colors.textSecondary} />
             <TextInput
@@ -626,7 +626,7 @@ function EditPresetAppsScreen() {
                 <View className="px-6 mb-4">
                   <View
                     style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
-                    className={`${radius.xl} px-4 h-12 flex-row items-center`}
+                    className={`${radius.xl} px-5 h-12 flex-row items-center`}
                   >
                     <SearchIcon size={s(iconSize.headerNav)} color={colors.textSecondary} />
                     <TextInput
@@ -716,7 +716,7 @@ function EditPresetAppsScreen() {
               <View className="flex-row items-center mb-4">
                 <View
                   style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card, flex: 1 }}
-                  className={`${radius.xl} px-4 h-12 flex-row items-center mr-2`}
+                  className={`${radius.xl} px-5 h-12 flex-row items-center mr-2`}
                 >
                   <BoxiconsFilled name="bx-cursor-add" size={s(iconSize.md)} color={colors.textSecondary} />
                   <TextInput

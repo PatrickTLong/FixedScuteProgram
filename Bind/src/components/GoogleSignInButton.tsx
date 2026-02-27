@@ -5,7 +5,6 @@ import {
   statusCodes,
 } from '@react-native-google-signin/google-signin';
 import Svg, { Path } from 'react-native-svg';
-import LoadingSpinner from './LoadingSpinner';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { setAuthToken } from '../services/cardApi';
 import { API_URL } from '../config/api';
@@ -50,40 +49,34 @@ function GoogleSignInBtn({ onSuccess, onError, disabled }: Props) {
   const { colors } = useTheme();
   const { s } = useResponsive();
   const [loading, setLoading] = useState(false);
-  const jumpValue = useRef(new Animated.Value(0)).current;
+  const dot1 = useRef(new Animated.Value(0)).current;
+  const dot2 = useRef(new Animated.Value(0)).current;
+  const dot3 = useRef(new Animated.Value(0)).current;
 
-  // Jump animation while loading (small jumps to stay within button bounds)
   useEffect(() => {
     if (!loading) {
-      jumpValue.setValue(0);
+      dot1.setValue(0);
+      dot2.setValue(0);
+      dot3.setValue(0);
       return;
     }
 
-    let timeout: ReturnType<typeof setTimeout>;
+    const dots = [dot1, dot2, dot3];
+    const loops: Animated.CompositeAnimation[] = [];
 
-    const jump = () => {
-      const height = -(5 + Math.random() * 4);
-      Animated.sequence([
-        Animated.timing(jumpValue, {
-          toValue: height,
-          duration: 180 + Math.random() * 60,
-          easing: Easing.out(Easing.quad),
-          useNativeDriver: true,
-        }),
-        Animated.timing(jumpValue, {
-          toValue: 0,
-          duration: 350 + Math.random() * 100,
-          easing: Easing.bounce,
-          useNativeDriver: true,
-        }),
-      ]).start(() => {
-        timeout = setTimeout(jump, 50 + Math.random() * 100);
-      });
-    };
+    dots.forEach((dot, i) => {
+      const loop = Animated.loop(
+        Animated.sequence([
+          Animated.delay(i * 150),
+          Animated.timing(dot, { toValue: -6, duration: 250, easing: Easing.out(Easing.quad), useNativeDriver: true }),
+          Animated.timing(dot, { toValue: 0, duration: 250, easing: Easing.in(Easing.quad), useNativeDriver: true }),
+        ]),
+      );
+      loops.push(loop);
+      loop.start();
+    });
 
-    timeout = setTimeout(jump, 80 + Math.random() * 80);
-
-    return () => clearTimeout(timeout);
+    return () => loops.forEach(l => l.stop());
   }, [loading]);
 
   async function handleGoogleSignIn() {
@@ -162,10 +155,19 @@ function GoogleSignInBtn({ onSuccess, onError, disabled }: Props) {
         </Text>
       </View>
       {loading && (
-        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center' }}>
-          <Animated.View style={{ transform: [{ translateY: jumpValue }] }}>
-            <LoadingSpinner size={s(22)} />
-          </Animated.View>
+        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center', flexDirection: 'row', gap: s(6) }}>
+          {[dot1, dot2, dot3].map((dot, i) => (
+            <Animated.View
+              key={i}
+              style={{
+                width: s(7),
+                height: s(7),
+                borderRadius: s(3.5),
+                backgroundColor: colors.text,
+                transform: [{ translateY: dot }],
+              }}
+            />
+          ))}
         </View>
       )}
     </TouchableOpacity>

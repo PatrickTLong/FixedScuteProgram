@@ -27,28 +27,6 @@ function ProgressBar({ currentStep, totalSteps }: ProgressBarProps) {
 const AnimatedDot = memo(function AnimatedDot({ isActive }: { isActive: boolean }) {
   const { s } = useResponsive();
   const translateYAnim = useRef(new Animated.Value(0)).current;
-  const floatAnim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    const floatAnimation = Animated.loop(
-      Animated.sequence([
-        Animated.timing(floatAnim, {
-          toValue: -1.5,
-          duration: 1500,
-          useNativeDriver: true,
-        }),
-        Animated.timing(floatAnim, {
-          toValue: 0,
-          duration: 1500,
-          useNativeDriver: true,
-        }),
-      ])
-    );
-
-    floatAnimation.start();
-
-    return () => floatAnimation.stop();
-  }, [floatAnim]);
 
   useEffect(() => {
     if (isActive) {
@@ -91,9 +69,7 @@ const AnimatedDot = memo(function AnimatedDot({ isActive }: { isActive: boolean 
         width: s(8),
         height: s(8),
         borderRadius: s(4),
-        transform: [
-          { translateY: Animated.add(translateYAnim, floatAnim) },
-        ],
+        transform: [{ translateY: translateYAnim }],
       }}
     />
   );

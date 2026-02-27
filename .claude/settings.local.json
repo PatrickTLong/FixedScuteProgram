@@ -78,7 +78,9 @@
       "WebFetch(domain:reactnavigation.org)",
       "WebFetch(domain:www.callstack.com)",
       "WebFetch(domain:www.jsdocs.io)",
-      "WebFetch(domain:www.notjust.dev)"
+      "WebFetch(domain:www.notjust.dev)",
+      "WebFetch(domain:medium.com)",
+      "WebFetch(domain:m3.material.io)"
     ],
     "additionalDirectories": [
       "c:\\Users\\Shado\\OneDrive\\Desktop\\ScuteProgram\\Bind\\src"

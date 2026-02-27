@@ -183,7 +183,7 @@ function GetStartedScreen() {
                     autoCapitalize="none"
                     autoCorrect={false}
                     editable={!loading}
-                    style={{ backgroundColor: colors.card, color: colors.text, height: s(52), borderWidth: 1, borderColor: colors.border, ...shadow.card }}
+                    style={{ backgroundColor: colors.card, color: colors.text, height: s(48), borderWidth: 1, borderColor: colors.border, ...shadow.card }}
                     className={`${radius.xl} px-5 ${textSize.small} ${fontFamily.regular}`}
                   />
                 </View>
@@ -193,7 +193,7 @@ function GetStartedScreen() {
                   <Text style={{ color: colors.text, position: 'absolute', top: s(-30), left: s(8) }} className={`${textSize.small} ${fontFamily.regular}`}>
                     Password
                   </Text>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, height: s(52), borderWidth: 1, borderColor: colors.border, ...shadow.card, overflow: 'hidden' }} className={radius.xl}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, height: s(48), borderWidth: 1, borderColor: colors.border, ...shadow.card, overflow: 'hidden' }} className={radius.xl}>
                     <TextInput
                       value={password}
                       onChangeText={setPassword}
@@ -203,7 +203,7 @@ function GetStartedScreen() {
                       autoCapitalize="none"
                       autoCorrect={false}
                       editable={!loading}
-                      style={{ flex: 1, color: colors.text, height: s(52) }}
+                      style={{ flex: 1, color: colors.text }}
                       className={`px-5 ${textSize.small} ${fontFamily.regular}`}
                     />
                     <View style={{ justifyContent: 'center', alignItems: 'center', paddingHorizontal: s(8), height: '100%' }}>

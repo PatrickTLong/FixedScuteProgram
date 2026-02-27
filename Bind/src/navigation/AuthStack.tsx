@@ -1,33 +1,33 @@
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createStackNavigator, CardStyleInterpolators } from '@react-navigation/stack';
 import LandingScreen from '../screens/LandingScreen';
 import GetStartedScreen from '../screens/GetStartedScreen';
 import SignInScreen from '../screens/SignInScreen';
 import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
-import FadeFromBottom from '../components/FadeFromBottom';
 import { colors } from '../context/ThemeContext';
 import type { AuthStackParamList } from './types';
 
-const Stack = createNativeStackNavigator<AuthStackParamList>();
+const Stack = createStackNavigator<AuthStackParamList>();
 
-// Stable wrapped components — each screen plays fade_from_bottom on every focus
-const FadeLanding = () => <FadeFromBottom><LandingScreen /></FadeFromBottom>;
-const FadeGetStarted = () => <FadeFromBottom><GetStartedScreen /></FadeFromBottom>;
-const FadeSignIn = () => <FadeFromBottom><SignInScreen /></FadeFromBottom>;
-const FadeForgotPassword = () => <FadeFromBottom><ForgotPasswordScreen /></FadeFromBottom>;
 
 export default function AuthStack() {
   return (
     <Stack.Navigator
       screenOptions={{
         headerShown: false,
-        animation: 'none',
-        contentStyle: { backgroundColor: colors.bg },
+        cardStyleInterpolator: CardStyleInterpolators.forScaleFromCenterAndroid,
+        transitionSpec: {
+          open: { animation: 'timing', config: { duration: 200 } },
+          close: { animation: 'timing', config: { duration: 200 } },
+        },
+        cardStyle: { backgroundColor: colors.bg },
+        detachPreviousScreen: false,
+        gestureEnabled: false,
       }}
     >
-      <Stack.Screen name="Landing" component={FadeLanding} />
-      <Stack.Screen name="GetStarted" component={FadeGetStarted} />
-      <Stack.Screen name="SignIn" component={FadeSignIn} />
-      <Stack.Screen name="ForgotPassword" component={FadeForgotPassword} />
+      <Stack.Screen name="Landing" component={LandingScreen} />
+      <Stack.Screen name="GetStarted" component={GetStartedScreen} />
+      <Stack.Screen name="SignIn" component={SignInScreen} />
+      <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
     </Stack.Navigator>
   );
 }
