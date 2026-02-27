@@ -1,5 +1,5 @@
 import React, { memo, useCallback, useRef } from 'react';
-import { Animated, TouchableOpacity, View, StyleSheet } from 'react-native';
+import { Animated, Easing, TouchableOpacity, StyleSheet } from 'react-native';
 import { useResponsive } from '../utils/responsive';
 import { haptics } from '../context/ThemeContext';
 import { triggerHaptic } from '../utils/haptics';
@@ -21,6 +21,7 @@ export interface HeaderIconButtonProps {
 function HeaderIconButton({ onPress, onPressIn: onPressInProp, onPressOut, disabled = false, children, style, className, flashSize = DEFAULT_FLASH_SIZE }: HeaderIconButtonProps) {
   const { s } = useResponsive();
   const flashOpacity = useRef(new Animated.Value(0)).current;
+  const iconScale = useRef(new Animated.Value(1)).current;
 
   const flashAnimRef = useRef<Animated.CompositeAnimation | null>(null);
 
@@ -31,6 +32,24 @@ function HeaderIconButton({ onPress, onPressIn: onPressInProp, onPressOut, disab
     }
     if (flashAnimRef.current) flashAnimRef.current.stop();
     flashOpacity.setValue(0.3);
+
+    // Scale pop
+    iconScale.setValue(1);
+    Animated.sequence([
+      Animated.timing(iconScale, {
+        toValue: 1.2,
+        duration: 100,
+        easing: Easing.out(Easing.ease),
+        useNativeDriver: true,
+      }),
+      Animated.timing(iconScale, {
+        toValue: 1,
+        duration: 100,
+        easing: Easing.in(Easing.ease),
+        useNativeDriver: true,
+      }),
+    ]).start();
+
     if (onPressInProp) {
       // Hold mode: keep flash visible, fade on release
     } else {
@@ -42,7 +61,7 @@ function HeaderIconButton({ onPress, onPressIn: onPressInProp, onPressOut, disab
       flashAnimRef.current.start();
     }
     onPressInProp?.();
-  }, [disabled, flashOpacity, onPressInProp]);
+  }, [disabled, flashOpacity, iconScale, onPressInProp]);
 
   const handlePressOut = useCallback(() => {
     if (onPressInProp) {
@@ -70,7 +89,7 @@ function HeaderIconButton({ onPress, onPressIn: onPressInProp, onPressOut, disab
       style={style}
       className={className || 'px-2'}
     >
-      <View style={styles.container}>
+      <Animated.View style={[styles.container, { transform: [{ scale: iconScale }] }]}>
         <Animated.View
           style={{
             position: 'absolute',
@@ -82,7 +101,7 @@ function HeaderIconButton({ onPress, onPressIn: onPressInProp, onPressOut, disab
           }}
         />
         {children}
-      </View>
+      </Animated.View>
     </TouchableOpacity>
   );
 }

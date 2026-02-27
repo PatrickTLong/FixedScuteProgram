@@ -14,6 +14,7 @@ import ProgressBar from '../components/ProgressBar';
 import BackButton from '../components/BackButton';
 import InfoModal from '../components/InfoModal';
 import OTPInput from '../components/OTPInput';
+import HeaderIconButton from '../components/HeaderIconButton';
 import { useTheme , textSize, fontFamily, radius, shadow, iconSize } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { API_URL } from '../config/api';
@@ -196,18 +197,20 @@ function ForgotPasswordScreen() {
                 </Text>
 
                 <View className="mb-8 mt-8">
-                  <Text style={{ color: colors.text, position: 'absolute', top: s(-25), left: s(8) }} className={`${textSize.small} ${fontFamily.regular}`}>
+                  <Text style={{ color: colors.text, position: 'absolute', top: s(-30), left: s(8) }} className={`${textSize.small} ${fontFamily.regular}`}>
                     Email
                   </Text>
                   <TextInput
                     value={email}
                     onChangeText={setEmail}
+                    placeholder="Enter your email"
+                    placeholderTextColor={colors.textSecondary}
                     keyboardType="email-address"
                     autoCapitalize="none"
                     autoCorrect={false}
                     editable={!loading}
                     style={{ backgroundColor: colors.card, color: colors.text, height: s(52), borderWidth: 1, borderColor: colors.border, ...shadow.card }}
-                    className={`${radius.full} px-5 ${textSize.small} ${fontFamily.regular}`}
+                    className={`${radius.xl} px-5 ${textSize.small} ${fontFamily.regular}`}
                   />
                 </View>
               </>
@@ -257,13 +260,15 @@ function ForgotPasswordScreen() {
                 </Text>
 
                 <View className="mb-4 mt-8">
-                  <Text style={{ color: colors.text, position: 'absolute', top: s(-25), left: s(8) }} className={`${textSize.small} ${fontFamily.regular}`}>
+                  <Text style={{ color: colors.text, position: 'absolute', top: s(-30), left: s(8) }} className={`${textSize.small} ${fontFamily.regular}`}>
                     New Password
                   </Text>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, height: s(52), borderWidth: 1, borderColor: colors.border, ...shadow.card, overflow: 'hidden' }} className={radius.full}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, height: s(52), borderWidth: 1, borderColor: colors.border, ...shadow.card, overflow: 'hidden' }} className={radius.xl}>
                     <TextInput
                       value={newPassword}
                       onChangeText={setNewPassword}
+                      placeholder="Enter new password"
+                      placeholderTextColor={colors.textSecondary}
                       secureTextEntry={!showNewPassword}
                       autoCapitalize="none"
                       autoCorrect={false}
@@ -271,24 +276,24 @@ function ForgotPasswordScreen() {
                       style={{ flex: 1, color: colors.text, height: s(52) }}
                       className={`px-5 ${textSize.small} ${fontFamily.regular}`}
                     />
-                    <TouchableOpacity
-                      onPress={() => setShowNewPassword(!showNewPassword)}
-                      activeOpacity={0.6}
-                      style={{ justifyContent: 'center', alignItems: 'center', paddingHorizontal: s(16), height: '100%' }}
-                    >
-                      <BoxiconsFilled name={showNewPassword ? 'bx-eye' : 'bx-eye-slash'} size={iconSize.md} color={colors.text} />
-                    </TouchableOpacity>
+                    <View style={{ justifyContent: 'center', alignItems: 'center', paddingHorizontal: s(8), height: '100%' }}>
+                      <HeaderIconButton onPress={() => setShowNewPassword(!showNewPassword)}>
+                        <BoxiconsFilled name={showNewPassword ? 'bx-eye' : 'bx-eye-slash'} size={s(iconSize.headerNav)} color={colors.text} />
+                      </HeaderIconButton>
+                    </View>
                   </View>
                 </View>
 
                 <View className="mb-8 mt-8">
-                  <Text style={{ color: colors.text, position: 'absolute', top: s(-25), left: s(8) }} className={`${textSize.small} ${fontFamily.regular}`}>
+                  <Text style={{ color: colors.text, position: 'absolute', top: s(-30), left: s(8) }} className={`${textSize.small} ${fontFamily.regular}`}>
                     Confirm New Password
                   </Text>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, height: s(52), borderWidth: 1, borderColor: colors.border, ...shadow.card, overflow: 'hidden' }} className={radius.full}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, height: s(52), borderWidth: 1, borderColor: colors.border, ...shadow.card, overflow: 'hidden' }} className={radius.xl}>
                     <TextInput
                       value={confirmPassword}
                       onChangeText={setConfirmPassword}
+                      placeholder="Confirm new password"
+                      placeholderTextColor={colors.textSecondary}
                       secureTextEntry={!showConfirmPassword}
                       autoCapitalize="none"
                       autoCorrect={false}
@@ -296,13 +301,11 @@ function ForgotPasswordScreen() {
                       style={{ flex: 1, color: colors.text, height: s(52) }}
                       className={`px-5 ${textSize.small} ${fontFamily.regular}`}
                     />
-                    <TouchableOpacity
-                      onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                      activeOpacity={0.6}
-                      style={{ justifyContent: 'center', alignItems: 'center', paddingHorizontal: s(16), height: '100%' }}
-                    >
-                      <BoxiconsFilled name={showConfirmPassword ? 'bx-eye' : 'bx-eye-slash'} size={iconSize.md} color={colors.text} />
-                    </TouchableOpacity>
+                    <View style={{ justifyContent: 'center', alignItems: 'center', paddingHorizontal: s(8), height: '100%' }}>
+                      <HeaderIconButton onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
+                        <BoxiconsFilled name={showConfirmPassword ? 'bx-eye' : 'bx-eye-slash'} size={s(iconSize.headerNav)} color={colors.text} />
+                      </HeaderIconButton>
+                    </View>
                   </View>
                 </View>
               </>

@@ -703,7 +703,7 @@ function SettingsScreen() {
       {/* Privacy Policy Modal */}
       <Modal
         visible={privacyModalVisible}
-        animationType="none"
+        animationType="slide"
         presentationStyle="pageSheet"
         onRequestClose={() => setPrivacyModalVisible(false)}
       >
@@ -827,7 +827,7 @@ function SettingsScreen() {
       {/* Terms of Service Modal */}
       <Modal
         visible={termsModalVisible}
-        animationType="none"
+        animationType="slide"
         presentationStyle="pageSheet"
         onRequestClose={() => setTermsModalVisible(false)}
       >
@@ -959,7 +959,7 @@ function SettingsScreen() {
       {/* Membership Modal */}
       <Modal
         visible={membershipModalVisible}
-        animationType="none"
+        animationType="slide"
         presentationStyle="pageSheet"
         onRequestClose={() => {
           // Only allow dismissal if trial hasn't expired

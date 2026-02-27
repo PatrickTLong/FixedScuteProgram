@@ -74,7 +74,11 @@
       "Bash(do)",
       "Bash(echo:*)",
       "Bash(curl:*)",
-      "Bash(npm info:*)"
+      "Bash(npm info:*)",
+      "WebFetch(domain:reactnavigation.org)",
+      "WebFetch(domain:www.callstack.com)",
+      "WebFetch(domain:www.jsdocs.io)",
+      "WebFetch(domain:www.notjust.dev)"
     ],
     "additionalDirectories": [
       "c:\\Users\\Shado\\OneDrive\\Desktop\\ScuteProgram\\Bind\\src"

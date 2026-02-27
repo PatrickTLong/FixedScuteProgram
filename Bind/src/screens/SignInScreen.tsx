@@ -18,6 +18,7 @@ import BackButton from '../components/BackButton';
 import InfoModal from '../components/InfoModal';
 import OTPInput from '../components/OTPInput';
 import GoogleSignInBtn from '../components/GoogleSignInButton';
+import HeaderIconButton from '../components/HeaderIconButton';
 import { useTheme , textSize, fontFamily, radius, shadow, iconSize } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { useAuth } from '../context/AuthContext';
@@ -181,30 +182,34 @@ function SignInScreen() {
 
                 {/* Email Input */}
                 <View className="mb-4 mt-8">
-                  <Text style={{ color: colors.text, position: 'absolute', top: s(-25), left: s(8) }} className={`${textSize.small} ${fontFamily.regular}`}>
+                  <Text style={{ color: colors.text, position: 'absolute', top: s(-30), left: s(8) }} className={`${textSize.small} ${fontFamily.regular}`}>
                     Email
                   </Text>
                   <TextInput
                     value={email}
                     onChangeText={setEmail}
+                    placeholder="Enter your email"
+                    placeholderTextColor={colors.textSecondary}
                     keyboardType="email-address"
                     autoCapitalize="none"
                     autoCorrect={false}
                     editable={!loading}
                     style={{ backgroundColor: colors.card, color: colors.text, height: s(52), borderWidth: 1, borderColor: colors.border, ...shadow.card }}
-                    className={`${radius.full} px-5 ${textSize.small} ${fontFamily.regular}`}
+                    className={`${radius.xl} px-5 ${textSize.small} ${fontFamily.regular}`}
                   />
                 </View>
 
                 {/* Password Input */}
                 <View className="mb-8 mt-8">
-                  <Text style={{ color: colors.text, position: 'absolute', top: s(-25), left: s(8) }} className={`${textSize.small} ${fontFamily.regular}`}>
+                  <Text style={{ color: colors.text, position: 'absolute', top: s(-30), left: s(8) }} className={`${textSize.small} ${fontFamily.regular}`}>
                     Password
                   </Text>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, height: s(52), borderWidth: 1, borderColor: colors.border, ...shadow.card, overflow: 'hidden' }} className={radius.full}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, height: s(52), borderWidth: 1, borderColor: colors.border, ...shadow.card, overflow: 'hidden' }} className={radius.xl}>
                     <TextInput
                       value={password}
                       onChangeText={setPassword}
+                      placeholder="Enter your password"
+                      placeholderTextColor={colors.textSecondary}
                       secureTextEntry={!showPassword}
                       autoCapitalize="none"
                       autoCorrect={false}
@@ -212,13 +217,11 @@ function SignInScreen() {
                       style={{ flex: 1, color: colors.text, height: s(52) }}
                       className={`px-5 ${textSize.small} ${fontFamily.regular}`}
                     />
-                    <TouchableOpacity
-                      onPress={() => setShowPassword(!showPassword)}
-                      activeOpacity={0.6}
-                      style={{ justifyContent: 'center', alignItems: 'center', paddingHorizontal: s(16), height: '100%' }}
-                    >
-                      <BoxiconsFilled name={showPassword ? 'bx-eye' : 'bx-eye-slash'} size={iconSize.md} color={colors.text} />
-                    </TouchableOpacity>
+                    <View style={{ justifyContent: 'center', alignItems: 'center', paddingHorizontal: s(8), height: '100%' }}>
+                      <HeaderIconButton onPress={() => setShowPassword(!showPassword)}>
+                        <BoxiconsFilled name={showPassword ? 'bx-eye' : 'bx-eye-slash'} size={s(iconSize.headerNav)} color={colors.text} />
+                      </HeaderIconButton>
+                    </View>
                   </View>
                   {/* Forgot Password */}
                   <TouchableOpacity
@@ -226,7 +229,7 @@ function SignInScreen() {
                     activeOpacity={0.7}
                     style={{ alignSelf: 'flex-end', marginTop: s(8) }}
                   >
-                    <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular}`}>
+                    <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular}`}>
                       Forgot Password?
                     </Text>
                   </TouchableOpacity>
