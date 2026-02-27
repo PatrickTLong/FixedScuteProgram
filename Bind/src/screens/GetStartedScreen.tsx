@@ -67,6 +67,8 @@ function GetStartedScreen() {
       return;
     }
 
+    setEmailFocused(false);
+    setPasswordFocused(false);
     setLoading(true);
 
     try {

@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   Modal,
   Animated,
+  Keyboard,
 } from 'react-native';
 import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
@@ -29,6 +30,7 @@ function InfoModal({
   const flash = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
+    if (visible) Keyboard.dismiss();
     flash.stopAnimation(() => flash.setValue(0));
   }, [visible]);
 

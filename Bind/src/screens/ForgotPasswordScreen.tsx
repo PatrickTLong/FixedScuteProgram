@@ -64,6 +64,7 @@ function ForgotPasswordScreen() {
       return;
     }
 
+    setEmailFocused(false);
     setLoading(true);
 
     try {
@@ -111,6 +112,8 @@ function ForgotPasswordScreen() {
       return;
     }
 
+    setNewPasswordFocused(false);
+    setConfirmPasswordFocused(false);
     setLoading(true);
 
     try {
