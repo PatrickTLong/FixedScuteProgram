@@ -8,10 +8,7 @@ import Animated, {
   runOnJS,
 } from 'react-native-reanimated';
 import { NavigationContext } from '@react-navigation/native';
-import { colors } from '../context/ThemeContext';
-
-const DURATION = 150;
-const DISTANCE = 40;
+import { colors, transition } from '../context/ThemeContext';
 
 export interface ScreenTransitionRef {
   animateOut: () => Promise<void>;
@@ -29,7 +26,7 @@ const ScreenTransition = forwardRef<ScreenTransitionRef, ScreenTransitionProps>(
     useEffect(() => {
       const animateIn = () => {
         progress.value = withTiming(1, {
-          duration: DURATION,
+          duration: transition.inDuration,
           easing: Easing.out(Easing.quad),
         });
       };
@@ -52,7 +49,7 @@ const ScreenTransition = forwardRef<ScreenTransitionRef, ScreenTransitionProps>(
       animateOut: () =>
         new Promise<void>((resolve) => {
           progress.value = withTiming(0, {
-            duration: DURATION,
+            duration: transition.outDuration,
             easing: Easing.in(Easing.quad),
           }, (finished) => {
             if (finished) runOnJS(resolve)();
@@ -63,7 +60,7 @@ const ScreenTransition = forwardRef<ScreenTransitionRef, ScreenTransitionProps>(
     const animatedStyle = useAnimatedStyle(() => ({
       flex: 1,
       opacity: progress.value,
-      transform: [{ translateY: (1 - progress.value) * DISTANCE }],
+      transform: [{ translateY: (1 - progress.value) * transition.distance }],
     }));
 
     return (
