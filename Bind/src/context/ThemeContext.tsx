@@ -113,6 +113,7 @@ export const haptics = {
   presetCard: { enabled: false, type: 'impactLight' as const },
   recurrenceWheel: { enabled: true, type: 'impact' as const },
   longPressDelete: { enabled: true, type: 'impactHeavy' as const },
+  googleSignIn: { enabled: true, type: 'impactLight' as const },
 };
 
 // Colors

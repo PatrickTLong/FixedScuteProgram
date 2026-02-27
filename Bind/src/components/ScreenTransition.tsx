@@ -32,12 +32,10 @@ const ScreenTransition = forwardRef<ScreenTransitionRef, ScreenTransitionProps>(
       };
 
       if (!navigation) {
-        // No navigator parent — animate on mount
         animateIn();
         return;
       }
 
-      // Inside a navigator — animate if already focused, and on future focus events
       if (navigation.isFocused()) {
         animateIn();
       }

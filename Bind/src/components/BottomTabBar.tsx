@@ -18,7 +18,7 @@ interface TabItemProps {
   label: string;
   isActive: boolean;
   onPress: () => void;
-  renderIcon: (color: string, filled: boolean, iconRef?: React.RefObject<AnimatedHeartIconRef | AnimatedStatsIconRef | AnimatedPresetsIconRef | AnimatedOverlaysIconRef | null>) => React.ReactNode;
+  renderIcon: (color: string, filled: boolean, iconRef?: React.RefObject<AnimatedGridCircleIconRef | AnimatedStatsIconRef | AnimatedPresetsIconRef | AnimatedOverlaysIconRef | null>) => React.ReactNode;
   activeColor: string;
   inactiveColor: string;
   isHome?: boolean;
@@ -28,38 +28,58 @@ interface TabItemProps {
   isOverlays?: boolean;
 }
 
-const HEART_FILLED_D = "M 360 650.4375 L 316.5 612.9375 C 266 568.9375 224.25 530.9375 191.25 498.9375 C 158.25 466.9375 132 438.1875 112.5 412.6875 C 93 387.1875 79.375 363.6875 71.625 342.1875 C 63.875 320.6875 60 298.4375 60 275.4375 C 60 228.4375 75.75 189.1875 107.25 157.6875 C 138.75 126.1875 178 110.4375 225 110.4375 C 251 110.4375 275.75 115.9375 299.25 126.9375 C 322.75 137.9375 343 153.4375 360 173.4375 C 377 153.4375 397.25 137.9375 420.75 126.9375 C 444.25 115.9375 469 110.4375 495 110.4375 C 542 110.4375 581.25 126.1875 612.75 157.6875 C 644.25 189.1875 660 228.4375 660 275.4375 C 660 298.4375 656.125 320.6875 648.375 342.1875 C 640.625 363.6875 627 387.1875 607.5 412.6875 C 588 438.1875 561.75 466.9375 528.75 498.9375 C 495.75 530.9375 454 568.9375 403.5 612.9375 Z M 446.25 389.4375 L 273.75 389.4375 C 273.75 474.4375 302.5 516.9375 360 516.9375 C 417.5 516.9375 446.25 474.4375 446.25 389.4375 Z M 204.375 251.0625 C 189.625 264.8125 179.25 283.6875 173.25 307.6875 L 216.75 318.1875 C 219.75 305.1875 224.75 294.8125 231.75 287.0625 C 238.75 279.3125 246.5 275.4375 255 275.4375 C 263.5 275.4375 271.25 279.3125 278.25 287.0625 C 285.25 294.8125 290.25 305.1875 293.25 318.1875 L 336.75 307.6875 C 330.75 283.6875 320.375 264.8125 305.625 251.0625 C 290.875 237.3125 274 230.4375 255 230.4375 C 236 230.4375 219.125 237.3125 204.375 251.0625 Z M 414.375 251.0625 C 399.625 264.8125 389.25 283.6875 383.25 307.6875 L 426.75 318.1875 C 429.75 305.1875 434.75 294.8125 441.75 287.0625 C 448.75 279.3125 456.5 275.4375 465 275.4375 C 473.5 275.4375 481.25 279.3125 488.25 287.0625 C 495.25 294.8125 500.25 305.1875 503.25 318.1875 L 546.75 307.6875 C 540.75 283.6875 530.375 264.8125 515.625 251.0625 C 500.875 237.3125 484 230.4375 465 230.4375 C 446 230.4375 429.125 237.3125 414.375 251.0625 Z";
-
-const HeartIcon = ({ color }: { color: string; filled?: boolean }) => (
-  <Svg width={iconSize.lg} height={iconSize.lg} viewBox="0 0 720 720">
-    <Path d={HEART_FILLED_D} fill={color} fillRule="evenodd" />
+const GridCircleIcon = ({ color, filled }: { color: string; filled?: boolean }) => (
+  <Svg width={iconSize.lg} height={iconSize.lg} viewBox="0 0 24 24">
+    {filled ? (
+      <>
+        <Path d="M7 3a4 4 0 1 0 0 8 4 4 0 1 0 0-8" fill={color} />
+        <Path d="M17 3a4 4 0 1 0 0 8 4 4 0 1 0 0-8" fill={color} />
+        <Path d="M7 13a4 4 0 1 0 0 8 4 4 0 1 0 0-8" fill={color} />
+        <Path d="M17 13a4 4 0 1 0 0 8 4 4 0 1 0 0-8" fill={color} />
+      </>
+    ) : (
+      <>
+        <Path d="M7 11c2.21 0 4-1.79 4-4S9.21 3 7 3 3 4.79 3 7s1.79 4 4 4m0-6c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2" fill={color} />
+        <Path d="M17 3c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4m0 6c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2" fill={color} />
+        <Path d="M7 21c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4m0-6c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2" fill={color} />
+        <Path d="M17 13c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4m0 6c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2" fill={color} />
+      </>
+    )}
   </Svg>
 );
 
-// Animated HeartIcon — bounces side to side
-export interface AnimatedHeartIconRef {
+// Animated GridCircleIcon — top row slides from right, bottom row from left
+export interface AnimatedGridCircleIconRef {
   animate: () => void;
 }
 
-export const AnimatedHeartIcon = forwardRef<AnimatedHeartIconRef, { color: string; filled?: boolean }>(
+export const AnimatedGridCircleIcon = forwardRef<AnimatedGridCircleIconRef, { color: string; filled?: boolean }>(
   ({ color, filled }, ref) => {
-    const rotateAnim = useRef(new Animated.Value(0)).current;
+    const topRowAnim = useRef(new Animated.Value(1)).current;
+    const bottomRowAnim = useRef(new Animated.Value(1)).current;
 
     const animate = useCallback(() => {
-      rotateAnim.setValue(0);
-      Animated.sequence([
-        Animated.timing(rotateAnim, { toValue: -1, duration: 60, easing: Easing.out(Easing.quad), useNativeDriver: true }),
-        Animated.timing(rotateAnim, { toValue: 1, duration: 80, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
-        Animated.timing(rotateAnim, { toValue: -0.8, duration: 70, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
-        Animated.timing(rotateAnim, { toValue: 0.8, duration: 70, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
-        Animated.timing(rotateAnim, { toValue: -0.4, duration: 60, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
-        Animated.timing(rotateAnim, { toValue: 0, duration: 60, easing: Easing.out(Easing.ease), useNativeDriver: true }),
+      topRowAnim.setValue(0);
+      bottomRowAnim.setValue(0);
+      Animated.stagger(80, [
+        Animated.timing(topRowAnim, {
+          toValue: 1,
+          duration: 300,
+          easing: Easing.out(Easing.back(1.5)),
+          useNativeDriver: false,
+        }),
+        Animated.timing(bottomRowAnim, {
+          toValue: 1,
+          duration: 300,
+          easing: Easing.out(Easing.back(1.5)),
+          useNativeDriver: false,
+        }),
       ]).start();
-    }, [rotateAnim]);
+    }, [topRowAnim, bottomRowAnim]);
 
     useImperativeHandle(ref, () => ({ animate }), [animate]);
 
-    // Auto-animate when filled changes to true (deferred for tab switch)
+    // Auto-animate when filled changes to true, deferred so it doesn't block tab switch
     const prevFilledRef = useRef(filled);
     useEffect(() => {
       if (filled && !prevFilledRef.current) {
@@ -70,15 +90,39 @@ export const AnimatedHeartIcon = forwardRef<AnimatedHeartIconRef, { color: strin
       prevFilledRef.current = filled;
     }, [filled, animate]);
 
-    const rotateInterp = rotateAnim.interpolate({
-      inputRange: [-1, 0, 1],
-      outputRange: ['-30deg', '0deg', '30deg'],
+    // Top row slides in from right
+    const topRowX = topRowAnim.interpolate({
+      inputRange: [0, 1],
+      outputRange: [6, 0],
+    });
+    // Bottom row slides in from left
+    const bottomRowX = bottomRowAnim.interpolate({
+      inputRange: [0, 1],
+      outputRange: [-6, 0],
     });
 
     return (
-      <Animated.View style={{ transform: [{ rotate: rotateInterp }] }}>
-        <HeartIcon color={color} filled={filled} />
-      </Animated.View>
+      <Svg width={iconSize.lg} height={iconSize.lg} viewBox="0 0 24 24">
+        {filled ? (
+          <>
+            <AnimatedG x={topRowX} opacity={topRowAnim}>
+              <Path d="M7 3a4 4 0 1 0 0 8 4 4 0 1 0 0-8" fill={color} />
+              <Path d="M17 3a4 4 0 1 0 0 8 4 4 0 1 0 0-8" fill={color} />
+            </AnimatedG>
+            <AnimatedG x={bottomRowX} opacity={bottomRowAnim}>
+              <Path d="M7 13a4 4 0 1 0 0 8 4 4 0 1 0 0-8" fill={color} />
+              <Path d="M17 13a4 4 0 1 0 0 8 4 4 0 1 0 0-8" fill={color} />
+            </AnimatedG>
+          </>
+        ) : (
+          <>
+            <Path d="M7 11c2.21 0 4-1.79 4-4S9.21 3 7 3 3 4.79 3 7s1.79 4 4 4m0-6c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2" fill={color} />
+            <Path d="M17 3c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4m0 6c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2" fill={color} />
+            <Path d="M7 21c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4m0-6c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2" fill={color} />
+            <Path d="M17 13c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4m0 6c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2" fill={color} />
+          </>
+        )}
+      </Svg>
     );
   }
 );
@@ -488,7 +532,7 @@ const TabItem = memo(({ label, isActive, onPress, renderIcon, activeColor, inact
   const flashOpacity = useRef(new Animated.Value(0)).current;
   const iconScale = useRef(new Animated.Value(1)).current;
   const iconRotation = useRef(new Animated.Value(0)).current;
-  const homeIconRef = useRef<AnimatedHeartIconRef>(null);
+  const homeIconRef = useRef<AnimatedGridCircleIconRef>(null);
   const statsIconRef = useRef<AnimatedStatsIconRef>(null);
   const presetsIconRef = useRef<AnimatedPresetsIconRef>(null);
   const overlaysIconRef = useRef<AnimatedOverlaysIconRef>(null);
@@ -677,8 +721,8 @@ function BottomTabBar({ state, navigation }: RNBottomTabBarProps) {
 
   const bottomPadding = Math.max(insets.bottom, s(24));
 
-  const renderHomeIcon = useCallback((color: string, filled: boolean, iconRef?: React.RefObject<AnimatedHeartIconRef | null>) =>
-    iconRef ? <AnimatedHeartIcon ref={iconRef} color={color} filled={filled} /> : <HeartIcon color={color} filled={filled} />, []);
+  const renderHomeIcon = useCallback((color: string, filled: boolean, iconRef?: React.RefObject<AnimatedGridCircleIconRef | null>) =>
+    iconRef ? <AnimatedGridCircleIcon ref={iconRef} color={color} filled={filled} /> : <GridCircleIcon color={color} filled={filled} />, []);
   const renderPresetsIcon = useCallback((color: string, filled: boolean, iconRef?: React.RefObject<AnimatedPresetsIconRef | null>) =>
     iconRef ? <AnimatedPresetsIcon ref={iconRef} color={color} filled={filled} /> : <PresetsIcon color={color} filled={filled} />, []);
   const renderStatsIcon = useCallback((color: string, filled: boolean, iconRef?: React.RefObject<AnimatedStatsIconRef | null>) =>

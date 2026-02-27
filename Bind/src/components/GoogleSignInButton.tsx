@@ -8,8 +8,9 @@ import Svg, { Path } from 'react-native-svg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { setAuthToken } from '../services/cardApi';
 import { API_URL } from '../config/api';
-import { useTheme , textSize, fontFamily, radius, shadow, buttonPadding, iconSize } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius, shadow, buttonPadding, iconSize, haptics } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
+import { triggerHaptic } from '../utils/haptics';
 
 interface Props {
   onSuccess: (email: string) => void;
@@ -80,6 +81,9 @@ function GoogleSignInBtn({ onSuccess, onError, disabled }: Props) {
   }, [loading]);
 
   async function handleGoogleSignIn() {
+    if (haptics.googleSignIn.enabled) {
+      triggerHaptic(haptics.googleSignIn.type);
+    }
     setLoading(true);
 
     try {
