@@ -14,8 +14,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import BoxiconsFilled from '../components/BoxiconsFilled';
 import Svg, { Path } from 'react-native-svg';
 import { useAuth } from '../context/AuthContext';
-import { useTheme, textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
+import { useTheme, textSize, fontFamily, radius } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
+import ScreenTransition from '../components/ScreenTransition';
+import type { ScreenTransitionRef } from '../components/ScreenTransition';
 
 const { PermissionsModule } = NativeModules;
 
@@ -119,6 +121,7 @@ function PermissionsChecklistScreen() {
   const { s } = useResponsive();
   const [permissions, setPermissions] = useState<Permission[]>(DEFAULT_PERMISSIONS);
   const [isLoading, setIsLoading] = useState(true);
+  const transitionRef = useRef<ScreenTransitionRef>(null);
 
   // Derived data
   const ungrantedPermissions = useMemo(() => permissions.filter(p => !p.isGranted), [permissions]);
@@ -224,6 +227,7 @@ function PermissionsChecklistScreen() {
         );
 
         if (nowAllGranted) {
+          await transitionRef.current?.animateOut();
           onComplete();
           return;
         }
@@ -407,18 +411,21 @@ function PermissionsChecklistScreen() {
 
   if (isLoading) {
     return (
+      <ScreenTransition ref={transitionRef}>
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }} className="justify-center items-center">
         <LoadingSpinner size={s(48)} />
         <Text style={{ color: colors.textSecondary }} className={`${textSize.base} ${fontFamily.regular} mt-4`}>
           Checking permissions...
         </Text>
       </SafeAreaView>
+      </ScreenTransition>
     );
   }
 
   const grantedCount = totalCount - ungrantedPermissions.length;
 
   return (
+    <ScreenTransition ref={transitionRef}>
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
       {currentPermission ? (
         <Animated.View
@@ -473,7 +480,7 @@ function PermissionsChecklistScreen() {
               <TouchableOpacity
                 onPress={() => openPermissionSettings(currentPermission)}
                 activeOpacity={0.8}
-                style={{ backgroundColor: colors.text, ...shadow.card }}
+                style={{ backgroundColor: colors.text }}
                 className={`${radius.full} py-4 items-center`}
               >
                 <Text
@@ -496,6 +503,7 @@ function PermissionsChecklistScreen() {
         </Animated.View>
       ) : null}
     </SafeAreaView>
+    </ScreenTransition>
   );
 }
 

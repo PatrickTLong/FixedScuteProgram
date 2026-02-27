@@ -26,10 +26,10 @@
             android:id="@+id/blocked_logo"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Scute"
+            android:text="scute"
             android:textColor="#FFFFFF"
             android:textSize="48sp"
-            android:fontFamily="@font/plusjakartasans_bold"
+            android:fontFamily="@font/plusjakartasans_semibold"
             android:layout_marginBottom="24dp" />
 
         <!-- Custom overlay image (hidden by default, shown when user has custom icon) -->

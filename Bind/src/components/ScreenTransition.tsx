@@ -1,4 +1,4 @@
-import React, { forwardRef, useCallback, useImperativeHandle } from 'react';
+import React, { forwardRef, useEffect, useImperativeHandle } from 'react';
 import { View } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -7,7 +7,7 @@ import Animated, {
   Easing,
   runOnJS,
 } from 'react-native-reanimated';
-import { useFocusEffect } from '@react-navigation/native';
+import { NavigationContext } from '@react-navigation/native';
 import { colors } from '../context/ThemeContext';
 
 const DURATION = 150;
@@ -24,15 +24,29 @@ interface ScreenTransitionProps {
 const ScreenTransition = forwardRef<ScreenTransitionRef, ScreenTransitionProps>(
   ({ children }, ref) => {
     const progress = useSharedValue(0);
+    const navigation = React.useContext(NavigationContext);
 
-    useFocusEffect(
-      useCallback(() => {
+    useEffect(() => {
+      const animateIn = () => {
         progress.value = withTiming(1, {
           duration: DURATION,
           easing: Easing.out(Easing.quad),
         });
-      }, [])
-    );
+      };
+
+      if (!navigation) {
+        // No navigator parent — animate on mount
+        animateIn();
+        return;
+      }
+
+      // Inside a navigator — animate if already focused, and on future focus events
+      if (navigation.isFocused()) {
+        animateIn();
+      }
+      const unsubscribe = navigation.addListener('focus', animateIn);
+      return unsubscribe;
+    }, []);
 
     useImperativeHandle(ref, () => ({
       animateOut: () =>

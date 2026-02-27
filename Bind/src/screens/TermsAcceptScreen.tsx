@@ -1,4 +1,4 @@
-import React, { memo, useState, useCallback } from 'react';
+import React, { memo, useState, useCallback, useRef } from 'react';
 import {
   Text,
   View,
@@ -12,12 +12,15 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import LoadingSpinner from '../components/LoadingSpinner';
+import ScreenTransition from '../components/ScreenTransition';
+import type { ScreenTransitionRef } from '../components/ScreenTransition';
 
 function TermsAcceptScreen() {
   const { colors } = useTheme();
   const { handleTermsAccepted } = useAuth();
   const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false);
   const [isAccepting, setIsAccepting] = useState(false);
+  const transitionRef = useRef<ScreenTransitionRef>(null);
 
   const handleScroll = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
     if (hasScrolledToBottom) return;
@@ -30,10 +33,12 @@ function TermsAcceptScreen() {
     if (!hasScrolledToBottom || isAccepting) return;
     setIsAccepting(true);
     await AsyncStorage.setItem('tos_accepted', 'true');
+    await transitionRef.current?.animateOut();
     handleTermsAccepted();
   }
 
   return (
+    <ScreenTransition ref={transitionRef}>
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
       {/* Header */}
       <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }} className="flex-row items-center justify-center px-4 py-3">
@@ -171,6 +176,7 @@ function TermsAcceptScreen() {
         </TouchableOpacity>
       </View>
     </SafeAreaView>
+    </ScreenTransition>
   );
 }
 
