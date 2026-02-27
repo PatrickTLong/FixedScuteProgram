@@ -18,9 +18,10 @@ interface TabItemProps {
   label: string;
   isActive: boolean;
   onPress: () => void;
-  renderIcon: (color: string, filled: boolean, iconRef?: React.RefObject<AnimatedStatsIconRef | AnimatedPresetsIconRef | AnimatedOverlaysIconRef | null>) => React.ReactNode;
+  renderIcon: (color: string, filled: boolean, iconRef?: React.RefObject<AnimatedGridCircleIconRef | AnimatedStatsIconRef | AnimatedPresetsIconRef | AnimatedOverlaysIconRef | null>) => React.ReactNode;
   activeColor: string;
   inactiveColor: string;
+  isHome?: boolean;
   isSettings?: boolean;
   isStats?: boolean;
   isPresets?: boolean;

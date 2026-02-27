@@ -85,6 +85,10 @@ function HomeScreen() {
   const timerExpiredRef = useRef(false);
   // Guard to prevent loadStats from overwriting optimistic lock/unlock state while backend sync is in-flight
   const optimisticLockGuardRef = useRef(false);
+  // Mirror activePreset so handleTimerExpired can read it without a stale closure
+  const activePresetRef = useRef<Preset | null>(null);
+  // Keep ref in sync so handleTimerExpired always sees current value
+  useEffect(() => { activePresetRef.current = activePreset; }, [activePreset]);
 
   // Reset checkmark when screen loses focus so it doesn't freeze mid-animation
   useEffect(() => {
@@ -311,13 +315,15 @@ function HomeScreen() {
             if (BlockingModule) {
               await BlockingModule.forceUnlock();
             }
-            // NOTE: Don't deactivate the preset - keep it selected so user can lock again easily
             invalidateUserCaches(email);
 
-            // Set unlocked state but keep the preset showing
             setSharedLockStatus({ isLocked: false, lockStartedAt: null, lockEndsAt: null });
-            // Keep preset active - set it from the active preset found
-            if (active) {
+            // For dated presets whose target date is past, clear the preset cleanly.
+            // For timer presets (no targetDate), keep it selected so user can re-lock easily.
+            if (active && active.targetDate && new Date(active.targetDate) <= now) {
+              setCurrentPreset(null);
+              setActivePreset(null);
+            } else if (active) {
               setCurrentPreset(active.name);
               setActivePreset(active);
             }
@@ -523,13 +529,18 @@ function HomeScreen() {
     if (!sharedPresetsLoaded || loading) return;
 
     // Update active non-scheduled preset
-    const active = sharedPresets.find(p => p.isActive && !p.isScheduled);
+    // Skip dated presets whose targetDate has passed when unlocked — same idea as
+    // !p.isScheduled naturally skipping scheduled presets after their window ends.
+    const now = new Date();
+    const active = sharedPresets.find(p =>
+      p.isActive && !p.isScheduled &&
+      !(p.targetDate && !isLocked && new Date(p.targetDate) <= now)
+    );
     if (active) {
       setCurrentPreset(active.name);
       setActivePreset(active);
     } else if (isLocked) {
       // When locked with no regular active preset, find the scheduled preset in its blocking window
-      const now = new Date();
       const blockingScheduled = sharedPresets.find(p =>
         p.isScheduled && p.isActive && p.scheduleStartDate && p.scheduleEndDate &&
         now >= new Date(p.scheduleStartDate) && now < new Date(p.scheduleEndDate)
@@ -567,6 +578,17 @@ function HomeScreen() {
         setTimeRemaining(null);
         setElapsedTime(null);
         setSharedLockStatus({ isLocked: false, lockStartedAt: null, lockEndsAt: null });
+
+        // For dated presets, clear the preset in the same render batch so there's
+        // no frame where "Not Locked" shows but the preset name still lingers.
+        const expiredPreset = activePresetRef.current;
+        if (expiredPreset?.targetDate && new Date(expiredPreset.targetDate) <= new Date()) {
+          setCurrentPreset(null);
+          setActivePreset(null);
+          setSharedPresets(prev => prev.map(p =>
+            p.id === expiredPreset.id ? { ...p, isActive: false } : p
+          ));
+        }
       } else {
         console.log('[UNLOCK-DEBUG] timerExpired: app backgrounded, skipping UI update');
       }
