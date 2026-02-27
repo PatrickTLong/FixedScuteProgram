@@ -688,7 +688,7 @@ function EditPresetAppsScreen() {
                 {/* Apps List - loading dots on first load, then persists */}
                 {loadingApps ? (
                   <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }} pointerEvents="none">
-                    <LoadingSpinner size={s(48)} slideIn />
+                    <LoadingSpinner size={s(48)} />
                   </View>
                 ) : (
                   <FlatList

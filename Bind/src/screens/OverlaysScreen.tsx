@@ -301,7 +301,7 @@ function OverlaysScreen() {
       <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
         {showSpinner && (
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-            <LoadingSpinner size={s(48)} slideIn />
+            <LoadingSpinner size={s(48)} />
           </View>
         )}
       </View>
