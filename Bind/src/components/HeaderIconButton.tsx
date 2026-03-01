@@ -1,5 +1,5 @@
-import React, { memo, useCallback, useRef } from 'react';
-import { Animated, Easing, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { memo, useCallback, useRef, useEffect } from 'react';
+import { Animated, Easing, TouchableOpacity, StyleSheet, AppState } from 'react-native';
 import { useResponsive } from '../utils/responsive';
 import { haptics } from '../context/ThemeContext';
 import { triggerHaptic } from '../utils/haptics';
@@ -24,6 +24,17 @@ function HeaderIconButton({ onPress, onPressIn: onPressInProp, onPressOut, disab
   const iconScale = useRef(new Animated.Value(1)).current;
 
   const flashAnimRef = useRef<Animated.CompositeAnimation | null>(null);
+
+  // Reset flash if app returns to foreground (animation freezes when navigating away)
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') {
+        if (flashAnimRef.current) flashAnimRef.current.stop();
+        flashOpacity.setValue(0);
+      }
+    });
+    return () => sub.remove();
+  }, [flashOpacity]);
 
   const triggerFlash = useCallback(() => {
     if (disabled) return;

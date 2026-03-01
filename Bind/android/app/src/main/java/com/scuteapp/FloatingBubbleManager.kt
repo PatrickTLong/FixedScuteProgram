@@ -194,8 +194,10 @@ class FloatingBubbleManager(private val context: Context) {
         }
 
         if (isShowing) {
-            Log.d(TAG, "Bubble already showing, updating end time")
+            Log.d(TAG, "Bubble already showing, updating to countdown mode (endTime=$sessionEndTime)")
             endTime = sessionEndTime
+            isNoTimeLimit = false
+            startTime = 0
             return true
         }
 
@@ -315,8 +317,10 @@ class FloatingBubbleManager(private val context: Context) {
         }
 
         if (isShowing) {
-            Log.d(TAG, "Bubble already showing, updating start time")
+            Log.d(TAG, "Bubble already showing, updating to count-up mode (startTime=$sessionStartTime)")
             startTime = sessionStartTime
+            isNoTimeLimit = true
+            endTime = 0
             return true
         }
 
@@ -1039,6 +1043,20 @@ class FloatingBubbleManager(private val context: Context) {
         endTime = 0
 
         Log.d(TAG, "Bubble dismissed")
+    }
+
+    /**
+     * Dismiss the bubble immediately without animation.
+     * Used when transitioning between sessions (e.g. no-time-limit → scheduled)
+     * to avoid race conditions with the async dismiss animation.
+     */
+    fun dismissImmediate() {
+        handler.removeCallbacks(timerRunnable)
+        handler.removeCallbacks(autoCollapseRunnable)
+        handler.removeCallbacks(longPressRunnable)
+        handler.removeCallbacks(hideButtonTimeoutRunnable)
+        cleanupViews()
+        Log.d(TAG, "Bubble dismissed immediately (no animation)")
     }
 
     /**

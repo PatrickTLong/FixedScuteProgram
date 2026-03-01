@@ -65,8 +65,13 @@ function HomeScreen() {
   const [scheduledPresetsModalVisible, setScheduledPresetsModalVisible] = useState(false);
   const closeFlash = useRef(new Animated.Value(0)).current;
 
-  // Silent notifications toggle
-  const [silentNotifications, setSilentNotifications] = useState(false);
+  // Reset close flash when modal visibility changes (same pattern as InfoModal / EmergencyTapoutModal)
+  useEffect(() => {
+    closeFlash.stopAnimation(() => closeFlash.setValue(0));
+  }, [scheduledPresetsModalVisible]);
+
+  // Notification permission state
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
   // Widget bubble disabled toggle
   const [widgetBubbleDisabled, setWidgetBubbleDisabled] = useState(false);
@@ -116,14 +121,12 @@ function HomeScreen() {
     setModalVisible(true);
   }, []);
 
-  const toggleSilentNotifications = useCallback(async () => {
-    if (!BlockingModule?.setSilentNotifications) return;
-    const newValue = !silentNotifications;
-    setSilentNotifications(newValue);
+  const openNotificationSettings = useCallback(async () => {
+    if (!BlockingModule?.openNotificationSettings) return;
     try {
-      await BlockingModule.setSilentNotifications(newValue);
+      await BlockingModule.openNotificationSettings();
     } catch {}
-  }, [silentNotifications]);
+  }, []);
 
   const toggleWidgetBubble = useCallback(async () => {
     if (!BlockingModule?.setWidgetBubbleDisabled) return;
@@ -273,24 +276,29 @@ function HomeScreen() {
 
         // If we need to override an untimed lock, force unlock first
         if (shouldOverride) {
-          console.log('[SCHED-DEBUG] loadStats: overriding untimed lock...');
+          console.log(`[SCHED-DEBUG] loadStats: OVERRIDE — scheduled preset "${preset.name}" overriding untimed lock`);
+          console.log('[SCHED-DEBUG] loadStats: calling BlockingModule.forceUnlock()...');
           if (BlockingModule) {
             await BlockingModule.forceUnlock();
+            console.log('[SCHED-DEBUG] loadStats: forceUnlock complete — old bubble dismissed, native session cleared');
           }
           // Deactivate ONLY the active non-scheduled preset (not all presets)
           // Using savePreset instead of activatePreset(null) to preserve scheduled preset states
           const activeNonScheduled = presets.find((p: Preset) => p.isActive && !p.isScheduled);
           if (activeNonScheduled) {
-            console.log(`[SCHED-DEBUG] loadStats: deactivating non-scheduled preset "${activeNonScheduled.name}" (noTimeLimit: ${activeNonScheduled.noTimeLimit})`);
+            console.log(`[SCHED-DEBUG] loadStats: deactivating ONLY non-scheduled preset "${activeNonScheduled.name}" (id: ${activeNonScheduled.id}, noTimeLimit: ${activeNonScheduled.noTimeLimit}) via savePreset — scheduled presets preserved`);
             await savePreset(email, { ...activeNonScheduled, isActive: false });
             // Update shared state so PresetsScreen toggle reflects the change immediately
             setSharedPresets(prev => prev.map(p =>
               p.id === activeNonScheduled.id ? { ...p, isActive: false } : p
             ));
+            console.log(`[SCHED-DEBUG] loadStats: sharedPresets updated — "${activeNonScheduled.name}" toggle set to OFF`);
+          } else {
+            console.log('[SCHED-DEBUG] loadStats: no active non-scheduled preset found to deactivate');
           }
           await updateLockStatus(email, false, null);
           invalidateUserCaches(email);
-          console.log('[SCHED-DEBUG] loadStats: override complete');
+          console.log('[SCHED-DEBUG] loadStats: override complete — lock cleared, caches invalidated, now activating scheduled preset');
         }
 
         console.log('[SCHED-DEBUG] loadStats: calling activateScheduledPreset...');
@@ -318,6 +326,7 @@ function HomeScreen() {
       if (lockStatus.isLocked && lockStatus.lockEndsAt) {
         const lockEndTime = new Date(lockStatus.lockEndsAt).getTime();
         if (lockEndTime <= now.getTime()) {
+          console.log(`[SCHED-DEBUG] loadStats: AUTO-UNLOCK — timed lock expired (lockEndsAt: ${lockStatus.lockEndsAt}), auto-unlocking`);
           // Lock has expired - auto-unlock but keep preset active
           try {
             await updateLockStatus(email, false, null);
@@ -330,17 +339,23 @@ function HomeScreen() {
             // For dated presets whose target date is past, clear the preset cleanly.
             // For timer presets (no targetDate), keep it selected so user can re-lock easily.
             if (active && active.targetDate && new Date(active.targetDate) <= now) {
+              console.log(`[SCHED-DEBUG] loadStats: AUTO-UNLOCK — dated preset "${active.name}" target date passed, clearing preset`);
               setCurrentPreset(null);
               setActivePreset(null);
             } else if (active) {
+              console.log(`[SCHED-DEBUG] loadStats: AUTO-UNLOCK — timer preset "${active.name}" kept selected (can re-lock)`);
               setCurrentPreset(active.name);
               setActivePreset(active);
+            } else {
+              console.log('[SCHED-DEBUG] loadStats: AUTO-UNLOCK — no active preset found after unlock');
             }
             setScheduledPresets(activeScheduled);
             setTapoutStatus(tapout);
             hideLoading();
+            console.log('[SCHED-DEBUG] loadStats: AUTO-UNLOCK complete, returning early');
             return; // Exit early, state is set
           } catch (error) {
+            console.log('[SCHED-DEBUG] loadStats: AUTO-UNLOCK failed:', error);
             // Continue with normal flow if auto-unlock fails
           }
         }
@@ -439,32 +454,42 @@ function HomeScreen() {
         setSharedLockStatus({ isLocked: false, lockStartedAt: null, lockEndsAt: null });
         setTapoutStatus(tapoutStatus ? { ...tapoutStatus, remaining: result.remaining, nextRefillDate: result.nextRefillDate } : null);
         if (isScheduledPreset) {
+          console.log(`[UNLOCK-DEBUG] emergencyTapout: tapping out of SCHEDULED preset "${activePreset?.name}" (id: ${presetIdToKeep}) — clearing UI state and deactivating`);
           setCurrentPreset(null);
           setActivePreset(null);
           if (presetIdToKeep) {
             setSharedPresets(prev => prev.map(p =>
               p.id === presetIdToKeep ? { ...p, isActive: false } : p
             ));
+            console.log(`[UNLOCK-DEBUG] emergencyTapout: sharedPresets updated — scheduled preset toggle set to OFF`);
           }
+        } else {
+          console.log(`[UNLOCK-DEBUG] emergencyTapout: tapping out of NON-SCHEDULED preset "${activePreset?.name}" (id: ${presetIdToKeep}, noTimeLimit: ${activePreset?.noTimeLimit}) — keeping preset selected`);
         }
 
         // Fire-and-forget: native unlock + backend sync
         (async () => {
           try {
+            console.log('[UNLOCK-DEBUG] emergencyTapout: fire-and-forget — calling forceUnlock + backend sync');
             if (BlockingModule) {
               await BlockingModule.forceUnlock();
+              console.log('[UNLOCK-DEBUG] emergencyTapout: forceUnlock complete');
             }
             await updateLockStatus(email, false, null);
             if (isScheduledPreset && presetIdToKeep) {
               // Deactivate only this scheduled preset, not all presets
+              console.log(`[UNLOCK-DEBUG] emergencyTapout: deactivating ONLY scheduled preset "${activePreset?.name}" via savePreset — other scheduled presets preserved`);
               const presetToDeactivate = sharedPresets.find(p => p.id === presetIdToKeep);
               if (presetToDeactivate) {
                 await savePreset(email, { ...presetToDeactivate, isActive: false });
+                console.log('[UNLOCK-DEBUG] emergencyTapout: scheduled preset deactivated in backend');
               }
             } else if (presetIdToKeep) {
+              console.log(`[UNLOCK-DEBUG] emergencyTapout: re-activating non-scheduled preset "${activePreset?.name}" in backend`);
               await activatePreset(email, presetIdToKeep);
             }
             invalidateUserCaches(email);
+            console.log('[UNLOCK-DEBUG] emergencyTapout: backend sync complete');
           } catch {
             // Backend sync failed silently — state will reconcile on next app foreground
           } finally {
@@ -506,13 +531,20 @@ function HomeScreen() {
     };
   }, [loadStats, email]);
 
-  // Load silent notifications preference on mount
+  // Check notification permission on mount and when app returns to foreground
   useEffect(() => {
-    if (BlockingModule?.getSilentNotifications) {
-      BlockingModule.getSilentNotifications().then((silent: boolean) => {
-        setSilentNotifications(silent);
-      }).catch(() => {});
-    }
+    const checkNotificationPermission = () => {
+      if (BlockingModule?.areNotificationsEnabled) {
+        BlockingModule.areNotificationsEnabled().then((enabled: boolean) => {
+          setNotificationsEnabled(enabled);
+        }).catch(() => {});
+      }
+    };
+    checkNotificationPermission();
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') checkNotificationPermission();
+    });
+    return () => sub.remove();
   }, []);
 
   // Load widget bubble disabled preference on mount
@@ -862,9 +894,11 @@ function HomeScreen() {
 
       // For non-scheduled presets, check if they would overlap with any active scheduled preset
       if (!activePreset.isScheduled && scheduledPresets.length > 0) {
+        console.log(`[BLOCKING] Checking overlap: non-scheduled preset "${activePreset.name}" (noTimeLimit: ${activePreset.noTimeLimit}) vs ${scheduledPresets.length} active scheduled preset(s)`);
         let blockEndTime: Date | null = null;
 
         if (activePreset.noTimeLimit) {
+          console.log('[BLOCKING] Preset is NO-TIME-LIMIT — skipping overlap check (scheduled preset will auto-override later via checkScheduledPresets)');
           // No time limit - allow activation; if a scheduled preset kicks in later,
           // checkScheduledPresets will auto-deactivate this preset
         } else if (activePreset.targetDate) {
@@ -1102,9 +1136,9 @@ function HomeScreen() {
 
         {/* Right side buttons */}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: s(8) }}>
-          {/* Silent Notifications Toggle */}
-          <HeaderIconButton onPress={toggleSilentNotifications}>
-            {silentNotifications ? (
+          {/* Notification Permission Toggle */}
+          <HeaderIconButton onPress={openNotificationSettings}>
+            {!notificationsEnabled ? (
               <Svg width={s(iconSize.headerNav)} height={s(iconSize.headerNav)} viewBox="0 0 24 24" fill="#FFFFFF">
                 <Path d="M3.53 2.47a.75.75 0 0 0-1.06 1.06l18 18a.75.75 0 1 0 1.06-1.06l-18-18ZM20.57 16.476c-.223.082-.448.161-.674.238L7.319 4.137A6.75 6.75 0 0 1 18.75 9v.75c0 2.123.8 4.057 2.118 5.52a.75.75 0 0 1-.297 1.206Z" />
                 <Path fillRule="evenodd" clipRule="evenodd" d="M5.25 9c0-.184.007-.366.022-.546l10.384 10.384a3.751 3.751 0 0 1-7.396-1.119 24.585 24.585 0 0 1-4.831-1.244.75.75 0 0 1-.298-1.205A8.217 8.217 0 0 0 5.25 9.75V9Zm4.502 8.9a2.25 2.25 0 1 0 4.496 0 25.057 25.057 0 0 1-4.496 0Z" />
@@ -1358,7 +1392,7 @@ function HomeScreen() {
                 className="py-4 items-center justify-center"
               >
                 <Animated.View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#ffffff', opacity: closeFlash }} />
-                <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.semibold}`}>
+                <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
                   Close
                 </Text>
               </TouchableOpacity>

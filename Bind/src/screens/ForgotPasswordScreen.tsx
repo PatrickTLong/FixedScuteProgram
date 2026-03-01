@@ -48,9 +48,6 @@ function ForgotPasswordScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalTitle, setModalTitle] = useState('');
   const [modalMessage, setModalMessage] = useState('');
-  const [emailFocused, setEmailFocused] = useState(false);
-  const [newPasswordFocused, setNewPasswordFocused] = useState(false);
-  const [confirmPasswordFocused, setConfirmPasswordFocused] = useState(false);
 
   function showModal(title: string, message: string) {
     setModalTitle(title);
@@ -64,7 +61,6 @@ function ForgotPasswordScreen() {
       return;
     }
 
-    setEmailFocused(false);
     setLoading(true);
 
     try {
@@ -112,8 +108,6 @@ function ForgotPasswordScreen() {
       return;
     }
 
-    setNewPasswordFocused(false);
-    setConfirmPasswordFocused(false);
     setLoading(true);
 
     try {
@@ -216,7 +210,7 @@ function ForgotPasswordScreen() {
                   <Text style={{ color: colors.text, position: 'absolute', top: s(-30), left: s(8) }} className={`${textSize.small} ${fontFamily.regular}`}>
                     Email
                   </Text>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, height: s(48), borderWidth: 1, borderColor: emailFocused ? colors.textSecondary : colors.border, ...shadow.card, overflow: 'hidden', paddingHorizontal: s(20) }} className={radius.xl}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, height: s(48), borderWidth: 1, borderColor: colors.border, ...shadow.card, overflow: 'hidden', paddingHorizontal: s(20) }} className={radius.xl}>
                     <BoxiconsFilled name="bx-user-check" size={s(iconSize.headerNav)} color={colors.textSecondary} />
                     <TextInput
                       value={email}
@@ -227,8 +221,6 @@ function ForgotPasswordScreen() {
                       autoCapitalize="none"
                       autoCorrect={false}
                       editable={!loading}
-                      onFocus={() => setEmailFocused(true)}
-                      onBlur={() => setEmailFocused(false)}
                       style={{ flex: 1, color: colors.text, marginLeft: s(8) }}
                       className={`${textSize.small} ${fontFamily.regular}`}
                     />
@@ -284,7 +276,7 @@ function ForgotPasswordScreen() {
                   <Text style={{ color: colors.text, position: 'absolute', top: s(-30), left: s(8) }} className={`${textSize.small} ${fontFamily.regular}`}>
                     New Password
                   </Text>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, height: s(48), borderWidth: 1, borderColor: newPasswordFocused ? colors.textSecondary : colors.border, ...shadow.card, overflow: 'hidden', paddingLeft: s(20) }} className={radius.xl}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, height: s(48), borderWidth: 1, borderColor: colors.border, ...shadow.card, overflow: 'hidden', paddingLeft: s(20) }} className={radius.xl}>
                     <BoxiconsFilled name="bx-key" size={s(iconSize.headerNav)} color={colors.textSecondary} />
                     <TextInput
                       value={newPassword}
@@ -295,8 +287,6 @@ function ForgotPasswordScreen() {
                       autoCapitalize="none"
                       autoCorrect={false}
                       editable={!loading}
-                      onFocus={() => setNewPasswordFocused(true)}
-                      onBlur={() => setNewPasswordFocused(false)}
                       style={{ flex: 1, color: colors.text, marginLeft: s(8) }}
                       className={`${textSize.small} ${fontFamily.regular}`}
                     />
@@ -312,7 +302,7 @@ function ForgotPasswordScreen() {
                   <Text style={{ color: colors.text, position: 'absolute', top: s(-30), left: s(8) }} className={`${textSize.small} ${fontFamily.regular}`}>
                     Confirm New Password
                   </Text>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, height: s(48), borderWidth: 1, borderColor: confirmPasswordFocused ? colors.textSecondary : colors.border, ...shadow.card, overflow: 'hidden', paddingLeft: s(20) }} className={radius.xl}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, height: s(48), borderWidth: 1, borderColor: colors.border, ...shadow.card, overflow: 'hidden', paddingLeft: s(20) }} className={radius.xl}>
                     <BoxiconsFilled name="bx-key" size={s(iconSize.headerNav)} color={colors.textSecondary} />
                     <TextInput
                       value={confirmPassword}
@@ -322,8 +312,6 @@ function ForgotPasswordScreen() {
                       secureTextEntry={!showConfirmPassword}
                       autoCapitalize="none"
                       autoCorrect={false}
-                      onFocus={() => setConfirmPasswordFocused(true)}
-                      onBlur={() => setConfirmPasswordFocused(false)}
                       editable={!loading}
                       style={{ flex: 1, color: colors.text, marginLeft: s(8) }}
                       className={`${textSize.small} ${fontFamily.regular}`}

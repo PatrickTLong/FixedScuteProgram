@@ -37,23 +37,29 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
     }
 
     override fun onReceive(context: Context, intent: Intent) {
-        Log.d(TAG, "Received broadcast: ${intent.action}")
+        Log.d(TAG, "[RECEIVER] ========== onReceive: action=${intent.action} ==========")
 
         when (intent.action) {
             ACTION_ACTIVATE_PRESET -> {
                 val presetId = intent.getStringExtra(EXTRA_PRESET_ID)
+                Log.d(TAG, "[RECEIVER] ACTION_ACTIVATE_PRESET — presetId=$presetId")
                 if (presetId != null) {
                     activateScheduledPreset(context, presetId)
+                } else {
+                    Log.e(TAG, "[RECEIVER] ERROR: presetId is null for ACTIVATE action!")
                 }
             }
             ACTION_END_PRESET -> {
                 val presetId = intent.getStringExtra(EXTRA_PRESET_ID)
+                Log.d(TAG, "[RECEIVER] ACTION_END_PRESET — presetId=$presetId")
                 if (presetId != null) {
                     deactivateScheduledPreset(context, presetId)
+                } else {
+                    Log.e(TAG, "[RECEIVER] ERROR: presetId is null for END action!")
                 }
             }
             Intent.ACTION_BOOT_COMPLETED -> {
-                // Reschedule all alarms after device reboot
+                Log.d(TAG, "[RECEIVER] BOOT_COMPLETED — rescheduling all presets")
                 ScheduleManager.rescheduleAllPresets(context)
             }
         }
@@ -61,7 +67,7 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
 
     private fun deactivateScheduledPreset(context: Context, presetId: String) {
         try {
-            Log.d(TAG, "Deactivating scheduled preset: $presetId")
+            Log.d(TAG, "[DEACTIVATE] ========== deactivateScheduledPreset: $presetId ==========")
 
             val sessionPrefs = context.getSharedPreferences(
                 UninstallBlockerService.PREFS_NAME,
@@ -70,13 +76,18 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
 
             // Check if this preset is the currently active one
             val activePresetId = sessionPrefs.getString("active_preset_id", null)
+            val activePresetName = sessionPrefs.getString("active_preset_name", null)
+            val isNoTimeLimit = sessionPrefs.getBoolean("no_time_limit", false)
+            Log.d(TAG, "[DEACTIVATE] Current active: \"$activePresetName\" (id: $activePresetId), noTimeLimit=$isNoTimeLimit")
+
             if (activePresetId != presetId) {
-                Log.d(TAG, "Preset $presetId is not the active preset, skipping deactivation")
+                Log.d(TAG, "[DEACTIVATE] Preset $presetId is NOT the active preset (active: $activePresetId) — skipping deactivation")
                 return
             }
 
             // Get the preset name before clearing it
             val presetName = sessionPrefs.getString("active_preset_name", null) ?: "Preset"
+            Log.d(TAG, "[DEACTIVATE] Clearing session for \"$presetName\"...")
 
             // Clear the session
             sessionPrefs.edit()
@@ -85,13 +96,16 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
                 .remove("active_preset_name")
                 .remove("is_scheduled_preset")
                 .apply()
+            Log.d(TAG, "[DEACTIVATE] Session cleared from SharedPreferences")
 
             // Stop the foreground service
             val serviceIntent = Intent(context, UninstallBlockerService::class.java)
             context.stopService(serviceIntent)
+            Log.d(TAG, "[DEACTIVATE] Foreground service stopped")
 
             // Notify React Native that a session ended
             SessionEventHelper.emitSessionEvent(context, "session_ended")
+            Log.d(TAG, "[DEACTIVATE] SessionEvent emitted: session_ended")
 
             // Check if this is a recurring preset and handle it
             Log.d(TAG, "[DEACTIVATE] Checking if preset is recurring...")
@@ -493,10 +507,6 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
             val notificationText = "\"$presetName\" ended. Next: $nextStartFormatted"
             Log.d(TAG, "[NOTIFICATION] Notification text: $notificationText")
 
-            // Check if user wants silent notifications
-            val silentPrefs = context.getSharedPreferences("ScuteBlockerPrefs", Context.MODE_PRIVATE)
-            val isSilent = silentPrefs.getBoolean("silent_notifications", false)
-
             val notification = NotificationCompat.Builder(context, ALERT_CHANNEL_ID)
                 .setContentTitle("Session Ended")
                 .setContentText(notificationText)
@@ -505,8 +515,7 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
                 .setCategory(NotificationCompat.CATEGORY_ALARM)
                 .setAutoCancel(true)
                 .setContentIntent(pendingIntent)
-                .setDefaults(if (isSilent) NotificationCompat.DEFAULT_LIGHTS else NotificationCompat.DEFAULT_SOUND or NotificationCompat.DEFAULT_LIGHTS)
-                .apply { if (isSilent) setSilent(true) }
+                .setDefaults(NotificationCompat.DEFAULT_SOUND or NotificationCompat.DEFAULT_LIGHTS)
                 .build()
 
             notificationManager.notify(DEACTIVATION_NOTIFICATION_ID, notification)
@@ -535,7 +544,7 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
 
     private fun activateScheduledPreset(context: Context, presetId: String) {
         try {
-            Log.d(TAG, "Activating scheduled preset: $presetId")
+            Log.d(TAG, "[ACTIVATE] ========== activateScheduledPreset: $presetId ==========")
 
             // Check if this preset is already active to avoid duplicate activations
             val sessionPrefs = context.getSharedPreferences(
@@ -543,10 +552,12 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
                 Context.MODE_PRIVATE
             )
             val currentActiveId = sessionPrefs.getString("active_preset_id", null)
+            val currentPresetName = sessionPrefs.getString("active_preset_name", null)
             val isSessionActive = sessionPrefs.getBoolean(UninstallBlockerService.KEY_SESSION_ACTIVE, false)
+            Log.d(TAG, "[ACTIVATE] Current session state: active=$isSessionActive, preset=\"$currentPresetName\" (id: $currentActiveId)")
 
             if (isSessionActive && currentActiveId == presetId) {
-                Log.d(TAG, "Preset $presetId is already active, skipping duplicate activation")
+                Log.d(TAG, "[ACTIVATE] Preset $presetId is already the active session — skipping duplicate activation")
                 return
             }
 
@@ -554,10 +565,11 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
             if (isSessionActive) {
                 val isNoTimeLimit = sessionPrefs.getBoolean("no_time_limit", false)
                 val isScheduledPreset = sessionPrefs.getBoolean("is_scheduled_preset", false)
+                Log.d(TAG, "[ACTIVATE] Another session is active: noTimeLimit=$isNoTimeLimit, isScheduledPreset=$isScheduledPreset")
 
                 if (isNoTimeLimit && !isScheduledPreset) {
                     // A no-time-limit manual preset is active - cancel it to let scheduled preset activate
-                    Log.d(TAG, "Cancelling active no-time-limit preset to activate scheduled preset $presetId")
+                    Log.d(TAG, "[ACTIVATE] *** NO-TIME-LIMIT OVERRIDE *** Cancelling \"$currentPresetName\" (id: $currentActiveId) to activate scheduled preset $presetId")
 
                     // Stop the current session
                     sessionPrefs.edit()
@@ -566,25 +578,33 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
                         .remove("active_preset_name")
                         .remove("no_time_limit")
                         .apply()
+                    Log.d(TAG, "[ACTIVATE] No-time-limit session cleared from SharedPreferences")
 
                     // Stop the foreground service briefly
                     val stopServiceIntent = Intent(context, UninstallBlockerService::class.java)
                     context.stopService(stopServiceIntent)
+                    Log.d(TAG, "[ACTIVATE] Foreground service stopped (will restart for scheduled preset)")
 
                     // Deactivate in backend (runs on background thread)
+                    Log.d(TAG, "[ACTIVATE] Deactivating no-time-limit preset in backend (background thread)...")
                     deactivateNoTimeLimitPresetBackend(context)
+                } else {
+                    Log.d(TAG, "[ACTIVATE] Active session is NOT a no-time-limit manual preset — proceeding without override")
                 }
+            } else {
+                Log.d(TAG, "[ACTIVATE] No active session — proceeding with activation")
             }
 
             val prefs = context.getSharedPreferences(ScheduleManager.PREFS_NAME, Context.MODE_PRIVATE)
             val presetsJson = prefs.getString(ScheduleManager.KEY_SCHEDULED_PRESETS, null)
 
             if (presetsJson == null) {
-                Log.w(TAG, "No scheduled presets found")
+                Log.w(TAG, "[ACTIVATE] No scheduled presets found in ScheduleManager prefs")
                 return
             }
 
             val presetsArray = org.json.JSONArray(presetsJson)
+            Log.d(TAG, "[ACTIVATE] Found ${presetsArray.length()} presets in ScheduleManager")
             var targetPreset: JSONObject? = null
             var targetIndex = -1
 
@@ -598,13 +618,18 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
             }
 
             if (targetPreset == null) {
-                Log.w(TAG, "Preset not found: $presetId")
+                Log.w(TAG, "[ACTIVATE] Preset not found in ScheduleManager: $presetId")
                 return
             }
 
+            val presetName = targetPreset.optString("name", "Unknown")
+            val isActive = targetPreset.optBoolean("isActive", false)
+            val repeatEnabled = targetPreset.optBoolean("repeat_enabled", false)
+            Log.d(TAG, "[ACTIVATE] Found preset: \"$presetName\", isActive=$isActive, repeat_enabled=$repeatEnabled")
+
             // Check if preset is still active (toggled on)
-            if (!targetPreset.optBoolean("isActive", false)) {
-                Log.d(TAG, "Preset is not active, skipping activation")
+            if (!isActive) {
+                Log.d(TAG, "[ACTIVATE] Preset \"$presetName\" is toggled OFF — skipping activation")
                 return
             }
 
@@ -612,18 +637,22 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
             val now = System.currentTimeMillis()
             val startDate = targetPreset.optString("scheduleStartDate", null)
             val endDate = targetPreset.optString("scheduleEndDate", null)
+            Log.d(TAG, "[ACTIVATE] Schedule window: start=$startDate, end=$endDate")
 
             if (startDate != null && endDate != null) {
                 val startTime = parseIsoDate(startDate)
                 val endTime = parseIsoDate(endDate)
+                Log.d(TAG, "[ACTIVATE] Parsed: startTime=${java.util.Date(startTime)}, endTime=${java.util.Date(endTime)}, now=${java.util.Date(now)}")
 
                 if (now < startTime || now >= endTime) {
-                    Log.d(TAG, "Current time is outside schedule window")
+                    Log.d(TAG, "[ACTIVATE] Current time is OUTSIDE schedule window — skipping (now < start: ${now < startTime}, now >= end: ${now >= endTime})")
                     return
                 }
+                Log.d(TAG, "[ACTIVATE] Current time is WITHIN schedule window")
 
                 // --- Overlap resolution: longer preset wins, shorter gets deactivated ---
                 val targetDuration = endTime - startTime
+                Log.d(TAG, "[ACTIVATE] Checking for overlapping scheduled presets (target duration: ${targetDuration}ms = ${targetDuration / 60000} min)")
                 var presetsModified = false
 
                 for (i in 0 until presetsArray.length()) {
@@ -632,6 +661,7 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
                     if (otherId == presetId) continue
                     if (!other.optBoolean("isActive", false)) continue
 
+                    val otherName = other.optString("name", "Unknown")
                     val otherStart = other.optString("scheduleStartDate", null) ?: continue
                     val otherEnd = other.optString("scheduleEndDate", null) ?: continue
                     val otherStartTime = parseIsoDate(otherStart)
@@ -640,11 +670,11 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
                     // Check overlap: start1 < end2 && start2 < end1
                     if (startTime < otherEndTime && otherStartTime < endTime) {
                         val otherDuration = otherEndTime - otherStartTime
-                        Log.d(TAG, "[OVERLAP] Detected overlap between '$presetId' (${targetDuration}ms) and '$otherId' (${otherDuration}ms)")
+                        Log.d(TAG, "[OVERLAP] Detected overlap: \"$presetName\" (${targetDuration / 60000}min) vs \"$otherName\" (${otherDuration / 60000}min)")
 
                         if (otherDuration > targetDuration) {
                             // Other is longer — deactivate THIS (target) preset
-                            Log.d(TAG, "[OVERLAP] Deactivating shorter preset (target): $presetId")
+                            Log.d(TAG, "[OVERLAP] Other is longer — deactivating THIS preset \"$presetName\" ($presetId)")
                             targetPreset.put("isActive", false)
                             presetsArray.put(targetIndex, targetPreset)
                             prefs.edit().putString(ScheduleManager.KEY_SCHEDULED_PRESETS, presetsArray.toString()).apply()
@@ -653,7 +683,7 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
                             return
                         } else {
                             // Target is longer (or equal) — deactivate the OTHER preset
-                            Log.d(TAG, "[OVERLAP] Deactivating shorter preset (other): $otherId")
+                            Log.d(TAG, "[OVERLAP] Target is longer — deactivating OTHER preset \"$otherName\" ($otherId)")
                             other.put("isActive", false)
                             presetsArray.put(i, other)
                             presetsModified = true
@@ -665,6 +695,9 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
 
                 if (presetsModified) {
                     prefs.edit().putString(ScheduleManager.KEY_SCHEDULED_PRESETS, presetsArray.toString()).apply()
+                    Log.d(TAG, "[OVERLAP] Saved updated presets after overlap resolution")
+                } else {
+                    Log.d(TAG, "[ACTIVATE] No overlapping presets found")
                 }
                 // --- End overlap resolution ---
             }
@@ -733,10 +766,13 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
                 System.currentTimeMillis() + Long.MAX_VALUE / 2
             }
 
-            Log.d(TAG, "[SCHED-DEBUG] Preset config: mode=$mode, apps=${selectedApps.size}, websites=${blockedWebsites.size}, noTimeLimit=$noTimeLimit, strictMode=$strictMode, customBlockedText='$customBlockedText', endTime=$endTime")
+            Log.d(TAG, "[ACTIVATE] Preset config: mode=$mode, apps=${selectedApps.size}, websites=${blockedWebsites.size}")
+            Log.d(TAG, "[ACTIVATE] Preset settings: noTimeLimit=$noTimeLimit, strictMode=$strictMode, customBlockedText='$customBlockedText'")
+            Log.d(TAG, "[ACTIVATE] End time: $endTime (${java.util.Date(endTime)})")
 
             // Save to session prefs (reusing sessionPrefs from earlier check)
             // Use commit() instead of apply() to ensure prefs are written before service reads them
+            Log.d(TAG, "[ACTIVATE] Writing session to SharedPreferences (commit)...")
             sessionPrefs.edit()
                 .putStringSet(UninstallBlockerService.KEY_BLOCKED_APPS, selectedApps)
                 .putStringSet("blocked_websites", blockedWebsites)
@@ -747,35 +783,38 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
                 .putBoolean("strict_mode", strictMode)
                 .putString("active_preset_id", presetId)
                 .putString("active_preset_name", targetPreset.optString("name", "Scheduled Preset"))
-                .putBoolean("is_scheduled_preset", true) // Mark as scheduled so TimerPresetReceiver knows to skip
+                .putBoolean("is_scheduled_preset", true)
                 .putString("custom_blocked_text", customBlockedText)
                 .commit()
 
-            Log.d(TAG, "[SCHED-DEBUG] Session prefs committed successfully")
+            Log.d(TAG, "[ACTIVATE] SharedPreferences committed — noTimeLimit=$noTimeLimit, presetName=\"${targetPreset.optString("name")}\"")
 
-            // Start the foreground service
+            // Start the foreground service (bubble will be shown by onStartCommand)
+            Log.d(TAG, "[ACTIVATE] Starting foreground service...")
             val serviceIntent = Intent(context, UninstallBlockerService::class.java)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 context.startForegroundService(serviceIntent)
             } else {
                 context.startService(serviceIntent)
             }
-
-            Log.d(TAG, "[SCHED-DEBUG] Foreground service started")
-            Log.d(TAG, "Scheduled preset activated: ${targetPreset.optString("name")}")
-
-            // Floating bubble is shown by UninstallBlockerService.onStartCommand
+            Log.d(TAG, "[ACTIVATE] Foreground service started — bubble will be shown by onStartCommand")
 
             // Show high-priority activation notification so the user knows a scheduled preset started
             showActivationNotification(context, targetPreset.optString("name", "Scheduled Preset"), presetId)
 
             // Notify React Native that a session started (include end date so UI shows correct countdown instantly)
             SessionEventHelper.emitSessionEvent(context, "session_started", endDate, presetId)
+            Log.d(TAG, "[ACTIVATE] SessionEvent emitted: session_started (endDate=$endDate, presetId=$presetId)")
 
             // Schedule the end alarm to stop blocking
             if (endDate != null && !noTimeLimit) {
                 ScheduleManager.schedulePresetEnd(context, presetId, parseIsoDate(endDate))
+                Log.d(TAG, "[ACTIVATE] End alarm scheduled for ${java.util.Date(parseIsoDate(endDate))}")
+            } else {
+                Log.d(TAG, "[ACTIVATE] No end alarm needed (endDate=$endDate, noTimeLimit=$noTimeLimit)")
             }
+
+            Log.d(TAG, "[ACTIVATE] ========== SCHEDULED PRESET ACTIVATED: \"${targetPreset.optString("name")}\" ==========")
 
         } catch (e: Exception) {
             Log.e(TAG, "Error activating scheduled preset", e)
@@ -818,10 +857,6 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
 
-            // Check if user wants silent notifications
-            val silentPrefs = context.getSharedPreferences("ScuteBlockerPrefs", Context.MODE_PRIVATE)
-            val isSilent = silentPrefs.getBoolean("silent_notifications", false)
-
             // Build the notification with high priority for heads-up display
             val notification = NotificationCompat.Builder(context, ALERT_CHANNEL_ID)
                 .setContentTitle("Scheduled Preset Started")
@@ -831,8 +866,7 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
                 .setCategory(NotificationCompat.CATEGORY_ALARM)
                 .setAutoCancel(true)
                 .setContentIntent(pendingIntent)
-                .setDefaults(if (isSilent) NotificationCompat.DEFAULT_LIGHTS else NotificationCompat.DEFAULT_SOUND or NotificationCompat.DEFAULT_LIGHTS)
-                .apply { if (isSilent) setSilent(true) }
+                .setDefaults(NotificationCompat.DEFAULT_SOUND or NotificationCompat.DEFAULT_LIGHTS)
                 .build()
 
             notificationManager.notify(ACTIVATION_NOTIFICATION_ID, notification)
@@ -879,10 +913,6 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
 
-            // Check if user wants silent notifications
-            val silentPrefs = context.getSharedPreferences("ScuteBlockerPrefs", Context.MODE_PRIVATE)
-            val isSilent = silentPrefs.getBoolean("silent_notifications", false)
-
             // Build the notification with high priority (no fullScreenIntent - using floating bubble instead)
             val notification = NotificationCompat.Builder(context, ALERT_CHANNEL_ID)
                 .setContentTitle("Session Ended")
@@ -892,8 +922,7 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
                 .setCategory(NotificationCompat.CATEGORY_ALARM)
                 .setAutoCancel(true)
                 .setContentIntent(pendingIntent)
-                .setDefaults(if (isSilent) NotificationCompat.DEFAULT_LIGHTS else NotificationCompat.DEFAULT_SOUND or NotificationCompat.DEFAULT_LIGHTS)
-                .apply { if (isSilent) setSilent(true) }
+                .setDefaults(NotificationCompat.DEFAULT_SOUND or NotificationCompat.DEFAULT_LIGHTS)
                 .build()
 
             notificationManager.notify(DEACTIVATION_NOTIFICATION_ID, notification)

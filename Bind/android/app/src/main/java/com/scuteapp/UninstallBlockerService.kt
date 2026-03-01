@@ -76,10 +76,6 @@ class UninstallBlockerService : Service() {
 
                 val displayName = presetName ?: "Session"
 
-                // Check if user wants silent notifications
-                val silentPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-                val isSilent = silentPrefs.getBoolean("silent_notifications", false)
-
                 // Build the notification with high priority for heads-up display
                 val notification = NotificationCompat.Builder(context, ALERT_CHANNEL_ID)
                     .setContentTitle("Session Ended")
@@ -89,8 +85,7 @@ class UninstallBlockerService : Service() {
                     .setCategory(NotificationCompat.CATEGORY_ALARM)
                     .setAutoCancel(true)
                     .setContentIntent(pendingIntent)
-                    .setDefaults(if (isSilent) NotificationCompat.DEFAULT_LIGHTS else NotificationCompat.DEFAULT_SOUND or NotificationCompat.DEFAULT_LIGHTS)
-                    .apply { if (isSilent) setSilent(true) }
+                    .setDefaults(NotificationCompat.DEFAULT_SOUND or NotificationCompat.DEFAULT_LIGHTS)
                     .build()
 
                 notificationManager.notify(SESSION_END_NOTIFICATION_ID, notification)
@@ -193,28 +188,43 @@ class UninstallBlockerService : Service() {
         val notification = createNotification()
         startForeground(NOTIFICATION_ID, notification)
 
-        // Show floating bubble for all active sessions (if not already showing)
+        // Show floating bubble for the active session
         // Skip if user has globally disabled the widget bubble
         val widgetBubbleDisabled = prefs.getBoolean("widget_bubble_disabled", false)
         val bubbleManager = FloatingBubbleManager.getInstance(this)
-        if (!widgetBubbleDisabled && !bubbleManager.isShowing()) {
+        val presetName = prefs.getString("active_preset_name", "unknown")
+        val presetId = prefs.getString("active_preset_id", "unknown")
+        val noTimeLimit = prefs.getBoolean("no_time_limit", false)
+        val isScheduledPref = prefs.getBoolean("is_scheduled_preset", false)
+        Log.d(TAG, "[BUBBLE] onStartCommand bubble logic — preset: \"$presetName\" (id: $presetId), noTimeLimit: $noTimeLimit, isScheduled: $isScheduledPref, bubbleDisabled: $widgetBubbleDisabled, bubbleCurrentlyShowing: ${bubbleManager.isShowing()}")
+        if (!widgetBubbleDisabled) {
             try {
-                val noTimeLimit = prefs.getBoolean("no_time_limit", false)
+                // Dismiss existing bubble immediately to handle session transitions
+                // (e.g. no-time-limit → scheduled). Without this, the old bubble
+                // persists because dismiss() is async and isShowing() stays true.
+                if (bubbleManager.isShowing()) {
+                    Log.d(TAG, "[BUBBLE] Existing bubble is showing — calling dismissImmediate() for session transition")
+                    bubbleManager.dismissImmediate()
+                    Log.d(TAG, "[BUBBLE] dismissImmediate() complete — old bubble removed")
+                }
+
                 if (noTimeLimit) {
                     val sessionStartTime = prefs.getLong("session_start_time", System.currentTimeMillis())
+                    Log.d(TAG, "[BUBBLE] Showing NO-TIME-LIMIT bubble (count-up) for \"$presetName\", sessionStartTime: $sessionStartTime")
                     bubbleManager.showNoTimeLimit(sessionStartTime)
-                    Log.d(TAG, "Showing floating bubble for no-time-limit session")
                 } else {
                     val sessionEndTime = prefs.getLong(KEY_SESSION_END_TIME, 0)
                     if (sessionEndTime > System.currentTimeMillis()) {
+                        Log.d(TAG, "[BUBBLE] Showing TIMED bubble (countdown) for \"$presetName\", sessionEndTime: $sessionEndTime (${java.util.Date(sessionEndTime)})")
                         bubbleManager.show(sessionEndTime)
-                        Log.d(TAG, "Showing floating bubble for timed session")
+                    } else {
+                        Log.d(TAG, "[BUBBLE] Session already ended (endTime: $sessionEndTime), not showing bubble")
                     }
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "Failed to show floating bubble", e)
+                Log.e(TAG, "[BUBBLE] Failed to show floating bubble", e)
             }
-        } else if (widgetBubbleDisabled) {
+        } else {
             Log.d(TAG, "Widget bubble is globally disabled, skipping")
         }
 

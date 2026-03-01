@@ -4,7 +4,9 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
+import android.provider.Settings
 import android.util.Log
+import androidx.core.app.NotificationManagerCompat
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
@@ -30,12 +32,19 @@ class BlockingModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     fun startBlocking(config: ReadableMap, promise: Promise) {
         try {
-            Log.d(TAG, "startBlocking called with config")
+            Log.d(TAG, "[START-BLOCKING] ========== startBlocking called ==========")
 
             val sessionPrefs = reactApplicationContext.getSharedPreferences(
                 UninstallBlockerService.PREFS_NAME,
                 Context.MODE_PRIVATE
             )
+
+            // Log current session state before overwriting
+            val prevActive = sessionPrefs.getBoolean(UninstallBlockerService.KEY_SESSION_ACTIVE, false)
+            val prevPresetName = sessionPrefs.getString("active_preset_name", null)
+            val prevPresetId = sessionPrefs.getString("active_preset_id", null)
+            val prevNoTimeLimit = sessionPrefs.getBoolean("no_time_limit", false)
+            Log.d(TAG, "[START-BLOCKING] Previous session state: active=$prevActive, preset=\"$prevPresetName\" (id: $prevPresetId), noTimeLimit=$prevNoTimeLimit")
 
             // Get blocked apps from config
             val appSet = mutableSetOf<String>()
@@ -47,7 +56,7 @@ class BlockingModule(reactContext: ReactApplicationContext) :
             }
 
             val mode = config.getString("mode") ?: "specific"
-            Log.d(TAG, "Mode: $mode, selectedApps count: ${appSet.size}")
+            Log.d(TAG, "[START-BLOCKING] Mode: $mode, selectedApps count: ${appSet.size}")
 
             // Get blocked websites
             val websiteSet = mutableSetOf<String>()
@@ -60,9 +69,9 @@ class BlockingModule(reactContext: ReactApplicationContext) :
 
             // Check if settings should be blocked
             val blockSettings = config.getBoolean("blockSettings")
-            Log.d(TAG, "blockSettings=$blockSettings")
+            Log.d(TAG, "[START-BLOCKING] blockSettings=$blockSettings")
             if (blockSettings) {
-                Log.d(TAG, "Settings blocking enabled — adding settings packages to blocked list")
+                Log.d(TAG, "[START-BLOCKING] Settings blocking enabled — adding settings packages")
                 // Add all known system settings packages for different device manufacturers
                 appSet.add("com.android.settings")
                 appSet.add("com.samsung.android.settings")
@@ -117,10 +126,13 @@ class BlockingModule(reactContext: ReactApplicationContext) :
             val customOverlayImage = if (config.hasKey("customOverlayImage")) config.getString("customOverlayImage") else ""
             val customOverlayImageSize = if (config.hasKey("customOverlayImageSize")) config.getInt("customOverlayImageSize") else 120
 
-            Log.d(TAG, "[SCHED-DEBUG] startBlocking: strictMode=$strictMode, customBlockedText='$customBlockedText', customBlockedTextColor='$customBlockedTextColor', customOverlayImage='$customOverlayImage', customOverlayImageSize=$customOverlayImageSize, presetName=$presetName, presetId=$presetId, noTimeLimit=$noTimeLimit, endTime=$endTime, apps=${appSet.size}, websites=${websiteSet.size}")
+            Log.d(TAG, "[START-BLOCKING] Config: presetName=\"$presetName\", presetId=$presetId, noTimeLimit=$noTimeLimit, strictMode=$strictMode")
+            Log.d(TAG, "[START-BLOCKING] Timing: endTime=$endTime (${java.util.Date(endTime)}), hasTimeLimit=$hasTimeLimit")
+            Log.d(TAG, "[START-BLOCKING] Blocking: apps=${appSet.size}, websites=${websiteSet.size}, customText='$customBlockedText'")
 
             // Save to SharedPreferences
             val sessionStartTime = System.currentTimeMillis()
+            Log.d(TAG, "[START-BLOCKING] Saving session to SharedPreferences (sessionStartTime=$sessionStartTime)...")
             sessionPrefs.edit()
                 .putStringSet(UninstallBlockerService.KEY_BLOCKED_APPS, appSet)
                 .putStringSet("blocked_websites", websiteSet)
@@ -137,30 +149,28 @@ class BlockingModule(reactContext: ReactApplicationContext) :
                 .putInt("custom_overlay_image_size", customOverlayImageSize)
                 .apply()
 
-            Log.d(TAG, "[SCHED-DEBUG] SharedPreferences saved via apply()")
+            Log.d(TAG, "[START-BLOCKING] SharedPreferences saved — noTimeLimit=$noTimeLimit, presetName=\"$presetName\", presetId=$presetId")
 
             // Start the foreground service
+            Log.d(TAG, "[START-BLOCKING] Starting foreground service (bubble will be shown by onStartCommand)...")
             val serviceIntent = Intent(reactApplicationContext, UninstallBlockerService::class.java)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 reactApplicationContext.startForegroundService(serviceIntent)
             } else {
                 reactApplicationContext.startService(serviceIntent)
             }
+            Log.d(TAG, "[START-BLOCKING] Foreground service start requested")
 
             // Schedule timer end alarm for non-scheduled, time-limited presets
-            // This ensures notification works even when app is closed or phone is off
             val isScheduled = if (config.hasKey("isScheduled")) config.getBoolean("isScheduled") else false
             if (hasTimeLimit && !isScheduled) {
                 TimerAlarmManager.scheduleTimerEnd(reactApplicationContext, endTime, presetId, presetName ?: "Timer")
-                Log.d(TAG, "Scheduled timer end alarm for ${java.util.Date(endTime)}")
+                Log.d(TAG, "[START-BLOCKING] Timer end alarm scheduled for ${java.util.Date(endTime)}")
             } else {
-                Log.d(TAG, "Skipping timer alarm: hasTimeLimit=$hasTimeLimit, isScheduled=$isScheduled")
+                Log.d(TAG, "[START-BLOCKING] Skipping timer alarm: hasTimeLimit=$hasTimeLimit, isScheduled=$isScheduled")
             }
 
-            // Floating bubble is shown by UninstallBlockerService.onStartCommand
-
-            Log.d(TAG, "Blocking started: ${appSet.size} apps, ${websiteSet.size} websites, noTimeLimit: $noTimeLimit")
-            Log.d(TAG, "DEBUG - Blocked apps list: $appSet")
+            Log.d(TAG, "[START-BLOCKING] ========== BLOCKING STARTED: \"$presetName\" (noTimeLimit=$noTimeLimit, apps=${appSet.size}, websites=${websiteSet.size}) ==========")
             promise.resolve(true)
         } catch (e: Exception) {
             Log.e(TAG, "Error starting blocking", e)
@@ -174,12 +184,15 @@ class BlockingModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     fun stopBlocking(promise: Promise) {
         try {
-            Log.d(TAG, "stopBlocking called")
-
             val sessionPrefs = reactApplicationContext.getSharedPreferences(
                 UninstallBlockerService.PREFS_NAME,
                 Context.MODE_PRIVATE
             )
+
+            val activePresetName = sessionPrefs.getString("active_preset_name", null)
+            val activePresetId = sessionPrefs.getString("active_preset_id", null)
+            val wasNoTimeLimit = sessionPrefs.getBoolean("no_time_limit", false)
+            Log.d(TAG, "[STOP-BLOCKING] stopBlocking called — clearing preset \"$activePresetName\" (id: $activePresetId, noTimeLimit: $wasNoTimeLimit)")
 
             sessionPrefs.edit()
                 .putBoolean(UninstallBlockerService.KEY_SESSION_ACTIVE, false)
@@ -191,17 +204,19 @@ class BlockingModule(reactContext: ReactApplicationContext) :
             TimerAlarmManager.cancelTimerAlarm(reactApplicationContext)
 
             // Dismiss floating bubble if showing
+            val bubbleManager = FloatingBubbleManager.getInstance(reactApplicationContext)
+            Log.d(TAG, "[STOP-BLOCKING] Dismissing bubble (showing: ${bubbleManager.isShowing()})")
             try {
-                FloatingBubbleManager.getInstance(reactApplicationContext).dismiss()
+                bubbleManager.dismiss()
             } catch (e: Exception) {
-                Log.d(TAG, "Failed to dismiss floating bubble", e)
+                Log.d(TAG, "[STOP-BLOCKING] Failed to dismiss floating bubble", e)
             }
 
             // Stop the foreground service
             val serviceIntent = Intent(reactApplicationContext, UninstallBlockerService::class.java)
             reactApplicationContext.stopService(serviceIntent)
 
-            Log.d(TAG, "Blocking stopped")
+            Log.d(TAG, "[STOP-BLOCKING] Complete — preset \"$activePresetName\" stopped")
             promise.resolve(true)
         } catch (e: Exception) {
             Log.e(TAG, "Error stopping blocking", e)
@@ -217,15 +232,16 @@ class BlockingModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     fun stopBlockingWithNotification(promise: Promise) {
         try {
-            Log.d(TAG, "stopBlockingWithNotification called")
-
             val sessionPrefs = reactApplicationContext.getSharedPreferences(
                 UninstallBlockerService.PREFS_NAME,
                 Context.MODE_PRIVATE
             )
 
-            // Get the preset name before clearing the session
+            // Get the preset info before clearing the session
             val presetName = sessionPrefs.getString("active_preset_name", null)
+            val presetId = sessionPrefs.getString("active_preset_id", null)
+            val wasNoTimeLimit = sessionPrefs.getBoolean("no_time_limit", false)
+            Log.d(TAG, "[STOP-WITH-NOTIF] stopBlockingWithNotification called — preset \"$presetName\" (id: $presetId, noTimeLimit: $wasNoTimeLimit)")
 
             sessionPrefs.edit()
                 .putBoolean(UninstallBlockerService.KEY_SESSION_ACTIVE, false)
@@ -237,10 +253,12 @@ class BlockingModule(reactContext: ReactApplicationContext) :
             TimerAlarmManager.cancelTimerAlarm(reactApplicationContext)
 
             // Dismiss floating bubble if showing
+            val bubbleManager = FloatingBubbleManager.getInstance(reactApplicationContext)
+            Log.d(TAG, "[STOP-WITH-NOTIF] Dismissing bubble (showing: ${bubbleManager.isShowing()})")
             try {
-                FloatingBubbleManager.getInstance(reactApplicationContext).dismiss()
+                bubbleManager.dismiss()
             } catch (e: Exception) {
-                Log.d(TAG, "Failed to dismiss floating bubble", e)
+                Log.d(TAG, "[STOP-WITH-NOTIF] Failed to dismiss floating bubble", e)
             }
 
             // Stop the foreground service
@@ -250,7 +268,7 @@ class BlockingModule(reactContext: ReactApplicationContext) :
             // Show the "Session Ended" notification
             UninstallBlockerService.showSessionEndedNotification(reactApplicationContext, presetName)
 
-            Log.d(TAG, "Blocking stopped with notification for: $presetName")
+            Log.d(TAG, "[STOP-WITH-NOTIF] Complete — preset \"$presetName\" stopped, notification shown")
             promise.resolve(true)
         } catch (e: Exception) {
             Log.e(TAG, "Error stopping blocking with notification", e)
@@ -347,15 +365,17 @@ class BlockingModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     fun forceUnlock(promise: Promise) {
         try {
-            Log.d(TAG, "forceUnlock called - clearing native session")
-
             val sessionPrefs = reactApplicationContext.getSharedPreferences(
                 UninstallBlockerService.PREFS_NAME,
                 Context.MODE_PRIVATE
             )
 
-            // Get the active preset ID before clearing (needed to deactivate in ScheduleManager)
+            // Get the active preset info before clearing
             val activePresetId = sessionPrefs.getString("active_preset_id", null)
+            val activePresetName = sessionPrefs.getString("active_preset_name", null)
+            val wasNoTimeLimit = sessionPrefs.getBoolean("no_time_limit", false)
+            val wasScheduled = sessionPrefs.getBoolean("is_scheduled_preset", false)
+            Log.d(TAG, "[FORCE-UNLOCK] forceUnlock called — clearing session for preset \"$activePresetName\" (id: $activePresetId, noTimeLimit: $wasNoTimeLimit, isScheduled: $wasScheduled)")
 
             // Clear all session data (same as MainActivity.stopSession)
             sessionPrefs.edit()
@@ -368,64 +388,70 @@ class BlockingModule(reactContext: ReactApplicationContext) :
                 .remove("active_preset_name")
                 .remove("is_scheduled_preset")
                 .apply()
+            Log.d(TAG, "[FORCE-UNLOCK] SharedPreferences cleared")
 
             // Cancel any pending timer alarm
             TimerAlarmManager.cancelTimerAlarm(reactApplicationContext)
 
             // If there was an active preset, deactivate it in ScheduleManager to prevent re-activation
             if (activePresetId != null) {
+                Log.d(TAG, "[FORCE-UNLOCK] Deactivating preset \"$activePresetName\" in ScheduleManager")
                 deactivatePresetInScheduleManager(activePresetId)
             }
 
-            // Dismiss the floating bubble
-            FloatingBubbleManager.getInstance(reactApplicationContext).dismiss()
+            // Dismiss the floating bubble (async animation — new startBlocking will handle recreating)
+            val bubbleManager = FloatingBubbleManager.getInstance(reactApplicationContext)
+            Log.d(TAG, "[FORCE-UNLOCK] Dismissing bubble (currently showing: ${bubbleManager.isShowing()})")
+            bubbleManager.dismiss()
 
             // Stop the foreground service
             val serviceIntent = Intent(reactApplicationContext, UninstallBlockerService::class.java)
             reactApplicationContext.stopService(serviceIntent)
 
-            Log.d(TAG, "Force unlock complete - native session cleared")
+            Log.d(TAG, "[FORCE-UNLOCK] Complete — native session cleared, service stopped")
             promise.resolve(true)
         } catch (e: Exception) {
-            Log.e(TAG, "Error in forceUnlock", e)
+            Log.e(TAG, "[FORCE-UNLOCK] Error in forceUnlock", e)
             promise.reject("ERROR", "Failed to force unlock: ${e.message}")
         }
     }
 
     /**
-     * Set whether high-priority notifications should be silent (no sound).
+     * Check whether notifications are enabled for this app.
      */
     @ReactMethod
-    fun setSilentNotifications(silent: Boolean, promise: Promise) {
+    fun areNotificationsEnabled(promise: Promise) {
         try {
-            val prefs = reactApplicationContext.getSharedPreferences(
-                UninstallBlockerService.PREFS_NAME,
-                Context.MODE_PRIVATE
-            )
-            prefs.edit().putBoolean("silent_notifications", silent).apply()
-            Log.d(TAG, "Silent notifications set to: $silent")
-            promise.resolve(true)
+            val enabled = NotificationManagerCompat.from(reactApplicationContext).areNotificationsEnabled()
+            promise.resolve(enabled)
         } catch (e: Exception) {
-            Log.e(TAG, "Error setting silent notifications", e)
-            promise.reject("ERROR", "Failed to set silent notifications: ${e.message}")
+            Log.e(TAG, "Error checking notification permission", e)
+            promise.reject("ERROR", "Failed to check notifications: ${e.message}")
         }
     }
 
     /**
-     * Get whether high-priority notifications are set to silent.
+     * Open the system notification settings for this app so the user can enable/disable notifications.
      */
     @ReactMethod
-    fun getSilentNotifications(promise: Promise) {
+    fun openNotificationSettings(promise: Promise) {
         try {
-            val prefs = reactApplicationContext.getSharedPreferences(
-                UninstallBlockerService.PREFS_NAME,
-                Context.MODE_PRIVATE
-            )
-            val silent = prefs.getBoolean("silent_notifications", false)
-            promise.resolve(silent)
+            val intent = Intent().apply {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    action = Settings.ACTION_APP_NOTIFICATION_SETTINGS
+                    putExtra(Settings.EXTRA_APP_PACKAGE, reactApplicationContext.packageName)
+                } else {
+                    action = "android.settings.APP_NOTIFICATION_SETTINGS"
+                    putExtra("app_package", reactApplicationContext.packageName)
+                    putExtra("app_uid", reactApplicationContext.applicationInfo.uid)
+                }
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            reactApplicationContext.startActivity(intent)
+            promise.resolve(true)
         } catch (e: Exception) {
-            Log.e(TAG, "Error getting silent notifications", e)
-            promise.reject("ERROR", "Failed to get silent notifications: ${e.message}")
+            Log.e(TAG, "Error opening notification settings", e)
+            promise.reject("ERROR", "Failed to open notification settings: ${e.message}")
         }
     }
 

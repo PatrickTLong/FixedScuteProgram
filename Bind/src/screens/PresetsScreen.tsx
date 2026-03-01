@@ -256,7 +256,11 @@ function PresetsScreen() {
   // because it reads from activePresetId, not preset.isActive.
   useEffect(() => {
     const activeNonScheduled = presets.find(p => !p.isScheduled && p.isActive);
-    setActivePresetId(activeNonScheduled?.id ?? null);
+    const newId = activeNonScheduled?.id ?? null;
+    if (newId !== activePresetId) {
+      console.log(`[PRESETS] activePresetId sync — sharedPresets changed, updating activePresetId: "${activePresetId}" → "${newId}" (preset: ${activeNonScheduled ? `"${activeNonScheduled.name}" noTimeLimit: ${activeNonScheduled.noTimeLimit}` : 'none'})`);
+    }
+    setActivePresetId(newId);
   }, [presets]);
 
   // Disable interactions until lock status is checked
