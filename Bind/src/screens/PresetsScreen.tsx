@@ -251,6 +251,14 @@ function PresetsScreen() {
   // Note: Expiration checking is handled globally in AuthContext
   useFocusEffect(useCallback(() => {}, []));
 
+  // Sync activePresetId when sharedPresets changes externally (e.g. HomeScreen overrides
+  // a no-time-limit preset for a scheduled one). Without this, the toggle stays visually ON
+  // because it reads from activePresetId, not preset.isActive.
+  useEffect(() => {
+    const activeNonScheduled = presets.find(p => !p.isScheduled && p.isActive);
+    setActivePresetId(activeNonScheduled?.id ?? null);
+  }, [presets]);
+
   // Disable interactions until lock status is checked
   const isDisabled = !lockChecked;
 
@@ -260,15 +268,27 @@ function PresetsScreen() {
     try {
       // Filter to only scheduled presets that are active (toggled on)
       const scheduledPresets = allPresets.filter(p => p.isScheduled && p.isActive);
+      console.log(`[PRESETS] syncScheduledPresetsToNative — ${scheduledPresets.length} active scheduled preset(s) to sync:`, scheduledPresets.map(p => ({ id: p.id, name: p.name, start: p.scheduleStartDate, end: p.scheduleEndDate, recurring: p.repeat_enabled })));
       const presetsJson = JSON.stringify(scheduledPresets);
       await ScheduleModule?.saveScheduledPresets(presetsJson);
+      console.log('[PRESETS] syncScheduledPresetsToNative — native sync complete');
     } catch (e) {
-      // Failed to sync scheduled presets
+      console.log('[PRESETS] syncScheduledPresetsToNative — FAILED:', e);
     }
   }, []);
 
   // Actually enable a scheduled preset (called after verification)
   const enableScheduledPreset = useCallback(async (preset: Preset) => {
+    console.log(`[PRESETS] enableScheduledPreset — enabling "${preset.name}" (id: ${preset.id}, recurring: ${preset.repeat_enabled}, start: ${preset.scheduleStartDate}, end: ${preset.scheduleEndDate})`);
+
+    // Check if there's a currently active non-scheduled preset (e.g. no-time-limit)
+    const activeNonScheduled = presets.find(p => !p.isScheduled && p.isActive);
+    if (activeNonScheduled) {
+      console.log(`[PRESETS] enableScheduledPreset — NOTE: non-scheduled preset "${activeNonScheduled.name}" (id: ${activeNonScheduled.id}, noTimeLimit: ${activeNonScheduled.noTimeLimit}) is currently active — it will NOT be cancelled by enabling this scheduled preset`);
+    } else {
+      console.log('[PRESETS] enableScheduledPreset — no active non-scheduled preset currently');
+    }
+
     // OPTIMISTIC UPDATE - update UI immediately
     setPresets(prev => prev.map(p =>
       p.id === preset.id ? { ...p, isActive: true } : p
@@ -278,6 +298,7 @@ function PresetsScreen() {
     const presetToSave = { ...preset, isActive: true };
     savePreset(userEmail_safe, presetToSave).then(async result => {
       if (result.success) {
+        console.log(`[PRESETS] enableScheduledPreset — save SUCCESS for "${preset.name}"`);
         // Invalidate cache so other screens get fresh data
         invalidateUserCaches(userEmail_safe);
         // Sync all scheduled presets to native for background activation
@@ -286,6 +307,7 @@ function PresetsScreen() {
         );
         await syncScheduledPresetsToNative(updatedPresets);
       } else {
+        console.log(`[PRESETS] enableScheduledPreset — save FAILED for "${preset.name}", reverting`);
         // Revert on error
         setPresets(prev => prev.map(p =>
           p.id === preset.id ? { ...p, isActive: false } : p
@@ -298,6 +320,7 @@ function PresetsScreen() {
   // Handle verification modal confirm for scheduled presets
   const handleScheduleVerifyConfirm = useCallback(() => {
     if (pendingScheduledPreset) {
+      console.log(`[PRESETS] handleScheduleVerifyConfirm — user CONFIRMED enabling scheduled preset "${pendingScheduledPreset.name}" (recurring: ${pendingScheduledPreset.repeat_enabled})`);
       enableScheduledPreset(pendingScheduledPreset);
     }
     setScheduleVerifyModalVisible(false);
@@ -306,25 +329,36 @@ function PresetsScreen() {
 
   // Handle verification modal cancel for scheduled presets
   const handleScheduleVerifyCancel = useCallback(() => {
+    console.log(`[PRESETS] handleScheduleVerifyCancel — user CANCELLED enabling scheduled preset "${pendingScheduledPreset?.name}"`);
     setScheduleVerifyModalVisible(false);
     setPendingScheduledPreset(null);
   }, []);
 
 
   const handleTogglePreset = useCallback(async (preset: Preset, value: boolean) => {
+    console.log(`[PRESETS] handleTogglePreset — "${preset.name}" (id: ${preset.id}) toggled to ${value ? 'ON' : 'OFF'} | isScheduled: ${preset.isScheduled}, noTimeLimit: ${preset.noTimeLimit}, recurring: ${preset.repeat_enabled}`);
+
     // Block all toggles while locked
     if (sharedIsLocked) {
+      console.log('[PRESETS] handleTogglePreset — BLOCKED: presets are locked (blocking active)');
       setLockedModalTitle('Presets Locked');
       setLockedModalMessage("You can't toggle presets while blocking is active.");
       setLockedModalVisible(true);
       return;
     }
     if (value) {
+      // Log current state of all presets for context
+      const activeNonScheduled = presets.find(p => !p.isScheduled && p.isActive);
+      const activeScheduled = presets.filter(p => p.isScheduled && p.isActive);
+      console.log(`[PRESETS] handleTogglePreset — ACTIVATING | current state: activeNonScheduled=${activeNonScheduled ? `"${activeNonScheduled.name}" (noTimeLimit: ${activeNonScheduled.noTimeLimit})` : 'none'}, activeScheduled=[${activeScheduled.map(p => `"${p.name}"`).join(', ')}]`);
+
       if (preset.isScheduled) {
+        console.log(`[PRESETS] handleTogglePreset — activating SCHEDULED preset "${preset.name}" (recurring: ${preset.repeat_enabled}, start: ${preset.scheduleStartDate}, end: ${preset.scheduleEndDate})`);
         // Scheduled preset - check for overlaps with other active scheduled presets
         const otherScheduledPresets = presets.filter(
           p => p.isScheduled && p.isActive && p.id !== preset.id
         );
+        console.log(`[PRESETS] handleTogglePreset — checking overlap with ${otherScheduledPresets.length} other active scheduled preset(s)`);
 
         for (const other of otherScheduledPresets) {
           if (dateRangesOverlap(
@@ -333,6 +367,7 @@ function PresetsScreen() {
             other.scheduleStartDate,
             other.scheduleEndDate
           )) {
+            console.log(`[PRESETS] handleTogglePreset — OVERLAP DETECTED: "${preset.name}" overlaps with scheduled preset "${other.name}" — blocking activation`);
             // Show error - dates overlap
             setOverlapPresetName(other.name);
             setOverlapIsTimedVsScheduled(false);
@@ -341,19 +376,28 @@ function PresetsScreen() {
           }
         }
 
+        if (activeNonScheduled) {
+          console.log(`[PRESETS] handleTogglePreset — NOTE: enabling scheduled preset while non-scheduled preset "${activeNonScheduled.name}" (noTimeLimit: ${activeNonScheduled.noTimeLimit}) is active — the non-scheduled preset will NOT be cancelled`);
+        }
+
         // Show verification modal before enabling scheduled preset
+        console.log(`[PRESETS] handleTogglePreset — no overlaps, showing verification modal for scheduled preset "${preset.name}"`);
         setPendingScheduledPreset(preset);
         setScheduleVerifyModalVisible(true);
       } else {
         // Non-scheduled preset - only one can be active
+        console.log(`[PRESETS] handleTogglePreset — activating NON-SCHEDULED preset "${preset.name}" (noTimeLimit: ${preset.noTimeLimit})`);
+
         // If this is a TIMED preset (not no-time-limit), check for overlap with active scheduled presets
         if (!preset.noTimeLimit) {
+          console.log(`[PRESETS] handleTogglePreset — preset is TIMED (has time limit), checking overlap with active scheduled presets`);
           // Calculate end time for this timed preset
           const now = new Date();
           let presetEndTime: Date | null = null;
 
           if (preset.targetDate) {
             presetEndTime = new Date(preset.targetDate);
+            console.log(`[PRESETS] handleTogglePreset — timed preset uses targetDate: ${preset.targetDate}`);
           } else {
             // Calculate from timer values
             const totalMs =
@@ -363,12 +407,14 @@ function PresetsScreen() {
               (preset.timerSeconds * 1000);
             if (totalMs > 0) {
               presetEndTime = new Date(now.getTime() + totalMs);
+              console.log(`[PRESETS] handleTogglePreset — timed preset duration: ${preset.timerDays}d ${preset.timerHours}h ${preset.timerMinutes}m ${preset.timerSeconds}s (${totalMs}ms), calculated end: ${presetEndTime.toISOString()}`);
             }
           }
 
           if (presetEndTime) {
             // Check if this timed preset overlaps with any active scheduled preset
             const activeScheduledPresets = presets.filter(p => p.isScheduled && p.isActive);
+            console.log(`[PRESETS] handleTogglePreset — checking timed preset overlap with ${activeScheduledPresets.length} active scheduled preset(s)`);
 
             for (const scheduled of activeScheduledPresets) {
               if (dateRangesOverlap(
@@ -377,6 +423,7 @@ function PresetsScreen() {
                 scheduled.scheduleStartDate,
                 scheduled.scheduleEndDate
               )) {
+                console.log(`[PRESETS] handleTogglePreset — OVERLAP DETECTED: timed preset "${preset.name}" (ends ${presetEndTime.toISOString()}) overlaps with scheduled preset "${scheduled.name}" (${scheduled.scheduleStartDate} - ${scheduled.scheduleEndDate}) — blocking activation`);
                 // Show overlap modal
                 setOverlapPresetName(scheduled.name);
                 setOverlapIsTimedVsScheduled(true);
@@ -384,10 +431,23 @@ function PresetsScreen() {
                 return; // Don't activate
               }
             }
+            console.log('[PRESETS] handleTogglePreset — no overlaps found with scheduled presets');
+          }
+        } else {
+          console.log(`[PRESETS] handleTogglePreset — preset is NO-TIME-LIMIT — SKIPPING overlap check with scheduled presets (no-time-limit presets bypass this check)`);
+          const activeScheduledPresets = presets.filter(p => p.isScheduled && p.isActive);
+          if (activeScheduledPresets.length > 0) {
+            console.log(`[PRESETS] handleTogglePreset — WARNING: activating no-time-limit preset "${preset.name}" while ${activeScheduledPresets.length} scheduled preset(s) are active: [${activeScheduledPresets.map(p => `"${p.name}"`).join(', ')}] — no overlap check performed`);
           }
         }
 
+        // Check if another non-scheduled preset will be deactivated
+        if (activeNonScheduled && activeNonScheduled.id !== preset.id) {
+          console.log(`[PRESETS] handleTogglePreset — DEACTIVATING previous non-scheduled preset "${activeNonScheduled.name}" (noTimeLimit: ${activeNonScheduled.noTimeLimit}) — replaced by "${preset.name}"`);
+        }
+
         // OPTIMISTIC UPDATE - update UI immediately
+        console.log(`[PRESETS] handleTogglePreset — optimistic UI update: setting "${preset.name}" as active, deactivating all other non-scheduled presets (scheduled presets preserved)`);
         setActivePresetId(preset.id);
         setPresets(prev => prev.map(p => ({
           ...p,
@@ -397,9 +457,11 @@ function PresetsScreen() {
         // Save in background
         activatePreset(userEmail_safe, preset.id).then(async result => {
           if (result.success) {
+            console.log(`[PRESETS] handleTogglePreset — activatePreset API SUCCESS for "${preset.name}"`);
             // Invalidate cache so other screens get fresh data
             invalidateUserCaches(userEmail_safe);
           } else {
+            console.log(`[PRESETS] handleTogglePreset — activatePreset API FAILED for "${preset.name}", reverting`);
             // Revert on error
             setActivePresetId(null);
             setPresets(prev => prev.map(p => ({
@@ -413,6 +475,7 @@ function PresetsScreen() {
     } else {
       // Deactivate
       if (preset.isScheduled) {
+        console.log(`[PRESETS] handleTogglePreset — DEACTIVATING scheduled preset "${preset.name}" (recurring: ${preset.repeat_enabled})`);
         // OPTIMISTIC UPDATE - update UI immediately
         setPresets(prev => prev.map(p =>
           p.id === preset.id ? { ...p, isActive: false } : p
@@ -422,6 +485,7 @@ function PresetsScreen() {
         const presetToSave = { ...preset, isActive: false };
         savePreset(userEmail_safe, presetToSave).then(async result => {
           if (result.success) {
+            console.log(`[PRESETS] handleTogglePreset — deactivate scheduled preset "${preset.name}" save SUCCESS`);
             // Invalidate cache so other screens get fresh data
             invalidateUserCaches(userEmail_safe);
             // Sync all scheduled presets to native (with this one now deactivated)
@@ -430,6 +494,7 @@ function PresetsScreen() {
             );
             await syncScheduledPresetsToNative(updatedPresets);
           } else {
+            console.log(`[PRESETS] handleTogglePreset — deactivate scheduled preset "${preset.name}" save FAILED, reverting`);
             // Revert on error
             setPresets(prev => prev.map(p =>
               p.id === preset.id ? { ...p, isActive: true } : p
@@ -439,6 +504,7 @@ function PresetsScreen() {
         });
       } else {
         // Non-scheduled preset
+        console.log(`[PRESETS] handleTogglePreset — DEACTIVATING non-scheduled preset "${preset.name}" (noTimeLimit: ${preset.noTimeLimit})`);
         // OPTIMISTIC UPDATE - update UI immediately
         setActivePresetId(null);
         setPresets(prev => prev.map(p => ({
@@ -447,11 +513,14 @@ function PresetsScreen() {
         })));
 
         // Save in background
+        console.log('[PRESETS] handleTogglePreset — calling activatePreset(null) to deactivate all non-scheduled presets');
         activatePreset(userEmail_safe, null).then(result => {
           if (result.success) {
+            console.log('[PRESETS] handleTogglePreset — deactivate non-scheduled preset API SUCCESS');
             // Invalidate cache so other screens get fresh data
             invalidateUserCaches(userEmail_safe);
           } else {
+            console.log(`[PRESETS] handleTogglePreset — deactivate non-scheduled preset API FAILED, reverting "${preset.name}" to active`);
             // Revert on error - re-activate this preset
             setActivePresetId(preset.id);
             setPresets(prev => prev.map(p => ({
@@ -536,11 +605,13 @@ function PresetsScreen() {
   }, [savedToastOpacity]);
 
   const handleSavePreset = useCallback(async (preset: Preset) => {
+    console.log(`[PRESETS] handleSavePreset — saving "${preset.name}" (isScheduled: ${preset.isScheduled}, noTimeLimit: ${preset.noTimeLimit}, recurring: ${preset.repeat_enabled})`);
     // Show "Preset Saved" toast immediately
     showSavedToastAnimation();
 
     const editingPreset = presets.find(p => p.id === preset.id) || null;
     const isEditing = !!editingPreset;
+    console.log(`[PRESETS] handleSavePreset — ${isEditing ? 'EDITING existing' : 'CREATING new'} preset`);
 
     let presetToSave: Preset;
 
@@ -553,6 +624,7 @@ function PresetsScreen() {
       };
 
       if (presetToSave.isScheduled && presetToSave.isActive) {
+        console.log(`[PRESETS] handleSavePreset — editing active scheduled preset, checking for overlap with other scheduled presets`);
         const otherActiveScheduled = presets.filter(
           p => p.isScheduled && p.isActive && p.id !== presetToSave.id
         );
@@ -564,6 +636,7 @@ function PresetsScreen() {
             other.scheduleStartDate,
             other.scheduleEndDate
           )) {
+            console.log(`[PRESETS] handleSavePreset — OVERLAP DETECTED with "${other.name}" — auto-deactivating edited preset`);
             presetToSave = { ...presetToSave, isActive: false };
             break;
           }
@@ -576,6 +649,7 @@ function PresetsScreen() {
         isActive: false,
         isDefault: false,
       };
+      console.log(`[PRESETS] handleSavePreset — new preset assigned id: ${presetToSave.id}`);
     }
 
     // Optimistic update — show the preset in the list immediately
@@ -589,15 +663,18 @@ function PresetsScreen() {
     // Background: cancel old alarms, save to API, sync schedules
     try {
       if (isEditing && editingPreset?.isScheduled) {
+        console.log(`[PRESETS] handleSavePreset — cancelling old alarm for edited scheduled preset "${editingPreset.name}"`);
         try { await ScheduleModule?.cancelPresetAlarm(editingPreset.id); } catch (_) {}
       }
 
       const result = await savePreset(userEmail_safe, presetToSave);
 
       if (result.success) {
+        console.log(`[PRESETS] handleSavePreset — save API SUCCESS for "${presetToSave.name}"`);
         invalidateUserCaches(userEmail_safe);
 
         if (isEditing && presetToSave.isActive && !presetToSave.isScheduled) {
+          console.log(`[PRESETS] handleSavePreset — re-activating edited active non-scheduled preset "${presetToSave.name}"`);
           await activatePreset(userEmail_safe, presetToSave.id);
         }
 
@@ -606,14 +683,17 @@ function PresetsScreen() {
           : [...previousPresets, presetToSave];
 
         if (presetToSave.isScheduled) {
+          console.log(`[PRESETS] handleSavePreset — preset is scheduled, syncing to native`);
           await syncScheduledPresetsToNative(latestPresets);
         }
       } else {
+        console.log(`[PRESETS] handleSavePreset — save API FAILED for "${presetToSave.name}", reverting`);
         // Revert on failure
         setPresets(previousPresets);
         showModal('Connection Error', 'Could not save preset. Please check your connection.');
       }
     } catch (_) {
+      console.log(`[PRESETS] handleSavePreset — save ERROR for "${presetToSave.name}", reverting`);
       // Revert on error
       setPresets(previousPresets);
       showModal('Connection Error', 'Could not save preset. Please check your connection.');
@@ -635,8 +715,10 @@ function PresetsScreen() {
   }, []);
 
   const handleExpiredPreset = useCallback(async (preset: Preset) => {
+    console.log(`[PRESETS] handleExpiredPreset — preset "${preset.name}" (id: ${preset.id}) expired | isScheduled: ${preset.isScheduled}, noTimeLimit: ${preset.noTimeLimit}, recurring: ${preset.repeat_enabled}`);
     // Auto-deactivate expired preset
     if (preset.isScheduled) {
+      console.log(`[PRESETS] handleExpiredPreset — SCHEDULED preset "${preset.name}" expired — marking as inactive and syncing to native`);
       // Scheduled preset expired - just mark it as inactive
       const updatedPresets = presets.map(p =>
         p.id === preset.id ? { ...p, isActive: false } : p
@@ -645,22 +727,33 @@ function PresetsScreen() {
       // Save to backend
       const presetToSave = { ...preset, isActive: false };
       savePreset(userEmail_safe, presetToSave).then(async () => {
+        console.log(`[PRESETS] handleExpiredPreset — scheduled preset "${preset.name}" deactivation saved, syncing to native`);
         // Sync to native to cancel the alarm
         await syncScheduledPresetsToNative(updatedPresets);
       }).catch(() => {
-        // Failed to save expired scheduled preset
+        console.log(`[PRESETS] handleExpiredPreset — FAILED to save expired scheduled preset "${preset.name}"`);
       });
     } else if (activePresetId === preset.id) {
+      console.log(`[PRESETS] handleExpiredPreset — NON-SCHEDULED preset "${preset.name}" expired (was active) — deactivating all non-scheduled presets (scheduled presets preserved)`);
       // Non-scheduled preset expired
+      const activeScheduled = presets.filter(p => p.isScheduled && p.isActive);
+      if (activeScheduled.length > 0) {
+        console.log(`[PRESETS] handleExpiredPreset — NOTE: ${activeScheduled.length} scheduled preset(s) remain active after expiration: [${activeScheduled.map(p => `"${p.name}"`).join(', ')}]`);
+      }
       const result = await activatePreset(userEmail_safe, null);
       if (result.success) {
+        console.log(`[PRESETS] handleExpiredPreset — deactivation API SUCCESS for "${preset.name}"`);
         setActivePresetId(null);
         // Only set non-scheduled presets to inactive, preserve scheduled preset states
         setPresets(prev => prev.map(p => ({
           ...p,
           isActive: p.isScheduled ? p.isActive : false,
         })));
+      } else {
+        console.log(`[PRESETS] handleExpiredPreset — deactivation API FAILED for "${preset.name}"`);
       }
+    } else {
+      console.log(`[PRESETS] handleExpiredPreset — preset "${preset.name}" expired but is not the active preset (activePresetId: ${activePresetId}) — no action taken`);
     }
   }, [activePresetId, userEmail_safe, presets, syncScheduledPresetsToNative]);
 

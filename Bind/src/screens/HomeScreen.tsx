@@ -23,7 +23,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import BlockNowButton from '../components/BlockNowButton';
 import InfoModal from '../components/InfoModal';
 import EmergencyTapoutModal from '../components/EmergencyTapoutModal';
-import { updateLockStatus, Preset, useEmergencyTapout, activatePreset, invalidateUserCaches } from '../services/cardApi';
+import { updateLockStatus, Preset, useEmergencyTapout, activatePreset, savePreset, invalidateUserCaches } from '../services/cardApi';
 import { useTheme , textSize, fontFamily, radius, shadow, iconSize } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { useAuth } from '../context/AuthContext';
@@ -277,8 +277,17 @@ function HomeScreen() {
           if (BlockingModule) {
             await BlockingModule.forceUnlock();
           }
-          // Deactivate the no-time-limit preset in the backend
-          await activatePreset(email, null);
+          // Deactivate ONLY the active non-scheduled preset (not all presets)
+          // Using savePreset instead of activatePreset(null) to preserve scheduled preset states
+          const activeNonScheduled = presets.find((p: Preset) => p.isActive && !p.isScheduled);
+          if (activeNonScheduled) {
+            console.log(`[SCHED-DEBUG] loadStats: deactivating non-scheduled preset "${activeNonScheduled.name}" (noTimeLimit: ${activeNonScheduled.noTimeLimit})`);
+            await savePreset(email, { ...activeNonScheduled, isActive: false });
+            // Update shared state so PresetsScreen toggle reflects the change immediately
+            setSharedPresets(prev => prev.map(p =>
+              p.id === activeNonScheduled.id ? { ...p, isActive: false } : p
+            ));
+          }
           await updateLockStatus(email, false, null);
           invalidateUserCaches(email);
           console.log('[SCHED-DEBUG] loadStats: override complete');
@@ -446,8 +455,12 @@ function HomeScreen() {
               await BlockingModule.forceUnlock();
             }
             await updateLockStatus(email, false, null);
-            if (isScheduledPreset) {
-              await activatePreset(email, null);
+            if (isScheduledPreset && presetIdToKeep) {
+              // Deactivate only this scheduled preset, not all presets
+              const presetToDeactivate = sharedPresets.find(p => p.id === presetIdToKeep);
+              if (presetToDeactivate) {
+                await savePreset(email, { ...presetToDeactivate, isActive: false });
+              }
             } else if (presetIdToKeep) {
               await activatePreset(email, presetIdToKeep);
             }
@@ -966,6 +979,12 @@ function HomeScreen() {
               ? new Date(calculatedLockEndsAt).getTime()
               : 0;
 
+            const resolvedNoTimeLimit = activePreset.noTimeLimit && !activePreset.isScheduled;
+            console.log(`[PRESETS] HomeScreen startBlocking — preset "${activePreset.name}" (id: ${activePreset.id}) | noTimeLimit raw: ${activePreset.noTimeLimit}, isScheduled: ${activePreset.isScheduled}, resolved noTimeLimit sent to native: ${resolvedNoTimeLimit}`);
+            if (activePreset.noTimeLimit && activePreset.isScheduled) {
+              console.log(`[PRESETS] HomeScreen startBlocking — NOTE: preset has noTimeLimit=true BUT isScheduled=true, so noTimeLimit is OVERRIDDEN to false for native module`);
+            }
+
             await BlockingModule.startBlocking({
               mode: activePreset.mode,
               selectedApps: activePreset.selectedApps,
@@ -975,7 +994,7 @@ function HomeScreen() {
               timerMinutes: activePreset.timerMinutes,
               lockEndTimeMs: lockEndTimeMs,
               blockSettings: activePreset.blockSettings,
-              noTimeLimit: activePreset.noTimeLimit && !activePreset.isScheduled,
+              noTimeLimit: resolvedNoTimeLimit,
               presetName: activePreset.name,
               presetId: activePreset.id,
               isScheduled: activePreset.isScheduled || false,
