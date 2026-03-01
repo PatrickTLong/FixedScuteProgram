@@ -52,13 +52,9 @@ class BlockedOverlayManager(private val context: Context) {
     private var overlayView: View? = null
     private var isShowing = false
     private var isTransitioning = false
-    private var isSafeToDismiss = false
 
-    // Callback when overlay is dismissed (goes home)
+    // Callback when overlay is dismissed
     var onDismissed: (() -> Unit)? = null
-
-    // Callback to trigger goHome immediately (without dismissing overlay)
-    var onGoHomeRequested: (() -> Unit)? = null
 
     // Store current block info for "Continue anyway"
     private var currentBlockedType: String = TYPE_APP
@@ -92,9 +88,8 @@ class BlockedOverlayManager(private val context: Context) {
      * when called from an AccessibilityService.
      */
     fun show(blockedType: String, blockedItem: String?, blockedName: String?, strictMode: Boolean, customBlockedText: String = "", customBlockedTextColor: String = "", customOverlayImage: String = "", customOverlayImageSize: Int = 120): Boolean {
-        Log.d(TAG, "[OVERLAY] show() called: type=$blockedType, item=$blockedItem, name=$blockedName | state: isShowing=$isShowing, isTransitioning=$isTransitioning")
         if (isShowing) {
-            Log.d(TAG, "[OVERLAY] Already showing — updating content only")
+            Log.d(TAG, "Overlay already showing, updating content")
             updateContent(blockedType, blockedItem, blockedName, strictMode, customBlockedText, customBlockedTextColor, customOverlayImage, customOverlayImageSize)
             return true
         }
@@ -103,7 +98,6 @@ class BlockedOverlayManager(private val context: Context) {
         // when called from AccessibilityService context
 
         try {
-            isSafeToDismiss = false
             currentBlockedType = blockedType
             currentBlockedItem = blockedItem
             currentBlockedName = blockedName
@@ -172,7 +166,6 @@ class BlockedOverlayManager(private val context: Context) {
             windowManager?.addView(overlayView, layoutParams)
             isShowing = true
             isTransitioning = true
-            Log.d(TAG, "[OVERLAY] View added to WindowManager — isShowing=true, isTransitioning=true, starting fade-in (300ms)")
 
             // Disable clicks during transition
             overlayView?.isClickable = false
@@ -219,13 +212,11 @@ class BlockedOverlayManager(private val context: Context) {
     private fun enableInteraction() {
         isTransitioning = false
         overlayView?.isClickable = true
-        Log.d(TAG, "[OVERLAY] Fade-in complete — interaction enabled, isTransitioning=false")
 
-        // Set up tap handler
+        // Set up tap to dismiss
         overlayView?.findViewById<View>(R.id.overlay_root)?.apply {
             isClickable = true
             setOnClickListener {
-                Log.d(TAG, "[OVERLAY] Tap detected! isTransitioning=$isTransitioning, isShowing=$isShowing, type=$currentBlockedType")
                 if (!isTransitioning) {
                     if (HAPTIC_ON_DISMISS) {
                         try {
@@ -242,22 +233,7 @@ class BlockedOverlayManager(private val context: Context) {
                             Log.w(TAG, "Haptic feedback failed", e)
                         }
                     }
-
-                    if (currentBlockedType == TYPE_WEBSITE) {
-                        // Websites: dismiss immediately on tap (original behavior)
-                        Log.d(TAG, "[OVERLAY] Website block — calling dismiss() from tap handler")
-                        dismiss()
-                    } else if (isSafeToDismiss) {
-                        // User is on a safe screen — dismiss normally
-                        Log.d(TAG, "[OVERLAY] App/Settings block — safe to dismiss, calling dismiss()")
-                        dismiss()
-                    } else {
-                        // Apps/Settings: call goHome but keep overlay up until polling confirms safe
-                        Log.d(TAG, "[OVERLAY] App/Settings block — calling goHome, keeping overlay up")
-                        onGoHomeRequested?.invoke()
-                    }
-                } else {
-                    Log.d(TAG, "[OVERLAY] Tap IGNORED — isTransitioning=true")
+                    dismiss()
                 }
             }
         }
@@ -382,11 +358,7 @@ class BlockedOverlayManager(private val context: Context) {
      * Dismiss the overlay and trigger callback (go home)
      */
     fun dismiss() {
-        Log.d(TAG, "[OVERLAY] dismiss() called: isShowing=$isShowing, isTransitioning=$isTransitioning")
-        if (!isShowing) {
-            Log.d(TAG, "[OVERLAY] dismiss() SKIPPED — not showing")
-            return
-        }
+        if (!isShowing) return
         fadeOutAndDismiss(withCallback = true)
     }
 
@@ -394,14 +366,9 @@ class BlockedOverlayManager(private val context: Context) {
      * Fade out the overlay and dismiss
      */
     private fun fadeOutAndDismiss(withCallback: Boolean) {
-        Log.d(TAG, "[OVERLAY] fadeOutAndDismiss(withCallback=$withCallback): isShowing=$isShowing, isTransitioning=$isTransitioning")
-        if (!isShowing || isTransitioning) {
-            Log.d(TAG, "[OVERLAY] fadeOutAndDismiss SKIPPED — isShowing=$isShowing, isTransitioning=$isTransitioning")
-            return
-        }
+        if (!isShowing || isTransitioning) return
 
         isTransitioning = true
-        Log.d(TAG, "[OVERLAY] Starting fade-out (200ms) — isTransitioning=true, clicks disabled")
 
         // Disable interaction during fade out
         overlayView?.isClickable = false
@@ -440,41 +407,24 @@ class BlockedOverlayManager(private val context: Context) {
      * Complete the dismissal after animation
      */
     private fun finalizeDismiss(withCallback: Boolean) {
-        Log.d(TAG, "[OVERLAY] finalizeDismiss(withCallback=$withCallback) — removing view from WindowManager")
         try {
             windowManager?.removeView(overlayView)
         } catch (e: Exception) {
-            Log.e(TAG, "[OVERLAY] Error removing overlay view", e)
+            Log.e(TAG, "Error removing overlay view", e)
         }
 
         overlayView = null
         windowManager = null
         isShowing = false
         isTransitioning = false
-        Log.d(TAG, "[OVERLAY] View removed — isShowing=false, isTransitioning=false")
 
         if (withCallback) {
-            Log.d(TAG, "[OVERLAY] Invoking onDismissed callback (goHome)")
+            Log.d(TAG, "Overlay dismissed")
             onDismissed?.invoke()
-            Log.d(TAG, "[OVERLAY] onDismissed callback completed")
         } else {
-            Log.d(TAG, "[OVERLAY] Dismissed without callback (continue anyway)")
+            Log.d(TAG, "Overlay dismissed (continue anyway)")
         }
     }
-
-    /**
-     * Mark the overlay as safe to dismiss. Called by the monitor when it confirms
-     * the user is on a non-blocked screen. The overlay stays visible — user taps to dismiss.
-     */
-    fun markSafeToDismiss() {
-        Log.d(TAG, "[OVERLAY] markSafeToDismiss() called — user on safe screen, tap to dismiss enabled")
-        isSafeToDismiss = true
-    }
-
-    /**
-     * Get the current blocked type
-     */
-    fun getBlockedType(): String = currentBlockedType
 
     /**
      * Check if overlay is currently showing
