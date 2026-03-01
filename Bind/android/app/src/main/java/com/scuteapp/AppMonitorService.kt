@@ -59,6 +59,10 @@ class AppMonitorService(private val context: Context) {
             onDismissed = {
                 onGoHome?.invoke()
             }
+            onGoHomeRequested = {
+                Log.d(TAG, "[APP-BLOCK] onGoHomeRequested — calling goHome (overlay stays up)")
+                ScuteAccessibilityService.instance?.goHome()
+            }
         }
 
         isMonitoring = true
@@ -218,11 +222,33 @@ class AppMonitorService(private val context: Context) {
 
         val (currentPackage, currentClassName) = result
 
+        val overlayShowing = overlayManager?.isShowing() == true
+        val foregroundChanged = currentPackage != lastForegroundPackage || currentClassName != lastForegroundClassName
+
+        // When overlay is showing for app/settings blocks, check if user reached a safe screen
+        // This runs every poll cycle (even if foreground hasn't changed) so we can dismiss promptly
+        if (overlayShowing && overlayManager?.getBlockedType() != BlockedOverlayManager.TYPE_WEBSITE) {
+            if (foregroundChanged) {
+                Log.d(TAG, "[APP-BLOCK] Foreground changed while overlay showing: pkg=$currentPackage (was: $lastForegroundPackage)")
+                lastForegroundPackage = currentPackage
+                lastForegroundClassName = currentClassName
+                if (!isSettingsApp(currentPackage)) lastAllowedWifiSettings = false
+            }
+
+            val isSafe = currentPackage == "com.scuteapp" || !shouldBlockApp(currentPackage) ||
+                (isSettingsApp(currentPackage) && isAllowedSettingsScreen(currentClassName))
+            if (isSafe) {
+                Log.d(TAG, "[APP-BLOCK] Overlay showing, user reached safe screen ($currentPackage) — marking safe to dismiss")
+                overlayManager?.markSafeToDismiss()
+            }
+            // If not safe, overlay stays up (goHome was already called on tap)
+            return
+        }
+
         // Skip if same package AND same class (nothing changed)
-        if (currentPackage == lastForegroundPackage && currentClassName == lastForegroundClassName) return
+        if (!foregroundChanged) return
 
         // Log every foreground app change (not every poll — only when something changed)
-        val overlayShowing = overlayManager?.isShowing() == true
         Log.d(TAG, "[APP-BLOCK] Foreground changed: pkg=$currentPackage, class=$currentClassName (was: pkg=$lastForegroundPackage, class=$lastForegroundClassName) overlayShowing=$overlayShowing")
 
         if (currentPackage != lastForegroundPackage) {
@@ -267,9 +293,8 @@ class AppMonitorService(private val context: Context) {
             return
         }
 
-        // Skip if overlay is already showing
+        // Skip if overlay is already showing (website type — uses original dismiss behavior)
         if (overlayShowing) {
-            Log.d(TAG, "[APP-BLOCK] Overlay already showing — skipping block for $currentPackage")
             return
         }
 
