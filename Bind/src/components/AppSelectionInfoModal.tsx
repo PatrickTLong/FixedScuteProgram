@@ -26,6 +26,9 @@ function AppSelectionInfoModal({ visible, onClose }: AppSelectionInfoModalProps)
 
   const triggerFlash = useCallback((anim: Animated.Value) => {
     anim.setValue(0.3);
+  }, []);
+
+  const releaseFlash = useCallback((anim: Animated.Value) => {
     Animated.timing(anim, { toValue: 0, duration: 300, useNativeDriver: true }).start();
   }, []);
 
@@ -59,6 +62,7 @@ function AppSelectionInfoModal({ visible, onClose }: AppSelectionInfoModalProps)
               <View style={{ borderTopWidth: 1, borderTopColor: colors.divider }}>
                 <TouchableOpacity
                   onPressIn={() => triggerFlash(flash)}
+                  onPressOut={() => releaseFlash(flash)}
                   onPress={handleConfirm}
                   activeOpacity={1}
                   className="py-4 items-center justify-center"

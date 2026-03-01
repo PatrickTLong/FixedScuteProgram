@@ -46,6 +46,9 @@ function EmergencyTapoutModal({
 
   const triggerFlash = useCallback((anim: Animated.Value) => {
     anim.setValue(0.3);
+  }, []);
+
+  const releaseFlash = useCallback((anim: Animated.Value) => {
     Animated.timing(anim, { toValue: 0, duration: 300, useNativeDriver: true }).start();
   }, []);
 
@@ -163,6 +166,7 @@ function EmergencyTapoutModal({
           <View style={{ borderTopWidth: 1, borderTopColor: colors.divider }} className="flex-row">
             <TouchableOpacity
               onPressIn={() => triggerFlash(dismissFlash)}
+              onPressOut={() => releaseFlash(dismissFlash)}
               onPress={onClose}
               activeOpacity={1}
               style={{ borderRightWidth: 1, borderRightColor: colors.divider }}
@@ -175,6 +179,7 @@ function EmergencyTapoutModal({
             </TouchableOpacity>
             <TouchableOpacity
               onPressIn={() => triggerFlash(tapoutFlash)}
+              onPressOut={() => releaseFlash(tapoutFlash)}
               onPress={() => { if (haptics.slideToUnlock.enabled) triggerHaptic(haptics.slideToUnlock.completionType); onUseTapout(); }}
               disabled={!canUseTapout || isLoading}
               activeOpacity={1}

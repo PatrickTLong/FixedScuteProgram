@@ -28,6 +28,9 @@ function BlockSettingsWarningModal({ visible, onConfirm, onCancel }: BlockSettin
 
   const triggerFlash = useCallback((anim: Animated.Value) => {
     anim.setValue(0.3);
+  }, []);
+
+  const releaseFlash = useCallback((anim: Animated.Value) => {
     Animated.timing(anim, { toValue: 0, duration: 300, useNativeDriver: true }).start();
   }, []);
 
@@ -63,6 +66,7 @@ function BlockSettingsWarningModal({ visible, onConfirm, onCancel }: BlockSettin
           <View style={{ borderTopWidth: 1, borderTopColor: colors.divider }} className="flex-row">
             <TouchableOpacity
               onPressIn={() => triggerFlash(leftFlash)}
+              onPressOut={() => releaseFlash(leftFlash)}
               onPress={handleCancel}
               activeOpacity={1}
               style={{ borderRightWidth: 1, borderRightColor: colors.divider }}
@@ -75,6 +79,7 @@ function BlockSettingsWarningModal({ visible, onConfirm, onCancel }: BlockSettin
             </TouchableOpacity>
             <TouchableOpacity
               onPressIn={() => triggerFlash(rightFlash)}
+              onPressOut={() => releaseFlash(rightFlash)}
               onPress={handleConfirm}
               activeOpacity={1}
               className="flex-1 py-4 items-center justify-center"

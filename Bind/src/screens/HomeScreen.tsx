@@ -1406,6 +1406,8 @@ function HomeScreen() {
               <TouchableOpacity
                 onPressIn={() => {
                   closeFlash.setValue(0.3);
+                }}
+                onPressOut={() => {
                   Animated.timing(closeFlash, { toValue: 0, duration: 300, useNativeDriver: true }).start();
                 }}
                 onPress={() => { setScheduledPresetsModalVisible(false); }}

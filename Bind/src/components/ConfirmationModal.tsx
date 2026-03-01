@@ -47,6 +47,9 @@ function ConfirmationModal({
   const triggerFlash = useCallback((anim: Animated.Value) => {
     if (haptics.modalButton.enabled) triggerHaptic(haptics.modalButton.type);
     anim.setValue(0.3);
+  }, []);
+
+  const releaseFlash = useCallback((anim: Animated.Value) => {
     Animated.timing(anim, { toValue: 0, duration: 300, useNativeDriver: true }).start();
   }, []);
 
@@ -82,6 +85,7 @@ function ConfirmationModal({
                 {/* Cancel Button */}
                 <TouchableOpacity
                   onPressIn={() => triggerFlash(cancelFlash)}
+                  onPressOut={() => releaseFlash(cancelFlash)}
                   onPress={onCancel}
                   activeOpacity={1}
                   style={{ borderRightWidth: 1, borderRightColor: colors.divider }}
@@ -96,6 +100,7 @@ function ConfirmationModal({
                 {/* Confirm Button */}
                 <TouchableOpacity
                   onPressIn={() => triggerFlash(confirmFlash)}
+                  onPressOut={() => releaseFlash(confirmFlash)}
                   onPress={onConfirm}
                   activeOpacity={1}
                   className="flex-1 py-4 items-center justify-center"

@@ -34,6 +34,9 @@ function EmailConfirmationModal({ visible, userEmail, onConfirm, onCancel }: Ema
 
   const triggerFlash = useCallback((anim: Animated.Value) => {
     anim.setValue(0.3);
+  }, []);
+
+  const releaseFlash = useCallback((anim: Animated.Value) => {
     Animated.timing(anim, { toValue: 0, duration: 300, useNativeDriver: true }).start();
   }, []);
 
@@ -135,6 +138,7 @@ function EmailConfirmationModal({ visible, userEmail, onConfirm, onCancel }: Ema
             {/* Cancel Button */}
             <TouchableOpacity
               onPressIn={() => triggerFlash(cancelFlash)}
+              onPressOut={() => releaseFlash(cancelFlash)}
               onPress={handleCancel}
               activeOpacity={1}
               className="flex-1 py-4 items-center justify-center"
@@ -149,6 +153,7 @@ function EmailConfirmationModal({ visible, userEmail, onConfirm, onCancel }: Ema
             {/* Delete Account Button */}
             <TouchableOpacity
               onPressIn={() => triggerFlash(confirmFlash)}
+              onPressOut={() => releaseFlash(confirmFlash)}
               onPress={handleConfirm}
               disabled={!isEmailMatch}
               activeOpacity={1}
