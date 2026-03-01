@@ -67,6 +67,74 @@ class AppMonitorService(private val context: Context) {
     }
 
     /**
+     * Force an immediate check of the current foreground app using a wider time window.
+     * Called when a new blocking session starts so that the currently open blocked app
+     * gets blocked instantly (the normal 5-second event window may miss it if the user
+     * has been in the app for a while without generating a new MOVE_TO_FOREGROUND event).
+     */
+    fun immediateBlockCheck() {
+        Log.d(TAG, "immediateBlockCheck: performing immediate foreground app check with wide time window")
+
+        val usageStatsManager = context.getSystemService(Context.USAGE_STATS_SERVICE) as? UsageStatsManager
+        if (usageStatsManager == null) {
+            Log.w(TAG, "immediateBlockCheck: UsageStatsManager is null")
+            return
+        }
+
+        val now = System.currentTimeMillis()
+        // Use a 60-second window to catch the current foreground app even if it's been there a while
+        val events = usageStatsManager.queryEvents(now - 60_000, now)
+        val event = UsageEvents.Event()
+
+        var foregroundPackage: String? = null
+        var foregroundClassName: String? = null
+
+        while (events.hasNextEvent()) {
+            events.getNextEvent(event)
+            if (event.eventType == UsageEvents.Event.MOVE_TO_FOREGROUND ||
+                event.eventType == UsageEvents.Event.ACTIVITY_RESUMED) {
+                foregroundPackage = event.packageName
+                foregroundClassName = event.className
+            }
+        }
+
+        if (foregroundPackage == null) {
+            Log.d(TAG, "immediateBlockCheck: no foreground app detected")
+            return
+        }
+
+        Log.d(TAG, "immediateBlockCheck: foreground app is $foregroundPackage (class: $foregroundClassName)")
+
+        // Update tracked state so normal polling doesn't skip this app
+        lastForegroundPackage = foregroundPackage
+        lastForegroundClassName = foregroundClassName
+
+        // Skip our own app
+        if (foregroundPackage == "com.scuteapp") {
+            Log.d(TAG, "immediateBlockCheck: foreground is Scute — skipping")
+            return
+        }
+
+        // Check if we should block this app
+        if (!shouldBlockApp(foregroundPackage)) {
+            Log.d(TAG, "immediateBlockCheck: $foregroundPackage is not blocked")
+            return
+        }
+
+        // For Settings apps, check if the specific screen is allowed
+        if (isSettingsApp(foregroundPackage)) {
+            if (isAllowedSettingsScreen(foregroundClassName)) {
+                Log.d(TAG, "immediateBlockCheck: allowed settings screen — skipping")
+                return
+            }
+        }
+
+        Log.d(TAG, "immediateBlockCheck: BLOCKING $foregroundPackage immediately!")
+        ScuteAccessibilityService.instance?.goHome()
+        showBlockedOverlay(foregroundPackage)
+    }
+
+    /**
      * Stop monitoring
      */
     fun stopMonitoring() {

@@ -18,113 +18,19 @@ interface TabItemProps {
   label: string;
   isActive: boolean;
   onPress: () => void;
-  renderIcon: (color: string, filled: boolean, iconRef?: React.RefObject<AnimatedGridCircleIconRef | AnimatedStatsIconRef | AnimatedPresetsIconRef | AnimatedOverlaysIconRef | null>) => React.ReactNode;
+  renderIcon: (color: string, filled: boolean, iconRef?: React.RefObject<AnimatedStatsIconRef | AnimatedPresetsIconRef | AnimatedOverlaysIconRef | null>) => React.ReactNode;
   activeColor: string;
   inactiveColor: string;
-  isHome?: boolean;
   isSettings?: boolean;
   isStats?: boolean;
   isPresets?: boolean;
   isOverlays?: boolean;
 }
 
-const GridCircleIcon = ({ color, filled }: { color: string; filled?: boolean }) => (
-  <Svg width={iconSize.lg} height={iconSize.lg} viewBox="0 0 24 24">
-    {filled ? (
-      <>
-        <Path d="M7 3a4 4 0 1 0 0 8 4 4 0 1 0 0-8" fill={color} />
-        <Path d="M17 3a4 4 0 1 0 0 8 4 4 0 1 0 0-8" fill={color} />
-        <Path d="M7 13a4 4 0 1 0 0 8 4 4 0 1 0 0-8" fill={color} />
-        <Path d="M17 13a4 4 0 1 0 0 8 4 4 0 1 0 0-8" fill={color} />
-      </>
-    ) : (
-      <>
-        <Path d="M7 11c2.21 0 4-1.79 4-4S9.21 3 7 3 3 4.79 3 7s1.79 4 4 4m0-6c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2" fill={color} />
-        <Path d="M17 3c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4m0 6c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2" fill={color} />
-        <Path d="M7 21c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4m0-6c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2" fill={color} />
-        <Path d="M17 13c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4m0 6c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2" fill={color} />
-      </>
-    )}
-  </Svg>
-);
-
-// Animated GridCircleIcon — top row slides from right, bottom row from left
-export interface AnimatedGridCircleIconRef {
-  animate: () => void;
-}
-
-export const AnimatedGridCircleIcon = forwardRef<AnimatedGridCircleIconRef, { color: string; filled?: boolean }>(
-  ({ color, filled }, ref) => {
-    const topRowAnim = useRef(new Animated.Value(1)).current;
-    const bottomRowAnim = useRef(new Animated.Value(1)).current;
-
-    const animate = useCallback(() => {
-      topRowAnim.setValue(0);
-      bottomRowAnim.setValue(0);
-      Animated.stagger(80, [
-        Animated.timing(topRowAnim, {
-          toValue: 1,
-          duration: 300,
-          easing: Easing.out(Easing.back(1.5)),
-          useNativeDriver: false,
-        }),
-        Animated.timing(bottomRowAnim, {
-          toValue: 1,
-          duration: 300,
-          easing: Easing.out(Easing.back(1.5)),
-          useNativeDriver: false,
-        }),
-      ]).start();
-    }, [topRowAnim, bottomRowAnim]);
-
-    useImperativeHandle(ref, () => ({ animate }), [animate]);
-
-    // Auto-animate when filled changes to true, deferred so it doesn't block tab switch
-    const prevFilledRef = useRef(filled);
-    useEffect(() => {
-      if (filled && !prevFilledRef.current) {
-        const id = setTimeout(() => animate(), 50);
-        prevFilledRef.current = filled;
-        return () => clearTimeout(id);
-      }
-      prevFilledRef.current = filled;
-    }, [filled, animate]);
-
-    // Top row slides in from right
-    const topRowX = topRowAnim.interpolate({
-      inputRange: [0, 1],
-      outputRange: [6, 0],
-    });
-    // Bottom row slides in from left
-    const bottomRowX = bottomRowAnim.interpolate({
-      inputRange: [0, 1],
-      outputRange: [-6, 0],
-    });
-
-    return (
-      <Svg width={iconSize.lg} height={iconSize.lg} viewBox="0 0 24 24">
-        {filled ? (
-          <>
-            <AnimatedG x={topRowX} opacity={topRowAnim}>
-              <Path d="M7 3a4 4 0 1 0 0 8 4 4 0 1 0 0-8" fill={color} />
-              <Path d="M17 3a4 4 0 1 0 0 8 4 4 0 1 0 0-8" fill={color} />
-            </AnimatedG>
-            <AnimatedG x={bottomRowX} opacity={bottomRowAnim}>
-              <Path d="M7 13a4 4 0 1 0 0 8 4 4 0 1 0 0-8" fill={color} />
-              <Path d="M17 13a4 4 0 1 0 0 8 4 4 0 1 0 0-8" fill={color} />
-            </AnimatedG>
-          </>
-        ) : (
-          <>
-            <Path d="M7 11c2.21 0 4-1.79 4-4S9.21 3 7 3 3 4.79 3 7s1.79 4 4 4m0-6c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2" fill={color} />
-            <Path d="M17 3c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4m0 6c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2" fill={color} />
-            <Path d="M7 21c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4m0-6c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2" fill={color} />
-            <Path d="M17 13c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4m0 6c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2" fill={color} />
-          </>
-        )}
-      </Svg>
-    );
-  }
+const HomeHeartIcon = ({ color, filled }: { color: string; filled?: boolean }) => (
+  filled
+    ? <BoxiconsFilled name="bx-home-alt-2" size={iconSize.lg} color={color} />
+    : <BoxiconsRegular name="bx-home-alt-2" size={iconSize.lg} color={color} />
 );
 
 const PresetsIcon = ({ color, filled }: { color: string; filled?: boolean }) => (
@@ -528,11 +434,10 @@ export const AnimatedOverlaysIcon = forwardRef<AnimatedOverlaysIconRef, { color:
 
 const FLASH_SIZE = 80;
 
-const TabItem = memo(({ label, isActive, onPress, renderIcon, activeColor, inactiveColor, isHome = false, isSettings = false, isStats = false, isPresets = false, isOverlays = false }: TabItemProps) => {
+const TabItem = memo(({ label, isActive, onPress, renderIcon, activeColor, inactiveColor, isSettings = false, isStats = false, isPresets = false, isOverlays = false }: TabItemProps) => {
   const flashOpacity = useRef(new Animated.Value(0)).current;
   const iconScale = useRef(new Animated.Value(1)).current;
   const iconRotation = useRef(new Animated.Value(0)).current;
-  const homeIconRef = useRef<AnimatedGridCircleIconRef>(null);
   const statsIconRef = useRef<AnimatedStatsIconRef>(null);
   const presetsIconRef = useRef<AnimatedPresetsIconRef>(null);
   const overlaysIconRef = useRef<AnimatedOverlaysIconRef>(null);
@@ -621,11 +526,7 @@ const TabItem = memo(({ label, isActive, onPress, renderIcon, activeColor, inact
       overlaysIconRef.current.animate();
     }
 
-    // Home grid-circle animation - only on re-tap (tab switch handled by deferred auto-animate)
-    if (isHome && homeIconRef.current && isActive) {
-      homeIconRef.current.animate();
-    }
-  }, [flashOpacity, iconScale, triggerGearTorque, isSettings, isStats, isPresets, isOverlays, isHome, isActive]);
+  }, [flashOpacity, iconScale, triggerGearTorque, isSettings, isStats, isPresets, isOverlays, isActive]);
 
   const displayColor = pressed ? '#ffffff' : (isActive ? activeColor : inactiveColor);
 
@@ -659,7 +560,7 @@ const TabItem = memo(({ label, isActive, onPress, renderIcon, activeColor, inact
             { rotate: isSettings ? rotateInterpolate : '0deg' },
           ]
         }}>
-          {renderIcon(displayColor, isActive, isHome ? homeIconRef : isStats ? statsIconRef : isPresets ? presetsIconRef : isOverlays ? overlaysIconRef : undefined)}
+          {renderIcon(displayColor, isActive, isStats ? statsIconRef : isPresets ? presetsIconRef : isOverlays ? overlaysIconRef : undefined)}
         </Animated.View>
         <Text
           style={{ color: displayColor }}
@@ -721,8 +622,8 @@ function BottomTabBar({ state, navigation }: RNBottomTabBarProps) {
 
   const bottomPadding = Math.max(insets.bottom, s(24));
 
-  const renderHomeIcon = useCallback((color: string, filled: boolean, iconRef?: React.RefObject<AnimatedGridCircleIconRef | null>) =>
-    iconRef ? <AnimatedGridCircleIcon ref={iconRef} color={color} filled={filled} /> : <GridCircleIcon color={color} filled={filled} />, []);
+  const renderHomeIcon = useCallback((color: string, filled: boolean) =>
+    <HomeHeartIcon color={color} filled={filled} />, []);
   const renderPresetsIcon = useCallback((color: string, filled: boolean, iconRef?: React.RefObject<AnimatedPresetsIconRef | null>) =>
     iconRef ? <AnimatedPresetsIcon ref={iconRef} color={color} filled={filled} /> : <PresetsIcon color={color} filled={filled} />, []);
   const renderStatsIcon = useCallback((color: string, filled: boolean, iconRef?: React.RefObject<AnimatedStatsIconRef | null>) =>
@@ -753,7 +654,6 @@ function BottomTabBar({ state, navigation }: RNBottomTabBarProps) {
           renderIcon={renderHomeIcon}
           activeColor={colors.text}
           inactiveColor={colors.textMuted}
-          isHome
         />
         <TabItem
           label="Presets"

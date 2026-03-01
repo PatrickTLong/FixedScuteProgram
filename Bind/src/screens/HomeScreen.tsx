@@ -90,6 +90,8 @@ function HomeScreen() {
   const timerExpiredRef = useRef(false);
   // Guard to prevent loadStats from overwriting optimistic lock/unlock state while backend sync is in-flight
   const optimisticLockGuardRef = useRef(false);
+  // Guard to prevent concurrent loadStats calls (e.g. mount + AppState 'active' both firing)
+  const loadStatsInProgressRef = useRef(false);
   // Mirror activePreset so handleTimerExpired can read it without a stale closure
   const activePresetRef = useRef<Preset | null>(null);
   // Keep ref in sync so handleTimerExpired always sees current value
@@ -253,6 +255,15 @@ function HomeScreen() {
   }, [email]);
 
   const loadStats = useCallback(async (skipCache = false, showLoading = false) => {
+    // Prevent concurrent loadStats calls — when the app opens from a terminated state,
+    // both the mount useEffect and the AppState 'active' listener fire loadStats.
+    // The second call would get stale backend data and overwrite the state set by the first.
+    if (loadStatsInProgressRef.current) {
+      console.log('[SCHED-DEBUG] loadStats: SKIPPED — another loadStats call is already in progress');
+      return;
+    }
+    loadStatsInProgressRef.current = true;
+
     if (showLoading) setLoading(true);
     const hideLoading = () => {
       if (showLoading) setTimeout(() => setLoading(false), 100);
@@ -413,6 +424,8 @@ function HomeScreen() {
       hideLoading();
     } catch (error) {
       hideLoading();
+    } finally {
+      loadStatsInProgressRef.current = false;
     }
   }, [email, checkScheduledPresets, activateScheduledPreset, refreshAll]);
 

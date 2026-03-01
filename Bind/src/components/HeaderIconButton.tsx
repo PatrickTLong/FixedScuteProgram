@@ -30,11 +30,18 @@ function HeaderIconButton({ onPress, onPressIn: onPressInProp, onPressOut, disab
     const sub = AppState.addEventListener('change', (state) => {
       if (state === 'active') {
         if (flashAnimRef.current) flashAnimRef.current.stop();
-        flashOpacity.setValue(0);
+        // stopAnimation syncs the native driver before resetting,
+        // preventing a resumed native animation from overriding setValue
+        flashOpacity.stopAnimation(() => {
+          flashOpacity.setValue(0);
+        });
+        iconScale.stopAnimation(() => {
+          iconScale.setValue(1);
+        });
       }
     });
     return () => sub.remove();
-  }, [flashOpacity]);
+  }, [flashOpacity, iconScale]);
 
   const triggerFlash = useCallback(() => {
     if (disabled) return;

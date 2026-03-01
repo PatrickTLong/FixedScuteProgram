@@ -228,6 +228,11 @@ class UninstallBlockerService : Service() {
             Log.d(TAG, "Widget bubble is globally disabled, skipping")
         }
 
+        // Immediately check if the user is currently in a blocked app and block it.
+        // Normal polling may miss the current foreground app if the user has been in it
+        // for longer than the 5-second UsageEvents query window.
+        appMonitor?.immediateBlockCheck()
+
         return START_STICKY
     }
 
