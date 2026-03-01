@@ -214,32 +214,40 @@ function HomeScreen() {
       setCurrentPreset(preset.name);
       setActivePreset(preset);
 
-      // Call native blocking module
+      // Call native blocking module — but only if native isn't already blocking
+      // (ScheduledPresetReceiver may have already started the session natively while the app was closed)
       if (BlockingModule) {
-        // Calculate lockEndTimeMs from scheduleEndDate so native side gets the correct end time
-        const lockEndTimeMs = lockEndsAtDate ? new Date(lockEndsAtDate).getTime() : 0;
-        const blockingConfig = {
-          mode: preset.mode,
-          selectedApps: preset.selectedApps,
-          blockedWebsites: preset.blockedWebsites,
-          timerDays: 0,
-          timerHours: 0,
-          timerMinutes: 0,
-          lockEndTimeMs,
-          blockSettings: preset.blockSettings,
-          noTimeLimit: false,
-          presetName: preset.name,
-          presetId: preset.id,
-          isScheduled: true,
-          strictMode: preset.strictMode ?? false,
-          customBlockedText: preset.customBlockedText ?? '',
-          customBlockedTextColor: preset.customBlockedTextColor ?? '',
-          customOverlayImage: preset.customOverlayImage ?? '',
-          customOverlayImageSize: preset.customOverlayImageSize ?? 120,
-        };
-        console.log('[SCHED-DEBUG] Calling BlockingModule.startBlocking:', JSON.stringify(blockingConfig));
-        await BlockingModule.startBlocking(blockingConfig);
-        console.log('[SCHED-DEBUG] BlockingModule.startBlocking completed');
+        const alreadyBlocking = await BlockingModule.isBlocking();
+        console.log('[SCHED-DEBUG] Native isBlocking check:', alreadyBlocking);
+
+        if (alreadyBlocking) {
+          console.log('[SCHED-DEBUG] Native is already blocking — skipping startBlocking to avoid duplicate notification');
+        } else {
+          // Calculate lockEndTimeMs from scheduleEndDate so native side gets the correct end time
+          const lockEndTimeMs = lockEndsAtDate ? new Date(lockEndsAtDate).getTime() : 0;
+          const blockingConfig = {
+            mode: preset.mode,
+            selectedApps: preset.selectedApps,
+            blockedWebsites: preset.blockedWebsites,
+            timerDays: 0,
+            timerHours: 0,
+            timerMinutes: 0,
+            lockEndTimeMs,
+            blockSettings: preset.blockSettings,
+            noTimeLimit: false,
+            presetName: preset.name,
+            presetId: preset.id,
+            isScheduled: true,
+            strictMode: preset.strictMode ?? false,
+            customBlockedText: preset.customBlockedText ?? '',
+            customBlockedTextColor: preset.customBlockedTextColor ?? '',
+            customOverlayImage: preset.customOverlayImage ?? '',
+            customOverlayImageSize: preset.customOverlayImageSize ?? 120,
+          };
+          console.log('[SCHED-DEBUG] Calling BlockingModule.startBlocking:', JSON.stringify(blockingConfig));
+          await BlockingModule.startBlocking(blockingConfig);
+          console.log('[SCHED-DEBUG] BlockingModule.startBlocking completed');
+        }
       } else {
         console.log('[SCHED-DEBUG] WARNING: BlockingModule is null/undefined!');
       }
@@ -1150,7 +1158,12 @@ function HomeScreen() {
         {/* Right side buttons */}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: s(8) }}>
           {/* Notification Permission Toggle */}
-          <HeaderIconButton onPress={openNotificationSettings}>
+          <TouchableOpacity
+            onPress={openNotificationSettings}
+            activeOpacity={0.7}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            className="px-2"
+          >
             {!notificationsEnabled ? (
               <Svg width={s(iconSize.headerNav)} height={s(iconSize.headerNav)} viewBox="0 0 24 24" fill="#FFFFFF">
                 <Path d="M3.53 2.47a.75.75 0 0 0-1.06 1.06l18 18a.75.75 0 1 0 1.06-1.06l-18-18ZM20.57 16.476c-.223.082-.448.161-.674.238L7.319 4.137A6.75 6.75 0 0 1 18.75 9v.75c0 2.123.8 4.057 2.118 5.52a.75.75 0 0 1-.297 1.206Z" />
@@ -1162,7 +1175,7 @@ function HomeScreen() {
                 <Path fillRule="evenodd" clipRule="evenodd" d="M12 2.25A6.75 6.75 0 0 0 5.25 9v.75a8.217 8.217 0 0 1-2.119 5.52.75.75 0 0 0 .298 1.206c1.544.57 3.16.99 4.831 1.243a3.75 3.75 0 1 0 7.48 0 24.583 24.583 0 0 0 4.83-1.244.75.75 0 0 0 .298-1.205 8.217 8.217 0 0 1-2.118-5.52V9A6.75 6.75 0 0 0 12 2.25ZM9.75 18c0-.034 0-.067.002-.1a25.05 25.05 0 0 0 4.496 0l.002.1a2.25 2.25 0 1 1-4.5 0Z" />
               </Svg>
             )}
-          </HeaderIconButton>
+          </TouchableOpacity>
 
           {/* Widget Bubble Toggle */}
           <HeaderIconButton onPress={toggleWidgetBubble}>

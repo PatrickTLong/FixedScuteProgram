@@ -29,8 +29,8 @@ interface TabItemProps {
 
 const HomeHeartIcon = ({ color, filled }: { color: string; filled?: boolean }) => (
   filled
-    ? <BoxiconsFilled name="bx-home-alt-2" size={iconSize.lg} color={color} />
-    : <BoxiconsRegular name="bx-home-alt-2" size={iconSize.lg} color={color} />
+    ? <BoxiconsFilled name="bx-home-heart" size={iconSize.lg} color={color} />
+    : <BoxiconsRegular name="bx-home-heart" size={iconSize.lg} color={color} />
 );
 
 const PresetsIcon = ({ color, filled }: { color: string; filled?: boolean }) => (
