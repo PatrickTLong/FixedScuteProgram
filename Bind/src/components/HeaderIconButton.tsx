@@ -49,50 +49,30 @@ function HeaderIconButton({ onPress, onPressIn: onPressInProp, onPressOut, disab
       triggerHaptic(haptics.headerButton.type);
     }
     if (flashAnimRef.current) flashAnimRef.current.stop();
+    // Show flash + scale while finger is held down
     flashOpacity.setValue(0.3);
-
-    // Scale pop
-    iconScale.setValue(1);
-    Animated.sequence([
-      Animated.timing(iconScale, {
-        toValue: 1.2,
-        duration: 100,
-        easing: Easing.out(Easing.ease),
-        useNativeDriver: true,
-      }),
-      Animated.timing(iconScale, {
-        toValue: 1,
-        duration: 100,
-        easing: Easing.in(Easing.ease),
-        useNativeDriver: true,
-      }),
-    ]).start();
-
-    if (onPressInProp) {
-      // Hold mode: keep flash visible, fade on release
-    } else {
-      flashAnimRef.current = Animated.timing(flashOpacity, {
-        toValue: 0,
-        duration: FLASH_DURATION,
-        useNativeDriver: true,
-      });
-      flashAnimRef.current.start();
-    }
+    iconScale.setValue(1.2);
     onPressInProp?.();
   }, [disabled, flashOpacity, iconScale, onPressInProp]);
 
   const handlePressOut = useCallback(() => {
-    if (onPressInProp) {
-      // Fade out flash on release for hold buttons
-      flashAnimRef.current = Animated.timing(flashOpacity, {
+    // Release: animate flash + scale back
+    flashAnimRef.current = Animated.parallel([
+      Animated.timing(flashOpacity, {
         toValue: 0,
         duration: FLASH_DURATION,
         useNativeDriver: true,
-      });
-      flashAnimRef.current.start();
-    }
+      }),
+      Animated.timing(iconScale, {
+        toValue: 1,
+        duration: 150,
+        easing: Easing.out(Easing.ease),
+        useNativeDriver: true,
+      }),
+    ]);
+    flashAnimRef.current.start();
     onPressOut?.();
-  }, [flashOpacity, onPressInProp, onPressOut]);
+  }, [flashOpacity, iconScale, onPressOut]);
 
   const scaledSize = s(flashSize);
 

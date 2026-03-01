@@ -482,29 +482,13 @@ const TabItem = memo(({ label, isActive, onPress, renderIcon, activeColor, inact
     prevActiveRef.current = isActive;
   }, [isActive, isSettings, triggerGearTorque]);
 
-  const triggerFlash = useCallback(() => {
-    setPressed(true);
-    flashOpacity.setValue(0.3);
-    Animated.timing(flashOpacity, {
-      toValue: 0,
-      duration: 300,
-      useNativeDriver: false,
-    }).start(() => setPressed(false));
+  const flashAnimRef = useRef<Animated.CompositeAnimation | null>(null);
 
-    // Icon scale animation - quick pop (all tabs)
-    iconScale.setValue(1);
-    Animated.sequence([
-      Animated.timing(iconScale, {
-        toValue: 1.2,
-        duration: 100,
-        useNativeDriver: false,
-      }),
-      Animated.timing(iconScale, {
-        toValue: 1,
-        duration: 100,
-        useNativeDriver: false,
-      }),
-    ]).start();
+  const triggerFlash = useCallback(() => {
+    if (flashAnimRef.current) flashAnimRef.current.stop();
+    // Show flash + scale while finger is held down
+    flashOpacity.setValue(0.15);
+    iconScale.setValue(1.2);
 
     // Gear rotation for settings tab
     if (isSettings) {
@@ -528,7 +512,25 @@ const TabItem = memo(({ label, isActive, onPress, renderIcon, activeColor, inact
 
   }, [flashOpacity, iconScale, triggerGearTorque, isSettings, isStats, isPresets, isOverlays, isActive]);
 
-  const displayColor = pressed ? '#ffffff' : (isActive ? activeColor : inactiveColor);
+  const handlePressOut = useCallback(() => {
+    // Release: animate flash + scale back
+    flashAnimRef.current = Animated.parallel([
+      Animated.timing(flashOpacity, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: false,
+      }),
+      Animated.timing(iconScale, {
+        toValue: 1,
+        duration: 150,
+        easing: Easing.out(Easing.ease),
+        useNativeDriver: false,
+      }),
+    ]);
+    flashAnimRef.current.start();
+  }, [flashOpacity, iconScale]);
+
+  const displayColor = isActive ? activeColor : inactiveColor;
 
   const rotateInterpolate = iconRotation.interpolate({
     inputRange: [0, 1],
@@ -541,8 +543,9 @@ const TabItem = memo(({ label, isActive, onPress, renderIcon, activeColor, inact
         triggerFlash();
         if (haptics.tabBar.enabled) triggerHaptic(haptics.tabBar.type);
       }}
+      onPressOut={handlePressOut}
       onPress={onPress}
-      activeOpacity={0.7}
+      activeOpacity={1}
       hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
       style={{ paddingVertical: buttonPadding.tabItem }}
       className="flex-1 items-center justify-center"

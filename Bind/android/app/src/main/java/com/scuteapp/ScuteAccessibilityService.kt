@@ -377,9 +377,23 @@ class ScuteAccessibilityService : AccessibilityService() {
     }
 
     // Public methods
-    fun goHome() = performGlobalAction(GLOBAL_ACTION_HOME)
-    fun pressBack() = performGlobalAction(GLOBAL_ACTION_BACK)
-    fun onOverlayDismissed() = performGlobalAction(GLOBAL_ACTION_HOME)
+    fun goHome(): Boolean {
+        val result = performGlobalAction(GLOBAL_ACTION_HOME)
+        Log.d(TAG, "[GOHOME] goHome() called — performGlobalAction result=$result")
+        return result
+    }
+
+    fun pressBack(): Boolean {
+        val result = performGlobalAction(GLOBAL_ACTION_BACK)
+        Log.d(TAG, "[GOHOME] pressBack() called — result=$result")
+        return result
+    }
+
+    fun onOverlayDismissed(): Boolean {
+        val result = performGlobalAction(GLOBAL_ACTION_HOME)
+        Log.d(TAG, "[GOHOME] onOverlayDismissed() → goHome — result=$result")
+        return result
+    }
 
     /**
      * Navigate to a URL in the current browser by sending a VIEW intent

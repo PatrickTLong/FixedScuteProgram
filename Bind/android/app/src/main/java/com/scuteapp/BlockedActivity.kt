@@ -186,13 +186,18 @@ class BlockedActivity : Activity() {
     }
 
     private fun dismissAndGoHome() {
+        Log.d(TAG, "[ACTIVITY-BLOCK] dismissAndGoHome called — isDismissing=$isDismissing")
         // Prevent multiple dismiss calls (race condition fix)
-        if (isDismissing) return
+        if (isDismissing) {
+            Log.d(TAG, "[ACTIVITY-BLOCK] SKIPPED — already dismissing")
+            return
+        }
         isDismissing = true
 
         // Notify service that overlay is being dismissed
         // This also triggers going to home screen
-        ScuteAccessibilityService.instance?.onOverlayDismissed()
+        val result = ScuteAccessibilityService.instance?.onOverlayDismissed()
+        Log.d(TAG, "[ACTIVITY-BLOCK] onOverlayDismissed result=$result, accessibilityInstance=${ScuteAccessibilityService.instance != null}")
 
         finish()
     }

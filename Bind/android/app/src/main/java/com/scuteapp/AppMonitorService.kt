@@ -221,6 +221,10 @@ class AppMonitorService(private val context: Context) {
         // Skip if same package AND same class (nothing changed)
         if (currentPackage == lastForegroundPackage && currentClassName == lastForegroundClassName) return
 
+        // Log every foreground app change (not every poll — only when something changed)
+        val overlayShowing = overlayManager?.isShowing() == true
+        Log.d(TAG, "[APP-BLOCK] Foreground changed: pkg=$currentPackage, class=$currentClassName (was: pkg=$lastForegroundPackage, class=$lastForegroundClassName) overlayShowing=$overlayShowing")
+
         if (currentPackage != lastForegroundPackage) {
             lastForegroundPackage = currentPackage
             // Reset WiFi flag when leaving Settings entirely
@@ -233,6 +237,7 @@ class AppMonitorService(private val context: Context) {
         // When user enters Scute app, reset the bubble's hidden state
         // so it reappears if they X'd it earlier (only if widget bubble is enabled)
         if (currentPackage == "com.scuteapp") {
+            Log.d(TAG, "[APP-BLOCK] Foreground is Scute app — skipping block check")
             val prefs = context.getSharedPreferences(UninstallBlockerService.PREFS_NAME, Context.MODE_PRIVATE)
             val widgetBubbleDisabled = prefs.getBoolean("widget_bubble_disabled", false)
             val bubbleManager = FloatingBubbleManager.getInstance(context)
@@ -263,22 +268,30 @@ class AppMonitorService(private val context: Context) {
         }
 
         // Skip if overlay is already showing
-        if (overlayManager?.isShowing() == true) return
+        if (overlayShowing) {
+            Log.d(TAG, "[APP-BLOCK] Overlay already showing — skipping block for $currentPackage")
+            return
+        }
 
         // Check if should block
         val shouldBlock = shouldBlockApp(currentPackage)
-        if (!shouldBlock) return
+        if (!shouldBlock) {
+            Log.d(TAG, "[APP-BLOCK] shouldBlockApp=false for $currentPackage — not blocked")
+            return
+        }
 
         // For Settings apps, check if the specific screen is allowed
         if (isSettingsApp(currentPackage)) {
             if (isAllowedSettingsScreen(currentClassName)) {
+                Log.d(TAG, "[APP-BLOCK] Allowed settings screen: $currentClassName — skipping")
                 return
             }
         }
 
-        Log.d(TAG, "BLOCKING: pkg=$currentPackage, class=$currentClassName")
+        Log.d(TAG, "[APP-BLOCK] >>> BLOCKING: pkg=$currentPackage, class=$currentClassName — calling goHome + showOverlay")
         // Kick user out of the app immediately by going HOME
-        ScuteAccessibilityService.instance?.goHome()
+        val goHomeResult = ScuteAccessibilityService.instance?.goHome()
+        Log.d(TAG, "[APP-BLOCK] goHome() result=$goHomeResult, accessibilityInstance=${ScuteAccessibilityService.instance != null}")
         showBlockedOverlay(currentPackage)
     }
 
@@ -315,15 +328,26 @@ class AppMonitorService(private val context: Context) {
 
         // Check if session is active
         val isActive = prefs.getBoolean(UninstallBlockerService.KEY_SESSION_ACTIVE, false)
-        if (!isActive) return false
+        if (!isActive) {
+            Log.d(TAG, "[APP-BLOCK] shouldBlockApp($packageName): session NOT active")
+            return false
+        }
 
         // Check if session has expired
         val endTime = prefs.getLong(UninstallBlockerService.KEY_SESSION_END_TIME, 0)
-        if (System.currentTimeMillis() > endTime) return false
+        val now = System.currentTimeMillis()
+        if (now > endTime) {
+            Log.d(TAG, "[APP-BLOCK] shouldBlockApp($packageName): session EXPIRED (now=$now > endTime=$endTime, diff=${now - endTime}ms)")
+            return false
+        }
 
         // Check if this package is in the blocked list
         val blockedApps = prefs.getStringSet(UninstallBlockerService.KEY_BLOCKED_APPS, emptySet())
-        return blockedApps?.contains(packageName) == true
+        val isBlocked = blockedApps?.contains(packageName) == true
+        if (!isBlocked) {
+            Log.d(TAG, "[APP-BLOCK] shouldBlockApp($packageName): NOT in blocked list (${blockedApps?.size ?: 0} apps in list)")
+        }
+        return isBlocked
     }
 
     /**
@@ -359,12 +383,15 @@ class AppMonitorService(private val context: Context) {
         pauseMedia()
 
         // Show overlay instantly with app name
+        Log.d(TAG, "[APP-BLOCK] Attempting to show overlay for $packageName (appName=$appName, type=$blockedType)")
         val shown = overlayManager?.show(blockedType, packageName, appName, strictMode, customBlockedText, customBlockedTextColor, customOverlayImage, customOverlayImageSize) ?: false
 
         if (!shown) {
-            Log.w(TAG, "Failed to show overlay, falling back to activity")
+            Log.w(TAG, "[APP-BLOCK] Overlay FAILED to show — falling back to BlockedActivity for $packageName")
             // Fallback: launch BlockedActivity (no HOME action - just show activity)
             BlockedActivity.launchNoAnimation(context, blockedType, packageName, strictMode, customBlockedText, customBlockedTextColor, customOverlayImage, customOverlayImageSize)
+        } else {
+            Log.d(TAG, "[APP-BLOCK] Overlay shown successfully for $packageName")
         }
     }
 
