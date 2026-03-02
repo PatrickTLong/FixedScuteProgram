@@ -53,21 +53,22 @@ const TabItem = memo(({ isActive, onPress, renderIcon, activeColor, inactiveColo
   }, [flashOpacity, scale]);
 
   const handlePressOut = useCallback(() => {
-    const target = isActive ? 1.2 : 1;
-    flashAnimRef.current = Animated.parallel([
-      Animated.timing(flashOpacity, {
-        toValue: 0,
-        duration: 300,
-        useNativeDriver: false,
-      }),
-      Animated.timing(scale, {
-        toValue: target,
-        duration: 150,
-        easing: Easing.out(Easing.ease),
-        useNativeDriver: false,
-      }),
-    ]);
+    // Fade flash independently so scale interruptions don't cancel it
+    if (flashAnimRef.current) flashAnimRef.current.stop();
+    flashAnimRef.current = Animated.timing(flashOpacity, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: false,
+    });
     flashAnimRef.current.start();
+
+    const target = isActive ? 1.2 : 1;
+    Animated.timing(scale, {
+      toValue: target,
+      duration: 150,
+      easing: Easing.out(Easing.ease),
+      useNativeDriver: false,
+    }).start();
   }, [flashOpacity, scale, isActive]);
 
   const displayColor = isActive ? activeColor : inactiveColor;
@@ -167,10 +168,7 @@ function BottomTabBar({ state, navigation }: RNBottomTabBarProps) {
     </Svg>, []);
 
   const renderOverlaysIcon = useCallback((color: string) =>
-    <Svg width={TAB_ICON_SIZE} height={TAB_ICON_SIZE} viewBox="0 0 24 24" fill={color}>
-      <Path d="M10.05 12.18c-1.27-.64-2.99-.54-4.26.25-1.17.72-1.81 1.89-1.81 3.29 0 .3.02.59.04.86.08 1.03.11 1.42-1.47 2.21-.32.16-.53.47-.55.82s.14.69.43.89c1 .69 2.76 1.49 4.62 1.49 1.35 0 2.74-.42 3.92-1.6 1.2-1.2 1.8-3.1 1.52-4.84-.24-1.5-1.11-2.7-2.44-3.36Z" />
-      <Path d="M21.08 2.91a3.114 3.114 0 0 0-4.41 0l-7.88 7.88c.61.07 1.19.23 1.71.49 1.51.76 2.52 2.08 2.89 3.73l7.69-7.69a3.114 3.114 0 0 0 0-4.41M2.32 6.49l2.21.98.98 2.21a.533.533 0 0 0 .98 0l.98-2.21 2.21-.98a.533.533 0 0 0 0-.98l-2.21-.98-.98-2.21A.53.53 0 0 0 6.01 2c-.21-.02-.4.12-.49.31l-.99 2.14L2.3 5.52a.536.536 0 0 0 .02.97m19.44 12.14-1.66-.74-.74-1.66a.41.41 0 0 0-.36-.24c-.16-.01-.3.09-.37.23l-.74 1.6-1.67.8c-.14.07-.23.21-.23.37s.1.3.24.36l1.66.74.74 1.66a.404.404 0 0 0 .74 0l.74-1.66 1.66-.74a.404.404 0 0 0 0-.74Z" />
-    </Svg>, []);
+    <BoxiconsFilled name="bx-image-landscape" size={TAB_ICON_SIZE + 6} color={color} />, []);
 
   const renderStatsIcon = useCallback((color: string) =>
     <BoxiconsFilled name="bx-trending-up" size={TAB_ICON_SIZE + 6} color={color} />, []);

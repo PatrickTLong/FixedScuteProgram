@@ -93,6 +93,7 @@ class FloatingBubbleManager(private val context: Context) {
     private var pendingDragX = 0
     private var pendingDragY = 0
     private var hasPendingDragUpdate = false
+    private var dragSizeLocked = false  // True when we've locked window size during drag
     private val dragFrameCallback = Choreographer.FrameCallback {
         if (hasPendingDragUpdate) {
             hasPendingDragUpdate = false
@@ -447,6 +448,9 @@ class FloatingBubbleManager(private val context: Context) {
                         isDragging = true
                         // Cancel long press if we start dragging
                         handler.removeCallbacks(longPressRunnable)
+                        // Lock window to measured pixel size during drag to prevent
+                        // expensive WRAP_CONTENT re-measurement on every frame
+                        lockWindowSizeForDrag()
                     }
 
                     if (isDragging && !longPressTriggered) {
@@ -464,6 +468,7 @@ class FloatingBubbleManager(private val context: Context) {
                     handler.removeCallbacks(longPressRunnable)
                     Choreographer.getInstance().removeFrameCallback(dragFrameCallback)
                     hasPendingDragUpdate = false
+                    unlockWindowSize()
                     if (!isDragging && !longPressTriggered) {
                         triggerHeavyHaptic()
                         if (isExpanded) {
@@ -483,6 +488,7 @@ class FloatingBubbleManager(private val context: Context) {
                     handler.removeCallbacks(longPressRunnable)
                     Choreographer.getInstance().removeFrameCallback(dragFrameCallback)
                     hasPendingDragUpdate = false
+                    unlockWindowSize()
                     isDragging = false
                     // Reschedule auto-collapse if still expanded
                     if (isExpanded) {
@@ -492,6 +498,41 @@ class FloatingBubbleManager(private val context: Context) {
                 }
                 else -> false
             }
+        }
+    }
+
+    /**
+     * Lock the window to its current measured pixel size so that
+     * updateViewLayout() during drag skips the expensive WRAP_CONTENT measure pass.
+     */
+    private fun lockWindowSizeForDrag() {
+        val view = bubbleView ?: return
+        val params = layoutParams ?: return
+        if (dragSizeLocked) return
+
+        val measuredW = view.measuredWidth
+        val measuredH = view.measuredHeight
+        if (measuredW > 0 && measuredH > 0) {
+            params.width = measuredW
+            params.height = measuredH
+            dragSizeLocked = true
+        }
+    }
+
+    /**
+     * Restore WRAP_CONTENT after drag ends so the bubble can resize normally
+     * (e.g. when the timer text gains a digit, or app list opens/closes).
+     */
+    private fun unlockWindowSize() {
+        if (!dragSizeLocked) return
+        dragSizeLocked = false
+        val params = layoutParams ?: return
+        params.width = WindowManager.LayoutParams.WRAP_CONTENT
+        params.height = WindowManager.LayoutParams.WRAP_CONTENT
+        try {
+            windowManager?.updateViewLayout(bubbleView, params)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error restoring wrap_content after drag", e)
         }
     }
 
