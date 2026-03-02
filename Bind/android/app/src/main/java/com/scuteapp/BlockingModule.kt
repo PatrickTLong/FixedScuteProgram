@@ -131,8 +131,9 @@ class BlockingModule(reactContext: ReactApplicationContext) :
             Log.d(TAG, "[START-BLOCKING] Blocking: apps=${appSet.size}, websites=${websiteSet.size}, customText='$customBlockedText'")
 
             // Save to SharedPreferences
+            val isScheduled = if (config.hasKey("isScheduled")) config.getBoolean("isScheduled") else false
             val sessionStartTime = System.currentTimeMillis()
-            Log.d(TAG, "[START-BLOCKING] Saving session to SharedPreferences (sessionStartTime=$sessionStartTime)...")
+            Log.d(TAG, "[START-BLOCKING] Saving session to SharedPreferences (sessionStartTime=$sessionStartTime, isScheduled=$isScheduled)...")
             sessionPrefs.edit()
                 .putStringSet(UninstallBlockerService.KEY_BLOCKED_APPS, appSet)
                 .putStringSet("blocked_websites", websiteSet)
@@ -141,6 +142,7 @@ class BlockingModule(reactContext: ReactApplicationContext) :
                 .putLong("session_start_time", sessionStartTime)
                 .putBoolean("no_time_limit", noTimeLimit)
                 .putBoolean("strict_mode", strictMode)
+                .putBoolean("is_scheduled_preset", isScheduled)
                 .putString("active_preset_name", presetName)
                 .putString("active_preset_id", presetId)
                 .putString("custom_blocked_text", customBlockedText)
@@ -149,7 +151,7 @@ class BlockingModule(reactContext: ReactApplicationContext) :
                 .putInt("custom_overlay_image_size", customOverlayImageSize)
                 .apply()
 
-            Log.d(TAG, "[START-BLOCKING] SharedPreferences saved — noTimeLimit=$noTimeLimit, presetName=\"$presetName\", presetId=$presetId")
+            Log.d(TAG, "[START-BLOCKING] SharedPreferences saved — noTimeLimit=$noTimeLimit, isScheduled=$isScheduled, presetName=\"$presetName\", presetId=$presetId")
 
             // Start the foreground service
             Log.d(TAG, "[START-BLOCKING] Starting foreground service (bubble will be shown by onStartCommand)...")
@@ -160,9 +162,6 @@ class BlockingModule(reactContext: ReactApplicationContext) :
                 reactApplicationContext.startService(serviceIntent)
             }
             Log.d(TAG, "[START-BLOCKING] Foreground service start requested")
-
-            // Schedule timer end alarm for non-scheduled, time-limited presets
-            val isScheduled = if (config.hasKey("isScheduled")) config.getBoolean("isScheduled") else false
             if (hasTimeLimit && !isScheduled) {
                 TimerAlarmManager.scheduleTimerEnd(reactApplicationContext, endTime, presetId, presetName ?: "Timer")
                 Log.d(TAG, "[START-BLOCKING] Timer end alarm scheduled for ${java.util.Date(endTime)}")

@@ -1,5 +1,6 @@
 package com.scuteapp
 
+import android.app.AlarmManager
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -152,12 +153,15 @@ class UninstallBlockerService : Service() {
         val isSessionActive = prefs.getBoolean(KEY_SESSION_ACTIVE, false)
         val noTimeLimit = prefs.getBoolean("no_time_limit", false)
         val sessionEndTime = prefs.getLong(KEY_SESSION_END_TIME, 0)
+        val now = System.currentTimeMillis()
         val sessionExpired = isSessionActive && !noTimeLimit && sessionEndTime > 0
-                && System.currentTimeMillis() >= sessionEndTime
+                && now >= sessionEndTime
+
+        Log.d(TAG, "[STARTUP-CHECK] active=$isSessionActive, noTimeLimit=$noTimeLimit, endTime=$sessionEndTime (${if (sessionEndTime > 0) java.util.Date(sessionEndTime).toString() else "none"}), now=$now, expired=$sessionExpired")
 
         if (!isSessionActive || sessionExpired) {
             if (sessionExpired) {
-                Log.d(TAG, "Session has expired (time-based) - cleaning up and stopping service")
+                Log.d(TAG, "[STARTUP-CHECK] *** SESSION EXPIRED ON START *** overdue by ${(now - sessionEndTime) / 1000}s — cleaning up")
                 val presetName = prefs.getString("active_preset_name", null)
                 prefs.edit()
                     .putBoolean(KEY_SESSION_ACTIVE, false)
@@ -290,6 +294,41 @@ class UninstallBlockerService : Service() {
         Log.d(TAG, "UninstallBlockerService destroyed and notification cancelled")
     }
 
+    /**
+     * Called when the user swipes the app from recents. Schedule a restart so
+     * the foreground service keeps running for the duration of the session.
+     */
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        super.onTaskRemoved(rootIntent)
+        val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val isSessionActive = prefs.getBoolean(KEY_SESSION_ACTIVE, false)
+
+        if (isSessionActive) {
+            Log.d(TAG, "[TASK-REMOVED] App swiped from recents while session active — scheduling restart")
+            val restartIntent = Intent(this, UninstallBlockerService::class.java)
+            val pendingIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                PendingIntent.getForegroundService(
+                    this, 0, restartIntent,
+                    PendingIntent.FLAG_ONE_SHOT or PendingIntent.FLAG_IMMUTABLE
+                )
+            } else {
+                PendingIntent.getService(
+                    this, 0, restartIntent,
+                    PendingIntent.FLAG_ONE_SHOT or PendingIntent.FLAG_IMMUTABLE
+                )
+            }
+            val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+            alarmManager.set(
+                AlarmManager.RTC_WAKEUP,
+                System.currentTimeMillis() + 1000,
+                pendingIntent
+            )
+            Log.d(TAG, "[TASK-REMOVED] Restart alarm set for 1 second from now")
+        } else {
+            Log.d(TAG, "[TASK-REMOVED] No active session — not scheduling restart")
+        }
+    }
+
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
@@ -407,24 +446,47 @@ class UninstallBlockerService : Service() {
      * Returns true if the session was expired and cleanup was triggered.
      */
     private fun checkSessionExpiry(): Boolean {
-        if (expiryHandled) return false  // Already handled, waiting for service to stop
+        if (expiryHandled) {
+            Log.d(TAG, "[EXPIRY-CHECK] Skipping — already handled")
+            return false
+        }
 
         val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         val isSessionActive = prefs.getBoolean(KEY_SESSION_ACTIVE, false)
-        if (!isSessionActive) return false
-
         val noTimeLimit = prefs.getBoolean("no_time_limit", false)
-        if (noTimeLimit) return false  // No-time-limit sessions don't expire by time
-
         val endTime = prefs.getLong(KEY_SESSION_END_TIME, 0)
-        if (endTime <= 0 || System.currentTimeMillis() < endTime) return false  // Not expired yet
-
-        Log.d(TAG, "[EXPIRY-FALLBACK] Session expired (end time was ${java.util.Date(endTime)}) — performing cleanup")
-        expiryHandled = true
-
         val isScheduledPreset = prefs.getBoolean("is_scheduled_preset", false)
         val activePresetId = prefs.getString("active_preset_id", null)
         val presetName = prefs.getString("active_preset_name", null)
+        val now = System.currentTimeMillis()
+        val timeUntilExpiry = if (endTime > 0) endTime - now else -1L
+
+        Log.d(TAG, "[EXPIRY-CHECK] active=$isSessionActive, noTimeLimit=$noTimeLimit, isScheduled=$isScheduledPreset, presetId=$activePresetId, preset=\"$presetName\", endTime=$endTime (${if (endTime > 0) java.util.Date(endTime).toString() else "none"}), now=$now, timeUntilExpiry=${timeUntilExpiry}ms (${timeUntilExpiry / 1000}s)")
+
+        if (!isSessionActive) {
+            Log.d(TAG, "[EXPIRY-CHECK] Session not active — skipping")
+            return false
+        }
+
+        if (noTimeLimit) {
+            Log.d(TAG, "[EXPIRY-CHECK] No time limit — skipping")
+            return false
+        }
+
+        if (endTime <= 0) {
+            Log.d(TAG, "[EXPIRY-CHECK] endTime is 0 or negative — skipping")
+            return false
+        }
+
+        if (now < endTime) {
+            Log.d(TAG, "[EXPIRY-CHECK] Not expired yet — ${timeUntilExpiry / 1000}s remaining")
+            return false
+        }
+
+        Log.d(TAG, "[EXPIRY-FALLBACK] *** SESSION EXPIRED *** (end time was ${java.util.Date(endTime)}, now is ${java.util.Date(now)}, overdue by ${(now - endTime) / 1000}s)")
+        expiryHandled = true
+
+        Log.d(TAG, "[EXPIRY-FALLBACK] Cleanup path: isScheduled=$isScheduledPreset, presetId=$activePresetId, presetName=\"$presetName\"")
 
         if (isScheduledPreset && activePresetId != null) {
             // For scheduled presets, fire the END broadcast to reuse ScheduledPresetReceiver's
@@ -438,9 +500,10 @@ class UninstallBlockerService : Service() {
                 putExtra(ScheduledPresetReceiver.EXTRA_PRESET_ID, activePresetId)
             }
             sendBroadcast(endIntent)
+            Log.d(TAG, "[EXPIRY-FALLBACK] Broadcast sent — ScheduledPresetReceiver should handle cleanup")
         } else {
             // For manual (non-scheduled) presets, do direct cleanup
-            Log.d(TAG, "[EXPIRY-FALLBACK] Manual preset \"$presetName\" — performing direct cleanup")
+            Log.d(TAG, "[EXPIRY-FALLBACK] Manual preset — performing direct cleanup (isScheduled=$isScheduledPreset, presetId=$activePresetId)")
 
             // Clear session
             prefs.edit()
@@ -478,6 +541,16 @@ class UninstallBlockerService : Service() {
      * Runs on a background thread to avoid blocking the main thread.
      */
     private fun checkBackendLockStatus() {
+        // Skip backend sync for scheduled presets — the local device is authoritative
+        // for natively-activated scheduled presets. The backend may not know about them
+        // yet and would incorrectly return isLocked=false, killing the session.
+        val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val isScheduledPreset = prefs.getBoolean("is_scheduled_preset", false)
+        if (isScheduledPreset) {
+            Log.d(TAG, "[BACKEND-SYNC] Skipping — scheduled preset is active (local state is authoritative)")
+            return
+        }
+
         thread {
             try {
                 val token = getAuthTokenFromAsyncStorage() ?: return@thread
@@ -497,25 +570,28 @@ class UninstallBlockerService : Service() {
                     val isLocked = json.optBoolean("isLocked", true)
 
                     if (!isLocked) {
-                        Log.d(TAG, "Backend says not locked - clearing session and stopping service")
-                        val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-                        prefs.edit()
+                        Log.d(TAG, "[BACKEND-SYNC] Backend says not locked - clearing session and stopping service")
+                        val syncPrefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                        syncPrefs.edit()
                             .putBoolean(KEY_SESSION_ACTIVE, false)
                             .putStringSet(KEY_BLOCKED_APPS, emptySet())
                             .putStringSet("blocked_websites", emptySet())
                             .remove("active_preset_id")
                             .remove("active_preset_name")
                             .remove("is_scheduled_preset")
+                            .remove("no_time_limit")
                             .apply()
 
                         // Stop on main thread
                         syncHandler.post { stopSelf() }
+                    } else {
+                        Log.d(TAG, "[BACKEND-SYNC] Backend confirms locked — session intact")
                     }
                 }
                 connection.disconnect()
             } catch (e: Exception) {
                 // Silently skip on any error - don't stop service due to transient network issues
-                Log.d(TAG, "Backend sync check failed (will retry): ${e.message}")
+                Log.d(TAG, "[BACKEND-SYNC] Check failed (will retry): ${e.message}")
             }
         }
     }

@@ -243,24 +243,42 @@ class ScuteAccessibilityService : AccessibilityService() {
             val sessionPrefs = getSharedPreferences(UninstallBlockerService.PREFS_NAME, Context.MODE_PRIVATE)
             val isSessionActive = sessionPrefs.getBoolean(UninstallBlockerService.KEY_SESSION_ACTIVE, false)
             val activePresetId = sessionPrefs.getString("active_preset_id", null)
-
-            if (!isSessionActive || activePresetId == null) return
-
             val noTimeLimit = sessionPrefs.getBoolean("no_time_limit", false)
-            if (noTimeLimit) return  // No-time-limit sessions don't expire by time
-
             val endTime = sessionPrefs.getLong(UninstallBlockerService.KEY_SESSION_END_TIME, 0)
-            if (endTime <= 0 || System.currentTimeMillis() < endTime) return
-
-            Log.d(TAG, "[EXPIRY-FALLBACK] Session expired — performing full cleanup from accessibility service")
-
-            val presetName = sessionPrefs.getString("active_preset_name", null)
             val isScheduledPreset = sessionPrefs.getBoolean("is_scheduled_preset", false)
+            val presetName = sessionPrefs.getString("active_preset_name", null)
+            val now = System.currentTimeMillis()
+            val timeUntilExpiry = if (endTime > 0) endTime - now else -1L
+
+            Log.d(TAG, "[A11Y-EXPIRY-CHECK] active=$isSessionActive, presetId=$activePresetId, preset=\"$presetName\", noTimeLimit=$noTimeLimit, isScheduled=$isScheduledPreset, endTime=$endTime (${if (endTime > 0) java.util.Date(endTime).toString() else "none"}), now=$now, timeUntilExpiry=${timeUntilExpiry}ms (${timeUntilExpiry / 1000}s)")
+
+            if (!isSessionActive || activePresetId == null) {
+                Log.d(TAG, "[A11Y-EXPIRY-CHECK] No active session (active=$isSessionActive, presetId=$activePresetId) — skipping")
+                return
+            }
+
+            if (noTimeLimit) {
+                Log.d(TAG, "[A11Y-EXPIRY-CHECK] No time limit — skipping")
+                return
+            }
+
+            if (endTime <= 0) {
+                Log.d(TAG, "[A11Y-EXPIRY-CHECK] endTime is 0 or negative — skipping")
+                return
+            }
+
+            if (now < endTime) {
+                Log.d(TAG, "[A11Y-EXPIRY-CHECK] Not expired — ${timeUntilExpiry / 1000}s remaining")
+                return
+            }
+
+            Log.d(TAG, "[A11Y-EXPIRY-FALLBACK] *** SESSION EXPIRED *** (endTime=${java.util.Date(endTime)}, now=${java.util.Date(now)}, overdue by ${(now - endTime) / 1000}s)")
+            Log.d(TAG, "[A11Y-EXPIRY-FALLBACK] Cleanup path: isScheduled=$isScheduledPreset, presetId=$activePresetId, preset=\"$presetName\"")
 
             if (isScheduledPreset) {
                 // For scheduled presets, fire the END broadcast to reuse ScheduledPresetReceiver's
                 // full cleanup logic (handles recurring presets, notifications, etc.)
-                Log.d(TAG, "[EXPIRY-FALLBACK] Scheduled preset — sending ACTION_END_PRESET broadcast for $activePresetId")
+                Log.d(TAG, "[A11Y-EXPIRY-FALLBACK] Scheduled — sending ACTION_END_PRESET broadcast for $activePresetId")
                 val endIntent = Intent(ScheduledPresetReceiver.ACTION_END_PRESET).apply {
                     component = android.content.ComponentName(
                         this@ScuteAccessibilityService,
@@ -269,8 +287,10 @@ class ScuteAccessibilityService : AccessibilityService() {
                     putExtra(ScheduledPresetReceiver.EXTRA_PRESET_ID, activePresetId)
                 }
                 sendBroadcast(endIntent)
+                Log.d(TAG, "[A11Y-EXPIRY-FALLBACK] Broadcast sent — ScheduledPresetReceiver should handle cleanup")
             } else {
                 // For manual presets, do direct cleanup
+                Log.d(TAG, "[A11Y-EXPIRY-FALLBACK] Manual preset — performing direct cleanup")
                 sessionPrefs.edit()
                     .putBoolean(UninstallBlockerService.KEY_SESSION_ACTIVE, false)
                     .remove("active_preset_id")
@@ -278,24 +298,31 @@ class ScuteAccessibilityService : AccessibilityService() {
                     .remove("is_scheduled_preset")
                     .remove("no_time_limit")
                     .apply()
+                Log.d(TAG, "[A11Y-EXPIRY-FALLBACK] SharedPreferences cleared")
 
                 stopService(Intent(this, UninstallBlockerService::class.java))
+                Log.d(TAG, "[A11Y-EXPIRY-FALLBACK] Service stop requested")
 
                 // Show notification
                 UninstallBlockerService.showSessionEndedNotification(this, presetName)
+                Log.d(TAG, "[A11Y-EXPIRY-FALLBACK] Notification shown")
 
                 // Emit event to React Native
                 SessionEventHelper.emitSessionEvent(this, "session_ended")
+                Log.d(TAG, "[A11Y-EXPIRY-FALLBACK] session_ended event emitted")
 
                 // Dismiss floating bubble
                 try {
                     FloatingBubbleManager.getInstance(this).dismiss()
+                    Log.d(TAG, "[A11Y-EXPIRY-FALLBACK] Bubble dismissed")
                 } catch (e: Exception) {
-                    Log.d(TAG, "[EXPIRY-FALLBACK] Failed to dismiss bubble", e)
+                    Log.d(TAG, "[A11Y-EXPIRY-FALLBACK] Failed to dismiss bubble", e)
                 }
+
+                Log.d(TAG, "[A11Y-EXPIRY-FALLBACK] Direct cleanup complete")
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Error checking for expired schedule", e)
+            Log.e(TAG, "[A11Y-EXPIRY-FALLBACK] Error checking for expired schedule", e)
         }
     }
 
@@ -373,8 +400,10 @@ class ScuteAccessibilityService : AccessibilityService() {
                 .putStringSet("blocked_websites", blockedWebsites)
                 .putBoolean(UninstallBlockerService.KEY_SESSION_ACTIVE, true)
                 .putLong(UninstallBlockerService.KEY_SESSION_END_TIME, finalEndTime)
+                .putLong("session_start_time", System.currentTimeMillis())
                 .putBoolean("no_time_limit", noTimeLimit)
                 .putBoolean("strict_mode", strictMode)
+                .putBoolean("is_scheduled_preset", true)
                 .putString("active_preset_id", presetId)
                 .putString("active_preset_name", preset.optString("name", "Scheduled Preset"))
                 .putString("custom_blocked_text", customBlockedText)
@@ -383,7 +412,13 @@ class ScuteAccessibilityService : AccessibilityService() {
                 .putInt("custom_overlay_image_size", customOverlayImageSize)
                 .apply()
 
-            Log.d(TAG, "[SCHED-DEBUG] Session prefs saved")
+            Log.d(TAG, "[SCHED-DEBUG] Session prefs saved (is_scheduled_preset=true)")
+
+            // Schedule the end alarm so it fires even if the service gets killed
+            if (!noTimeLimit) {
+                ScheduleManager.schedulePresetEnd(this, presetId, finalEndTime)
+                Log.d(TAG, "[SCHED-DEBUG] End alarm scheduled for ${java.util.Date(finalEndTime)}")
+            }
 
             val serviceIntent = Intent(this, UninstallBlockerService::class.java)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

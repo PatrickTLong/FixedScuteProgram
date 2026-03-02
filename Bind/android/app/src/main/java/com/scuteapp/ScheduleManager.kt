@@ -52,28 +52,34 @@ object ScheduleManager {
      */
     fun rescheduleAllPresets(context: Context) {
         try {
+            Log.d(TAG, "[RESCHEDULE] ========== rescheduleAllPresets ==========")
             val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             val presetsJson = prefs.getString(KEY_SCHEDULED_PRESETS, null)
 
             if (presetsJson == null) {
-                Log.d(TAG, "No scheduled presets to reschedule")
+                Log.d(TAG, "[RESCHEDULE] No scheduled presets to reschedule")
                 return
             }
 
             val presetsArray = JSONArray(presetsJson)
             val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
             val now = System.currentTimeMillis()
+            Log.d(TAG, "[RESCHEDULE] Found ${presetsArray.length()} presets, now=${java.util.Date(now)}")
 
             for (i in 0 until presetsArray.length()) {
                 val preset = presetsArray.getJSONObject(i)
                 val presetId = preset.getString("id")
+                val presetName = preset.optString("name", "unknown")
                 val isActive = preset.optBoolean("isActive", false)
                 val isScheduled = preset.optBoolean("isScheduled", false)
                 val startDate = preset.optString("scheduleStartDate", null)
                 val endDate = preset.optString("scheduleEndDate", null)
 
+                Log.d(TAG, "[RESCHEDULE] Preset[$i] \"$presetName\" (id: $presetId): isActive=$isActive, isScheduled=$isScheduled, start=$startDate, end=$endDate")
+
                 // Only schedule if active and scheduled with valid dates
                 if (!isActive || !isScheduled || startDate == null) {
+                    Log.d(TAG, "[RESCHEDULE] Skipping \"$presetName\" (active=$isActive, scheduled=$isScheduled, startDate=$startDate)")
                     cancelPresetAlarm(context, presetId)
                     continue
                 }
@@ -83,8 +89,7 @@ object ScheduleManager {
 
                 // Check if schedule is still valid
                 if (now >= endTime) {
-                    // Schedule has ended
-                    Log.d(TAG, "Preset $presetId schedule has ended")
+                    Log.d(TAG, "[RESCHEDULE] \"$presetName\" schedule has ENDED (endTime=${java.util.Date(endTime)})")
                     cancelPresetAlarm(context, presetId)
                     continue
                 }
@@ -99,20 +104,20 @@ object ScheduleManager {
                     val isSessionActive = sessionPrefs.getBoolean(UninstallBlockerService.KEY_SESSION_ACTIVE, false)
 
                     if (isSessionActive && currentActiveId == presetId) {
-                        Log.d(TAG, "Preset $presetId is already active, skipping")
+                        Log.d(TAG, "[RESCHEDULE] \"$presetName\" is already the active session — skipping")
                     } else {
-                        Log.d(TAG, "Preset $presetId is currently in schedule window, activating now")
+                        Log.d(TAG, "[RESCHEDULE] \"$presetName\" is IN schedule window (${java.util.Date(startTime)} to ${java.util.Date(endTime)}) — activating now")
                         activatePresetNow(context, presetId)
                     }
                 } else if (now < startTime) {
-                    // Schedule hasn't started yet - set alarm
+                    Log.d(TAG, "[RESCHEDULE] \"$presetName\" starts in the future (${java.util.Date(startTime)}) — scheduling alarm")
                     schedulePresetStart(context, presetId, startTime)
                 }
             }
 
-            Log.d(TAG, "Rescheduled all presets")
+            Log.d(TAG, "[RESCHEDULE] ========== rescheduleAllPresets complete ==========")
         } catch (e: Exception) {
-            Log.e(TAG, "Error rescheduling presets", e)
+            Log.e(TAG, "[RESCHEDULE] Error rescheduling presets", e)
         }
     }
 

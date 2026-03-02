@@ -68,6 +68,11 @@ class FloatingBubbleManager(private val context: Context) {
     private var startTime: Long = 0  // For no-time-limit mode (counting up)
     private var isNoTimeLimit = false  // true = count up (elapsed), false = count down (remaining)
 
+    // Survives dismiss+recreate so the bubble reappears where the user dragged it
+    // (reset to null only when a genuinely new session starts)
+    private var savedX: Int? = null
+    private var savedY: Int? = null
+
     private var bubbleCollapsed: FrameLayout? = null
     private var bubbleExpanded: LinearLayout? = null
     private var bubbleHideButton: FrameLayout? = null
@@ -183,9 +188,11 @@ class FloatingBubbleManager(private val context: Context) {
      * @return true if bubble was shown, false if failed
      */
     fun show(sessionEndTime: Long): Boolean {
-        // If this is a NEW session (different end time), reset isHidden
+        // If this is a NEW session (different end time), reset position and hidden state
         if (sessionEndTime != endTime) {
             isHidden = false
+            savedX = null
+            savedY = null
         }
 
         // If user manually hid the bubble for THIS session, don't show again
@@ -229,7 +236,9 @@ class FloatingBubbleManager(private val context: Context) {
             bubbleAppListContainer = bubbleView?.findViewById(R.id.bubble_app_list_container)
             bubbleAppListScroll = bubbleView?.findViewById(R.id.bubble_app_list_scroll)
 
-            // Set up window parameters - LEFT side, fixed position
+            // Set up window parameters — restore dragged position if available
+            val posX = savedX ?: 0
+            val posY = savedY ?: (200 * density).toInt()
             layoutParams = WindowManager.LayoutParams().apply {
                 width = WindowManager.LayoutParams.WRAP_CONTENT
                 height = WindowManager.LayoutParams.WRAP_CONTENT
@@ -245,8 +254,8 @@ class FloatingBubbleManager(private val context: Context) {
 
                 format = PixelFormat.TRANSLUCENT
                 gravity = Gravity.TOP or Gravity.START
-                x = 0
-                y = (200 * density).toInt()  // Position from top
+                x = posX
+                y = posY
             }
 
             // Set up touch listener for tap and long press
@@ -306,9 +315,11 @@ class FloatingBubbleManager(private val context: Context) {
      * @return true if bubble was shown, false if failed
      */
     fun showNoTimeLimit(sessionStartTime: Long): Boolean {
-        // If this is a NEW session (different start time), reset isHidden
+        // If this is a NEW session (different start time), reset position and hidden state
         if (sessionStartTime != startTime) {
             isHidden = false
+            savedX = null
+            savedY = null
         }
 
         // If user manually hid the bubble for THIS session, don't show again
@@ -352,7 +363,9 @@ class FloatingBubbleManager(private val context: Context) {
             bubbleAppListContainer = bubbleView?.findViewById(R.id.bubble_app_list_container)
             bubbleAppListScroll = bubbleView?.findViewById(R.id.bubble_app_list_scroll)
 
-            // Set up window parameters - LEFT side, fixed position
+            // Set up window parameters — restore dragged position if available
+            val posX = savedX ?: 0
+            val posY = savedY ?: (200 * density).toInt()
             layoutParams = WindowManager.LayoutParams().apply {
                 width = WindowManager.LayoutParams.WRAP_CONTENT
                 height = WindowManager.LayoutParams.WRAP_CONTENT
@@ -368,8 +381,8 @@ class FloatingBubbleManager(private val context: Context) {
 
                 format = PixelFormat.TRANSLUCENT
                 gravity = Gravity.TOP or Gravity.START
-                x = 0
-                y = (200 * density).toInt()  // Position from top
+                x = posX
+                y = posY
             }
 
             // Set up touch listener for tap and long press
@@ -469,6 +482,11 @@ class FloatingBubbleManager(private val context: Context) {
                     Choreographer.getInstance().removeFrameCallback(dragFrameCallback)
                     hasPendingDragUpdate = false
                     unlockWindowSize()
+                    // Save position after drag so it survives dismiss+recreate
+                    if (isDragging) {
+                        savedX = layoutParams?.x
+                        savedY = layoutParams?.y
+                    }
                     if (!isDragging && !longPressTriggered) {
                         triggerHeavyHaptic()
                         if (isExpanded) {

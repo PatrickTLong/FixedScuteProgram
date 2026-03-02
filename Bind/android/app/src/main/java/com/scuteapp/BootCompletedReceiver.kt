@@ -20,7 +20,7 @@ class BootCompletedReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action != Intent.ACTION_BOOT_COMPLETED) return
 
-        Log.d(TAG, "Boot completed - checking for active blocking session")
+        Log.d(TAG, "[BOOT] ========== BOOT COMPLETED ==========")
 
         try {
             val prefs = context.getSharedPreferences(
@@ -30,18 +30,20 @@ class BootCompletedReceiver : BroadcastReceiver() {
 
             val isSessionActive = prefs.getBoolean(UninstallBlockerService.KEY_SESSION_ACTIVE, false)
             val sessionEndTime = prefs.getLong(UninstallBlockerService.KEY_SESSION_END_TIME, 0)
+            val noTimeLimit = prefs.getBoolean("no_time_limit", false)
+            val isScheduledPreset = prefs.getBoolean("is_scheduled_preset", false)
+            val activePresetId = prefs.getString("active_preset_id", null)
+            val activePresetName = prefs.getString("active_preset_name", null)
             val now = System.currentTimeMillis()
 
-            Log.d(TAG, "Session active: $isSessionActive, End time: $sessionEndTime, Now: $now")
+            Log.d(TAG, "[BOOT] Session state: active=$isSessionActive, preset=\"$activePresetName\" (id: $activePresetId)")
+            Log.d(TAG, "[BOOT] Timing: endTime=$sessionEndTime (${if (sessionEndTime > 0) java.util.Date(sessionEndTime).toString() else "none"}), noTimeLimit=$noTimeLimit, isScheduled=$isScheduledPreset")
+            Log.d(TAG, "[BOOT] Now: $now (${java.util.Date(now)})")
 
             // Check if there's an active session that hasn't expired
-            if (isSessionActive && now < sessionEndTime) {
-                val presetName = prefs.getString("active_preset_name", "Unknown")
-                val noTimeLimit = prefs.getBoolean("no_time_limit", false)
-                val sessionStartTime = prefs.getLong("session_start_time", now)
-                Log.d(TAG, "Active session found: $presetName - starting blocking service")
+            if (isSessionActive && (noTimeLimit || now < sessionEndTime)) {
+                Log.d(TAG, "[BOOT] Active session found: \"$activePresetName\" — starting blocking service")
 
-                // Start the blocking service immediately
                 val serviceIntent = Intent(context, UninstallBlockerService::class.java)
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     context.startForegroundService(serviceIntent)
@@ -49,26 +51,31 @@ class BootCompletedReceiver : BroadcastReceiver() {
                     context.startService(serviceIntent)
                 }
 
-                // Floating bubble is shown by UninstallBlockerService.onStartCommand
-
-                Log.d(TAG, "Blocking service started successfully after boot")
-            } else if (isSessionActive && now >= sessionEndTime) {
-                // Session has expired while phone was off - clean up
-                Log.d(TAG, "Session expired while phone was off - cleaning up")
+                Log.d(TAG, "[BOOT] Blocking service started successfully after boot")
+            } else if (isSessionActive && !noTimeLimit && now >= sessionEndTime) {
+                Log.d(TAG, "[BOOT] Session EXPIRED while phone was off (overdue by ${(now - sessionEndTime) / 1000}s) — cleaning up")
                 prefs.edit()
                     .putBoolean(UninstallBlockerService.KEY_SESSION_ACTIVE, false)
+                    .putStringSet(UninstallBlockerService.KEY_BLOCKED_APPS, emptySet())
+                    .putStringSet("blocked_websites", emptySet())
                     .remove("active_preset_id")
                     .remove("active_preset_name")
+                    .remove("is_scheduled_preset")
+                    .remove("no_time_limit")
                     .apply()
+                UninstallBlockerService.showSessionEndedNotification(context, activePresetName)
+                Log.d(TAG, "[BOOT] Session cleared, notification shown")
             } else {
-                Log.d(TAG, "No active blocking session found")
+                Log.d(TAG, "[BOOT] No active blocking session")
             }
 
-            // Also trigger scheduled preset check (existing behavior)
+            // Also trigger scheduled preset check
+            Log.d(TAG, "[BOOT] Rescheduling all preset alarms...")
             ScheduleManager.rescheduleAllPresets(context)
+            Log.d(TAG, "[BOOT] ========== BOOT HANDLING COMPLETE ==========")
 
         } catch (e: Exception) {
-            Log.e(TAG, "Error handling boot completed", e)
+            Log.e(TAG, "[BOOT] Error handling boot completed", e)
         }
     }
 }
