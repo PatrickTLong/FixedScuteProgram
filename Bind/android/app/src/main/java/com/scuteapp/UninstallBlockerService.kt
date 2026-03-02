@@ -100,9 +100,11 @@ class UninstallBlockerService : Service() {
     private var packageRemovedReceiver: BroadcastReceiver? = null
     private var appMonitor: AppMonitorService? = null
     private var websiteMonitor: WebsiteMonitorService? = null
+    private var expiryHandled = false  // Prevents duplicate expiry handling
     private val syncHandler = Handler(Looper.getMainLooper())
     private val syncCheckRunnable = object : Runnable {
         override fun run() {
+            if (checkSessionExpiry()) return  // Session ended, service stopping
             checkBackendLockStatus()
             syncHandler.postDelayed(this, SYNC_CHECK_INTERVAL_MS)
         }
@@ -148,8 +150,34 @@ class UninstallBlockerService : Service() {
         // Verify session is actually active before showing the notification
         val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         val isSessionActive = prefs.getBoolean(KEY_SESSION_ACTIVE, false)
-        if (!isSessionActive) {
-            Log.d(TAG, "Session is not active - stopping service immediately")
+        val noTimeLimit = prefs.getBoolean("no_time_limit", false)
+        val sessionEndTime = prefs.getLong(KEY_SESSION_END_TIME, 0)
+        val sessionExpired = isSessionActive && !noTimeLimit && sessionEndTime > 0
+                && System.currentTimeMillis() >= sessionEndTime
+
+        if (!isSessionActive || sessionExpired) {
+            if (sessionExpired) {
+                Log.d(TAG, "Session has expired (time-based) - cleaning up and stopping service")
+                val presetName = prefs.getString("active_preset_name", null)
+                prefs.edit()
+                    .putBoolean(KEY_SESSION_ACTIVE, false)
+                    .putStringSet(KEY_BLOCKED_APPS, emptySet())
+                    .putStringSet("blocked_websites", emptySet())
+                    .remove("active_preset_id")
+                    .remove("active_preset_name")
+                    .remove("is_scheduled_preset")
+                    .remove("no_time_limit")
+                    .apply()
+                showSessionEndedNotification(this, presetName)
+                SessionEventHelper.emitSessionEvent(this, "session_ended")
+                try {
+                    FloatingBubbleManager.getInstance(this).dismiss()
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to dismiss bubble on expired start", e)
+                }
+            } else {
+                Log.d(TAG, "Session is not active - stopping service immediately")
+            }
             // Must call startForeground before stopping to avoid Android crash,
             // but use FOREGROUND_SERVICE_DEFERRED to minimize visible flash
             val emptyNotification = NotificationCompat.Builder(this, CHANNEL_ID)
@@ -194,7 +222,6 @@ class UninstallBlockerService : Service() {
         val bubbleManager = FloatingBubbleManager.getInstance(this)
         val presetName = prefs.getString("active_preset_name", "unknown")
         val presetId = prefs.getString("active_preset_id", "unknown")
-        val noTimeLimit = prefs.getBoolean("no_time_limit", false)
         val isScheduledPref = prefs.getBoolean("is_scheduled_preset", false)
         Log.d(TAG, "[BUBBLE] onStartCommand bubble logic — preset: \"$presetName\" (id: $presetId), noTimeLimit: $noTimeLimit, isScheduled: $isScheduledPref, bubbleDisabled: $widgetBubbleDisabled, bubbleCurrentlyShowing: ${bubbleManager.isShowing()}")
         if (!widgetBubbleDisabled) {
@@ -372,6 +399,78 @@ class UninstallBlockerService : Service() {
                 Log.e(TAG, "Error unregistering receiver", e)
             }
         }
+    }
+
+    /**
+     * Fallback check: if session_end_time has passed but the AlarmManager broadcast
+     * was missed (Doze mode, battery optimization, OEM killing), handle cleanup here.
+     * Returns true if the session was expired and cleanup was triggered.
+     */
+    private fun checkSessionExpiry(): Boolean {
+        if (expiryHandled) return false  // Already handled, waiting for service to stop
+
+        val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val isSessionActive = prefs.getBoolean(KEY_SESSION_ACTIVE, false)
+        if (!isSessionActive) return false
+
+        val noTimeLimit = prefs.getBoolean("no_time_limit", false)
+        if (noTimeLimit) return false  // No-time-limit sessions don't expire by time
+
+        val endTime = prefs.getLong(KEY_SESSION_END_TIME, 0)
+        if (endTime <= 0 || System.currentTimeMillis() < endTime) return false  // Not expired yet
+
+        Log.d(TAG, "[EXPIRY-FALLBACK] Session expired (end time was ${java.util.Date(endTime)}) — performing cleanup")
+        expiryHandled = true
+
+        val isScheduledPreset = prefs.getBoolean("is_scheduled_preset", false)
+        val activePresetId = prefs.getString("active_preset_id", null)
+        val presetName = prefs.getString("active_preset_name", null)
+
+        if (isScheduledPreset && activePresetId != null) {
+            // For scheduled presets, fire the END broadcast to reuse ScheduledPresetReceiver's
+            // full cleanup logic (handles recurring presets, backend updates, notifications, etc.)
+            Log.d(TAG, "[EXPIRY-FALLBACK] Scheduled preset — sending ACTION_END_PRESET broadcast for $activePresetId")
+            val endIntent = Intent(ScheduledPresetReceiver.ACTION_END_PRESET).apply {
+                component = android.content.ComponentName(
+                    this@UninstallBlockerService,
+                    ScheduledPresetReceiver::class.java
+                )
+                putExtra(ScheduledPresetReceiver.EXTRA_PRESET_ID, activePresetId)
+            }
+            sendBroadcast(endIntent)
+        } else {
+            // For manual (non-scheduled) presets, do direct cleanup
+            Log.d(TAG, "[EXPIRY-FALLBACK] Manual preset \"$presetName\" — performing direct cleanup")
+
+            // Clear session
+            prefs.edit()
+                .putBoolean(KEY_SESSION_ACTIVE, false)
+                .putStringSet(KEY_BLOCKED_APPS, emptySet())
+                .putStringSet("blocked_websites", emptySet())
+                .remove("active_preset_id")
+                .remove("active_preset_name")
+                .remove("is_scheduled_preset")
+                .remove("no_time_limit")
+                .apply()
+
+            // Show notification
+            showSessionEndedNotification(this, presetName)
+
+            // Emit event to React Native
+            SessionEventHelper.emitSessionEvent(this, "session_ended")
+
+            // Dismiss floating bubble
+            try {
+                FloatingBubbleManager.getInstance(this).dismiss()
+            } catch (e: Exception) {
+                Log.e(TAG, "[EXPIRY-FALLBACK] Failed to dismiss bubble", e)
+            }
+
+            // Stop self
+            stopSelf()
+        }
+
+        return true
     }
 
     /**

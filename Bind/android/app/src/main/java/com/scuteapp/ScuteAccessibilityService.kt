@@ -246,14 +246,53 @@ class ScuteAccessibilityService : AccessibilityService() {
 
             if (!isSessionActive || activePresetId == null) return
 
+            val noTimeLimit = sessionPrefs.getBoolean("no_time_limit", false)
+            if (noTimeLimit) return  // No-time-limit sessions don't expire by time
+
             val endTime = sessionPrefs.getLong(UninstallBlockerService.KEY_SESSION_END_TIME, 0)
-            if (System.currentTimeMillis() >= endTime) {
+            if (endTime <= 0 || System.currentTimeMillis() < endTime) return
+
+            Log.d(TAG, "[EXPIRY-FALLBACK] Session expired — performing full cleanup from accessibility service")
+
+            val presetName = sessionPrefs.getString("active_preset_name", null)
+            val isScheduledPreset = sessionPrefs.getBoolean("is_scheduled_preset", false)
+
+            if (isScheduledPreset) {
+                // For scheduled presets, fire the END broadcast to reuse ScheduledPresetReceiver's
+                // full cleanup logic (handles recurring presets, notifications, etc.)
+                Log.d(TAG, "[EXPIRY-FALLBACK] Scheduled preset — sending ACTION_END_PRESET broadcast for $activePresetId")
+                val endIntent = Intent(ScheduledPresetReceiver.ACTION_END_PRESET).apply {
+                    component = android.content.ComponentName(
+                        this@ScuteAccessibilityService,
+                        ScheduledPresetReceiver::class.java
+                    )
+                    putExtra(ScheduledPresetReceiver.EXTRA_PRESET_ID, activePresetId)
+                }
+                sendBroadcast(endIntent)
+            } else {
+                // For manual presets, do direct cleanup
                 sessionPrefs.edit()
                     .putBoolean(UninstallBlockerService.KEY_SESSION_ACTIVE, false)
                     .remove("active_preset_id")
                     .remove("active_preset_name")
+                    .remove("is_scheduled_preset")
+                    .remove("no_time_limit")
                     .apply()
+
                 stopService(Intent(this, UninstallBlockerService::class.java))
+
+                // Show notification
+                UninstallBlockerService.showSessionEndedNotification(this, presetName)
+
+                // Emit event to React Native
+                SessionEventHelper.emitSessionEvent(this, "session_ended")
+
+                // Dismiss floating bubble
+                try {
+                    FloatingBubbleManager.getInstance(this).dismiss()
+                } catch (e: Exception) {
+                    Log.d(TAG, "[EXPIRY-FALLBACK] Failed to dismiss bubble", e)
+                }
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error checking for expired schedule", e)
