@@ -17,7 +17,7 @@ class AppMonitorService(private val context: Context) {
 
     companion object {
         private const val TAG = "AppMonitorService"
-        private const val POLL_INTERVAL_MS = 25L // Poll every 25ms for instant detection
+        private const val POLL_INTERVAL_MS = 5L // Poll every 5ms for instant detection
 
         @Volatile
         var instance: AppMonitorService? = null
@@ -26,10 +26,8 @@ class AppMonitorService(private val context: Context) {
 
     private val handler = Handler(Looper.getMainLooper())
     private var isMonitoring = false
-    private var lastForegroundPackage: String? = null
-    private var lastForegroundClassName: String? = null
+    private var isPaused = false // Paused while overlay is showing, resumes on dismiss
     private var overlayManager: BlockedOverlayManager? = null
-    private var debugPollCount = 0L
 
     // Track whether user came from an allowed WiFi screen (for SubSettings navigation)
     private var lastAllowedWifiSettings = false
@@ -40,6 +38,7 @@ class AppMonitorService(private val context: Context) {
     private val monitorRunnable = object : Runnable {
         override fun run() {
             if (!isMonitoring) return
+            if (isPaused) return // Overlay is showing, wait for dismiss
 
             checkForegroundApp()
             handler.postDelayed(this, POLL_INTERVAL_MS)
@@ -54,16 +53,28 @@ class AppMonitorService(private val context: Context) {
 
         instance = this
 
-        // Create overlay manager
+        // Create overlay manager — resume polling when user taps to dismiss
         overlayManager = BlockedOverlayManager(context).apply {
             onDismissed = {
                 onGoHome?.invoke()
+                resumePolling()
             }
         }
 
         isMonitoring = true
+        isPaused = false
         handler.post(monitorRunnable)
         Log.d(TAG, "Started monitoring with ${POLL_INTERVAL_MS}ms polling")
+    }
+
+    /**
+     * Resume polling after overlay is dismissed
+     */
+    private fun resumePolling() {
+        if (!isMonitoring) return
+        isPaused = false
+        Log.d(TAG, "Resuming polling after overlay dismiss")
+        handler.post(monitorRunnable)
     }
 
     /**
@@ -73,16 +84,11 @@ class AppMonitorService(private val context: Context) {
      * has been in the app for a while without generating a new MOVE_TO_FOREGROUND event).
      */
     fun immediateBlockCheck() {
-        Log.d(TAG, "immediateBlockCheck: performing immediate foreground app check with wide time window")
+        Log.d(TAG, "immediateBlockCheck: checking with wide time window")
 
-        val usageStatsManager = context.getSystemService(Context.USAGE_STATS_SERVICE) as? UsageStatsManager
-        if (usageStatsManager == null) {
-            Log.w(TAG, "immediateBlockCheck: UsageStatsManager is null")
-            return
-        }
+        val usageStatsManager = context.getSystemService(Context.USAGE_STATS_SERVICE) as? UsageStatsManager ?: return
 
         val now = System.currentTimeMillis()
-        // Use a 60-second window to catch the current foreground app even if it's been there a while
         val events = usageStatsManager.queryEvents(now - 60_000, now)
         val event = UsageEvents.Event()
 
@@ -98,38 +104,12 @@ class AppMonitorService(private val context: Context) {
             }
         }
 
-        if (foregroundPackage == null) {
-            Log.d(TAG, "immediateBlockCheck: no foreground app detected")
-            return
-        }
+        if (foregroundPackage == null || foregroundPackage == "com.scuteapp") return
+        if (!shouldBlockApp(foregroundPackage)) return
+        if (isSettingsApp(foregroundPackage) && isAllowedSettingsScreen(foregroundClassName)) return
 
-        Log.d(TAG, "immediateBlockCheck: foreground app is $foregroundPackage (class: $foregroundClassName)")
-
-        // Update tracked state so normal polling doesn't skip this app
-        lastForegroundPackage = foregroundPackage
-        lastForegroundClassName = foregroundClassName
-
-        // Skip our own app
-        if (foregroundPackage == "com.scuteapp") {
-            Log.d(TAG, "immediateBlockCheck: foreground is Scute — skipping")
-            return
-        }
-
-        // Check if we should block this app
-        if (!shouldBlockApp(foregroundPackage)) {
-            Log.d(TAG, "immediateBlockCheck: $foregroundPackage is not blocked")
-            return
-        }
-
-        // For Settings apps, check if the specific screen is allowed
-        if (isSettingsApp(foregroundPackage)) {
-            if (isAllowedSettingsScreen(foregroundClassName)) {
-                Log.d(TAG, "immediateBlockCheck: allowed settings screen — skipping")
-                return
-            }
-        }
-
-        Log.d(TAG, "immediateBlockCheck: BLOCKING $foregroundPackage immediately!")
+        Log.d(TAG, "immediateBlockCheck: BLOCKING $foregroundPackage")
+        isPaused = true
         ScuteAccessibilityService.instance?.goHome()
         showBlockedOverlay(foregroundPackage)
     }
@@ -139,23 +119,12 @@ class AppMonitorService(private val context: Context) {
      */
     fun stopMonitoring() {
         isMonitoring = false
+        isPaused = false
         handler.removeCallbacks(monitorRunnable)
         overlayManager?.dismiss()
         overlayManager = null
         instance = null
         Log.d(TAG, "Stopped monitoring")
-    }
-
-    /**
-     * Dismiss the soft keyboard
-     */
-    private fun dismissKeyboard() {
-        try {
-            val inputMethodManager = context.getSystemService(Context.INPUT_METHOD_SERVICE) as? android.view.inputmethod.InputMethodManager
-            inputMethodManager?.hideSoftInputFromWindow(null, 0)
-        } catch (e: Exception) {
-            Log.e(TAG, "Error dismissing keyboard", e)
-        }
     }
 
     /**
@@ -180,13 +149,9 @@ class AppMonitorService(private val context: Context) {
      */
     private fun getForegroundApp(): Pair<String, String?>? {
         val usageStatsManager = context.getSystemService(Context.USAGE_STATS_SERVICE) as? UsageStatsManager
-            ?: run {
-                if (debugPollCount % 500 == 0L) Log.w(TAG, "UsageStatsManager is null!")
-                return null
-            }
+            ?: return null
 
         val now = System.currentTimeMillis()
-        // Query last 5 seconds to ensure we catch events
         val events = usageStatsManager.queryEvents(now - 5000, now)
         val event = UsageEvents.Event()
 
@@ -207,79 +172,65 @@ class AppMonitorService(private val context: Context) {
 
     /**
      * Check foreground app and block if needed.
-     * For Settings apps, uses the activity className from UsageStats to determine
-     * if the specific screen is allowed (WiFi, SubSettings from WiFi, etc.).
+     * Simple: get foreground app → if blocked, go home + show overlay + pause polling.
      */
     private fun checkForegroundApp() {
-        debugPollCount++
-        val result = getForegroundApp()
-
-        if (result == null) return
-
+        val result = getForegroundApp() ?: return
         val (currentPackage, currentClassName) = result
 
-        // Skip if same package AND same class (nothing changed)
-        if (currentPackage == lastForegroundPackage && currentClassName == lastForegroundClassName) return
-
-        if (currentPackage != lastForegroundPackage) {
-            lastForegroundPackage = currentPackage
-            // Reset WiFi flag when leaving Settings entirely
-            if (!isSettingsApp(currentPackage)) {
-                lastAllowedWifiSettings = false
-            }
-        }
-        lastForegroundClassName = currentClassName
-
-        // When user enters Scute app, reset the bubble's hidden state
-        // so it reappears if they X'd it earlier (only if widget bubble is enabled)
+        // Skip our own app, but handle bubble re-show
         if (currentPackage == "com.scuteapp") {
-            val prefs = context.getSharedPreferences(UninstallBlockerService.PREFS_NAME, Context.MODE_PRIVATE)
-            val widgetBubbleDisabled = prefs.getBoolean("widget_bubble_disabled", false)
-            val bubbleManager = FloatingBubbleManager.getInstance(context)
-            if (!widgetBubbleDisabled) {
-                bubbleManager.resetHidden()
-            }
-            // Re-show bubble if there's an active session and it's not already showing
-            if (!widgetBubbleDisabled && !bubbleManager.isShowing()) {
-                val isSessionActive = prefs.getBoolean(UninstallBlockerService.KEY_SESSION_ACTIVE, false)
-                if (isSessionActive) {
-                    val noTimeLimit = prefs.getBoolean("no_time_limit", false)
-                    try {
-                        if (noTimeLimit) {
-                            val sessionStartTime = prefs.getLong("session_start_time", System.currentTimeMillis())
-                            bubbleManager.showNoTimeLimit(sessionStartTime)
-                        } else {
-                            val sessionEndTime = prefs.getLong(UninstallBlockerService.KEY_SESSION_END_TIME, 0)
-                            if (sessionEndTime > System.currentTimeMillis()) {
-                                bubbleManager.show(sessionEndTime)
-                            }
-                        }
-                    } catch (e: Exception) {
-                        Log.e(TAG, "Failed to re-show bubble on app enter", e)
-                    }
-                }
-            }
+            handleScuteAppEntered()
             return
         }
 
-        // Skip if overlay is already showing
-        if (overlayManager?.isShowing() == true) return
-
-        // Check if should block
-        val shouldBlock = shouldBlockApp(currentPackage)
-        if (!shouldBlock) return
-
-        // For Settings apps, check if the specific screen is allowed
-        if (isSettingsApp(currentPackage)) {
-            if (isAllowedSettingsScreen(currentClassName)) {
-                return
-            }
+        // Reset WiFi settings flag when leaving settings
+        if (!isSettingsApp(currentPackage)) {
+            lastAllowedWifiSettings = false
         }
 
+        // Check if this app should be blocked
+        if (!shouldBlockApp(currentPackage)) return
+
+        // For Settings apps, allow specific screens (WiFi, etc.)
+        if (isSettingsApp(currentPackage) && isAllowedSettingsScreen(currentClassName)) return
+
+        // Block it: go home, show overlay, pause polling until dismissed
         Log.d(TAG, "BLOCKING: pkg=$currentPackage, class=$currentClassName")
-        // Kick user out of the app immediately by going HOME
+        isPaused = true
         ScuteAccessibilityService.instance?.goHome()
         showBlockedOverlay(currentPackage)
+    }
+
+    /**
+     * Handle when user enters the Scute app — reset bubble visibility
+     */
+    private fun handleScuteAppEntered() {
+        val prefs = context.getSharedPreferences(UninstallBlockerService.PREFS_NAME, Context.MODE_PRIVATE)
+        val widgetBubbleDisabled = prefs.getBoolean("widget_bubble_disabled", false)
+        val bubbleManager = FloatingBubbleManager.getInstance(context)
+        if (!widgetBubbleDisabled) {
+            bubbleManager.resetHidden()
+        }
+        if (!widgetBubbleDisabled && !bubbleManager.isShowing()) {
+            val isSessionActive = prefs.getBoolean(UninstallBlockerService.KEY_SESSION_ACTIVE, false)
+            if (isSessionActive) {
+                val noTimeLimit = prefs.getBoolean("no_time_limit", false)
+                try {
+                    if (noTimeLimit) {
+                        val sessionStartTime = prefs.getLong("session_start_time", System.currentTimeMillis())
+                        bubbleManager.showNoTimeLimit(sessionStartTime)
+                    } else {
+                        val sessionEndTime = prefs.getLong(UninstallBlockerService.KEY_SESSION_END_TIME, 0)
+                        if (sessionEndTime > System.currentTimeMillis()) {
+                            bubbleManager.show(sessionEndTime)
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to re-show bubble on app enter", e)
+                }
+            }
+        }
     }
 
     /**
@@ -302,7 +253,7 @@ class AppMonitorService(private val context: Context) {
             return true
         }
 
-        // Any other Settings screen — not allowed, reset WiFi flag
+        // Any other Settings screen — not allowed
         lastAllowedWifiSettings = false
         return false
     }
@@ -313,15 +264,13 @@ class AppMonitorService(private val context: Context) {
     private fun shouldBlockApp(packageName: String): Boolean {
         val prefs = context.getSharedPreferences(UninstallBlockerService.PREFS_NAME, Context.MODE_PRIVATE)
 
-        // Check if session is active
         val isActive = prefs.getBoolean(UninstallBlockerService.KEY_SESSION_ACTIVE, false)
         if (!isActive) return false
 
-        // Check if session has expired
+        val noTimeLimit = prefs.getBoolean("no_time_limit", false)
         val endTime = prefs.getLong(UninstallBlockerService.KEY_SESSION_END_TIME, 0)
-        if (System.currentTimeMillis() > endTime) return false
+        if (!noTimeLimit && System.currentTimeMillis() > endTime) return false
 
-        // Check if this package is in the blocked list
         val blockedApps = prefs.getStringSet(UninstallBlockerService.KEY_BLOCKED_APPS, emptySet())
         return blockedApps?.contains(packageName) == true
     }

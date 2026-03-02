@@ -23,7 +23,6 @@ import {
   activatePreset,
   invalidateUserCaches,
 } from '../services/cardApi';
-import { AnimatedPresetsIcon, AnimatedPresetsIconRef } from '../components/BottomTabBar';
 import { useTheme , textSize, fontFamily, radius, shadow, iconSize, haptics } from '../context/ThemeContext';
 import { triggerHaptic } from '../utils/haptics';
 import { useResponsive } from '../utils/responsive';
@@ -128,24 +127,7 @@ function PresetsScreen() {
   const [showSavedToast, setShowSavedToast] = useState(false);
   const savedToastOpacity = useRef(new Animated.Value(0)).current;
 
-  // Header icon animation - only when coming from other tabs, not from edit screens
-  const headerIconRef = useRef<AnimatedPresetsIconRef>(null);
   const isReturningFromEdit = useRef(false);
-
-
-  useFocusEffect(
-    useCallback(() => {
-      // Skip animation if returning from edit screens
-      if (isReturningFromEdit.current) {
-        isReturningFromEdit.current = false;
-        return;
-      }
-      // Trigger header icon animation on screen focus
-      if (headerIconRef.current) {
-        headerIconRef.current.animate();
-      }
-    }, [])
-  );
 
   // Mark when navigating to edit screens
   const handleAddPresetWithFlag = useCallback(() => {
@@ -843,9 +825,6 @@ function PresetsScreen() {
       <View className="flex-row items-center justify-between px-6 py-4">
         <View className="flex-row items-center">
           <Text style={{ color: colors.text }} className={`${textSize['2xLarge']} ${fontFamily.bold}`}>Presets</Text>
-          <View style={{ marginLeft: s(8) }}>
-            <AnimatedPresetsIcon ref={headerIconRef} color={colors.text} filled />
-          </View>
         </View>
 
         {/* Add Button - stays green but disabled when locked */}

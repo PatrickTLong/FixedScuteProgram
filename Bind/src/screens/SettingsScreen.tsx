@@ -10,7 +10,6 @@ import {
   Easing,
   RefreshControl,
 } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
@@ -70,11 +69,7 @@ const MessageIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
 );
 
 const BugIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
-  <Svg width={iconSize.forTabs} height={iconSize.forTabs} viewBox="0 -960 960 960" fill={color}>
-    <Path
-      d="M400-320h160v-80H400v80Zm0-160h160v-80H400v80Zm80 360q-65 0-120.5-32T272-240H160v-80h84q-3-20-3.5-40t-.5-40h-80v-80h80q0-20 .5-40t3.5-40h-84v-80h112q14-23 31.5-43t40.5-35l-64-66 56-56 86 86q28-9 57-9t57 9l88-86 56 56-66 66q23 15 41.5 34.5T688-640h112v80h-84q3 20 3.5 40t.5 40h80v80h-80q0 20-.5 40t-3.5 40h84v80H688q-32 56-87.5 88T480-120ZM40-720v-120q0-33 23.5-56.5T120-920h120v80H120v120H40ZM240-40H120q-33 0-56.5-23.5T40-120v-120h80v120h120v80Zm480 0v-80h120v-120h80v120q0 33-23.5 56.5T840-40H720Zm120-680v-120H720v-80h120q33 0 56.5 23.5T920-840v120h-80Z"
-    />
-  </Svg>
+  <BoxiconsFilled name="bx-report" size={iconSize.forTabs} color={color} />
 );
 
 const ShieldIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
@@ -176,9 +171,6 @@ function SettingsScreen() {
   const [loading, setLoading] = useState(!hasCache);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Gear spin animation
-  const gearRotation = useRef(new Animated.Value(0)).current;
-
   // Heartbeat animation for tapout icon
   const heartBeat = useRef(new Animated.Value(1)).current;
   const tapoutIconSize = iconSize.forTabs;
@@ -204,42 +196,6 @@ function SettingsScreen() {
     return () => beat.stop();
   }, [heartBeat, tapoutsRemaining]);
 
-  useFocusEffect(
-    React.useCallback(() => {
-      // Reset and play gear spin animation on screen focus
-      gearRotation.setValue(0);
-      Animated.sequence([
-        // Quick initial torque snap
-        Animated.timing(gearRotation, {
-          toValue: 0.85,
-          duration: 180,
-          easing: Easing.out(Easing.cubic),
-          useNativeDriver: true,
-        }),
-        // Overshoot past target
-        Animated.timing(gearRotation, {
-          toValue: 1.12,
-          duration: 200,
-          easing: Easing.out(Easing.quad),
-          useNativeDriver: true,
-        }),
-        // Settle back with bounce
-        Animated.timing(gearRotation, {
-          toValue: 0.95,
-          duration: 150,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-        // Final settle
-        Animated.timing(gearRotation, {
-          toValue: 1,
-          duration: 120,
-          easing: Easing.out(Easing.ease),
-          useNativeDriver: true,
-        }),
-      ]).start();
-    }, [gearRotation])
-  );
 
   // Membership state - initialize from cache if available
   const [membershipStatus, setMembershipStatus] = useState<MembershipStatus | null>(cachedMembership);
@@ -433,25 +389,6 @@ function SettingsScreen() {
       <View className="flex-row items-center justify-between px-6 py-4">
         <View className="flex-row items-center">
           <Text style={{ color: colors.text }} className={`${textSize['2xLarge']} ${fontFamily.bold}`}>Settings</Text>
-          <Animated.View style={{
-            marginLeft: s(8),
-            transform: [{
-              rotate: gearRotation.interpolate({
-                inputRange: [0, 1],
-                outputRange: ['0deg', '120deg'],
-              }),
-            }],
-          }}>
-            <Svg width={s(iconSize.lg)} height={s(iconSize.lg)} viewBox="0 0 24 24" fill="none">
-              <Path
-                d="M4.5 12a7.5 7.5 0 0 0 15 0m-15 0a7.5 7.5 0 1 1 15 0m-15 0H3m16.5 0H21m-1.5 0H12m-8.457 3.077 1.41-.513m14.095-5.13 1.41-.513M5.106 17.785l1.15-.964m11.49-9.642 1.149-.964M7.501 19.795l.75-1.3m7.5-12.99.75-1.3m-6.063 16.658.26-1.477m2.605-14.772.26-1.477m0 17.726-.26-1.477M10.698 4.614l-.26-1.477M16.5 19.794l-.75-1.299M7.5 4.205 12 12m6.894 5.785-1.149-.964M6.256 7.178l-1.15-.964m15.352 8.864-1.41-.513M4.954 9.435l-1.41-.514M12.002 12l-3.75 6.495"
-                stroke={colors.text}
-                strokeWidth={1.5}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </Svg>
-          </Animated.View>
         </View>
         {/* Invisible spacer to match header height with other screens */}
         <View className="w-11 h-11" />

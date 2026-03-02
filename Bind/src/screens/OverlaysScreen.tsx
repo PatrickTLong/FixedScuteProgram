@@ -13,7 +13,6 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import Svg, { Path } from 'react-native-svg';
 import BoxiconsFilled from '../components/BoxiconsFilled';
 import HeaderIconButton from '../components/HeaderIconButton';
-import { AnimatedOverlaysIcon, AnimatedOverlaysIconRef } from '../components/BottomTabBar';
 import ConfirmationModal from '../components/ConfirmationModal';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import {
@@ -148,8 +147,6 @@ function OverlaysScreen() {
   const overlayPresets = sharedOverlayPresets;
   const setOverlayPresets = setSharedOverlayPresets;
 
-  // Header icon animation - only when coming from other tabs, not from edit screens
-  const headerIconRef = useRef<AnimatedOverlaysIconRef>(null);
   const isReturningFromEdit = useRef(false);
 
   const [loading, setLoading] = useState(true);
@@ -185,19 +182,6 @@ function OverlaysScreen() {
         refreshOverlayPresets();
       }
     }, [userEmail_safe])
-  );
-
-  // Animate header icon on tab focus (skip when returning from editor)
-  useFocusEffect(
-    useCallback(() => {
-      if (isReturningFromEdit.current) {
-        isReturningFromEdit.current = false;
-        return;
-      }
-      if (headerIconRef.current) {
-        headerIconRef.current.animate();
-      }
-    }, [])
   );
 
   // Save handler — called by OverlayEditorScreen via context
@@ -314,9 +298,6 @@ function OverlaysScreen() {
       <View className="flex-row items-center justify-between px-6 py-4">
         <View className="flex-row items-center">
           <Text style={{ color: colors.text }} className={`${textSize['2xLarge']} ${fontFamily.bold}`}>Overlays</Text>
-          <View style={{ marginLeft: s(8) }}>
-            <AnimatedOverlaysIcon ref={headerIconRef} color={colors.text} filled />
-          </View>
         </View>
         <HeaderIconButton onPress={handleAddPreset}>
           <BoxiconsFilled name="bx-plus-circle" size={s(iconSize.headerNav)} color="#fff" />

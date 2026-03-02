@@ -15,13 +15,11 @@ import {
 } from 'react-native';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useFocusEffect } from '@react-navigation/native';
 import BoxiconsFilled from '../components/BoxiconsFilled';
 import { useTheme, textSize, fontFamily, radius, shadow, buttonPadding, iconSize } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import HeaderIconButton from '../components/HeaderIconButton';
 import { useAuth } from '../context/AuthContext';
-import { AnimatedStatsIcon, AnimatedStatsIconRef } from '../components/BottomTabBar';
 
 const { UsageStatsModule } = NativeModules;
 
@@ -299,17 +297,6 @@ function StatsScreen() {
     return () => clearInterval(interval);
   }, []);
 
-  // Header stats icon animation
-  const headerStatsIconRef = useRef<AnimatedStatsIconRef>(null);
-
-  useFocusEffect(
-    useCallback(() => {
-      // Trigger header icon animation on screen focus
-      if (headerStatsIconRef.current) {
-        headerStatsIconRef.current.animate();
-      }
-    }, [])
-  );
 
   const loadStats = useCallback(async () => {
     if (Platform.OS !== 'android' || !UsageStatsModule) {
@@ -375,9 +362,6 @@ function StatsScreen() {
       <View className="flex-row items-center justify-between px-6 py-4">
         <View className="flex-row items-center">
           <Text style={{ color: colors.text }} className={`${textSize['2xLarge']} ${fontFamily.bold}`}>Stats</Text>
-          <View style={{ marginLeft: s(8) }}>
-            <AnimatedStatsIcon ref={headerStatsIconRef} color={colors.text} filled barColor={colors.bg} />
-          </View>
         </View>
         {/* Invisible spacer to match header height with other screens */}
         <View className="w-11 h-11" />
