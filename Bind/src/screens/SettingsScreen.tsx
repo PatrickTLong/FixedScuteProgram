@@ -25,13 +25,8 @@ import { useAuth } from '../context/AuthContext';
 
 // Icons - white with thicker strokes
 const MailIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
-  <Svg width={iconSize.forTabs} height={iconSize.forTabs} viewBox="0 0 24 24" fill={color}>
-    <Path
-      d="M1.5 8.67v8.58a3 3 0 0 0 3 3h15a3 3 0 0 0 3-3V8.67l-8.928 5.493a3 3 0 0 1-3.144 0L1.5 8.67Z"
-    />
-    <Path
-      d="M22.5 6.908V6.75a3 3 0 0 0-3-3h-15a3 3 0 0 0-3 3v.158l9.714 5.978a1.5 1.5 0 0 0 1.572 0L22.5 6.908Z"
-    />
+  <Svg width={iconSize.forTabs} height={iconSize.forTabs} viewBox="0 -960 960 960" fill={color}>
+    <Path d="M560-520h280v-200H560v200Zm140-50-100-70v-40l100 70 100-70v40l-100 70ZM80-120q-33 0-56.5-23.5T0-200v-560q0-33 23.5-56.5T80-840h800q33 0 56.5 23.5T960-760v560q0 33-23.5 56.5T880-120H80Zm365-315q35-35 35-85t-35-85q-35-35-85-35t-85 35q-35 35-35 85t35 85q35 35 85 35t85-35ZM84-200h552q-42-75-116-117.5T360-360q-86 0-160 42.5T84-200Z" />
   </Svg>
 );
 
@@ -44,16 +39,15 @@ const LogoutIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
 );
 
 const RefreshIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
-  <BoxiconsFilled name="bx-refresh-cw-alt" size={iconSize.forTabs} color={color} />
+  <Svg width={iconSize.forTabs} height={iconSize.forTabs} viewBox="0 -960 960 960" fill={color}>
+    <Path d="M314-115q-104-48-169-145T80-479q0-26 2.5-51t8.5-49l-46 27-40-69 191-110 110 190-70 40-54-94q-11 27-16.5 56t-5.5 60q0 97 53 176.5T354-185l-40 70Zm306-485v-80h109q-46-57-111-88.5T480-800q-55 0-104 17t-90 48l-40-70q50-35 109-55t125-20q79 0 151 29.5T760-765v-55h80v220H620ZM594 0 403-110l110-190 69 40-57 98q118-17 196.5-107T800-480q0-11-.5-20.5T797-520h81q1 10 1.5 19.5t.5 20.5q0 135-80.5 241.5T590-95l44 26-40 69Z" />
+  </Svg>
 );
 
 const TrashIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
-  <Svg width={iconSize.forTabs} height={iconSize.forTabs} viewBox="0 0 24 24" fill={color}>
-    <Path
-      fillRule="evenodd"
-      clipRule="evenodd"
-      d="M16.5 4.478v.227a48.816 48.816 0 0 1 3.878.512.75.75 0 1 1-.256 1.478l-.209-.035-1.005 13.07a3 3 0 0 1-2.991 2.77H8.084a3 3 0 0 1-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 0 1-.256-1.478A48.567 48.567 0 0 1 7.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 0 1 3.369 0c1.603.051 2.815 1.387 2.815 2.951Zm-6.136-1.452a51.196 51.196 0 0 1 3.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 0 0-6 0v-.113c0-.794.609-1.428 1.364-1.452Zm-.355 5.945a.75.75 0 1 0-1.5.058l.347 9a.75.75 0 1 0 1.499-.058l-.346-9Zm5.48.058a.75.75 0 1 0-1.498-.058l-.347 9a.75.75 0 0 0 1.5.058l.345-9Z"
-    />
+  <Svg width={iconSize.forTabs} height={iconSize.forTabs} viewBox="0 -960 960 960">
+    <Path d="m40-120 440-760 440 760H40Z" fill={color} />
+    <Path d="M508.5-251.5Q520-263 520-280t-11.5-28.5Q497-320 480-320t-28.5 11.5Q440-297 440-280t11.5 28.5Q463-240 480-240t28.5-11.5ZM440-360h80v-200h-80v200Z" fill="#000000" />
   </Svg>
 );
 
@@ -70,15 +64,8 @@ const ShieldIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
 );
 
 const FileTextIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
-  <Svg width={iconSize.forTabs} height={iconSize.forTabs} viewBox="0 0 24 24" fill={color}>
-    <Path
-      fillRule="evenodd"
-      clipRule="evenodd"
-      d="M5.625 1.5c-1.036 0-1.875.84-1.875 1.875v17.25c0 1.035.84 1.875 1.875 1.875h12.75c1.035 0 1.875-.84 1.875-1.875V12.75A3.75 3.75 0 0 0 16.5 9h-1.875a1.875 1.875 0 0 1-1.875-1.875V5.25A3.75 3.75 0 0 0 9 1.5H5.625ZM7.5 15a.75.75 0 0 1 .75-.75h7.5a.75.75 0 0 1 0 1.5h-7.5A.75.75 0 0 1 7.5 15Zm.75 2.25a.75.75 0 0 0 0 1.5H12a.75.75 0 0 0 0-1.5H8.25Z"
-    />
-    <Path
-      d="M12.971 1.816A5.23 5.23 0 0 1 14.25 5.25v1.875c0 .207.168.375.375.375H16.5a5.23 5.23 0 0 1 3.434 1.279 9.768 9.768 0 0 0-6.963-6.963Z"
-    />
+  <Svg width={iconSize.forTabs} height={iconSize.forTabs} viewBox="0 -960 960 960" fill={color}>
+    <Path d="M240-80q-33 0-56.5-23.5T160-160v-640q0-33 23.5-56.5T240-880h320l240 240v480q0 33-23.5 56.5T720-80H240Zm40-120h400q-4-49-30-90t-68-65l38-68q2-4 1-9t-6-7q-4-2-8.5-1t-6.5 5l-39 70q-20-8-40-12.5t-41-4.5q-21 0-41 4.5T399-365l-39-70q-2-5-6.5-5t-9.5 2l-4 15 38 68q-42 24-68 65t-30 90Zm96-66q-6-6-6-14t6-14q6-6 14-6t14 6q6 6 6 14t-6 14q-6 6-14 6t-14-6Zm180 0q-6-6-6-14t6-14q6-6 14-6t14 6q6 6 6 14t-6 14q-6 6-14 6t-14-6Zm-36-334h200L520-800v200Z" />
   </Svg>
 );
 
@@ -349,7 +336,7 @@ function SettingsScreen() {
   const shieldIcon = useMemo(() => <ShieldIcon />, []);
   const fileTextIcon = useMemo(() => <FileTextIcon />, []);
   const refreshIcon = useMemo(() => <RefreshIcon />, []);
-  const trashIcon = useMemo(() => <TrashIcon color={colors.red} />, [colors.red]);
+  const trashIcon = useMemo(() => <TrashIcon color={colors.yellow} />, [colors.yellow]);
 
   // Show full-screen loading only for destructive actions (reset/delete/logout)
   // Initial load uses cache so it's instant - no spinner needed
@@ -382,9 +369,6 @@ function SettingsScreen() {
       </View>
 
       <ScrollView
-        className="flex-1"
-        contentContainerStyle={{ paddingHorizontal: s(16), paddingTop: s(16), paddingBottom: s(32) }}
-        showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -395,6 +379,8 @@ function SettingsScreen() {
             progressViewOffset={-20}
           />
         }
+        contentContainerStyle={{ paddingHorizontal: s(16), paddingTop: s(16), paddingBottom: s(32) }}
+        showsVerticalScrollIndicator={false}
       >
         {/* ACCOUNT Section */}
         <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} tracking-wider mb-2`}>
@@ -576,7 +562,7 @@ function SettingsScreen() {
               icon={trashIcon}
               label="Delete Account"
               onPress={isDisabled ? undefined : () => { setDeleteStep(1); setDeleteModalVisible(true); }}
-              labelColor={colors.red}
+              labelColor={colors.yellow}
               borderColor={colors.divider}
 
               isLast

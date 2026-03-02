@@ -362,7 +362,7 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, onExpire
             {status !== null && (
               <View className="ml-2">
                 <BoxiconsFilled
-                  name={status === 'expired' ? 'bx-alarm-exclamation' : status === 'blocking' ? 'bx-alarm-z' : 'bx-alarm'}
+                  name={status === 'expired' ? 'bx-alarm-exclamation' : 'bx-alarm'}
                   size={iconSize.sm}
                   color={getClockColor()}
                 />
