@@ -36,7 +36,12 @@ function SignInScreen() {
     await transitionRef.current?.animateOut('right');
     navigation.goBack();
   };
-  const onSuccess = (email: string) => handleLogin(email);
+  const onSuccess = async (email: string) => {
+    setModalVisible(false);
+    setShowBackButton(false);
+    await transitionRef.current?.animateOut('left');
+    handleLogin(email);
+  };
   const onForgotPassword = async () => {
     await transitionRef.current?.animateOut('up');
     navigation.navigate('ForgotPassword');
@@ -49,6 +54,7 @@ function SignInScreen() {
   const [code, setCode] = useState('');
   const [step, setStep] = useState<'credentials' | 'code'>('credentials');
   const [loading, setLoading] = useState(false);
+  const [showBackButton, setShowBackButton] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [modalTitle, setModalTitle] = useState('');
   const [modalMessage, setModalMessage] = useState('');
@@ -176,9 +182,11 @@ function SignInScreen() {
   return (
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
       {/* Back Button */}
-      <View className="absolute top-12 left-0 z-10">
-        <BackButton onPress={handleBack} />
-      </View>
+      {showBackButton && (
+        <View className="absolute top-12 left-0 z-10">
+          <BackButton onPress={handleBack} />
+        </View>
+      )}
 
       <ScreenTransition ref={transitionRef}>
       {/* Progress Bar */}

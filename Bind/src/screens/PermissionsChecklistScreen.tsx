@@ -208,7 +208,7 @@ function PermissionsChecklistScreen() {
         );
 
         if (nowAllGranted) {
-          await transitionRef.current?.animateOut();
+          await transitionRef.current?.animateOut('left');
           onComplete();
           return;
         }

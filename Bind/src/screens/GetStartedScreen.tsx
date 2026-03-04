@@ -32,7 +32,12 @@ function GetStartedScreen() {
   const navigation = useNavigation<StackNavigationProp<AuthStackParamList>>();
   const transitionRef = useRef<ScreenTransitionRef>(null);
   const { handleLogin } = useAuth();
-  const onSuccess = (email: string) => handleLogin(email);
+  const onSuccess = async (email: string) => {
+    setModalVisible(false);
+    setShowBackButton(false);
+    await transitionRef.current?.animateOut('left');
+    handleLogin(email);
+  };
   const onSignIn = async () => {
     await transitionRef.current?.animateOut('left');
     navigation.navigate('SignIn');

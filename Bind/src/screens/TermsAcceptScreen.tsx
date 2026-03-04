@@ -33,7 +33,7 @@ function TermsAcceptScreen() {
     if (!hasScrolledToBottom || isAccepting) return;
     setIsAccepting(true);
     await AsyncStorage.setItem('tos_accepted', 'true');
-    await transitionRef.current?.animateOut();
+    await transitionRef.current?.animateOut('left');
     handleTermsAccepted();
   }
 
