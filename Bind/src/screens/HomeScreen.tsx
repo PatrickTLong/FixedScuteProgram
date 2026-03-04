@@ -243,6 +243,20 @@ function HomeScreen() {
             customBlockedTextColor: preset.customBlockedTextColor ?? '',
             customOverlayImage: preset.customOverlayImage ?? '',
             customOverlayImageSize: preset.customOverlayImageSize ?? 120,
+            customOverlayBgColor: preset.customOverlayBgColor ?? '',
+            customDismissText: preset.customDismissText ?? '',
+            customDismissColor: preset.customDismissColor ?? '',
+            iconPosX: preset.iconPosX ?? 50,
+            iconPosY: preset.iconPosY ?? 50,
+            blockedTextPosX: preset.blockedTextPosX ?? 50,
+            blockedTextPosY: preset.blockedTextPosY ?? 50,
+            dismissTextPosX: preset.dismissTextPosX ?? 50,
+            dismissTextPosY: preset.dismissTextPosY ?? 50,
+            iconVisible: preset.iconVisible ?? true,
+            blockedTextVisible: preset.blockedTextVisible ?? true,
+            dismissTextVisible: preset.dismissTextVisible ?? true,
+            blockedTextSize: preset.blockedTextSize ?? 22,
+            dismissTextSize: preset.dismissTextSize ?? 10,
           };
           console.log('[SCHED-DEBUG] Calling BlockingModule.startBlocking:', JSON.stringify(blockingConfig));
           await BlockingModule.startBlocking(blockingConfig);
@@ -1036,6 +1050,7 @@ function HomeScreen() {
 
             const resolvedNoTimeLimit = activePreset.noTimeLimit && !activePreset.isScheduled;
             console.log(`[PRESETS] HomeScreen startBlocking — preset "${activePreset.name}" (id: ${activePreset.id}) | noTimeLimit raw: ${activePreset.noTimeLimit}, isScheduled: ${activePreset.isScheduled}, resolved noTimeLimit sent to native: ${resolvedNoTimeLimit}`);
+            console.log(`[OVERLAY] HomeScreen startBlocking — bgColor='${activePreset.customOverlayBgColor}', dismissText='${activePreset.customDismissText}', dismissColor='${activePreset.customDismissColor}', iconPos=(${activePreset.iconPosX},${activePreset.iconPosY}), blockedTextPos=(${activePreset.blockedTextPosX},${activePreset.blockedTextPosY}), dismissTextPos=(${activePreset.dismissTextPosX},${activePreset.dismissTextPosY}), iconVisible=${activePreset.iconVisible}, blockedTextVisible=${activePreset.blockedTextVisible}, dismissTextVisible=${activePreset.dismissTextVisible}, blockedTextSize=${activePreset.blockedTextSize}, dismissTextSize=${activePreset.dismissTextSize}`);
             if (activePreset.noTimeLimit && activePreset.isScheduled) {
               console.log(`[PRESETS] HomeScreen startBlocking — NOTE: preset has noTimeLimit=true BUT isScheduled=true, so noTimeLimit is OVERRIDDEN to false for native module`);
             }
@@ -1058,6 +1073,20 @@ function HomeScreen() {
               customBlockedTextColor: activePreset.customBlockedTextColor ?? '',
               customOverlayImage: activePreset.customOverlayImage ?? '',
               customOverlayImageSize: activePreset.customOverlayImageSize ?? 120,
+              customOverlayBgColor: activePreset.customOverlayBgColor ?? '',
+              customDismissText: activePreset.customDismissText ?? '',
+              customDismissColor: activePreset.customDismissColor ?? '',
+              iconPosX: activePreset.iconPosX ?? 50,
+              iconPosY: activePreset.iconPosY ?? 50,
+              blockedTextPosX: activePreset.blockedTextPosX ?? 50,
+              blockedTextPosY: activePreset.blockedTextPosY ?? 50,
+              dismissTextPosX: activePreset.dismissTextPosX ?? 50,
+              dismissTextPosY: activePreset.dismissTextPosY ?? 50,
+              iconVisible: activePreset.iconVisible ?? true,
+              blockedTextVisible: activePreset.blockedTextVisible ?? true,
+              dismissTextVisible: activePreset.dismissTextVisible ?? true,
+              blockedTextSize: activePreset.blockedTextSize ?? 22,
+              dismissTextSize: activePreset.dismissTextSize ?? 10,
             });
           }
 

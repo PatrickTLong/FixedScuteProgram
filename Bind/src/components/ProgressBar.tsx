@@ -30,11 +30,12 @@ const AnimatedDot = memo(function AnimatedDot({ isActive }: { isActive: boolean 
 
   useEffect(() => {
     if (isActive) {
+      translateYAnim.setValue(0);
       Animated.spring(translateYAnim, {
         toValue: -10,
         useNativeDriver: true,
-        friction: 5,
-        tension: 100,
+        friction: 4,
+        tension: 80,
       }).start();
     } else {
       Animated.spring(translateYAnim, {

@@ -19,6 +19,7 @@ import android.view.animation.DecelerateInterpolator
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.graphics.Color
+import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.TextView
 import java.io.ByteArrayOutputStream
@@ -65,6 +66,20 @@ class BlockedOverlayManager(private val context: Context) {
     private var currentCustomBlockedTextColor: String = ""
     private var currentCustomOverlayImage: String = ""
     private var currentCustomOverlayImageSize: Int = 120
+    private var currentCustomOverlayBgColor: String = ""
+    private var currentCustomDismissText: String = ""
+    private var currentCustomDismissColor: String = ""
+    private var currentIconPosX: Float = 50f
+    private var currentIconPosY: Float = 50f
+    private var currentBlockedTextPosX: Float = 50f
+    private var currentBlockedTextPosY: Float = 50f
+    private var currentDismissTextPosX: Float = 50f
+    private var currentDismissTextPosY: Float = 50f
+    private var currentIconVisible: Boolean = true
+    private var currentBlockedTextVisible: Boolean = true
+    private var currentDismissTextVisible: Boolean = true
+    private var currentBlockedTextSize: Float = 22f
+    private var currentDismissTextSize: Float = 10f
 
     // Cache for downloaded overlay image
     private var cachedImageUrl: String = ""
@@ -87,10 +102,20 @@ class BlockedOverlayManager(private val context: Context) {
      * Note: TYPE_ACCESSIBILITY_OVERLAY doesn't require SYSTEM_ALERT_WINDOW permission
      * when called from an AccessibilityService.
      */
-    fun show(blockedType: String, blockedItem: String?, blockedName: String?, strictMode: Boolean, customBlockedText: String = "", customBlockedTextColor: String = "", customOverlayImage: String = "", customOverlayImageSize: Int = 120): Boolean {
+    fun show(
+        blockedType: String, blockedItem: String?, blockedName: String?, strictMode: Boolean,
+        customBlockedText: String = "", customBlockedTextColor: String = "",
+        customOverlayImage: String = "", customOverlayImageSize: Int = 120,
+        customOverlayBgColor: String = "", customDismissText: String = "", customDismissColor: String = "",
+        iconPosX: Float = 50f, iconPosY: Float = 50f,
+        blockedTextPosX: Float = 50f, blockedTextPosY: Float = 50f,
+        dismissTextPosX: Float = 50f, dismissTextPosY: Float = 50f,
+        iconVisible: Boolean = true, blockedTextVisible: Boolean = true, dismissTextVisible: Boolean = true,
+        blockedTextSize: Float = 22f, dismissTextSize: Float = 10f
+    ): Boolean {
         if (isShowing) {
             Log.d(TAG, "Overlay already showing, updating content")
-            updateContent(blockedType, blockedItem, blockedName, strictMode, customBlockedText, customBlockedTextColor, customOverlayImage, customOverlayImageSize)
+            updateContent(blockedType, blockedItem, blockedName, strictMode, customBlockedText, customBlockedTextColor, customOverlayImage, customOverlayImageSize, customOverlayBgColor, customDismissText, customDismissColor, iconPosX, iconPosY, blockedTextPosX, blockedTextPosY, dismissTextPosX, dismissTextPosY, iconVisible, blockedTextVisible, dismissTextVisible, blockedTextSize, dismissTextSize)
             return true
         }
 
@@ -106,6 +131,20 @@ class BlockedOverlayManager(private val context: Context) {
             currentCustomBlockedTextColor = customBlockedTextColor
             currentCustomOverlayImage = customOverlayImage
             currentCustomOverlayImageSize = customOverlayImageSize
+            currentCustomOverlayBgColor = customOverlayBgColor
+            currentCustomDismissText = customDismissText
+            currentCustomDismissColor = customDismissColor
+            currentIconPosX = iconPosX
+            currentIconPosY = iconPosY
+            currentBlockedTextPosX = blockedTextPosX
+            currentBlockedTextPosY = blockedTextPosY
+            currentDismissTextPosX = dismissTextPosX
+            currentDismissTextPosY = dismissTextPosY
+            currentIconVisible = iconVisible
+            currentBlockedTextVisible = blockedTextVisible
+            currentDismissTextVisible = dismissTextVisible
+            currentBlockedTextSize = blockedTextSize
+            currentDismissTextSize = dismissTextSize
 
             windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
 
@@ -152,7 +191,7 @@ class BlockedOverlayManager(private val context: Context) {
             }
 
             // Update content based on block type
-            updateViewContent(blockedType, blockedItem, blockedName, strictMode, customBlockedText, customBlockedTextColor, customOverlayImage, customOverlayImageSize)
+            updateViewContent(blockedType, blockedItem, blockedName, strictMode, customBlockedText, customBlockedTextColor, customOverlayImage, customOverlayImageSize, customOverlayBgColor, customDismissText, customDismissColor, iconPosX, iconPosY, blockedTextPosX, blockedTextPosY, dismissTextPosX, dismissTextPosY, iconVisible, blockedTextVisible, dismissTextVisible, blockedTextSize, dismissTextSize)
 
             // Hide navigation and status bar (matching BlockedActivity's fullscreen theme)
             overlayView?.systemUiVisibility = (View.SYSTEM_UI_FLAG_LAYOUT_STABLE
@@ -242,7 +281,17 @@ class BlockedOverlayManager(private val context: Context) {
     /**
      * Update the content of an already showing overlay
      */
-    private fun updateContent(blockedType: String, blockedItem: String?, blockedName: String?, strictMode: Boolean, customBlockedText: String = "", customBlockedTextColor: String = "", customOverlayImage: String = "", customOverlayImageSize: Int = 120) {
+    private fun updateContent(
+        blockedType: String, blockedItem: String?, blockedName: String?, strictMode: Boolean,
+        customBlockedText: String = "", customBlockedTextColor: String = "",
+        customOverlayImage: String = "", customOverlayImageSize: Int = 120,
+        customOverlayBgColor: String = "", customDismissText: String = "", customDismissColor: String = "",
+        iconPosX: Float = 50f, iconPosY: Float = 50f,
+        blockedTextPosX: Float = 50f, blockedTextPosY: Float = 50f,
+        dismissTextPosX: Float = 50f, dismissTextPosY: Float = 50f,
+        iconVisible: Boolean = true, blockedTextVisible: Boolean = true, dismissTextVisible: Boolean = true,
+        blockedTextSize: Float = 22f, dismissTextSize: Float = 10f
+    ) {
         currentBlockedType = blockedType
         currentBlockedItem = blockedItem
         currentBlockedName = blockedName
@@ -251,18 +300,56 @@ class BlockedOverlayManager(private val context: Context) {
         currentCustomBlockedTextColor = customBlockedTextColor
         currentCustomOverlayImage = customOverlayImage
         currentCustomOverlayImageSize = customOverlayImageSize
-        updateViewContent(blockedType, blockedItem, blockedName, strictMode, customBlockedText, customBlockedTextColor, customOverlayImage, customOverlayImageSize)
+        currentCustomOverlayBgColor = customOverlayBgColor
+        currentCustomDismissText = customDismissText
+        currentCustomDismissColor = customDismissColor
+        currentIconPosX = iconPosX
+        currentIconPosY = iconPosY
+        currentBlockedTextPosX = blockedTextPosX
+        currentBlockedTextPosY = blockedTextPosY
+        currentDismissTextPosX = dismissTextPosX
+        currentDismissTextPosY = dismissTextPosY
+        currentIconVisible = iconVisible
+        currentBlockedTextVisible = blockedTextVisible
+        currentDismissTextVisible = dismissTextVisible
+        currentBlockedTextSize = blockedTextSize
+        currentDismissTextSize = dismissTextSize
+        updateViewContent(blockedType, blockedItem, blockedName, strictMode, customBlockedText, customBlockedTextColor, customOverlayImage, customOverlayImageSize, customOverlayBgColor, customDismissText, customDismissColor, iconPosX, iconPosY, blockedTextPosX, blockedTextPosY, dismissTextPosX, dismissTextPosY, iconVisible, blockedTextVisible, dismissTextVisible, blockedTextSize, dismissTextSize)
     }
 
     /**
      * Update the view content based on block type
      */
-    private fun updateViewContent(blockedType: String, blockedItem: String?, blockedName: String?, strictMode: Boolean, customBlockedText: String = "", customBlockedTextColor: String = "", customOverlayImage: String = "", customOverlayImageSize: Int = 120) {
-        Log.d(TAG, "updateViewContent: type=$blockedType, item=$blockedItem, customText='$customBlockedText', customTextColor='$customBlockedTextColor', customImage='$customOverlayImage', imageSize=$customOverlayImageSize")
+    private fun updateViewContent(
+        blockedType: String, blockedItem: String?, blockedName: String?, strictMode: Boolean,
+        customBlockedText: String = "", customBlockedTextColor: String = "",
+        customOverlayImage: String = "", customOverlayImageSize: Int = 120,
+        customOverlayBgColor: String = "", customDismissText: String = "", customDismissColor: String = "",
+        iconPosX: Float = 50f, iconPosY: Float = 50f,
+        blockedTextPosX: Float = 50f, blockedTextPosY: Float = 50f,
+        dismissTextPosX: Float = 50f, dismissTextPosY: Float = 50f,
+        iconVisible: Boolean = true, blockedTextVisible: Boolean = true, dismissTextVisible: Boolean = true,
+        blockedTextSize: Float = 22f, dismissTextSize: Float = 10f
+    ) {
+        Log.d(TAG, "[OVERLAY] updateViewContent: type=$blockedType, item=$blockedItem, customText='$customBlockedText', customTextColor='$customBlockedTextColor', customImage='$customOverlayImage', imageSize=$customOverlayImageSize")
+        Log.d(TAG, "[OVERLAY] updateViewContent: bgColor='$customOverlayBgColor', dismissText='$customDismissText', dismissColor='$customDismissColor'")
+        Log.d(TAG, "[OVERLAY] updateViewContent: iconPos=($iconPosX,$iconPosY), blockedTextPos=($blockedTextPosX,$blockedTextPosY), dismissTextPos=($dismissTextPosX,$dismissTextPosY)")
+        Log.d(TAG, "[OVERLAY] updateViewContent: iconVisible=$iconVisible, blockedTextVisible=$blockedTextVisible, dismissTextVisible=$dismissTextVisible, blockedTextSize=$blockedTextSize, dismissTextSize=$dismissTextSize")
 
         // Get views
+        val rootView = overlayView?.findViewById<FrameLayout>(R.id.overlay_root)
         val appIconView = overlayView?.findViewById<ImageView>(R.id.overlay_app_icon)
         val messageView = overlayView?.findViewById<TextView>(R.id.overlay_message)
+        val dismissView = overlayView?.findViewById<TextView>(R.id.overlay_dismiss_text)
+
+        // Background color
+        if (customOverlayBgColor.isNotEmpty()) {
+            try {
+                rootView?.setBackgroundColor(Color.parseColor(customOverlayBgColor))
+            } catch (e: Exception) {
+                Log.w(TAG, "Invalid overlay bg color: $customOverlayBgColor", e)
+            }
+        }
 
         // Use custom text if provided, otherwise use default "X is blocked." message
         messageView?.text = if (customBlockedText.isNotEmpty()) {
@@ -290,15 +377,40 @@ class BlockedOverlayManager(private val context: Context) {
             }
         }
 
+        // Blocked text size
+        val effectiveBlockedTextSize = if (blockedTextSize > 0) blockedTextSize else 22f
+        messageView?.textSize = effectiveBlockedTextSize
+
+        // Dismiss text content, color, and size
+        dismissView?.text = if (customDismissText.isNotEmpty()) customDismissText else "Tap anywhere to dismiss"
+        if (customDismissColor.isNotEmpty()) {
+            try {
+                dismissView?.setTextColor(Color.parseColor(customDismissColor))
+            } catch (e: Exception) {
+                Log.w(TAG, "Invalid dismiss text color: $customDismissColor", e)
+            }
+        }
+        val effectiveDismissTextSize = if (dismissTextSize > 0) dismissTextSize else 10f
+        dismissView?.textSize = effectiveDismissTextSize
+
+        // Visibility
+        appIconView?.visibility = if (iconVisible) View.VISIBLE else View.GONE
+        messageView?.visibility = if (blockedTextVisible) View.VISIBLE else View.GONE
+        dismissView?.visibility = if (dismissTextVisible) View.VISIBLE else View.GONE
+
         // Apply custom image size
         val density = context.resources.displayMetrics.density
         val sizePx = (customOverlayImageSize * density).toInt()
-        appIconView?.layoutParams?.width = sizePx
-        appIconView?.layoutParams?.height = sizePx
-        appIconView?.requestLayout()
+        Log.d(TAG, "[OVERLAY] Image size: ${customOverlayImageSize}dp → ${sizePx}px (density=$density)")
+        appIconView?.let { iv ->
+            val params = iv.layoutParams as? FrameLayout.LayoutParams ?: FrameLayout.LayoutParams(sizePx, sizePx)
+            params.width = sizePx
+            params.height = sizePx
+            iv.layoutParams = params
+        }
 
         // Custom overlay image replaces the center icon
-        if (customOverlayImage.isNotEmpty()) {
+        if (customOverlayImage.isNotEmpty() && iconVisible) {
             appIconView?.visibility = View.VISIBLE
             // Check if we have this image cached
             if (cachedImageUrl == customOverlayImage && cachedImageBitmap != null) {
@@ -326,10 +438,62 @@ class BlockedOverlayManager(private val context: Context) {
                     }
                 }
             }
-        } else {
+        } else if (iconVisible) {
             setDefaultIcon(appIconView, blockedType)
         }
 
+        // Percentage-based positioning (run after layout pass)
+        rootView?.post {
+            val parentWidth = rootView.width
+            val parentHeight = rootView.height
+            Log.d(TAG, "[OVERLAY] Positioning: parentSize=${parentWidth}x${parentHeight}")
+            if (parentWidth > 0 && parentHeight > 0) {
+                positionElement(appIconView, iconPosX, iconPosY, parentWidth, parentHeight, "icon")
+                positionElement(messageView, blockedTextPosX, blockedTextPosY, parentWidth, parentHeight, "blockedText")
+                positionElement(dismissView, dismissTextPosX, dismissTextPosY, parentWidth, parentHeight, "dismissText")
+            }
+        }
+    }
+
+    /**
+     * Position an element at a percentage-based coordinate within the parent FrameLayout.
+     * (posX=50, posY=50) = centered. Clamped to bounds.
+     */
+    private fun positionElement(view: View?, posX: Float, posY: Float, parentWidth: Int, parentHeight: Int, label: String = "") {
+        if (view == null || view.visibility == View.GONE) return
+
+        // Measure the view — use EXACTLY for explicit sizes, AT_MOST for wrap_content
+        val lp = view.layoutParams
+        val wSpec = if (lp != null && lp.width > 0) {
+            View.MeasureSpec.makeMeasureSpec(lp.width, View.MeasureSpec.EXACTLY)
+        } else {
+            View.MeasureSpec.makeMeasureSpec(parentWidth, View.MeasureSpec.AT_MOST)
+        }
+        val hSpec = if (lp != null && lp.height > 0) {
+            View.MeasureSpec.makeMeasureSpec(lp.height, View.MeasureSpec.EXACTLY)
+        } else {
+            View.MeasureSpec.makeMeasureSpec(parentHeight, View.MeasureSpec.AT_MOST)
+        }
+        view.measure(wSpec, hSpec)
+        val viewWidth = view.measuredWidth
+        val viewHeight = view.measuredHeight
+
+        // Convert percentage (0-100) to pixel position, centered on the element
+        val targetX = ((posX / 100f) * parentWidth - viewWidth / 2f)
+            .coerceIn(0f, (parentWidth - viewWidth).toFloat().coerceAtLeast(0f))
+        val targetY = ((posY / 100f) * parentHeight - viewHeight / 2f)
+            .coerceIn(0f, (parentHeight - viewHeight).toFloat().coerceAtLeast(0f))
+
+        Log.d(TAG, "[OVERLAY] positionElement '$label': pos=($posX%,$posY%) → pixel=(${targetX.toInt()},${targetY.toInt()}), viewSize=${viewWidth}x${viewHeight}")
+
+        val params = view.layoutParams as? FrameLayout.LayoutParams ?: FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.WRAP_CONTENT,
+            FrameLayout.LayoutParams.WRAP_CONTENT
+        )
+        params.gravity = Gravity.TOP or Gravity.START
+        params.leftMargin = targetX.toInt()
+        params.topMargin = targetY.toInt()
+        view.layoutParams = params
     }
 
     private fun setDefaultIcon(appIconView: ImageView?, blockedType: String) {

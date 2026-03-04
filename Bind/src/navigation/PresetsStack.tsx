@@ -198,10 +198,12 @@ export function OverlayEditProvider({ children }: { children: React.ReactNode })
 
   const getEditingOverlayPreset = useCallback(() => editingOverlayPresetRef.current, []);
   const setEditingOverlayPreset = useCallback((p: OverlayPreset | null) => {
+    console.log(`[OVERLAY] OverlayEditContext — setEditingOverlayPreset: ${p ? `"${p.name}" (id: ${p.id})` : 'null (new preset)'}`);
     editingOverlayPresetRef.current = p;
   }, []);
   const getOnOverlaySave = useCallback(() => onOverlaySaveRef.current, []);
   const setOnOverlaySave = useCallback((fn: (preset: OverlayPreset) => Promise<void>) => {
+    console.log('[OVERLAY] OverlayEditContext — setOnOverlaySave registered');
     onOverlaySaveRef.current = fn;
   }, []);
 

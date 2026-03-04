@@ -65,6 +65,7 @@
 
         <!-- Tap to dismiss hint -->
         <TextView
+            android:id="@+id/blocked_dismiss_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Tap anywhere to dismiss"

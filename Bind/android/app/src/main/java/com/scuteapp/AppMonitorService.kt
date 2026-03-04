@@ -285,8 +285,25 @@ class AppMonitorService(private val context: Context) {
         val customBlockedTextColor = prefs.getString("custom_blocked_text_color", "") ?: ""
         val customOverlayImage = prefs.getString("custom_overlay_image", "") ?: ""
         val customOverlayImageSize = prefs.getInt("custom_overlay_image_size", 120)
+        val customOverlayBgColor = prefs.getString("custom_overlay_bg_color", "") ?: ""
+        val customDismissText = prefs.getString("custom_dismiss_text", "") ?: ""
+        val customDismissColor = prefs.getString("custom_dismiss_color", "") ?: ""
+        val iconPosX = prefs.getFloat("icon_pos_x", 50f)
+        val iconPosY = prefs.getFloat("icon_pos_y", 50f)
+        val blockedTextPosX = prefs.getFloat("blocked_text_pos_x", 50f)
+        val blockedTextPosY = prefs.getFloat("blocked_text_pos_y", 50f)
+        val dismissTextPosX = prefs.getFloat("dismiss_text_pos_x", 50f)
+        val dismissTextPosY = prefs.getFloat("dismiss_text_pos_y", 50f)
+        val iconVisible = prefs.getBoolean("icon_visible", true)
+        val blockedTextVisible = prefs.getBoolean("blocked_text_visible", true)
+        val dismissTextVisible = prefs.getBoolean("dismiss_text_visible", true)
+        val blockedTextSize = prefs.getFloat("blocked_text_size", 22f)
+        val dismissTextSize = prefs.getFloat("dismiss_text_size", 10f)
 
         Log.d(TAG, "showBlockedOverlay: pkg=$packageName, customBlockedText='$customBlockedText', customBlockedTextColor='$customBlockedTextColor', customOverlayImage='$customOverlayImage', customOverlayImageSize=$customOverlayImageSize")
+        Log.d(TAG, "[OVERLAY] showBlockedOverlay: bgColor='$customOverlayBgColor', dismissText='$customDismissText', dismissColor='$customDismissColor'")
+        Log.d(TAG, "[OVERLAY] showBlockedOverlay: iconPos=($iconPosX,$iconPosY), blockedTextPos=($blockedTextPosX,$blockedTextPosY), dismissTextPos=($dismissTextPosX,$dismissTextPosY)")
+        Log.d(TAG, "[OVERLAY] showBlockedOverlay: iconVisible=$iconVisible, blockedTextVisible=$blockedTextVisible, dismissTextVisible=$dismissTextVisible, blockedTextSize=$blockedTextSize, dismissTextSize=$dismissTextSize")
 
         val blockedType = if (isSettingsApp(packageName)) {
             Log.d(TAG, "Detected settings app blocked: $packageName")
@@ -308,12 +325,21 @@ class AppMonitorService(private val context: Context) {
         pauseMedia()
 
         // Show overlay instantly with app name
-        val shown = overlayManager?.show(blockedType, packageName, appName, strictMode, customBlockedText, customBlockedTextColor, customOverlayImage, customOverlayImageSize) ?: false
+        val shown = overlayManager?.show(
+            blockedType, packageName, appName, strictMode,
+            customBlockedText, customBlockedTextColor, customOverlayImage, customOverlayImageSize,
+            customOverlayBgColor, customDismissText, customDismissColor,
+            iconPosX, iconPosY, blockedTextPosX, blockedTextPosY, dismissTextPosX, dismissTextPosY,
+            iconVisible, blockedTextVisible, dismissTextVisible, blockedTextSize, dismissTextSize
+        ) ?: false
 
         if (!shown) {
             Log.w(TAG, "Failed to show overlay, falling back to activity")
             // Fallback: launch BlockedActivity (no HOME action - just show activity)
-            BlockedActivity.launchNoAnimation(context, blockedType, packageName, strictMode, customBlockedText, customBlockedTextColor, customOverlayImage, customOverlayImageSize)
+            BlockedActivity.launchNoAnimation(context, blockedType, packageName, strictMode,
+                customBlockedText, customBlockedTextColor, customOverlayImage, customOverlayImageSize,
+                customOverlayBgColor, customDismissText, customDismissColor,
+                iconVisible, blockedTextVisible, dismissTextVisible, blockedTextSize, dismissTextSize)
         }
     }
 

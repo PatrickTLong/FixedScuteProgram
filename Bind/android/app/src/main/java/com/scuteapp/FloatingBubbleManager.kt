@@ -81,6 +81,7 @@ class FloatingBubbleManager(private val context: Context) {
     private var bubbleAppList: LinearLayout? = null
     private var bubbleAppListContainer: LinearLayout? = null
     private var bubbleAppListScroll: ScrollView? = null
+    private var bubbleContentWrapper: LinearLayout? = null
     private var isAppListPopulated = false
     private var density: Float = 1f
 
@@ -235,6 +236,7 @@ class FloatingBubbleManager(private val context: Context) {
             bubbleAppList = bubbleView?.findViewById(R.id.bubble_app_list)
             bubbleAppListContainer = bubbleView?.findViewById(R.id.bubble_app_list_container)
             bubbleAppListScroll = bubbleView?.findViewById(R.id.bubble_app_list_scroll)
+            bubbleContentWrapper = bubbleView?.findViewById(R.id.bubble_content_wrapper)
 
             // Set up window parameters — restore dragged position if available
             val posX = savedX ?: 0
@@ -362,6 +364,7 @@ class FloatingBubbleManager(private val context: Context) {
             bubbleAppList = bubbleView?.findViewById(R.id.bubble_app_list)
             bubbleAppListContainer = bubbleView?.findViewById(R.id.bubble_app_list_container)
             bubbleAppListScroll = bubbleView?.findViewById(R.id.bubble_app_list_scroll)
+            bubbleContentWrapper = bubbleView?.findViewById(R.id.bubble_content_wrapper)
 
             // Set up window parameters — restore dragged position if available
             val posX = savedX ?: 0
@@ -922,6 +925,71 @@ class FloatingBubbleManager(private val context: Context) {
     }
 
     /**
+     * Collapse the top layout margins (hide-button area) to shrink the overlay
+     * window rect, so outside touches pass through to the screen below.
+     * Shifts the window Y downward by the same amount to keep the pill visually stable.
+     */
+    private fun collapseTopMargins() {
+        val topMargin = (29 * density).toInt()  // 16dp wrapper + 13dp bubble_main
+
+        // Shrink content wrapper top margin (16dp → 0dp)
+        (bubbleContentWrapper?.layoutParams as? FrameLayout.LayoutParams)?.let {
+            it.topMargin = 0
+            bubbleContentWrapper?.layoutParams = it
+        }
+        // Shrink bubble_main top margin (13dp → 0dp)
+        (bubbleMain?.layoutParams as? LinearLayout.LayoutParams)?.let {
+            it.topMargin = 0
+            bubbleMain?.layoutParams = it
+        }
+        // Shrink app list top margin (6dp → 2dp)
+        (bubbleAppList?.layoutParams as? LinearLayout.LayoutParams)?.let {
+            it.topMargin = (2 * density).toInt()
+            bubbleAppList?.layoutParams = it
+        }
+
+        // Shift window down so the pill stays in the same visual position
+        layoutParams?.let { params ->
+            params.y = params.y + topMargin
+            try {
+                windowManager?.updateViewLayout(bubbleView, params)
+            } catch (e: Exception) {
+                Log.e(TAG, "Error collapsing top margins", e)
+            }
+        }
+    }
+
+    /**
+     * Restore the top layout margins to their original values and shift
+     * the window Y back up so the pill stays visually stable.
+     */
+    private fun restoreTopMargins() {
+        val topMargin = (29 * density).toInt()
+
+        (bubbleContentWrapper?.layoutParams as? FrameLayout.LayoutParams)?.let {
+            it.topMargin = (16 * density).toInt()
+            bubbleContentWrapper?.layoutParams = it
+        }
+        (bubbleMain?.layoutParams as? LinearLayout.LayoutParams)?.let {
+            it.topMargin = (13 * density).toInt()
+            bubbleMain?.layoutParams = it
+        }
+        (bubbleAppList?.layoutParams as? LinearLayout.LayoutParams)?.let {
+            it.topMargin = (6 * density).toInt()
+            bubbleAppList?.layoutParams = it
+        }
+
+        layoutParams?.let { params ->
+            params.y = params.y - topMargin
+            try {
+                windowManager?.updateViewLayout(bubbleView, params)
+            } catch (e: Exception) {
+                Log.e(TAG, "Error restoring top margins", e)
+            }
+        }
+    }
+
+    /**
      * Show the app list panel below the expanded pill
      */
     private fun showAppList() {
@@ -935,6 +1003,10 @@ class FloatingBubbleManager(private val context: Context) {
 
         // Extend auto-collapse delay while viewing app list
         handler.removeCallbacks(autoCollapseRunnable)
+
+        // Collapse dead-space margins so the overlay window rect is tight
+        // and outside touches pass through to the screen below
+        collapseTopMargins()
 
         // Rotate caret from right (0) to down (90)
         bubbleChevron?.animate()
@@ -956,17 +1028,6 @@ class FloatingBubbleManager(private val context: Context) {
                 ?.start()
         }
 
-        // Allow touches outside the bubble to pass through to the screen below
-        // while still letting the ScrollView scroll within the overlay
-        layoutParams?.let { params ->
-            params.flags = params.flags or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
-            try {
-                windowManager?.updateViewLayout(bubbleView, params)
-            } catch (e: Exception) {
-                Log.e(TAG, "Error updating layout for app list", e)
-            }
-        }
-
         Log.d(TAG, "App list shown")
     }
 
@@ -976,15 +1037,8 @@ class FloatingBubbleManager(private val context: Context) {
     private fun hideAppList(animate: Boolean = true) {
         isAppListShown = false
 
-        // Remove FLAG_NOT_TOUCH_MODAL since the app list is no longer shown
-        layoutParams?.let { params ->
-            params.flags = params.flags and WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL.inv()
-            try {
-                windowManager?.updateViewLayout(bubbleView, params)
-            } catch (e: Exception) {
-                Log.e(TAG, "Error restoring layout flags", e)
-            }
-        }
+        // Restore margins for the hide-button area
+        restoreTopMargins()
 
         if (animate) {
             // Rotate caret back to right
@@ -1090,6 +1144,7 @@ class FloatingBubbleManager(private val context: Context) {
         bubbleAppList = null
         bubbleAppListContainer = null
         bubbleAppListScroll = null
+        bubbleContentWrapper = null
         windowManager = null
         layoutParams = null
         isShowing = false

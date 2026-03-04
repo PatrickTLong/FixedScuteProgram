@@ -1,4 +1,4 @@
-import React, { useState, useRef, memo } from 'react';
+import React, { useState, useRef, useCallback, memo } from 'react';
 import {
   Text,
   View,
@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import BoxiconsFilled from '../components/BoxiconsFilled';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ProgressBar from '../components/ProgressBar';
+import BackButton from '../components/BackButton';
 import InfoModal from '../components/InfoModal';
 import OTPInput from '../components/OTPInput';
 import GoogleSignInBtn from '../components/GoogleSignInButton';
@@ -19,21 +20,21 @@ import HeaderIconButton from '../components/HeaderIconButton';
 import { useTheme , textSize, fontFamily, radius, shadow, iconSize } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { StackNavigationProp } from '@react-navigation/stack';
 import { setAuthToken } from '../services/cardApi';
 import { API_URL } from '../config/api';
 import { useAuth } from '../context/AuthContext';
 import ScreenTransition from '../components/ScreenTransition';
-import type { ScreenTransitionRef } from '../components/ScreenTransition';
+import type { ScreenTransitionRef, TransitionDirection } from '../components/ScreenTransition';
 import type { AuthStackParamList } from '../navigation/types';
 
 function GetStartedScreen() {
-  const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
+  const navigation = useNavigation<StackNavigationProp<AuthStackParamList>>();
   const transitionRef = useRef<ScreenTransitionRef>(null);
   const { handleLogin } = useAuth();
   const onSuccess = (email: string) => handleLogin(email);
   const onSignIn = async () => {
-    await transitionRef.current?.animateOut();
+    await transitionRef.current?.animateOut('left');
     navigation.navigate('SignIn');
   };
   const { colors } = useTheme();
@@ -44,9 +45,37 @@ function GetStartedScreen() {
   const [code, setCode] = useState('');
   const [step, setStep] = useState<'form' | 'code'>('form');
   const [loading, setLoading] = useState(false);
+  const [showBackButton, setShowBackButton] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [modalTitle, setModalTitle] = useState('');
   const [modalMessage, setModalMessage] = useState('');
+
+  const changeStep = useCallback(async (
+    newStep: 'form' | 'code',
+    direction: TransitionDirection = 'left',
+  ) => {
+    await transitionRef.current?.animateOut(direction);
+    const inDir: TransitionDirection = direction === 'left' ? 'right' : direction === 'right' ? 'left' : direction === 'up' ? 'down' : 'up';
+    await new Promise<void>((resolve) => {
+      setStep(newStep);
+      requestAnimationFrame(() => resolve());
+    });
+    await transitionRef.current?.animateIn(inDir);
+  }, []);
+
+  const onBackToLanding = async () => {
+    setShowBackButton(false);
+    await transitionRef.current?.animateOut('right');
+    navigation.goBack();
+  };
+
+  const handleBack = useCallback(() => {
+    if (step === 'form') {
+      onBackToLanding();
+    } else {
+      changeStep('form', 'down');
+    }
+  }, [step, changeStep, onBackToLanding]);
 
   function showModal(title: string, message: string) {
     setModalTitle(title);
@@ -77,8 +106,7 @@ function GetStartedScreen() {
       const data = await response.json();
 
       if (response.ok) {
-        showModal('Code Sent', `Verification code sent to ${email}`);
-        setStep('code');
+        changeStep('code', 'up');
       } else {
         showModal('Error', data.error || 'Failed to send code');
       }
@@ -144,17 +172,16 @@ function GetStartedScreen() {
     }
   }
 
-  if (loading) {
-    return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }}>
-        <LoadingSpinner size={s(48)} />
-      </SafeAreaView>
-    );
-  }
-
   return (
-    <ScreenTransition ref={transitionRef}>
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
+      {/* Back Button */}
+      {showBackButton && (
+        <View className="absolute top-12 left-0 z-10">
+          <BackButton onPress={handleBack} />
+        </View>
+      )}
+
+      <ScreenTransition ref={transitionRef}>
       {/* Progress Bar */}
       <ProgressBar currentStep={step === 'form' ? 1 : 2} totalSteps={3} />
 
@@ -269,21 +296,24 @@ function GetStartedScreen() {
                 </TouchableOpacity>
               </>
             )}
-          </View>
 
-          {/* Bottom Section */}
-          <View className="px-6 pb-8 mt-6">
-            {/* Sign Up / Verify Button */}
+            {/* Action Button */}
+            <View className="mt-4" />
             <TouchableOpacity
               onPress={() => { step === 'form' ? handleSignUp() : handleVerifyCode(); }}
               disabled={loading}
               activeOpacity={0.8}
-              style={{ backgroundColor: loading ? colors.textMuted : colors.text, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
+              style={{ backgroundColor: colors.text, borderWidth: 1, borderColor: colors.border, ...shadow.card, position: 'relative' }}
               className={`${radius.full} py-4 items-center mb-4`}
             >
-              <Text style={{ color: loading ? colors.textSecondary : colors.bg }} className={`${textSize.small} ${fontFamily.semibold}`}>
-                {loading ? 'Please wait...' : step === 'form' ? 'Sign Up' : 'Verify'}
+              <Text style={{ color: colors.bg, opacity: loading ? 0 : 1 }} className={`${textSize.small} ${fontFamily.semibold}`}>
+                {step === 'form' ? 'Sign Up' : 'Verify'}
               </Text>
+              {loading && (
+                <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center' }}>
+                  <LoadingSpinner size={s(20)} color={colors.bg} />
+                </View>
+              )}
             </TouchableOpacity>
 
             {/* Google Sign In - only show on form step */}
@@ -315,6 +345,8 @@ function GetStartedScreen() {
         </ScrollView>
       </KeyboardAvoidingView>
 
+      </ScreenTransition>
+
       {/* Info Modal */}
       <InfoModal
         visible={modalVisible}
@@ -323,7 +355,6 @@ function GetStartedScreen() {
         onClose={() => setModalVisible(false)}
       />
       </SafeAreaView>
-    </ScreenTransition>
   );
 }
 

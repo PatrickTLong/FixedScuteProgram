@@ -221,6 +221,7 @@ function OverlayEditorScreen() {
       editingPresetIdRef.current = preset?.id || null;
 
       if (preset) {
+        console.log(`[OVERLAY] OverlayEditorScreen — init EDITING preset "${preset.name}" (id: ${preset.id}) | bgColor: ${preset.customOverlayBgColor || 'default'}, textColor: ${preset.customBlockedTextColor || 'default'}, hasImage: ${!!preset.customOverlayImage}, imageSize: ${preset.customOverlayImageSize ?? 150}, iconVisible: ${preset.iconVisible ?? true}, blockedTextVisible: ${preset.blockedTextVisible ?? true}, dismissTextVisible: ${preset.dismissTextVisible ?? true}`);
         setName(preset.name || '');
         setCustomBlockedText(preset.customBlockedText ?? '');
         setCustomDismissText(preset.customDismissText ?? '');
@@ -242,6 +243,7 @@ function OverlayEditorScreen() {
         setDismissTextSize(preset.dismissTextSize ?? DEFAULT_DISMISS_TEXT_SIZE);
       } else {
         // New overlay preset defaults
+        console.log('[OVERLAY] OverlayEditorScreen — init NEW preset (defaults)');
         setName('');
         setCustomBlockedText('');
         setCustomDismissText('');
@@ -582,6 +584,7 @@ function OverlayEditorScreen() {
 
   // ============ Image Picker Handler ============
   const handlePickImage = useCallback(async () => {
+    console.log('[OVERLAY] handlePickImage — opening image picker');
     try {
       const result = await launchImageLibrary({
         mediaType: 'photo',
@@ -590,15 +593,23 @@ function OverlayEditorScreen() {
         quality: 0.8,
       });
 
-      if (result.didCancel) return;
+      if (result.didCancel) {
+        console.log('[OVERLAY] handlePickImage — user cancelled');
+        return;
+      }
       if (result.errorCode) {
+        console.log(`[OVERLAY] handlePickImage — picker error: ${result.errorCode} ${result.errorMessage}`);
         setImageErrorMessage(result.errorMessage || result.errorCode || 'Unknown picker error');
         setImageErrorModalVisible(true);
         return;
       }
-      if (!result.assets?.[0]?.uri) return;
+      if (!result.assets?.[0]?.uri) {
+        console.log('[OVERLAY] handlePickImage — no asset URI');
+        return;
+      }
 
       const asset = result.assets[0];
+      console.log(`[OVERLAY] handlePickImage — uploading image: ${asset.fileName || 'overlay.jpg'} (${asset.type}, ${asset.width}x${asset.height})`);
       setImageUploading(true);
 
       const token = await getAuthToken();
@@ -623,12 +634,15 @@ function OverlayEditorScreen() {
       const data = await response.json();
       if (data.url) {
         const cacheBustedUrl = `${data.url}?t=${Date.now()}`;
+        console.log(`[OVERLAY] handlePickImage — upload SUCCESS, url: ${cacheBustedUrl}`);
         setCustomOverlayImage(cacheBustedUrl);
       } else {
+        console.log(`[OVERLAY] handlePickImage — upload FAILED: ${data.error}`);
         setImageErrorMessage(data.error || 'Could not upload image');
         setImageErrorModalVisible(true);
       }
     } catch (error: any) {
+      console.log(`[OVERLAY] handlePickImage — ERROR: ${error.message || error}`);
       setImageErrorMessage('Failed to pick or upload image');
       setImageErrorModalVisible(true);
     } finally {
@@ -679,11 +693,14 @@ function OverlayEditorScreen() {
       dismissTextSize: dismissTextSize !== DEFAULT_DISMISS_TEXT_SIZE ? dismissTextSize : undefined,
     };
 
+    console.log(`[OVERLAY] handleConfirmSave — saving overlay "${preset.name}" (id: ${preset.id}) | isNew: ${!editingPresetIdRef.current} | blockedText: "${preset.customBlockedText || ''}", dismissText: "${preset.customDismissText || ''}", bgColor: ${preset.customOverlayBgColor || 'default'}, textColor: ${preset.customBlockedTextColor || 'default'}, dismissColor: ${preset.customDismissColor || 'default'}, hasImage: ${!!preset.customOverlayImage}, imageSize: ${preset.customOverlayImageSize ?? 'default'}, iconVisible: ${iconVisible}, blockedTextVisible: ${blockedTextVisible}, dismissTextVisible: ${dismissTextVisible}, positions: icon(${iconPosX},${iconPosY}) blocked(${blockedTextPosX},${blockedTextPosY}) dismiss(${dismissTextPosX},${dismissTextPosY}), textSizes: blocked=${blockedTextSize} dismiss=${dismissTextSize}`);
+
     navigation.navigate('Overlays');
     getOnOverlaySave()(preset);
   }, [canSave, name, customBlockedText, customDismissText, customBlockedTextColor, customOverlayBgColor, customDismissColor, customOverlayImage, customOverlayImageSize, iconPosX, iconPosY, blockedTextPosX, blockedTextPosY, dismissTextPosX, dismissTextPosY, iconVisible, blockedTextVisible, dismissTextVisible, blockedTextSize, dismissTextSize, navigation, getOnOverlaySave]);
 
   const handleBack = useCallback(() => {
+    console.log(`[OVERLAY] OverlayEditorScreen — handleBack (hasSaved: ${hasSaved.current})`);
     navigation.navigate('Overlays');
   }, [navigation]);
 

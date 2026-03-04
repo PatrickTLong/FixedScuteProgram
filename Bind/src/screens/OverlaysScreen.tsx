@@ -161,11 +161,13 @@ function OverlaysScreen() {
     let spinnerTimeout: ReturnType<typeof setTimeout>;
 
     async function init() {
+      console.log('[OVERLAY] OverlaysScreen — init mount, fetching overlay presets');
       setLoading(true);
       spinnerTimeout = setTimeout(() => setShowSpinner(true), 50);
 
       await refreshOverlayPresets();
 
+      console.log(`[OVERLAY] OverlaysScreen — init complete, ${overlayPresets.length} overlay preset(s) loaded`);
       clearTimeout(spinnerTimeout);
       setShowSpinner(false);
       setLoading(false);
@@ -175,10 +177,17 @@ function OverlaysScreen() {
     return () => { clearTimeout(spinnerTimeout); };
   }, [userEmail_safe]);
 
-  // Refresh on focus (e.g., returning from editor)
+  // Refresh on focus — but skip when returning from editor
+  // (the save handler already did an optimistic update)
   useFocusEffect(
     useCallback(() => {
+      if (isReturningFromEdit.current) {
+        console.log('[OVERLAY] OverlaysScreen — useFocusEffect SKIPPED (returning from editor, optimistic update already applied)');
+        isReturningFromEdit.current = false;
+        return;
+      }
       if (userEmail_safe) {
+        console.log('[OVERLAY] OverlaysScreen — useFocusEffect — refreshing overlay presets');
         refreshOverlayPresets();
       }
     }, [userEmail_safe])
@@ -186,19 +195,26 @@ function OverlaysScreen() {
 
   // Save handler — called by OverlayEditorScreen via context
   const handleSaveOverlayPreset = useCallback(async (preset: OverlayPreset) => {
+    const exists = overlayPresets.find(p => p.id === preset.id);
+    console.log(`[OVERLAY] handleSaveOverlayPreset — ${exists ? 'UPDATING' : 'CREATING'} overlay "${preset.name}" (id: ${preset.id}) | hasImage: ${!!preset.customOverlayImage}, bgColor: ${preset.customOverlayBgColor || 'default'}, textColor: ${preset.customBlockedTextColor || 'default'}`);
+
     // Optimistic update
     setOverlayPresets(prev => {
-      const exists = prev.find(p => p.id === preset.id);
-      if (exists) return prev.map(p => p.id === preset.id ? preset : p);
+      const existsInPrev = prev.find(p => p.id === preset.id);
+      if (existsInPrev) return prev.map(p => p.id === preset.id ? preset : p);
       return [...prev, preset];
     });
+    console.log('[OVERLAY] handleSaveOverlayPreset — optimistic update applied');
 
     const result = await saveOverlayPreset(userEmail_safe, preset);
-    if (!result.success) {
+    if (result.success) {
+      console.log(`[OVERLAY] handleSaveOverlayPreset — API SUCCESS for "${preset.name}" (id: ${result.id || preset.id})`);
+    } else {
+      console.log(`[OVERLAY] handleSaveOverlayPreset — API FAILED for "${preset.name}": ${result.error}`);
       showModal('Error', result.error || 'Failed to save overlay preset');
       refreshOverlayPresets(true);
     }
-  }, [userEmail_safe, showModal]);
+  }, [userEmail_safe, showModal, overlayPresets]);
 
   // Register save handler in context
   useEffect(() => {
@@ -206,18 +222,21 @@ function OverlaysScreen() {
   }, [handleSaveOverlayPreset, setOnOverlaySave]);
 
   const handleAddPreset = useCallback(() => {
+    console.log('[OVERLAY] handleAddPreset — navigating to OverlayEditor (new preset)');
     isReturningFromEdit.current = true;
     setEditingOverlayPreset(null); // null = new preset
     navigation.navigate('OverlayEditor');
   }, [navigation, setEditingOverlayPreset]);
 
   const handleEditPreset = useCallback((preset: OverlayPreset) => {
+    console.log(`[OVERLAY] handleEditPreset — navigating to OverlayEditor for "${preset.name}" (id: ${preset.id})`);
     isReturningFromEdit.current = true;
     setEditingOverlayPreset(preset);
     navigation.navigate('OverlayEditor');
   }, [navigation, setEditingOverlayPreset]);
 
   const handleLongPressPreset = useCallback((preset: OverlayPreset) => {
+    console.log(`[OVERLAY] handleLongPressPreset — "${preset.name}" (id: ${preset.id})`);
     if (haptics.longPressDelete.enabled) triggerHaptic(haptics.longPressDelete.type);
     setPresetToDelete(preset);
     setDeleteModalVisible(true);
@@ -225,14 +244,19 @@ function OverlaysScreen() {
 
   const handleDeletePreset = useCallback(async () => {
     if (!presetToDelete) return;
+    console.log(`[OVERLAY] handleDeletePreset — deleting "${presetToDelete.name}" (id: ${presetToDelete.id})`);
     setDeleteModalVisible(false);
 
     // Optimistic delete
     const deletedPreset = presetToDelete;
     setOverlayPresets(prev => prev.filter(p => p.id !== deletedPreset.id));
+    console.log('[OVERLAY] handleDeletePreset — optimistic delete applied');
 
     const result = await deleteOverlayPresetApi(userEmail_safe, deletedPreset.id);
-    if (!result.success) {
+    if (result.success) {
+      console.log(`[OVERLAY] handleDeletePreset — API SUCCESS for "${deletedPreset.name}"`);
+    } else {
+      console.log(`[OVERLAY] handleDeletePreset — API FAILED for "${deletedPreset.name}": ${result.error}`);
       showModal('Error', result.error || 'Failed to delete overlay preset');
       refreshOverlayPresets(true);
     }
@@ -245,8 +269,10 @@ function OverlaysScreen() {
   }, []);
 
   const onRefresh = useCallback(async () => {
+    console.log('[OVERLAY] OverlaysScreen — pull-to-refresh triggered');
     setRefreshing(true);
     await refreshOverlayPresets(true);
+    console.log('[OVERLAY] OverlaysScreen — pull-to-refresh complete');
     setRefreshing(false);
   }, []);
 

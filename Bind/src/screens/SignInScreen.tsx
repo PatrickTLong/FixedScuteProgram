@@ -1,4 +1,4 @@
-import React, { useState, useRef, memo } from 'react';
+import React, { useState, useRef, useCallback, memo } from 'react';
 import {
   Text,
   View,
@@ -12,7 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import BoxiconsFilled from '../components/BoxiconsFilled';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { StackNavigationProp } from '@react-navigation/stack';
 import ProgressBar from '../components/ProgressBar';
 import BackButton from '../components/BackButton';
 import InfoModal from '../components/InfoModal';
@@ -23,22 +23,22 @@ import { useTheme , textSize, fontFamily, radius, shadow, iconSize } from '../co
 import { useResponsive } from '../utils/responsive';
 import { useAuth } from '../context/AuthContext';
 import ScreenTransition from '../components/ScreenTransition';
-import type { ScreenTransitionRef } from '../components/ScreenTransition';
+import type { ScreenTransitionRef, TransitionDirection } from '../components/ScreenTransition';
 import type { AuthStackParamList } from '../navigation/types';
 import { setAuthToken } from '../services/cardApi';
 import { API_URL } from '../config/api';
 
 function SignInScreen() {
-  const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
+  const navigation = useNavigation<StackNavigationProp<AuthStackParamList>>();
   const transitionRef = useRef<ScreenTransitionRef>(null);
   const { handleLogin } = useAuth();
   const onBack = async () => {
-    await transitionRef.current?.animateOut();
+    await transitionRef.current?.animateOut('right');
     navigation.goBack();
   };
   const onSuccess = (email: string) => handleLogin(email);
   const onForgotPassword = async () => {
-    await transitionRef.current?.animateOut();
+    await transitionRef.current?.animateOut('up');
     navigation.navigate('ForgotPassword');
   };
   const { colors } = useTheme();
@@ -52,6 +52,27 @@ function SignInScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalTitle, setModalTitle] = useState('');
   const [modalMessage, setModalMessage] = useState('');
+
+  const changeStep = useCallback(async (
+    newStep: 'credentials' | 'code',
+    direction: TransitionDirection = 'left',
+  ) => {
+    await transitionRef.current?.animateOut(direction);
+    const inDir: TransitionDirection = direction === 'left' ? 'right' : direction === 'right' ? 'left' : direction === 'up' ? 'down' : 'up';
+    await new Promise<void>((resolve) => {
+      setStep(newStep);
+      requestAnimationFrame(() => resolve());
+    });
+    await transitionRef.current?.animateIn(inDir);
+  }, []);
+
+  const handleBack = useCallback(() => {
+    if (step === 'credentials') {
+      onBack();
+    } else {
+      changeStep('credentials', 'down');
+    }
+  }, [step, onBack, changeStep]);
 
   function showModal(title: string, message: string) {
     setModalTitle(title);
@@ -82,8 +103,7 @@ function SignInScreen() {
       const data = await response.json();
 
       if (response.ok) {
-        showModal('Code Sent', `Verification code sent to ${email}`);
-        setStep('code');
+        changeStep('code', 'up');
       } else {
         if (response.status === 404) {
           showModal('Account Not Found', 'No account exists with this email.');
@@ -153,22 +173,14 @@ function SignInScreen() {
     }
   }
 
-  if (loading) {
-    return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }}>
-        <LoadingSpinner size={s(48)} />
-      </SafeAreaView>
-    );
-  }
-
   return (
-    <ScreenTransition ref={transitionRef}>
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
       {/* Back Button */}
       <View className="absolute top-12 left-0 z-10">
-        <BackButton onPress={step === 'credentials' ? onBack : () => setStep('credentials')} />
+        <BackButton onPress={handleBack} />
       </View>
 
+      <ScreenTransition ref={transitionRef}>
       {/* Progress Bar */}
       <ProgressBar currentStep={step === 'credentials' ? 2 : 3} totalSteps={3} />
 
@@ -284,21 +296,24 @@ function SignInScreen() {
                 </TouchableOpacity>
               </>
             )}
-          </View>
 
-          {/* Bottom Section */}
-          <View className="px-6 pb-8 mt-6">
-            {/* Sign In / Verify Button */}
+            {/* Action Button */}
+            <View className="mt-4" />
             <TouchableOpacity
               onPress={() => { step === 'credentials' ? handleSignIn() : handleVerifyCode(); }}
               disabled={loading}
               activeOpacity={0.8}
-              style={{ backgroundColor: loading ? colors.textMuted : colors.text, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
+              style={{ backgroundColor: colors.text, borderWidth: 1, borderColor: colors.border, ...shadow.card, position: 'relative' }}
               className={`${radius.full} py-4 items-center mb-4`}
             >
-              <Text style={{ color: loading ? colors.textSecondary : colors.bg }} className={`${textSize.small} ${fontFamily.semibold}`}>
-                {loading ? 'Please wait...' : step === 'credentials' ? 'Sign In' : 'Verify'}
+              <Text style={{ color: colors.bg, opacity: loading ? 0 : 1 }} className={`${textSize.small} ${fontFamily.semibold}`}>
+                {step === 'credentials' ? 'Sign In' : 'Verify'}
               </Text>
+              {loading && (
+                <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center' }}>
+                  <LoadingSpinner size={s(20)} color={colors.bg} />
+                </View>
+              )}
             </TouchableOpacity>
 
             {/* Google Sign In - only show on credentials step */}
@@ -330,6 +345,8 @@ function SignInScreen() {
         </ScrollView>
       </KeyboardAvoidingView>
 
+      </ScreenTransition>
+
       {/* Info Modal */}
       <InfoModal
         visible={modalVisible}
@@ -338,7 +355,6 @@ function SignInScreen() {
         onClose={() => setModalVisible(false)}
       />
       </SafeAreaView>
-    </ScreenTransition>
   );
 }
 

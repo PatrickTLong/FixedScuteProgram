@@ -618,6 +618,7 @@ function PresetSettingsScreen() {
         setRecurringValue(savedState.recurringValue);
         setRecurringUnit(savedState.recurringUnit);
         setOverlayPresetId(savedState.overlayPresetId ?? '');
+        console.log(`[OVERLAY] PresetSettingsScreen — restored overlayPresetId from savedState: "${savedState.overlayPresetId || 'none'}"`);
       } else {
         const editingPreset = getEditingPreset();
         if (editingPreset) {
@@ -639,6 +640,7 @@ function PresetSettingsScreen() {
           setRecurringValue(editingPreset.repeat_interval?.toString() ?? '1');
           setRecurringUnit(editingPreset.repeat_unit ?? 'hours');
           setOverlayPresetId(editingPreset.overlayPresetId ?? '');
+          console.log(`[OVERLAY] PresetSettingsScreen — loaded overlayPresetId from editingPreset: "${editingPreset.overlayPresetId || 'none'}" (preset: "${editingPreset.name}")`);
         } else {
           // New preset defaults
           setBlockSettings(false);
@@ -659,6 +661,7 @@ function PresetSettingsScreen() {
           setRecurringValue('1');
           setRecurringUnit('hours');
           setOverlayPresetId('');
+          console.log('[OVERLAY] PresetSettingsScreen — new preset defaults, overlayPresetId: "none"');
         }
       }
       // Apply date picker result if returning from DatePicker screen
@@ -831,6 +834,12 @@ function PresetSettingsScreen() {
     }
 
     hasSaved.current = true;
+
+    if (selectedOverlayPreset) {
+      console.log(`[OVERLAY] PresetSettingsScreen — handleSave — copying overlay fields from "${selectedOverlayPreset.name}" (id: ${overlayPresetId}) into preset "${name.trim()}" | blockedText: "${selectedOverlayPreset.customBlockedText || ''}", bgColor: ${selectedOverlayPreset.customOverlayBgColor || 'default'}, textColor: ${selectedOverlayPreset.customBlockedTextColor || 'default'}, hasImage: ${!!selectedOverlayPreset.customOverlayImage}, imageSize: ${selectedOverlayPreset.customOverlayImageSize ?? 'default'}, positions: icon(${selectedOverlayPreset.iconPosX ?? 50},${selectedOverlayPreset.iconPosY ?? 40}) blocked(${selectedOverlayPreset.blockedTextPosX ?? 50},${selectedOverlayPreset.blockedTextPosY ?? 55}) dismiss(${selectedOverlayPreset.dismissTextPosX ?? 50},${selectedOverlayPreset.dismissTextPosY ?? 60})`);
+    } else {
+      console.log(`[OVERLAY] PresetSettingsScreen — handleSave — NO overlay preset selected for "${name.trim()}" (overlayPresetId: "${overlayPresetId}")`);
+    }
 
     const parsedRecurringValue = parseInt(recurringValue, 10);
     const finalRecurringInterval = isNaN(parsedRecurringValue) || parsedRecurringValue <= 0 ? 1 : parsedRecurringValue;
@@ -1583,7 +1592,7 @@ function PresetSettingsScreen() {
               </View>
               {/* Clear selection button */}
               <TouchableOpacity
-                onPress={() => setOverlayPresetId('')}
+                onPress={() => { console.log('[OVERLAY] PresetSettingsScreen — overlay preset CLEARED'); setOverlayPresetId(''); }}
                 activeOpacity={0.7}
                 style={{ alignSelf: 'center', marginTop: s(8) }}
                 className="flex-row items-center"
@@ -1642,6 +1651,7 @@ function PresetSettingsScreen() {
                 renderItem={({ item }: { item: OverlayPreset }) => (
                   <TouchableOpacity
                     onPress={() => {
+                      console.log(`[OVERLAY] PresetSettingsScreen — overlay preset SELECTED: "${item.name}" (id: ${item.id}) | bgColor: ${item.customOverlayBgColor || 'default'}, textColor: ${item.customBlockedTextColor || 'default'}, hasImage: ${!!item.customOverlayImage}`);
                       setOverlayPresetId(item.id);
                       setOverlayPickerVisible(false);
                     }}

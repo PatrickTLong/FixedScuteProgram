@@ -9,6 +9,7 @@
 
     <!-- Content wrapper (vertical stack: pill + app list) -->
     <LinearLayout
+        android:id="@+id/bubble_content_wrapper"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"

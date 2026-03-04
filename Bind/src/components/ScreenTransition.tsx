@@ -1,5 +1,5 @@
 import React, { forwardRef, useEffect, useImperativeHandle } from 'react';
-import { View } from 'react-native';
+import { Dimensions, View } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -10,20 +10,43 @@ import Animated, {
 import { NavigationContext } from '@react-navigation/native';
 import { colors, transition } from '../context/ThemeContext';
 
+const SCREEN_WIDTH = Dimensions.get('window').width;
+const SCREEN_HEIGHT = Dimensions.get('window').height;
+
+export type TransitionDirection = 'left' | 'right' | 'up' | 'down';
+
 export interface ScreenTransitionRef {
-  animateOut: () => Promise<void>;
+  animateOut: (direction?: TransitionDirection) => Promise<void>;
+  animateIn: (direction?: TransitionDirection) => Promise<void>;
 }
 
 interface ScreenTransitionProps {
   children: React.ReactNode;
+  from?: TransitionDirection;
+  autoAnimate?: boolean;
+}
+
+function getTranslation(dir: TransitionDirection, amount: number) {
+  'worklet';
+  switch (dir) {
+    case 'left':  return { x: -amount * SCREEN_WIDTH * 0.3, y: 0 };
+    case 'right': return { x: amount * SCREEN_WIDTH * 0.3, y: 0 };
+    case 'up':    return { x: 0, y: -amount * SCREEN_HEIGHT * 0.3 };
+    case 'down':  return { x: 0, y: amount * SCREEN_HEIGHT * 0.3 };
+  }
 }
 
 const ScreenTransition = forwardRef<ScreenTransitionRef, ScreenTransitionProps>(
-  ({ children }, ref) => {
-    const progress = useSharedValue(0);
+  ({ children, from, autoAnimate = true }, ref) => {
+    const progress = useSharedValue(autoAnimate ? 0 : 1);
+    // Store the current direction for animation: maps to the direction content slides FROM
+    // 'right' = content slides in from the right, 'down' = content slides in from below, etc.
+    const currentDir = useSharedValue<TransitionDirection>(from ?? 'right');
     const navigation = React.useContext(NavigationContext);
 
     useEffect(() => {
+      if (!autoAnimate) return;
+      currentDir.value = from ?? 'right';
       const animateIn = () => {
         progress.value = withTiming(1, {
           duration: transition.inDuration,
@@ -44,8 +67,9 @@ const ScreenTransition = forwardRef<ScreenTransitionRef, ScreenTransitionProps>(
     }, []);
 
     useImperativeHandle(ref, () => ({
-      animateOut: () =>
+      animateOut: (dir?: TransitionDirection) =>
         new Promise<void>((resolve) => {
+          if (dir) currentDir.value = dir;
           progress.value = withTiming(0, {
             duration: transition.outDuration,
             easing: Easing.in(Easing.quad),
@@ -53,13 +77,30 @@ const ScreenTransition = forwardRef<ScreenTransitionRef, ScreenTransitionProps>(
             if (finished) runOnJS(resolve)();
           });
         }),
+      animateIn: (dir?: TransitionDirection) =>
+        new Promise<void>((resolve) => {
+          if (dir) currentDir.value = dir;
+          progress.value = withTiming(1, {
+            duration: transition.inDuration,
+            easing: Easing.out(Easing.quad),
+          }, (finished) => {
+            if (finished) runOnJS(resolve)();
+          });
+        }),
     }), []);
 
-    const animatedStyle = useAnimatedStyle(() => ({
-      flex: 1,
-      opacity: progress.value,
-      transform: [{ translateY: (1 - progress.value) * transition.distance }],
-    }));
+    const animatedStyle = useAnimatedStyle(() => {
+      const remaining = 1 - progress.value;
+      const t = getTranslation(currentDir.value, remaining);
+      return {
+        flex: 1,
+        opacity: progress.value,
+        transform: [
+          { translateX: t.x },
+          { translateY: t.y },
+        ],
+      };
+    });
 
     return (
       <View style={{ flex: 1, backgroundColor: colors.bg, overflow: 'hidden' }}>

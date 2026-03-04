@@ -21,18 +21,18 @@ import { API_URL } from '../config/api';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import ScreenTransition from '../components/ScreenTransition';
-import type { ScreenTransitionRef } from '../components/ScreenTransition';
+import type { ScreenTransitionRef, TransitionDirection } from '../components/ScreenTransition';
 import type { AuthStackParamList } from '../navigation/types';
 
 function ForgotPasswordScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
   const transitionRef = useRef<ScreenTransitionRef>(null);
   const onBack = async () => {
-    await transitionRef.current?.animateOut();
+    await transitionRef.current?.animateOut('down');
     navigation.goBack();
   };
   const onSuccess = async () => {
-    await transitionRef.current?.animateOut();
+    await transitionRef.current?.animateOut('down');
     navigation.goBack();
   };
   const { colors } = useTheme();
@@ -48,6 +48,20 @@ function ForgotPasswordScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalTitle, setModalTitle] = useState('');
   const [modalMessage, setModalMessage] = useState('');
+
+  // Animated step transition helper
+  const changeStep = useCallback(async (
+    newStep: 'email' | 'code' | 'password',
+    direction: TransitionDirection = 'left',
+  ) => {
+    await transitionRef.current?.animateOut(direction);
+    const inDir: TransitionDirection = direction === 'left' ? 'right' : direction === 'right' ? 'left' : direction === 'up' ? 'down' : 'up';
+    await new Promise<void>((resolve) => {
+      setStep(newStep);
+      requestAnimationFrame(() => resolve());
+    });
+    await transitionRef.current?.animateIn(inDir);
+  }, []);
 
   function showModal(title: string, message: string) {
     setModalTitle(title);
@@ -73,8 +87,7 @@ function ForgotPasswordScreen() {
       const data = await response.json();
 
       if (response.ok) {
-        showModal('Code Sent', `Password reset code sent to ${email}`);
-        setStep('code');
+        changeStep('code', 'left');
       } else {
         if (response.status === 404) {
           showModal('Account Not Found', 'No account exists with this email.');
@@ -94,7 +107,7 @@ function ForgotPasswordScreen() {
       showModal('Invalid Code', 'Please enter the 6-digit code');
       return;
     }
-    setStep('password');
+    changeStep('password', 'left');
   }
 
   async function handleResetPassword() {
@@ -160,28 +173,20 @@ function ForgotPasswordScreen() {
     if (step === 'email') {
       onBack();
     } else if (step === 'code') {
-      setStep('email');
+      changeStep('email', 'right');
     } else {
-      setStep('code');
+      changeStep('code', 'right');
     }
-  }, [step, onBack]);
-
-  if (loading) {
-    return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }}>
-        <LoadingSpinner size={s(48)} />
-      </SafeAreaView>
-    );
-  }
+  }, [step, onBack, changeStep]);
 
   return (
-    <ScreenTransition ref={transitionRef}>
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
       {/* Back Button */}
       <View className="absolute top-12 left-0 z-10">
         <BackButton onPress={handleBack} />
       </View>
 
+      <ScreenTransition ref={transitionRef} from="down">
       {/* Progress Bar */}
       <ProgressBar currentStep={currentStep} totalSteps={3} />
 
@@ -325,11 +330,8 @@ function ForgotPasswordScreen() {
                 </View>
               </>
             )}
-          </View>
-
-          {/* Bottom Section */}
-          <View className="px-6 pb-8 mt-6">
             {/* Action Button */}
+            <View className="mt-4" />
             <TouchableOpacity
               onPress={() => {
                 step === 'email'
@@ -340,22 +342,27 @@ function ForgotPasswordScreen() {
               }}
               disabled={loading}
               activeOpacity={0.8}
-              style={{ backgroundColor: loading ? colors.textMuted : colors.text, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
+              style={{ backgroundColor: colors.text, borderWidth: 1, borderColor: colors.border, ...shadow.card, position: 'relative' }}
               className={`${radius.full} py-4 items-center mb-4`}
             >
-              <Text style={{ color: loading ? colors.textSecondary : colors.bg }} className={`${textSize.small} ${fontFamily.semibold}`}>
-                {loading
-                  ? 'Please wait...'
-                  : step === 'email'
+              <Text style={{ color: colors.bg, opacity: loading ? 0 : 1 }} className={`${textSize.small} ${fontFamily.semibold}`}>
+                {step === 'email'
                   ? 'Send Code'
                   : step === 'code'
                   ? 'Continue'
                   : 'Reset Password'}
               </Text>
+              {loading && (
+                <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center' }}>
+                  <LoadingSpinner size={s(20)} color={colors.bg} />
+                </View>
+              )}
             </TouchableOpacity>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      </ScreenTransition>
 
       {/* Info Modal */}
       <InfoModal
@@ -365,7 +372,6 @@ function ForgotPasswordScreen() {
         onClose={() => setModalVisible(false)}
       />
       </SafeAreaView>
-    </ScreenTransition>
   );
 }
 

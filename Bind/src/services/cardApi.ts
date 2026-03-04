@@ -865,8 +865,12 @@ export async function getOverlayPresets(email: string, skipCache = false): Promi
 
   if (!skipCache) {
     const cached = getCached<OverlayPreset[]>(cacheKey);
-    if (cached) return cached;
+    if (cached) {
+      console.log(`[OVERLAY] getOverlayPresets — cache HIT (${cached.length} preset(s))`);
+      return cached;
+    }
   }
+  console.log(`[OVERLAY] getOverlayPresets — cache ${skipCache ? 'SKIPPED' : 'MISS'}, fetching from API`);
 
   return deduplicatedRequest(cacheKey, async () => {
     try {
@@ -875,13 +879,16 @@ export async function getOverlayPresets(email: string, skipCache = false): Promi
       const data = await response.json();
 
       if (!response.ok || data.error) {
+        console.log(`[OVERLAY] getOverlayPresets — API ERROR: ${data.error || response.status}`);
         return [];
       }
 
       const presets = data.presets || [];
+      console.log(`[OVERLAY] getOverlayPresets — API SUCCESS: ${presets.length} preset(s) fetched: [${presets.map((p: OverlayPreset) => `"${p.name}"`).join(', ')}]`);
       setCache(cacheKey, presets);
       return presets;
     } catch (error) {
+      console.log(`[OVERLAY] getOverlayPresets — NETWORK ERROR: ${error}`);
       return [];
     }
   });
@@ -892,6 +899,7 @@ export async function getOverlayPresets(email: string, skipCache = false): Promi
  */
 export async function saveOverlayPreset(email: string, preset: OverlayPreset): Promise<{ success: boolean; id?: string; error?: string }> {
   const normalizedEmail = email.toLowerCase();
+  console.log(`[OVERLAY] saveOverlayPreset — saving "${preset.name}" (id: ${preset.id}) | hasImage: ${!!preset.customOverlayImage}, bgColor: ${preset.customOverlayBgColor || 'default'}, textColor: ${preset.customBlockedTextColor || 'default'}`);
 
   try {
     const headers = await getAuthHeaders();
@@ -904,12 +912,15 @@ export async function saveOverlayPreset(email: string, preset: OverlayPreset): P
     const data = await response.json();
 
     if (!response.ok) {
+      console.log(`[OVERLAY] saveOverlayPreset — API FAILED for "${preset.name}": ${data.error} (status: ${response.status})`);
       return { success: false, error: data.error };
     }
 
+    console.log(`[OVERLAY] saveOverlayPreset — API SUCCESS for "${preset.name}" (server id: ${data.id}), cache invalidated`);
     invalidateCache(`overlayPresets:${normalizedEmail}`);
     return { success: true, id: data.id };
   } catch (error) {
+    console.log(`[OVERLAY] saveOverlayPreset — NETWORK ERROR for "${preset.name}": ${error}`);
     return { success: false, error: 'Network error' };
   }
 }
@@ -919,6 +930,7 @@ export async function saveOverlayPreset(email: string, preset: OverlayPreset): P
  */
 export async function deleteOverlayPreset(email: string, presetId: string): Promise<{ success: boolean; error?: string }> {
   const normalizedEmail = email.toLowerCase();
+  console.log(`[OVERLAY] deleteOverlayPreset — deleting id: ${presetId}`);
 
   try {
     const headers = await getAuthHeaders();
@@ -930,12 +942,15 @@ export async function deleteOverlayPreset(email: string, presetId: string): Prom
     const data = await response.json();
 
     if (!response.ok) {
+      console.log(`[OVERLAY] deleteOverlayPreset — API FAILED for id ${presetId}: ${data.error} (status: ${response.status})`);
       return { success: false, error: data.error };
     }
 
+    console.log(`[OVERLAY] deleteOverlayPreset — API SUCCESS for id ${presetId}, cache invalidated`);
     invalidateCache(`overlayPresets:${normalizedEmail}`);
     return { success: true };
   } catch (error) {
+    console.log(`[OVERLAY] deleteOverlayPreset — NETWORK ERROR for id ${presetId}: ${error}`);
     return { success: false, error: 'Network error' };
   }
 }
@@ -945,6 +960,7 @@ export async function deleteOverlayPreset(email: string, presetId: string): Prom
  */
 export async function resetOverlayPresets(email: string): Promise<{ success: boolean; error?: string }> {
   const normalizedEmail = email.toLowerCase();
+  console.log(`[OVERLAY] resetOverlayPresets — resetting all overlay presets`);
 
   try {
     const headers = await getAuthHeaders();
@@ -957,12 +973,15 @@ export async function resetOverlayPresets(email: string): Promise<{ success: boo
     const data = await response.json();
 
     if (!response.ok) {
+      console.log(`[OVERLAY] resetOverlayPresets — API FAILED: ${data.error} (status: ${response.status})`);
       return { success: false, error: data.error };
     }
 
+    console.log('[OVERLAY] resetOverlayPresets — API SUCCESS, all overlay presets deleted, cache invalidated');
     invalidateCache(`overlayPresets:${normalizedEmail}`);
     return { success: true };
   } catch (error) {
+    console.log(`[OVERLAY] resetOverlayPresets — NETWORK ERROR: ${error}`);
     return { success: false, error: 'Network error' };
   }
 }
