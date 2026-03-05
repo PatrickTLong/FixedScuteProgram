@@ -98,7 +98,6 @@ export function invalidateUserCaches(email: string): void {
   invalidateCache(`presets:${normalizedEmail}`);
   invalidateCache(`lockStatus:${normalizedEmail}`);
   invalidateCache(`tapoutStatus:${normalizedEmail}`);
-  invalidateCache(`overlayPresets:${normalizedEmail}`);
 }
 
 /**
@@ -268,58 +267,8 @@ export interface Preset {
   strictMode?: boolean;
   // Custom blocked message - replaces default "X is blocked." overlay text
   customBlockedText?: string;
-  // Custom dismiss text - replaces default "Tap anywhere to dismiss"
-  customDismissText?: string;
-  // Custom overlay text color (hex code like '#FF5733')
-  customBlockedTextColor?: string;
-  // Custom overlay background color (hex code)
-  customOverlayBgColor?: string;
-  // Custom dismiss text color (hex code)
-  customDismissColor?: string;
   // Custom overlay image URL (replaces center icon)
   customOverlayImage?: string;
-  // Custom overlay image size in dp (default 120)
-  customOverlayImageSize?: number;
-  // Overlay element positions (percentage 0-100, 50=center)
-  iconPosX?: number;
-  iconPosY?: number;
-  blockedTextPosX?: number;
-  blockedTextPosY?: number;
-  dismissTextPosX?: number;
-  dismissTextPosY?: number;
-  // Element visibility (interactive preview)
-  iconVisible?: boolean;
-  blockedTextVisible?: boolean;
-  dismissTextVisible?: boolean;
-  // Text sizes (interactive preview pinch-to-resize)
-  blockedTextSize?: number;
-  dismissTextSize?: number;
-  // Overlay preset reference (links to a saved overlay preset)
-  overlayPresetId?: string;
-}
-
-// ============ Overlay Preset Interface ============
-export interface OverlayPreset {
-  id: string;
-  name: string;
-  customBlockedText?: string;
-  customDismissText?: string;
-  customBlockedTextColor?: string;
-  customOverlayBgColor?: string;
-  customDismissColor?: string;
-  customOverlayImage?: string;
-  customOverlayImageSize?: number;
-  iconPosX?: number;
-  iconPosY?: number;
-  blockedTextPosX?: number;
-  blockedTextPosY?: number;
-  dismissTextPosX?: number;
-  dismissTextPosY?: number;
-  iconVisible?: boolean;
-  blockedTextVisible?: boolean;
-  dismissTextVisible?: boolean;
-  blockedTextSize?: number;
-  dismissTextSize?: number;
 }
 
 /**
@@ -854,138 +803,6 @@ export async function saveUserTheme(email: string, theme: ThemeType): Promise<{ 
   }
 }
 
-// ============ Overlay Preset Functions ============
-
-/**
- * Get all overlay presets for a user (cached + deduplicated)
- */
-export async function getOverlayPresets(email: string, skipCache = false): Promise<OverlayPreset[]> {
-  const normalizedEmail = email.toLowerCase();
-  const cacheKey = `overlayPresets:${normalizedEmail}`;
-
-  if (!skipCache) {
-    const cached = getCached<OverlayPreset[]>(cacheKey);
-    if (cached) {
-      console.log(`[OVERLAY] getOverlayPresets — cache HIT (${cached.length} preset(s))`);
-      return cached;
-    }
-  }
-  console.log(`[OVERLAY] getOverlayPresets — cache ${skipCache ? 'SKIPPED' : 'MISS'}, fetching from API`);
-
-  return deduplicatedRequest(cacheKey, async () => {
-    try {
-      const headers = await getAuthHeaders();
-      const response = await fetch(`${API_URL}/api/overlay-presets`, { headers });
-      const data = await response.json();
-
-      if (!response.ok || data.error) {
-        console.log(`[OVERLAY] getOverlayPresets — API ERROR: ${data.error || response.status}`);
-        return [];
-      }
-
-      const presets = data.presets || [];
-      console.log(`[OVERLAY] getOverlayPresets — API SUCCESS: ${presets.length} preset(s) fetched: [${presets.map((p: OverlayPreset) => `"${p.name}"`).join(', ')}]`);
-      setCache(cacheKey, presets);
-      return presets;
-    } catch (error) {
-      console.log(`[OVERLAY] getOverlayPresets — NETWORK ERROR: ${error}`);
-      return [];
-    }
-  });
-}
-
-/**
- * Save an overlay preset (create or update)
- */
-export async function saveOverlayPreset(email: string, preset: OverlayPreset): Promise<{ success: boolean; id?: string; error?: string }> {
-  const normalizedEmail = email.toLowerCase();
-  console.log(`[OVERLAY] saveOverlayPreset — saving "${preset.name}" (id: ${preset.id}) | hasImage: ${!!preset.customOverlayImage}, bgColor: ${preset.customOverlayBgColor || 'default'}, textColor: ${preset.customBlockedTextColor || 'default'}`);
-
-  try {
-    const headers = await getAuthHeaders();
-    const response = await fetch(`${API_URL}/api/overlay-presets`, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({ preset }),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      console.log(`[OVERLAY] saveOverlayPreset — API FAILED for "${preset.name}": ${data.error} (status: ${response.status})`);
-      return { success: false, error: data.error };
-    }
-
-    console.log(`[OVERLAY] saveOverlayPreset — API SUCCESS for "${preset.name}" (server id: ${data.id}), cache invalidated`);
-    invalidateCache(`overlayPresets:${normalizedEmail}`);
-    return { success: true, id: data.id };
-  } catch (error) {
-    console.log(`[OVERLAY] saveOverlayPreset — NETWORK ERROR for "${preset.name}": ${error}`);
-    return { success: false, error: 'Network error' };
-  }
-}
-
-/**
- * Delete an overlay preset
- */
-export async function deleteOverlayPreset(email: string, presetId: string): Promise<{ success: boolean; error?: string }> {
-  const normalizedEmail = email.toLowerCase();
-  console.log(`[OVERLAY] deleteOverlayPreset — deleting id: ${presetId}`);
-
-  try {
-    const headers = await getAuthHeaders();
-    const response = await fetch(`${API_URL}/api/overlay-presets/${presetId}`, {
-      method: 'DELETE',
-      headers,
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      console.log(`[OVERLAY] deleteOverlayPreset — API FAILED for id ${presetId}: ${data.error} (status: ${response.status})`);
-      return { success: false, error: data.error };
-    }
-
-    console.log(`[OVERLAY] deleteOverlayPreset — API SUCCESS for id ${presetId}, cache invalidated`);
-    invalidateCache(`overlayPresets:${normalizedEmail}`);
-    return { success: true };
-  } catch (error) {
-    console.log(`[OVERLAY] deleteOverlayPreset — NETWORK ERROR for id ${presetId}: ${error}`);
-    return { success: false, error: 'Network error' };
-  }
-}
-
-/**
- * Reset (delete all) overlay presets for a user
- */
-export async function resetOverlayPresets(email: string): Promise<{ success: boolean; error?: string }> {
-  const normalizedEmail = email.toLowerCase();
-  console.log(`[OVERLAY] resetOverlayPresets — resetting all overlay presets`);
-
-  try {
-    const headers = await getAuthHeaders();
-    const response = await fetch(`${API_URL}/api/overlay-presets/reset`, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({}),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      console.log(`[OVERLAY] resetOverlayPresets — API FAILED: ${data.error} (status: ${response.status})`);
-      return { success: false, error: data.error };
-    }
-
-    console.log('[OVERLAY] resetOverlayPresets — API SUCCESS, all overlay presets deleted, cache invalidated');
-    invalidateCache(`overlayPresets:${normalizedEmail}`);
-    return { success: true };
-  } catch (error) {
-    console.log(`[OVERLAY] resetOverlayPresets — NETWORK ERROR: ${error}`);
-    return { success: false, error: 'Network error' };
-  }
-}
-
 export default {
   // Auth token functions
   setAuthToken,
@@ -1004,10 +821,6 @@ export default {
   resetPresets,
   deactivateAllPresets,
   updatePresetSchedule,
-  // Overlay preset functions
-  getOverlayPresets,
-  saveOverlayPreset,
-  deleteOverlayPreset,
   // Lock status functions
   updateLockStatus,
   getLockStatus,

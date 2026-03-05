@@ -164,28 +164,9 @@ class WebsiteMonitorService(private val context: Context) {
         val prefs = context.getSharedPreferences(UninstallBlockerService.PREFS_NAME, Context.MODE_PRIVATE)
         val strictMode = prefs.getBoolean("strict_mode", true)
         val customBlockedText = prefs.getString("custom_blocked_text", "") ?: ""
-        val customBlockedTextColor = prefs.getString("custom_blocked_text_color", "") ?: ""
         val customOverlayImage = prefs.getString("custom_overlay_image", "") ?: ""
-        val customOverlayImageSize = prefs.getInt("custom_overlay_image_size", 120)
-        val customOverlayBgColor = prefs.getString("custom_overlay_bg_color", "") ?: ""
-        val customDismissText = prefs.getString("custom_dismiss_text", "") ?: ""
-        val customDismissColor = prefs.getString("custom_dismiss_color", "") ?: ""
-        val iconPosX = prefs.getFloat("icon_pos_x", 50f)
-        val iconPosY = prefs.getFloat("icon_pos_y", 50f)
-        val blockedTextPosX = prefs.getFloat("blocked_text_pos_x", 50f)
-        val blockedTextPosY = prefs.getFloat("blocked_text_pos_y", 50f)
-        val dismissTextPosX = prefs.getFloat("dismiss_text_pos_x", 50f)
-        val dismissTextPosY = prefs.getFloat("dismiss_text_pos_y", 50f)
-        val iconVisible = prefs.getBoolean("icon_visible", true)
-        val blockedTextVisible = prefs.getBoolean("blocked_text_visible", true)
-        val dismissTextVisible = prefs.getBoolean("dismiss_text_visible", true)
-        val blockedTextSize = prefs.getFloat("blocked_text_size", 22f)
-        val dismissTextSize = prefs.getFloat("dismiss_text_size", 10f)
 
-        Log.d(TAG, "showBlockedOverlay: site=$blockedSite, customBlockedText='$customBlockedText', customBlockedTextColor='$customBlockedTextColor', customOverlayImage='$customOverlayImage', customOverlayImageSize=$customOverlayImageSize")
-        Log.d(TAG, "[OVERLAY] showBlockedOverlay: bgColor='$customOverlayBgColor', dismissText='$customDismissText', dismissColor='$customDismissColor'")
-        Log.d(TAG, "[OVERLAY] showBlockedOverlay: iconPos=($iconPosX,$iconPosY), blockedTextPos=($blockedTextPosX,$blockedTextPosY), dismissTextPos=($dismissTextPosX,$dismissTextPosY)")
-        Log.d(TAG, "[OVERLAY] showBlockedOverlay: iconVisible=$iconVisible, blockedTextVisible=$blockedTextVisible, dismissTextVisible=$dismissTextVisible, blockedTextSize=$blockedTextSize, dismissTextSize=$dismissTextSize")
+        Log.d(TAG, "showBlockedOverlay: site=$blockedSite, customBlockedText='$customBlockedText', customOverlayImage='$customOverlayImage'")
 
         // Redirect to Google BEFORE showing overlay (so it appears underneath)
         redirectToGoogle()
@@ -193,19 +174,20 @@ class WebsiteMonitorService(private val context: Context) {
         // Show overlay instantly with website name (use the blocked site as the display name)
         val shown = overlayManager?.show(
             BlockedOverlayManager.TYPE_WEBSITE, blockedSite, blockedSite, strictMode,
-            customBlockedText, customBlockedTextColor, customOverlayImage, customOverlayImageSize,
-            customOverlayBgColor, customDismissText, customDismissColor,
-            iconPosX, iconPosY, blockedTextPosX, blockedTextPosY, dismissTextPosX, dismissTextPosY,
-            iconVisible, blockedTextVisible, dismissTextVisible, blockedTextSize, dismissTextSize
+            customBlockedText, customOverlayImage
         ) ?: false
 
         if (!shown) {
             Log.w(TAG, "Failed to show overlay, falling back to activity")
             // Fallback: launch BlockedActivity
-            BlockedActivity.launchNoAnimation(context, BlockedActivity.TYPE_WEBSITE, blockedSite, strictMode,
-                customBlockedText, customBlockedTextColor, customOverlayImage, customOverlayImageSize,
-                customOverlayBgColor, customDismissText, customDismissColor,
-                iconVisible, blockedTextVisible, dismissTextVisible, blockedTextSize, dismissTextSize)
+            BlockedActivity.launchNoAnimation(
+                context = context,
+                blockedType = BlockedActivity.TYPE_WEBSITE,
+                blockedItem = blockedSite,
+                strictMode = strictMode,
+                customBlockedText = customBlockedText,
+                customOverlayImage = customOverlayImage
+            )
         }
 
         // Redirect to safe URL while overlay is showing (happens underneath the overlay)

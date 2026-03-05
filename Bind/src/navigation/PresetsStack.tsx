@@ -3,7 +3,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import PresetsScreen from '../screens/PresetsScreen';
 import type { PresetsStackParamList } from './types';
 import type { Preset } from '../components/PresetCard';
-import type { OverlayPreset } from '../services/cardApi';
+
 
 const Stack = createNativeStackNavigator<PresetsStackParamList>();
 
@@ -36,24 +36,7 @@ export interface FinalSettingsState {
   recurringValue: string;
   recurringUnit: 'minutes' | 'hours' | 'days' | 'weeks' | 'months';
   customBlockedText: string;
-  customDismissText: string;
-  customBlockedTextColor: string;
-  customOverlayBgColor: string;
-  customDismissColor: string;
   customOverlayImage: string;
-  customOverlayImageSize: number;
-  iconPosX: number;
-  iconPosY: number;
-  blockedTextPosX: number;
-  blockedTextPosY: number;
-  dismissTextPosX: number;
-  dismissTextPosY: number;
-  iconVisible: boolean;
-  blockedTextVisible: boolean;
-  dismissTextVisible: boolean;
-  blockedTextSize: number;
-  dismissTextSize: number;
-  overlayPresetId: string;
 }
 
 // Params passed to the DatePicker screen
@@ -171,53 +154,6 @@ export function PresetSaveProvider({ children }: { children: React.ReactNode }) 
     <PresetSaveContext.Provider value={contextValue}>
       {children}
     </PresetSaveContext.Provider>
-  );
-}
-
-// ============ Overlay Edit Context ============
-// Simple ref-based context for passing overlay preset data to/from OverlayEditorScreen
-
-interface OverlayEditContextValue {
-  getEditingOverlayPreset: () => OverlayPreset | null;
-  setEditingOverlayPreset: (p: OverlayPreset | null) => void;
-  getOnOverlaySave: () => ((preset: OverlayPreset) => Promise<void>);
-  setOnOverlaySave: (fn: (preset: OverlayPreset) => Promise<void>) => void;
-}
-
-const OverlayEditContext = createContext<OverlayEditContextValue | null>(null);
-
-export function useOverlayEdit(): OverlayEditContextValue {
-  const ctx = useContext(OverlayEditContext);
-  if (!ctx) throw new Error('useOverlayEdit must be used within OverlayEditProvider');
-  return ctx;
-}
-
-export function OverlayEditProvider({ children }: { children: React.ReactNode }) {
-  const editingOverlayPresetRef = useRef<OverlayPreset | null>(null);
-  const onOverlaySaveRef = useRef<(preset: OverlayPreset) => Promise<void>>(async () => {});
-
-  const getEditingOverlayPreset = useCallback(() => editingOverlayPresetRef.current, []);
-  const setEditingOverlayPreset = useCallback((p: OverlayPreset | null) => {
-    console.log(`[OVERLAY] OverlayEditContext — setEditingOverlayPreset: ${p ? `"${p.name}" (id: ${p.id})` : 'null (new preset)'}`);
-    editingOverlayPresetRef.current = p;
-  }, []);
-  const getOnOverlaySave = useCallback(() => onOverlaySaveRef.current, []);
-  const setOnOverlaySave = useCallback((fn: (preset: OverlayPreset) => Promise<void>) => {
-    console.log('[OVERLAY] OverlayEditContext — setOnOverlaySave registered');
-    onOverlaySaveRef.current = fn;
-  }, []);
-
-  const contextValue = React.useMemo<OverlayEditContextValue>(() => ({
-    getEditingOverlayPreset,
-    setEditingOverlayPreset,
-    getOnOverlaySave,
-    setOnOverlaySave,
-  }), [getEditingOverlayPreset, setEditingOverlayPreset, getOnOverlaySave, setOnOverlaySave]);
-
-  return (
-    <OverlayEditContext.Provider value={contextValue}>
-      {children}
-    </OverlayEditContext.Provider>
   );
 }
 

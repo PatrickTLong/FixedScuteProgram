@@ -122,33 +122,11 @@ class BlockingModule(reactContext: ReactApplicationContext) :
 
             // Get custom blocked text (replaces default "X is blocked." overlay message)
             val customBlockedText = if (config.hasKey("customBlockedText")) config.getString("customBlockedText") else ""
-            val customBlockedTextColor = if (config.hasKey("customBlockedTextColor")) config.getString("customBlockedTextColor") else ""
             val customOverlayImage = if (config.hasKey("customOverlayImage")) config.getString("customOverlayImage") else ""
-            val customOverlayImageSize = if (config.hasKey("customOverlayImageSize")) config.getInt("customOverlayImageSize") else 120
-
-            // New overlay customization fields
-            val customOverlayBgColor = if (config.hasKey("customOverlayBgColor")) config.getString("customOverlayBgColor") else ""
-            val customDismissText = if (config.hasKey("customDismissText")) config.getString("customDismissText") else ""
-            val customDismissColor = if (config.hasKey("customDismissColor")) config.getString("customDismissColor") else ""
-            val iconPosX = if (config.hasKey("iconPosX")) config.getDouble("iconPosX").toFloat() else 50f
-            val iconPosY = if (config.hasKey("iconPosY")) config.getDouble("iconPosY").toFloat() else 50f
-            val blockedTextPosX = if (config.hasKey("blockedTextPosX")) config.getDouble("blockedTextPosX").toFloat() else 50f
-            val blockedTextPosY = if (config.hasKey("blockedTextPosY")) config.getDouble("blockedTextPosY").toFloat() else 50f
-            val dismissTextPosX = if (config.hasKey("dismissTextPosX")) config.getDouble("dismissTextPosX").toFloat() else 50f
-            val dismissTextPosY = if (config.hasKey("dismissTextPosY")) config.getDouble("dismissTextPosY").toFloat() else 50f
-            val iconVisible = if (config.hasKey("iconVisible")) config.getBoolean("iconVisible") else true
-            val blockedTextVisible = if (config.hasKey("blockedTextVisible")) config.getBoolean("blockedTextVisible") else true
-            val dismissTextVisible = if (config.hasKey("dismissTextVisible")) config.getBoolean("dismissTextVisible") else true
-            val blockedTextSize = if (config.hasKey("blockedTextSize")) config.getDouble("blockedTextSize").toFloat() else 22f
-            val dismissTextSize = if (config.hasKey("dismissTextSize")) config.getDouble("dismissTextSize").toFloat() else 10f
 
             Log.d(TAG, "[START-BLOCKING] Config: presetName=\"$presetName\", presetId=$presetId, noTimeLimit=$noTimeLimit, strictMode=$strictMode")
             Log.d(TAG, "[START-BLOCKING] Timing: endTime=$endTime (${java.util.Date(endTime)}), hasTimeLimit=$hasTimeLimit")
             Log.d(TAG, "[START-BLOCKING] Blocking: apps=${appSet.size}, websites=${websiteSet.size}, customText='$customBlockedText'")
-            Log.d(TAG, "[START-BLOCKING] [OVERLAY] bgColor='$customOverlayBgColor', dismissText='$customDismissText', dismissColor='$customDismissColor'")
-            Log.d(TAG, "[START-BLOCKING] [OVERLAY] iconPos=($iconPosX,$iconPosY), blockedTextPos=($blockedTextPosX,$blockedTextPosY), dismissTextPos=($dismissTextPosX,$dismissTextPosY)")
-            Log.d(TAG, "[START-BLOCKING] [OVERLAY] iconVisible=$iconVisible, blockedTextVisible=$blockedTextVisible, dismissTextVisible=$dismissTextVisible")
-            Log.d(TAG, "[START-BLOCKING] [OVERLAY] blockedTextSize=$blockedTextSize, dismissTextSize=$dismissTextSize")
 
             // Save to SharedPreferences
             val isScheduled = if (config.hasKey("isScheduled")) config.getBoolean("isScheduled") else false
@@ -166,23 +144,7 @@ class BlockingModule(reactContext: ReactApplicationContext) :
                 .putString("active_preset_name", presetName)
                 .putString("active_preset_id", presetId)
                 .putString("custom_blocked_text", customBlockedText)
-                .putString("custom_blocked_text_color", customBlockedTextColor)
                 .putString("custom_overlay_image", customOverlayImage)
-                .putInt("custom_overlay_image_size", customOverlayImageSize)
-                .putString("custom_overlay_bg_color", customOverlayBgColor)
-                .putString("custom_dismiss_text", customDismissText)
-                .putString("custom_dismiss_color", customDismissColor)
-                .putFloat("icon_pos_x", iconPosX)
-                .putFloat("icon_pos_y", iconPosY)
-                .putFloat("blocked_text_pos_x", blockedTextPosX)
-                .putFloat("blocked_text_pos_y", blockedTextPosY)
-                .putFloat("dismiss_text_pos_x", dismissTextPosX)
-                .putFloat("dismiss_text_pos_y", dismissTextPosY)
-                .putBoolean("icon_visible", iconVisible)
-                .putBoolean("blocked_text_visible", blockedTextVisible)
-                .putBoolean("dismiss_text_visible", dismissTextVisible)
-                .putFloat("blocked_text_size", blockedTextSize)
-                .putFloat("dismiss_text_size", dismissTextSize)
                 .apply()
 
             Log.d(TAG, "[START-BLOCKING] SharedPreferences saved — noTimeLimit=$noTimeLimit, isScheduled=$isScheduled, presetName=\"$presetName\", presetId=$presetId")

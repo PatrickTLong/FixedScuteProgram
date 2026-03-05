@@ -8,7 +8,7 @@ import TermsAcceptScreen from '../screens/TermsAcceptScreen';
 import PermissionsChecklistScreen from '../screens/PermissionsChecklistScreen';
 import MembershipScreen from '../screens/MembershipScreen';
 import MainTabNavigator from './MainTabNavigator';
-import { PresetSaveProvider, OverlayEditProvider } from './PresetsStack';
+import { PresetSaveProvider } from './PresetsStack';
 import type { MainStackParamList } from './types';
 
 const MainStack = createNativeStackNavigator<MainStackParamList>();
@@ -16,16 +16,14 @@ const MainStack = createNativeStackNavigator<MainStackParamList>();
 function MainNavigator() {
   return (
     <PresetSaveProvider>
-      <OverlayEditProvider>
-        <MainStack.Navigator
-          screenOptions={{
-            headerShown: false,
-            animation: 'none',
-          }}
-        >
-          <MainStack.Screen name="MainTabs" component={MainTabNavigator} />
-        </MainStack.Navigator>
-      </OverlayEditProvider>
+      <MainStack.Navigator
+        screenOptions={{
+          headerShown: false,
+          animation: 'none',
+        }}
+      >
+        <MainStack.Screen name="MainTabs" component={MainTabNavigator} />
+      </MainStack.Navigator>
     </PresetSaveProvider>
   );
 }

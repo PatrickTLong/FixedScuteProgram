@@ -9,7 +9,7 @@ import { useResponsive } from '../utils/responsive';
 import { triggerHaptic } from '../utils/haptics';
 import type { BottomTabBarProps as RNBottomTabBarProps } from '@react-navigation/bottom-tabs';
 
-type TabName = 'home' | 'presets' | 'overlays' | 'stats' | 'settings';
+type TabName = 'home' | 'presets' | 'stats' | 'settings';
 
 const TAB_ICON_SIZE = iconSize.xl;
 const FLASH_SIZE = 80;
@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
 });
 
 // Route names for hidden preset editing tabs
-const HIDDEN_ROUTES = ['EditPresetApps', 'PresetSettings', 'OverlayEditor', 'DatePicker'];
+const HIDDEN_ROUTES = ['EditPresetApps', 'PresetSettings', 'DatePicker'];
 
 function BottomTabBar({ state, navigation }: RNBottomTabBarProps) {
   const insets = useSafeAreaInsets();
@@ -136,7 +136,6 @@ function BottomTabBar({ state, navigation }: RNBottomTabBarProps) {
     const routeNameMap: Record<TabName, string> = {
       home: 'Home',
       presets: 'Presets',
-      overlays: 'Overlays',
       stats: 'Stats',
       settings: 'Settings',
     };
@@ -148,7 +147,7 @@ function BottomTabBar({ state, navigation }: RNBottomTabBarProps) {
 
   const handleHomePress = useCallback(() => handleTabPress('home'), [handleTabPress]);
   const handlePresetsPress = useCallback(() => handleTabPress('presets'), [handleTabPress]);
-  const handleOverlaysPress = useCallback(() => handleTabPress('overlays'), [handleTabPress]);
+
   const handleStatsPress = useCallback(() => handleTabPress('stats'), [handleTabPress]);
   const handleSettingsPress = useCallback(() => handleTabPress('settings'), [handleTabPress]);
 
@@ -166,9 +165,6 @@ function BottomTabBar({ state, navigation }: RNBottomTabBarProps) {
       <Path d="M10 17h4v4h-4zm7 0h4v4h-4zM3 10h4v4H3zm7 0h4v4h-4z" />
       <Path d="M10 10h4v4h-4zm7 0h4v4h-4z" />
     </Svg>, []);
-
-  const renderOverlaysIcon = useCallback((color: string) =>
-    <BoxiconsFilled name="bx-image-landscape" size={TAB_ICON_SIZE + 6} color={color} />, []);
 
   const renderStatsIcon = useCallback((color: string) =>
     <BoxiconsFilled name="bx-trending-up" size={TAB_ICON_SIZE + 6} color={color} />, []);
@@ -208,13 +204,6 @@ function BottomTabBar({ state, navigation }: RNBottomTabBarProps) {
           isActive={activeTab === 'presets'}
           onPress={handlePresetsPress}
           renderIcon={renderPresetsIcon}
-          activeColor={colors.text}
-          inactiveColor="rgba(255,255,255,0.4)"
-        />
-        <TabItem
-          isActive={activeTab === 'overlays'}
-          onPress={handleOverlaysPress}
-          renderIcon={renderOverlaysIcon}
           activeColor={colors.text}
           inactiveColor="rgba(255,255,255,0.4)"
         />

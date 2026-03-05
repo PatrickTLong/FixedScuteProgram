@@ -8,16 +8,15 @@ import {
   Easing,
   NativeSyntheticEvent,
   NativeScrollEvent,
-  Modal,
-  FlatList,
-  Pressable,
+  TextInput,
+  Image,
 } from 'react-native';
-import type { OverlayPreset } from '../services/cardApi';
 import AnimatedSwitch from '../components/AnimatedSwitch';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Svg, { Path } from 'react-native-svg';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { launchImageLibrary } from 'react-native-image-picker';
+import { API_URL } from '../config/api';
 import ScheduleInfoModal from '../components/ScheduleInfoModal';
 import InfoModal from '../components/InfoModal';
 import DisableTapoutWarningModal from '../components/DisableTapoutWarningModal';
@@ -523,10 +522,10 @@ function PresetSettingsScreen() {
   const [strictMode, setStrictMode] = useState(false);
   const [strictModeWarningVisible, setStrictModeWarningVisible] = useState(false);
 
-  // Overlay preset picker
-  const [overlayPresetId, setOverlayPresetId] = useState('');
-  const [overlayPickerVisible, setOverlayPickerVisible] = useState(false);
-  const { sharedOverlayPresets } = useAuth();
+  // Custom overlay
+  const [customBlockedText, setCustomBlockedText] = useState('');
+  const [customOverlayImage, setCustomOverlayImage] = useState('');
+  const [imageUploading, setImageUploading] = useState(false);
 
   // Expandable info dropdowns
   const [expandedInfo, setExpandedInfo] = useState<Record<string, boolean>>({});
@@ -569,7 +568,8 @@ function PresetSettingsScreen() {
   const isRecurringRef = useRef(isRecurring);
   const recurringValueRef = useRef(recurringValue);
   const recurringUnitRef = useRef(recurringUnit);
-  const overlayPresetIdRef = useRef(overlayPresetId);
+  const customBlockedTextRef = useRef(customBlockedText);
+  const customOverlayImageRef = useRef(customOverlayImage);
 
   // Keep refs in sync with state
   blockSettingsRef.current = blockSettings;
@@ -589,7 +589,8 @@ function PresetSettingsScreen() {
   isRecurringRef.current = isRecurring;
   recurringValueRef.current = recurringValue;
   recurringUnitRef.current = recurringUnit;
-  overlayPresetIdRef.current = overlayPresetId;
+  customBlockedTextRef.current = customBlockedText;
+  customOverlayImageRef.current = customOverlayImage;
 
   // ============ Reinitialize from editingPreset each time screen gains focus ============
   // Restores from saved finalSettingsState if returning from EditPresetApps (back-and-forward),
@@ -617,8 +618,8 @@ function PresetSettingsScreen() {
         setIsRecurring(savedState.isRecurring);
         setRecurringValue(savedState.recurringValue);
         setRecurringUnit(savedState.recurringUnit);
-        setOverlayPresetId(savedState.overlayPresetId ?? '');
-        console.log(`[OVERLAY] PresetSettingsScreen — restored overlayPresetId from savedState: "${savedState.overlayPresetId || 'none'}"`);
+        setCustomBlockedText(savedState.customBlockedText ?? '');
+        setCustomOverlayImage(savedState.customOverlayImage ?? '');
       } else {
         const editingPreset = getEditingPreset();
         if (editingPreset) {
@@ -639,8 +640,8 @@ function PresetSettingsScreen() {
           setIsRecurring(editingPreset.repeat_enabled ?? false);
           setRecurringValue(editingPreset.repeat_interval?.toString() ?? '1');
           setRecurringUnit(editingPreset.repeat_unit ?? 'hours');
-          setOverlayPresetId(editingPreset.overlayPresetId ?? '');
-          console.log(`[OVERLAY] PresetSettingsScreen — loaded overlayPresetId from editingPreset: "${editingPreset.overlayPresetId || 'none'}" (preset: "${editingPreset.name}")`);
+          setCustomBlockedText(editingPreset.customBlockedText ?? '');
+          setCustomOverlayImage(editingPreset.customOverlayImage ?? '');
         } else {
           // New preset defaults
           setBlockSettings(false);
@@ -660,8 +661,8 @@ function PresetSettingsScreen() {
           setIsRecurring(false);
           setRecurringValue('1');
           setRecurringUnit('hours');
-          setOverlayPresetId('');
-          console.log('[OVERLAY] PresetSettingsScreen — new preset defaults, overlayPresetId: "none"');
+          setCustomBlockedText('');
+          setCustomOverlayImage('');
         }
       }
       // Apply date picker result if returning from DatePicker screen
@@ -716,26 +717,8 @@ function PresetSettingsScreen() {
           isRecurring: isRecurringRef.current,
           recurringValue: recurringValueRef.current,
           recurringUnit: recurringUnitRef.current,
-          overlayPresetId: overlayPresetIdRef.current,
-          // Overlay fields no longer edited here — managed via overlay presets
-          customBlockedText: '',
-          customDismissText: '',
-          customBlockedTextColor: '',
-          customOverlayBgColor: '',
-          customDismissColor: '',
-          customOverlayImage: '',
-          customOverlayImageSize: 120,
-          iconPosX: 50,
-          iconPosY: 30,
-          blockedTextPosX: 50,
-          blockedTextPosY: 50,
-          dismissTextPosX: 50,
-          dismissTextPosY: 70,
-          iconVisible: true,
-          blockedTextVisible: true,
-          dismissTextVisible: true,
-          blockedTextSize: 11,
-          dismissTextSize: 7,
+          customBlockedText: customBlockedTextRef.current,
+          customOverlayImage: customOverlayImageRef.current,
         });
       };
     }, [getEditingPreset, getFinalSettingsState, setFinalSettingsState, getDatePickerResult, setDatePickerResult])
@@ -777,17 +760,42 @@ function PresetSettingsScreen() {
     navigation.navigate('DatePicker');
   }, [targetDate, scheduleStartDate, scheduleEndDate, navigation, setDatePickerParams, setDatePickerResult]);
 
-  // ============ Overlay Preset Picker ============
-  const selectedOverlayPreset = useMemo(() =>
-    sharedOverlayPresets.find((p: OverlayPreset) => p.id === overlayPresetId) || null,
-    [sharedOverlayPresets, overlayPresetId]
-  );
+  // ============ Image Upload Handler ============
+  const handleImageUpload = useCallback(async () => {
+    try {
+      const result = await launchImageLibrary({
+        mediaType: 'photo',
+        quality: 0.8,
+        maxWidth: 512,
+        maxHeight: 512,
+      });
+      if (result.didCancel || !result.assets?.[0]) return;
+      const asset = result.assets[0];
+      if (!asset.uri) return;
 
-  // Overlay customization is now handled by OverlayEditorScreen
+      setImageUploading(true);
+      const formData = new FormData();
+      formData.append('image', {
+        uri: asset.uri,
+        type: asset.type || 'image/jpeg',
+        name: asset.fileName || 'overlay.jpg',
+      } as any);
 
-
-
-
+      const response = await fetch(`${API_URL}/api/overlay-image`, {
+        method: 'POST',
+        body: formData,
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      const data = await response.json();
+      if (data.url) {
+        setCustomOverlayImage(data.url + '?t=' + Date.now());
+      }
+    } catch (e) {
+      console.warn('Image upload failed', e);
+    } finally {
+      setImageUploading(false);
+    }
+  }, []);
 
   // ============ Validation Logic ============
   const hasTimerValue = useMemo(() =>
@@ -835,12 +843,6 @@ function PresetSettingsScreen() {
 
     hasSaved.current = true;
 
-    if (selectedOverlayPreset) {
-      console.log(`[OVERLAY] PresetSettingsScreen — handleSave — copying overlay fields from "${selectedOverlayPreset.name}" (id: ${overlayPresetId}) into preset "${name.trim()}" | blockedText: "${selectedOverlayPreset.customBlockedText || ''}", bgColor: ${selectedOverlayPreset.customOverlayBgColor || 'default'}, textColor: ${selectedOverlayPreset.customBlockedTextColor || 'default'}, hasImage: ${!!selectedOverlayPreset.customOverlayImage}, imageSize: ${selectedOverlayPreset.customOverlayImageSize ?? 'default'}, positions: icon(${selectedOverlayPreset.iconPosX ?? 50},${selectedOverlayPreset.iconPosY ?? 40}) blocked(${selectedOverlayPreset.blockedTextPosX ?? 50},${selectedOverlayPreset.blockedTextPosY ?? 55}) dismiss(${selectedOverlayPreset.dismissTextPosX ?? 50},${selectedOverlayPreset.dismissTextPosY ?? 60})`);
-    } else {
-      console.log(`[OVERLAY] PresetSettingsScreen — handleSave — NO overlay preset selected for "${name.trim()}" (overlayPresetId: "${overlayPresetId}")`);
-    }
-
     const parsedRecurringValue = parseInt(recurringValue, 10);
     const finalRecurringInterval = isNaN(parsedRecurringValue) || parsedRecurringValue <= 0 ? 1 : parsedRecurringValue;
 
@@ -867,30 +869,8 @@ function PresetSettingsScreen() {
       repeat_enabled: isScheduled && isRecurring ? true : false,
       repeat_unit: isScheduled && isRecurring ? recurringUnit : undefined,
       repeat_interval: isScheduled && isRecurring ? finalRecurringInterval : undefined,
-      // Copy overlay fields from selected overlay preset (for Android compatibility)
-      ...(selectedOverlayPreset ? {
-        overlayPresetId,
-        customBlockedText: selectedOverlayPreset.customBlockedText,
-        customDismissText: selectedOverlayPreset.customDismissText,
-        customBlockedTextColor: selectedOverlayPreset.customBlockedTextColor,
-        customOverlayBgColor: selectedOverlayPreset.customOverlayBgColor,
-        customDismissColor: selectedOverlayPreset.customDismissColor,
-        customOverlayImage: selectedOverlayPreset.customOverlayImage,
-        customOverlayImageSize: selectedOverlayPreset.customOverlayImageSize,
-        iconPosX: selectedOverlayPreset.iconPosX,
-        iconPosY: selectedOverlayPreset.iconPosY,
-        blockedTextPosX: selectedOverlayPreset.blockedTextPosX,
-        blockedTextPosY: selectedOverlayPreset.blockedTextPosY,
-        dismissTextPosX: selectedOverlayPreset.dismissTextPosX,
-        dismissTextPosY: selectedOverlayPreset.dismissTextPosY,
-        iconVisible: selectedOverlayPreset.iconVisible,
-        blockedTextVisible: selectedOverlayPreset.blockedTextVisible,
-        dismissTextVisible: selectedOverlayPreset.dismissTextVisible,
-        blockedTextSize: selectedOverlayPreset.blockedTextSize,
-        dismissTextSize: selectedOverlayPreset.dismissTextSize,
-      } : {
-        overlayPresetId: '',
-      }),
+      customBlockedText: customBlockedText || undefined,
+      customOverlayImage: customOverlayImage || undefined,
     };
 
     // Navigate immediately — save happens in the background
@@ -898,7 +878,7 @@ function PresetSettingsScreen() {
     setPresetSettingsParams(null);
     navigation.navigate({ name: 'Presets' } as any);
     onSave(newPreset);
-  }, [name, canSave, getEditingPreset, getExistingPresets, installedSelectedApps, blockedWebsites, blockSettings, noTimeLimit, timerDays, timerHours, timerMinutes, timerSeconds, targetDate, onSave, allowEmergencyTapout, strictMode, isScheduled, scheduleStartDate, scheduleEndDate, isRecurring, recurringValue, recurringUnit, navigation, setFinalSettingsState, overlayPresetId, selectedOverlayPreset]);
+  }, [name, canSave, getEditingPreset, getExistingPresets, installedSelectedApps, blockedWebsites, blockSettings, noTimeLimit, timerDays, timerHours, timerMinutes, timerSeconds, targetDate, onSave, allowEmergencyTapout, strictMode, isScheduled, scheduleStartDate, scheduleEndDate, isRecurring, recurringValue, recurringUnit, navigation, setFinalSettingsState, customBlockedText, customOverlayImage]);
 
 
   // ============ Render ============
@@ -1528,7 +1508,7 @@ function PresetSettingsScreen() {
           </View>
         </ExpandableInfo>
 
-        {/* Custom Overlay — Overlay Preset Picker */}
+        {/* Custom Overlay */}
         <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}>
           <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
             <TouchableOpacity onPress={() => toggleInfo('customOverlay')} activeOpacity={0.7} style={{ maxWidth: '75%' }} className="flex-row items-center">
@@ -1536,173 +1516,111 @@ function PresetSettingsScreen() {
               <View>
                 <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Custom Overlay</Text>
                 <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-1`}>
-                  {selectedOverlayPreset ? selectedOverlayPreset.name : 'Select an overlay preset'}
+                  {customBlockedText || customOverlayImage ? 'Customized' : 'Default overlay'}
                 </Text>
               </View>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => setOverlayPickerVisible(true)}
-              activeOpacity={0.7}
-              style={{
-                backgroundColor: colors.card,
-                borderWidth: 1,
-                borderColor: colors.border,
-                borderRadius: s(10),
-                paddingHorizontal: s(12),
-                paddingVertical: s(8),
-              }}
-            >
-              <Text style={{ color: colors.text }} className={`${textSize.extraSmall} ${fontFamily.semibold}`}>
-                {selectedOverlayPreset ? 'Change' : 'Pick'}
-              </Text>
             </TouchableOpacity>
           </View>
           <ExpandableInfo expanded={!!expandedInfo.customOverlay}>
-            <TouchableOpacity onPress={() => toggleInfo('customOverlay')} activeOpacity={0.7} className="px-6 pb-4">
-              <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular} leading-5`}>
-                Select an overlay preset to customize the blocked screen appearance. Create and edit overlay presets from the Overlays tab.
-              </Text>
-            </TouchableOpacity>
-          </ExpandableInfo>
-
-          {/* Selected overlay preview */}
-          {selectedOverlayPreset && (
             <View className="px-6 pb-4">
-              <View style={{
-                alignSelf: 'center',
-                width: s(100),
-                aspectRatio: 9 / 19.5,
-                backgroundColor: selectedOverlayPreset.customOverlayBgColor || colors.bg,
-                borderRadius: s(12),
-                overflow: 'hidden',
-                borderWidth: s(2),
-                borderColor: '#3A3A3C',
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}>
-                <MaterialCommunityIcons name="android" size={s(24)} color={selectedOverlayPreset.customBlockedTextColor || '#FFFFFF'} />
-                <Text style={{
-                  color: selectedOverlayPreset.customBlockedTextColor || '#FFFFFF',
-                  textAlign: 'center',
-                  fontSize: s(6),
-                  marginTop: s(4),
-                }} className={fontFamily.bold} numberOfLines={2}>
-                  {selectedOverlayPreset.customBlockedText || 'This app is blocked.'}
-                </Text>
-              </View>
-              {/* Clear selection button */}
-              <TouchableOpacity
-                onPress={() => { console.log('[OVERLAY] PresetSettingsScreen — overlay preset CLEARED'); setOverlayPresetId(''); }}
-                activeOpacity={0.7}
-                style={{ alignSelf: 'center', marginTop: s(8) }}
-                className="flex-row items-center"
-              >
-                <BoxiconsFilled name="bx-x" size={s(iconSize.sm)} color={colors.textMuted} />
-                <Text style={{ color: colors.textMuted, marginLeft: s(4) }} className={`${textSize.extraSmall} ${fontFamily.semibold}`}>Clear Selection</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-        </View>
+              <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular} leading-5 mb-3`}>
+                Customize the blocked screen message and image.
+              </Text>
 
-        {/* Overlay Preset Picker Modal */}
-        <Modal
-          visible={overlayPickerVisible}
-          animationType="slide"
-          transparent
-          onRequestClose={() => setOverlayPickerVisible(false)}
-        >
-          <Pressable
-            style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' }}
-            onPress={() => setOverlayPickerVisible(false)}
-          >
-            <Pressable
-              style={{
-                position: 'absolute',
-                bottom: 0,
-                left: 0,
-                right: 0,
-                maxHeight: '70%',
-                backgroundColor: colors.bg,
-                borderTopLeftRadius: s(20),
-                borderTopRightRadius: s(20),
-                paddingTop: s(20),
-                paddingBottom: insets.bottom + s(20),
-              }}
-              onPress={() => {}} // prevent dismiss when tapping inside
-            >
-              <View className="flex-row items-center justify-between px-6" style={{ marginBottom: s(16) }}>
-                <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.bold}`}>Select Overlay Preset</Text>
-                <TouchableOpacity onPress={() => setOverlayPickerVisible(false)} activeOpacity={0.7}>
-                  <BoxiconsFilled name="bx-x-circle" size={s(iconSize.headerNav)} color={colors.textMuted} />
-                </TouchableOpacity>
-              </View>
-              <FlatList
-                data={sharedOverlayPresets}
-                keyExtractor={(item: OverlayPreset) => item.id}
-                contentContainerStyle={{ paddingHorizontal: s(20) }}
-                ListEmptyComponent={
-                  <View style={{ alignItems: 'center', paddingTop: s(40), paddingHorizontal: s(32) }}>
-                    <BoxiconsFilled name="bx-palette" size={s(40)} color={colors.textMuted} />
-                    <Text style={{ color: colors.textMuted, textAlign: 'center', marginTop: s(12) }} className={`${textSize.base} ${fontFamily.regular}`}>
-                      No overlay presets yet. Create one from the Overlays tab.
-                    </Text>
-                  </View>
-                }
-                renderItem={({ item }: { item: OverlayPreset }) => (
-                  <TouchableOpacity
-                    onPress={() => {
-                      console.log(`[OVERLAY] PresetSettingsScreen — overlay preset SELECTED: "${item.name}" (id: ${item.id}) | bgColor: ${item.customOverlayBgColor || 'default'}, textColor: ${item.customBlockedTextColor || 'default'}, hasImage: ${!!item.customOverlayImage}`);
-                      setOverlayPresetId(item.id);
-                      setOverlayPickerVisible(false);
-                    }}
-                    activeOpacity={0.7}
+              {/* Custom blocked text */}
+              <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.semibold} mb-1`}>
+                Blocked Message
+              </Text>
+              <TextInput
+                value={customBlockedText}
+                onChangeText={setCustomBlockedText}
+                placeholder="This app is blocked."
+                placeholderTextColor={colors.textMuted}
+                style={{
+                  color: colors.text,
+                  backgroundColor: colors.card,
+                  borderWidth: 1,
+                  borderColor: colors.border,
+                  borderRadius: s(10),
+                  paddingHorizontal: s(12),
+                  paddingVertical: s(10),
+                  fontSize: s(14),
+                  marginBottom: s(16),
+                }}
+              />
+
+              {/* Custom overlay image */}
+              <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.semibold} mb-1`}>
+                Custom Image
+              </Text>
+              {customOverlayImage ? (
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: s(8) }}>
+                  <Image
+                    source={{ uri: customOverlayImage }}
                     style={{
-                      backgroundColor: item.id === overlayPresetId ? colors.border : colors.card,
+                      width: s(60),
+                      height: s(60),
+                      borderRadius: s(8),
                       borderWidth: 1,
-                      borderColor: item.id === overlayPresetId ? colors.text : colors.border,
-                      paddingVertical: s(buttonPadding.standard),
-                      paddingHorizontal: s(buttonPadding.standard),
-                      marginBottom: s(10),
-                      ...shadow.card,
+                      borderColor: colors.border,
+                      marginRight: s(12),
                     }}
-                    className={radius['2xl']}
-                  >
-                    <View className="flex-row items-center">
-                      {/* Mini preview swatch */}
-                      <View style={{
-                        width: s(36),
-                        height: s(60),
-                        borderRadius: s(8),
-                        backgroundColor: item.customOverlayBgColor || colors.bg,
+                  />
+                  <View style={{ flex: 1 }}>
+                    <TouchableOpacity
+                      onPress={handleImageUpload}
+                      activeOpacity={0.7}
+                      style={{
+                        backgroundColor: colors.card,
                         borderWidth: 1,
                         borderColor: colors.border,
-                        marginRight: s(12),
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        overflow: 'hidden',
-                      }}>
-                        <MaterialCommunityIcons name="android" size={s(14)} color={item.customBlockedTextColor || '#FFFFFF'} />
-                      </View>
-                      <View className="flex-1">
-                        <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>
-                          {item.name}
-                        </Text>
-                        {item.id === overlayPresetId && (
-                          <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-1`}>
-                            Currently selected
-                          </Text>
-                        )}
-                      </View>
-                      {item.id === overlayPresetId && (
-                        <BoxiconsFilled name="bx-check-circle" size={s(iconSize.forTabs)} color={colors.text} />
-                      )}
-                    </View>
-                  </TouchableOpacity>
-                )}
-              />
-            </Pressable>
-          </Pressable>
-        </Modal>
+                        borderRadius: s(10),
+                        paddingHorizontal: s(12),
+                        paddingVertical: s(8),
+                        marginBottom: s(6),
+                      }}
+                    >
+                      <Text style={{ color: colors.text, textAlign: 'center' }} className={`${textSize.extraSmall} ${fontFamily.semibold}`}>
+                        {imageUploading ? 'Uploading...' : 'Change'}
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => setCustomOverlayImage('')}
+                      activeOpacity={0.7}
+                      style={{ alignSelf: 'center' }}
+                      className="flex-row items-center"
+                    >
+                      <BoxiconsFilled name="bx-x" size={s(iconSize.sm)} color={colors.textMuted} />
+                      <Text style={{ color: colors.textMuted, marginLeft: s(2) }} className={`${textSize.extraSmall} ${fontFamily.semibold}`}>Remove</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ) : (
+                <TouchableOpacity
+                  onPress={handleImageUpload}
+                  activeOpacity={0.7}
+                  style={{
+                    backgroundColor: colors.card,
+                    borderWidth: 1,
+                    borderColor: colors.border,
+                    borderRadius: s(10),
+                    paddingHorizontal: s(12),
+                    paddingVertical: s(12),
+                    marginBottom: s(8),
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <BoxiconsFilled name="bx-upload" size={s(iconSize.sm)} color={colors.textSecondary} style={{ marginRight: s(6) }} />
+                  <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.semibold}`}>
+                    {imageUploading ? 'Uploading...' : 'Upload Image'}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          </ExpandableInfo>
+        </View>
 
         {/* Extra bottom padding */}
         <View style={{ height: s(40) }} />

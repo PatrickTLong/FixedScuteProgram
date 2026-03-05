@@ -11,10 +11,8 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import BoxiconsFilled from '../components/BoxiconsFilled';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useNavigation } from '@react-navigation/native';
-import type { StackNavigationProp } from '@react-navigation/stack';
-import ProgressBar from '../components/ProgressBar';
 import BackButton from '../components/BackButton';
+import ProgressBar from '../components/ProgressBar';
 import InfoModal from '../components/InfoModal';
 import OTPInput from '../components/OTPInput';
 import GoogleSignInBtn from '../components/GoogleSignInButton';
@@ -24,6 +22,8 @@ import { useResponsive } from '../utils/responsive';
 import { useAuth } from '../context/AuthContext';
 import ScreenTransition from '../components/ScreenTransition';
 import type { ScreenTransitionRef, TransitionDirection } from '../components/ScreenTransition';
+import { useNavigation } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
 import type { AuthStackParamList } from '../navigation/types';
 import { setAuthToken } from '../services/cardApi';
 import { API_URL } from '../config/api';
@@ -188,10 +188,12 @@ function SignInScreen() {
         </View>
       )}
 
-      <ScreenTransition ref={transitionRef}>
-      {/* Progress Bar */}
-      <ProgressBar currentStep={step === 'credentials' ? 2 : 3} totalSteps={3} />
+      {/* Progress Dots */}
+      {showBackButton && (
+        <ProgressBar currentStep={step === 'credentials' ? 1 : 2} totalSteps={2} />
+      )}
 
+      <ScreenTransition ref={transitionRef}>
       <KeyboardAvoidingView
         enabled={false}
         className="flex-1"
@@ -216,7 +218,6 @@ function SignInScreen() {
                     Email
                   </Text>
                   <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, height: s(48), borderWidth: 1, borderColor: colors.border, ...shadow.card, overflow: 'hidden', paddingHorizontal: s(20) }} className={radius.xl}>
-                    <BoxiconsFilled name="bx-user-check" size={s(iconSize.headerNav)} color={colors.textSecondary} />
                     <TextInput
                       value={email}
                       onChangeText={setEmail}
@@ -226,7 +227,7 @@ function SignInScreen() {
                       autoCapitalize="none"
                       autoCorrect={false}
                       editable={!loading}
-                      style={{ flex: 1, color: colors.text, marginLeft: s(8) }}
+                      style={{ flex: 1, color: colors.text }}
                       className={`${textSize.small} ${fontFamily.regular}`}
                     />
                   </View>
@@ -238,7 +239,6 @@ function SignInScreen() {
                     Password
                   </Text>
                   <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, height: s(48), borderWidth: 1, borderColor: colors.border, ...shadow.card, overflow: 'hidden', paddingLeft: s(20) }} className={radius.xl}>
-                    <BoxiconsFilled name="bx-key" size={s(iconSize.headerNav)} color={colors.textSecondary} />
                     <TextInput
                       value={password}
                       onChangeText={setPassword}
@@ -248,7 +248,7 @@ function SignInScreen() {
                       autoCapitalize="none"
                       autoCorrect={false}
                       editable={!loading}
-                      style={{ flex: 1, color: colors.text, marginLeft: s(8) }}
+                      style={{ flex: 1, color: colors.text }}
                       className={`${textSize.small} ${fontFamily.regular}`}
                     />
                     <View style={{ justifyContent: 'center', alignItems: 'center', paddingHorizontal: s(8), height: '100%' }}>

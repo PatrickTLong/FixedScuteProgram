@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useMemo, memo } from 'react';
+import React, { useState, useRef, useCallback, memo } from 'react';
 import {
   Text,
   View,
@@ -10,18 +10,18 @@ import {
 import LoadingSpinner from '../components/LoadingSpinner';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import BoxiconsFilled from '../components/BoxiconsFilled';
-import ProgressBar from '../components/ProgressBar';
 import BackButton from '../components/BackButton';
+import ProgressBar from '../components/ProgressBar';
 import InfoModal from '../components/InfoModal';
 import OTPInput from '../components/OTPInput';
 import HeaderIconButton from '../components/HeaderIconButton';
 import { useTheme , textSize, fontFamily, radius, shadow, iconSize } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { API_URL } from '../config/api';
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import ScreenTransition from '../components/ScreenTransition';
 import type { ScreenTransitionRef, TransitionDirection } from '../components/ScreenTransition';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { AuthStackParamList } from '../navigation/types';
 
 function ForgotPasswordScreen() {
@@ -164,11 +164,6 @@ function ForgotPasswordScreen() {
     }
   }
 
-  const currentStep = useMemo(() => {
-    if (step === 'email') return 2;
-    return 3;
-  }, [step]);
-
   const handleBack = useCallback(() => {
     if (step === 'email') {
       onBack();
@@ -186,10 +181,10 @@ function ForgotPasswordScreen() {
         <BackButton onPress={handleBack} />
       </View>
 
-      <ScreenTransition ref={transitionRef} from="down">
-      {/* Progress Bar */}
-      <ProgressBar currentStep={currentStep} totalSteps={3} />
+      {/* Progress Dots */}
+      <ProgressBar currentStep={step === 'email' ? 1 : step === 'code' ? 2 : 3} totalSteps={3} />
 
+      <ScreenTransition ref={transitionRef} from="down">
       <KeyboardAvoidingView
         enabled={false}
         className="flex-1"
@@ -216,7 +211,6 @@ function ForgotPasswordScreen() {
                     Email
                   </Text>
                   <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, height: s(48), borderWidth: 1, borderColor: colors.border, ...shadow.card, overflow: 'hidden', paddingHorizontal: s(20) }} className={radius.xl}>
-                    <BoxiconsFilled name="bx-user-check" size={s(iconSize.headerNav)} color={colors.textSecondary} />
                     <TextInput
                       value={email}
                       onChangeText={setEmail}
@@ -226,7 +220,7 @@ function ForgotPasswordScreen() {
                       autoCapitalize="none"
                       autoCorrect={false}
                       editable={!loading}
-                      style={{ flex: 1, color: colors.text, marginLeft: s(8) }}
+                      style={{ flex: 1, color: colors.text }}
                       className={`${textSize.small} ${fontFamily.regular}`}
                     />
                   </View>
@@ -282,7 +276,6 @@ function ForgotPasswordScreen() {
                     New Password
                   </Text>
                   <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, height: s(48), borderWidth: 1, borderColor: colors.border, ...shadow.card, overflow: 'hidden', paddingLeft: s(20) }} className={radius.xl}>
-                    <BoxiconsFilled name="bx-key" size={s(iconSize.headerNav)} color={colors.textSecondary} />
                     <TextInput
                       value={newPassword}
                       onChangeText={setNewPassword}
@@ -292,7 +285,7 @@ function ForgotPasswordScreen() {
                       autoCapitalize="none"
                       autoCorrect={false}
                       editable={!loading}
-                      style={{ flex: 1, color: colors.text, marginLeft: s(8) }}
+                      style={{ flex: 1, color: colors.text }}
                       className={`${textSize.small} ${fontFamily.regular}`}
                     />
                     <View style={{ justifyContent: 'center', alignItems: 'center', paddingHorizontal: s(8), height: '100%' }}>
@@ -308,7 +301,6 @@ function ForgotPasswordScreen() {
                     Confirm New Password
                   </Text>
                   <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, height: s(48), borderWidth: 1, borderColor: colors.border, ...shadow.card, overflow: 'hidden', paddingLeft: s(20) }} className={radius.xl}>
-                    <BoxiconsFilled name="bx-key" size={s(iconSize.headerNav)} color={colors.textSecondary} />
                     <TextInput
                       value={confirmPassword}
                       onChangeText={setConfirmPassword}
@@ -318,7 +310,7 @@ function ForgotPasswordScreen() {
                       autoCapitalize="none"
                       autoCorrect={false}
                       editable={!loading}
-                      style={{ flex: 1, color: colors.text, marginLeft: s(8) }}
+                      style={{ flex: 1, color: colors.text }}
                       className={`${textSize.small} ${fontFamily.regular}`}
                     />
                     <View style={{ justifyContent: 'center', alignItems: 'center', paddingHorizontal: s(8), height: '100%' }}>

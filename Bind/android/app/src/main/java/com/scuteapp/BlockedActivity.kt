@@ -4,7 +4,6 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
-import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -12,7 +11,6 @@ import android.view.View
 import android.view.WindowManager
 import android.os.VibrationEffect
 import android.os.Vibrator
-import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.TextView
 import java.net.URL
@@ -36,17 +34,7 @@ class BlockedActivity : Activity() {
         private const val EXTRA_BLOCKED_ITEM = "blocked_item"
         private const val EXTRA_STRICT_MODE = "strict_mode"
         private const val EXTRA_CUSTOM_BLOCKED_TEXT = "custom_blocked_text"
-        private const val EXTRA_CUSTOM_BLOCKED_TEXT_COLOR = "custom_blocked_text_color"
         private const val EXTRA_CUSTOM_OVERLAY_IMAGE = "custom_overlay_image"
-        private const val EXTRA_CUSTOM_OVERLAY_IMAGE_SIZE = "custom_overlay_image_size"
-        private const val EXTRA_CUSTOM_OVERLAY_BG_COLOR = "custom_overlay_bg_color"
-        private const val EXTRA_CUSTOM_DISMISS_TEXT = "custom_dismiss_text"
-        private const val EXTRA_CUSTOM_DISMISS_COLOR = "custom_dismiss_color"
-        private const val EXTRA_ICON_VISIBLE = "icon_visible"
-        private const val EXTRA_BLOCKED_TEXT_VISIBLE = "blocked_text_visible"
-        private const val EXTRA_DISMISS_TEXT_VISIBLE = "dismiss_text_visible"
-        private const val EXTRA_BLOCKED_TEXT_SIZE = "blocked_text_size"
-        private const val EXTRA_DISMISS_TEXT_SIZE = "dismiss_text_size"
 
         const val TYPE_APP = "app"
         const val TYPE_WEBSITE = "website"
@@ -61,11 +49,8 @@ class BlockedActivity : Activity() {
          */
         fun launch(
             context: Context, blockedType: String = TYPE_APP, blockedItem: String? = null,
-            strictMode: Boolean = true, customBlockedText: String = "", customBlockedTextColor: String = "",
-            customOverlayImage: String = "", customOverlayImageSize: Int = 120,
-            customOverlayBgColor: String = "", customDismissText: String = "", customDismissColor: String = "",
-            iconVisible: Boolean = true, blockedTextVisible: Boolean = true, dismissTextVisible: Boolean = true,
-            blockedTextSize: Float = 22f, dismissTextSize: Float = 10f
+            strictMode: Boolean = true, customBlockedText: String = "",
+            customOverlayImage: String = ""
         ) {
             val intent = Intent(context, BlockedActivity::class.java).apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -76,17 +61,7 @@ class BlockedActivity : Activity() {
                 putExtra(EXTRA_BLOCKED_ITEM, blockedItem)
                 putExtra(EXTRA_STRICT_MODE, strictMode)
                 putExtra(EXTRA_CUSTOM_BLOCKED_TEXT, customBlockedText)
-                putExtra(EXTRA_CUSTOM_BLOCKED_TEXT_COLOR, customBlockedTextColor)
                 putExtra(EXTRA_CUSTOM_OVERLAY_IMAGE, customOverlayImage)
-                putExtra(EXTRA_CUSTOM_OVERLAY_IMAGE_SIZE, customOverlayImageSize)
-                putExtra(EXTRA_CUSTOM_OVERLAY_BG_COLOR, customOverlayBgColor)
-                putExtra(EXTRA_CUSTOM_DISMISS_TEXT, customDismissText)
-                putExtra(EXTRA_CUSTOM_DISMISS_COLOR, customDismissColor)
-                putExtra(EXTRA_ICON_VISIBLE, iconVisible)
-                putExtra(EXTRA_BLOCKED_TEXT_VISIBLE, blockedTextVisible)
-                putExtra(EXTRA_DISMISS_TEXT_VISIBLE, dismissTextVisible)
-                putExtra(EXTRA_BLOCKED_TEXT_SIZE, blockedTextSize)
-                putExtra(EXTRA_DISMISS_TEXT_SIZE, dismissTextSize)
             }
             context.startActivity(intent)
         }
@@ -96,13 +71,10 @@ class BlockedActivity : Activity() {
          */
         fun launchNoAnimation(
             context: Context, blockedType: String = TYPE_APP, blockedItem: String? = null,
-            strictMode: Boolean = true, customBlockedText: String = "", customBlockedTextColor: String = "",
-            customOverlayImage: String = "", customOverlayImageSize: Int = 120,
-            customOverlayBgColor: String = "", customDismissText: String = "", customDismissColor: String = "",
-            iconVisible: Boolean = true, blockedTextVisible: Boolean = true, dismissTextVisible: Boolean = true,
-            blockedTextSize: Float = 22f, dismissTextSize: Float = 10f
+            strictMode: Boolean = true, customBlockedText: String = "",
+            customOverlayImage: String = ""
         ) {
-            launch(context, blockedType, blockedItem, strictMode, customBlockedText, customBlockedTextColor, customOverlayImage, customOverlayImageSize, customOverlayBgColor, customDismissText, customDismissColor, iconVisible, blockedTextVisible, dismissTextVisible, blockedTextSize, dismissTextSize)
+            launch(context, blockedType, blockedItem, strictMode, customBlockedText, customOverlayImage)
         }
     }
 
@@ -134,35 +106,14 @@ class BlockedActivity : Activity() {
         blockedItem = intent.getStringExtra(EXTRA_BLOCKED_ITEM)
         isStrictMode = intent.getBooleanExtra(EXTRA_STRICT_MODE, true)
         val customBlockedText = intent.getStringExtra(EXTRA_CUSTOM_BLOCKED_TEXT) ?: ""
-        val customBlockedTextColor = intent.getStringExtra(EXTRA_CUSTOM_BLOCKED_TEXT_COLOR) ?: ""
         val customOverlayImage = intent.getStringExtra(EXTRA_CUSTOM_OVERLAY_IMAGE) ?: ""
-        val customOverlayImageSize = intent.getIntExtra(EXTRA_CUSTOM_OVERLAY_IMAGE_SIZE, 120)
-        val customOverlayBgColor = intent.getStringExtra(EXTRA_CUSTOM_OVERLAY_BG_COLOR) ?: ""
-        val customDismissText = intent.getStringExtra(EXTRA_CUSTOM_DISMISS_TEXT) ?: ""
-        val customDismissColor = intent.getStringExtra(EXTRA_CUSTOM_DISMISS_COLOR) ?: ""
-        val iconVisible = intent.getBooleanExtra(EXTRA_ICON_VISIBLE, true)
-        val blockedTextVisible = intent.getBooleanExtra(EXTRA_BLOCKED_TEXT_VISIBLE, true)
-        val dismissTextVisible = intent.getBooleanExtra(EXTRA_DISMISS_TEXT_VISIBLE, true)
-        val blockedTextSize = intent.getFloatExtra(EXTRA_BLOCKED_TEXT_SIZE, 22f)
-        val dismissTextSize = intent.getFloatExtra(EXTRA_DISMISS_TEXT_SIZE, 10f)
 
-        Log.d(TAG, "onCreate: type=$blockedType, item=$blockedItem, customText='$customBlockedText', customTextColor='$customBlockedTextColor', customImage='$customOverlayImage', imageSize=$customOverlayImageSize")
-        Log.d(TAG, "[OVERLAY] onCreate: bgColor='$customOverlayBgColor', dismissText='$customDismissText', dismissColor='$customDismissColor'")
-        Log.d(TAG, "[OVERLAY] onCreate: iconVisible=$iconVisible, blockedTextVisible=$blockedTextVisible, dismissTextVisible=$dismissTextVisible, blockedTextSize=$blockedTextSize, dismissTextSize=$dismissTextSize")
+        Log.d(TAG, "onCreate: type=$blockedType, item=$blockedItem, customText='$customBlockedText', customImage='$customOverlayImage'")
 
-        val rootView = findViewById<FrameLayout>(R.id.blocked_root)
+        val rootView = findViewById<View>(R.id.blocked_root)
         val messageView = findViewById<TextView>(R.id.blocked_message)
         val dismissView = findViewById<TextView>(R.id.blocked_dismiss_text)
         val appIconView = findViewById<ImageView>(R.id.blocked_app_icon)
-
-        // Background color
-        if (customOverlayBgColor.isNotEmpty()) {
-            try {
-                rootView.setBackgroundColor(Color.parseColor(customOverlayBgColor))
-            } catch (e: Exception) {
-                Log.w(TAG, "Invalid overlay bg color: $customOverlayBgColor", e)
-            }
-        }
 
         messageView.text = if (customBlockedText.isNotEmpty()) {
             customBlockedText
@@ -174,46 +125,9 @@ class BlockedActivity : Activity() {
             }
         }
 
-        // Apply custom text color if provided
-        if (customBlockedTextColor.isNotEmpty()) {
-            try {
-                messageView.setTextColor(Color.parseColor(customBlockedTextColor))
-            } catch (e: Exception) {
-                Log.w(TAG, "Invalid custom text color: $customBlockedTextColor", e)
-            }
-        }
-
-        // Blocked text size
-        if (blockedTextSize > 0) messageView.textSize = blockedTextSize
-
-        // Dismiss text customization
-        if (dismissView != null) {
-            if (customDismissText.isNotEmpty()) dismissView.text = customDismissText
-            if (customDismissColor.isNotEmpty()) {
-                try {
-                    dismissView.setTextColor(Color.parseColor(customDismissColor))
-                } catch (e: Exception) {
-                    Log.w(TAG, "Invalid dismiss text color: $customDismissColor", e)
-                }
-            }
-            if (dismissTextSize > 0) dismissView.textSize = dismissTextSize
-            dismissView.visibility = if (dismissTextVisible) View.VISIBLE else View.GONE
-        }
-
-        // Visibility
-        messageView.visibility = if (blockedTextVisible) View.VISIBLE else View.GONE
-        appIconView?.visibility = if (iconVisible && customOverlayImage.isNotEmpty()) View.VISIBLE else View.GONE
-
         // Load custom overlay image if provided (replaces center icon)
-        if (customOverlayImage.isNotEmpty() && iconVisible) {
+        if (customOverlayImage.isNotEmpty()) {
             if (appIconView != null) {
-                // Apply custom size
-                val density = resources.displayMetrics.density
-                val sizePx = (customOverlayImageSize * density).toInt()
-                appIconView.layoutParams.width = sizePx
-                appIconView.layoutParams.height = sizePx
-                appIconView.requestLayout()
-
                 thread {
                     try {
                         val inputStream = URL(customOverlayImage).openStream()

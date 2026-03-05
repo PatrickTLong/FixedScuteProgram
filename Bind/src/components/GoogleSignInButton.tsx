@@ -1,5 +1,5 @@
-import React, { memo, useState, useRef, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Animated, Easing } from 'react-native';
+import React, { memo, useState } from 'react';
+import { View, Text, TouchableOpacity } from 'react-native';
 import {
   GoogleSignin,
   statusCodes,
@@ -8,6 +8,7 @@ import Svg, { Path } from 'react-native-svg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { setAuthToken } from '../services/cardApi';
 import { API_URL } from '../config/api';
+import LoadingSpinner from './LoadingSpinner';
 import { useTheme , textSize, fontFamily, radius, shadow, buttonPadding, iconSize, haptics } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { triggerHaptic } from '../utils/haptics';
@@ -50,35 +51,6 @@ function GoogleSignInBtn({ onSuccess, onError, disabled }: Props) {
   const { colors } = useTheme();
   const { s } = useResponsive();
   const [loading, setLoading] = useState(false);
-  const dot1 = useRef(new Animated.Value(0)).current;
-  const dot2 = useRef(new Animated.Value(0)).current;
-  const dot3 = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    if (!loading) {
-      dot1.setValue(0);
-      dot2.setValue(0);
-      dot3.setValue(0);
-      return;
-    }
-
-    const dots = [dot1, dot2, dot3];
-    const loops: Animated.CompositeAnimation[] = [];
-
-    dots.forEach((dot, i) => {
-      const loop = Animated.loop(
-        Animated.sequence([
-          Animated.delay(i * 150),
-          Animated.timing(dot, { toValue: -6, duration: 250, easing: Easing.out(Easing.quad), useNativeDriver: true }),
-          Animated.timing(dot, { toValue: 0, duration: 250, easing: Easing.in(Easing.quad), useNativeDriver: true }),
-        ]),
-      );
-      loops.push(loop);
-      loop.start();
-    });
-
-    return () => loops.forEach(l => l.stop());
-  }, [loading]);
 
   async function handleGoogleSignIn() {
     if (haptics.googleSignIn.enabled) {
@@ -159,19 +131,8 @@ function GoogleSignInBtn({ onSuccess, onError, disabled }: Props) {
         </Text>
       </View>
       {loading && (
-        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center', flexDirection: 'row', gap: s(6) }}>
-          {[dot1, dot2, dot3].map((dot, i) => (
-            <Animated.View
-              key={i}
-              style={{
-                width: s(7),
-                height: s(7),
-                borderRadius: s(3.5),
-                backgroundColor: colors.text,
-                transform: [{ translateY: dot }],
-              }}
-            />
-          ))}
+        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center' }}>
+          <LoadingSpinner size={s(20)} color={colors.text} />
         </View>
       )}
     </TouchableOpacity>

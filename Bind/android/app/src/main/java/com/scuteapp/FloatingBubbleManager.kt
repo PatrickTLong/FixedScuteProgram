@@ -1004,10 +1004,6 @@ class FloatingBubbleManager(private val context: Context) {
         // Extend auto-collapse delay while viewing app list
         handler.removeCallbacks(autoCollapseRunnable)
 
-        // Collapse dead-space margins so the overlay window rect is tight
-        // and outside touches pass through to the screen below
-        collapseTopMargins()
-
         // Rotate caret from right (0) to down (90)
         bubbleChevron?.animate()
             ?.rotation(90f)
@@ -1036,9 +1032,6 @@ class FloatingBubbleManager(private val context: Context) {
      */
     private fun hideAppList(animate: Boolean = true) {
         isAppListShown = false
-
-        // Restore margins for the hide-button area
-        restoreTopMargins()
 
         if (animate) {
             // Rotate caret back to right
