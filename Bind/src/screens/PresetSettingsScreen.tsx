@@ -790,12 +790,15 @@ function PresetSettingsScreen() {
 
       console.log('[OVERLAY] Image selected:', asset.uri, 'type:', asset.type, 'name:', asset.fileName);
       setImageUploading(true);
+      const editingPreset = getEditingPreset();
+      const presetId = editingPreset?.id || 'temp_' + Date.now();
       const formData = new FormData();
       formData.append('image', {
         uri: asset.uri,
         type: asset.type || 'image/jpeg',
         name: asset.fileName || 'overlay.jpg',
       } as any);
+      formData.append('presetId', presetId);
 
       const token = await getAuthToken();
       console.log('[OVERLAY] Uploading to', `${API_URL}/api/overlay-image`, 'hasToken:', !!token);
@@ -819,7 +822,7 @@ function PresetSettingsScreen() {
     } finally {
       setImageUploading(false);
     }
-  }, []);
+  }, [getEditingPreset]);
 
   // ============ Validation Logic ============
   const hasTimerValue = useMemo(() =>
