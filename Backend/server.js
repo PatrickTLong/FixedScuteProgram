@@ -1026,30 +1026,9 @@ app.get('/api/presets', authenticateToken, async (req, res) => {
       // Strict mode - when enabled, preset is locked until timer ends or emergency tapout
       // When disabled, slide-to-unlock is available
       strictMode: p.strict_mode ?? false, // Default to false (slide-to-unlock available)
-      // Custom blocked message - replaces default "X is blocked." overlay text
+      // Custom overlay fields
       customBlockedText: p.custom_blocked_text || '',
-      customDismissText: p.custom_dismiss_text || '',
-      // Custom overlay text color (hex code)
-      customBlockedTextColor: p.custom_blocked_text_color || '',
-      // Custom overlay background color (hex code)
-      customOverlayBgColor: p.custom_overlay_bg_color || '',
-      // Custom dismiss text color (hex code)
-      customDismissColor: p.custom_dismiss_color || '',
-      // Custom overlay image URL (replaces center icon)
       customOverlayImage: p.custom_overlay_image || '',
-      customOverlayImageSize: p.custom_overlay_image_size || 120,
-      iconPosX: p.icon_pos_x ?? 50,
-      iconPosY: p.icon_pos_y ?? 30,
-      blockedTextPosX: p.blocked_text_pos_x ?? 50,
-      blockedTextPosY: p.blocked_text_pos_y ?? 50,
-      dismissTextPosX: p.dismiss_text_pos_x ?? 50,
-      dismissTextPosY: p.dismiss_text_pos_y ?? 70,
-      iconVisible: p.icon_visible ?? true,
-      blockedTextVisible: p.blocked_text_visible ?? true,
-      dismissTextVisible: p.dismiss_text_visible ?? true,
-      blockedTextSize: p.blocked_text_size ?? 11,
-      dismissTextSize: p.dismiss_text_size ?? 7,
-      overlayPresetId: p.overlay_preset_id || undefined,
     }));
 
     console.log('[presets:get] Returning', presets.length, 'presets for user:', normalizedEmail);
@@ -1112,30 +1091,9 @@ app.post('/api/presets', authenticateToken, async (req, res) => {
       repeat_interval: preset.repeat_interval || null,
       // Strict mode - when enabled, preset is locked until timer ends or emergency tapout
       strict_mode: preset.strictMode ?? false, // Default to false (slide-to-unlock available)
-      // Custom blocked message - replaces default "X is blocked." overlay text
+      // Custom overlay fields
       custom_blocked_text: preset.customBlockedText || '',
-      custom_dismiss_text: preset.customDismissText || '',
-      // Custom overlay text color (hex code)
-      custom_blocked_text_color: preset.customBlockedTextColor || '',
-      // Custom overlay background color (hex code)
-      custom_overlay_bg_color: preset.customOverlayBgColor || '',
-      // Custom dismiss text color (hex code)
-      custom_dismiss_color: preset.customDismissColor || '',
-      // Custom overlay image URL (replaces center icon)
       custom_overlay_image: preset.customOverlayImage || '',
-      custom_overlay_image_size: preset.customOverlayImageSize || null,
-      icon_pos_x: preset.iconPosX ?? 50,
-      icon_pos_y: preset.iconPosY ?? 30,
-      blocked_text_pos_x: preset.blockedTextPosX ?? 50,
-      blocked_text_pos_y: preset.blockedTextPosY ?? 50,
-      dismiss_text_pos_x: preset.dismissTextPosX ?? 50,
-      dismiss_text_pos_y: preset.dismissTextPosY ?? 70,
-      icon_visible: preset.iconVisible ?? true,
-      blocked_text_visible: preset.blockedTextVisible ?? true,
-      dismiss_text_visible: preset.dismissTextVisible ?? true,
-      blocked_text_size: preset.blockedTextSize ?? 11,
-      dismiss_text_size: preset.dismissTextSize ?? 7,
-      overlay_preset_id: preset.overlayPresetId || null,
     };
 
     console.log('[presets:save] Preset data:', {
@@ -1493,175 +1451,8 @@ app.delete('/api/overlay-image', authenticateToken, async (req, res) => {
   }
 });
 
-// ============ OVERLAY PRESET ENDPOINTS ============
-
-// GET /api/overlay-presets - Fetch all overlay presets for user (PROTECTED)
-app.get('/api/overlay-presets', authenticateToken, async (req, res) => {
-  const normalizedEmail = req.userEmail;
-
-  try {
-    const { data, error } = await supabase
-      .from('user_overlay_presets')
-      .select('*')
-      .eq('email', normalizedEmail)
-      .order('created_at', { ascending: true });
-
-    if (error) {
-      console.error('Get overlay presets error:', error);
-      return res.status(500).json({ error: 'Failed to fetch overlay presets' });
-    }
-
-    const presets = (data || []).map(p => ({
-      id: p.preset_id,
-      name: p.name || 'Untitled',
-      customBlockedText: p.custom_blocked_text || '',
-      customDismissText: p.custom_dismiss_text || '',
-      customBlockedTextColor: p.custom_blocked_text_color || '',
-      customOverlayBgColor: p.custom_overlay_bg_color || '',
-      customDismissColor: p.custom_dismiss_color || '',
-      customOverlayImage: p.custom_overlay_image || '',
-      customOverlayImageSize: p.custom_overlay_image_size || 120,
-      iconPosX: p.icon_pos_x ?? 50,
-      iconPosY: p.icon_pos_y ?? 30,
-      blockedTextPosX: p.blocked_text_pos_x ?? 50,
-      blockedTextPosY: p.blocked_text_pos_y ?? 50,
-      dismissTextPosX: p.dismiss_text_pos_x ?? 50,
-      dismissTextPosY: p.dismiss_text_pos_y ?? 70,
-      iconVisible: p.icon_visible ?? true,
-      blockedTextVisible: p.blocked_text_visible ?? true,
-      dismissTextVisible: p.dismiss_text_visible ?? true,
-      blockedTextSize: p.blocked_text_size ?? 11,
-      dismissTextSize: p.dismiss_text_size ?? 7,
-    }));
-
-    res.json({ presets });
-  } catch (error) {
-    console.error('Get overlay presets error:', error);
-    res.status(500).json({ error: 'Failed to fetch overlay presets' });
-  }
-});
-
-// POST /api/overlay-presets - Create or update an overlay preset (PROTECTED)
-app.post('/api/overlay-presets', authenticateToken, async (req, res) => {
-  const { preset } = req.body;
-  const normalizedEmail = req.userEmail;
-
-  if (!preset || !preset.id) {
-    return res.status(400).json({ error: 'Preset data with id is required' });
-  }
-
-  try {
-    // Check if preset already exists
-    const { data: existing } = await supabase
-      .from('user_overlay_presets')
-      .select('id')
-      .eq('email', normalizedEmail)
-      .eq('preset_id', preset.id)
-      .single();
-
-    const presetData = {
-      email: normalizedEmail,
-      preset_id: preset.id,
-      name: preset.name || 'Untitled',
-      custom_blocked_text: preset.customBlockedText || '',
-      custom_dismiss_text: preset.customDismissText || '',
-      custom_blocked_text_color: preset.customBlockedTextColor || '',
-      custom_overlay_bg_color: preset.customOverlayBgColor || '',
-      custom_dismiss_color: preset.customDismissColor || '',
-      custom_overlay_image: preset.customOverlayImage || '',
-      custom_overlay_image_size: preset.customOverlayImageSize || null,
-      icon_pos_x: preset.iconPosX ?? 50,
-      icon_pos_y: preset.iconPosY ?? 30,
-      blocked_text_pos_x: preset.blockedTextPosX ?? 50,
-      blocked_text_pos_y: preset.blockedTextPosY ?? 50,
-      dismiss_text_pos_x: preset.dismissTextPosX ?? 50,
-      dismiss_text_pos_y: preset.dismissTextPosY ?? 70,
-      icon_visible: preset.iconVisible ?? true,
-      blocked_text_visible: preset.blockedTextVisible ?? true,
-      dismiss_text_visible: preset.dismissTextVisible ?? true,
-      blocked_text_size: preset.blockedTextSize ?? 11,
-      dismiss_text_size: preset.dismissTextSize ?? 7,
-    };
-
-    let error;
-    if (existing) {
-      const result = await supabase
-        .from('user_overlay_presets')
-        .update(presetData)
-        .eq('email', normalizedEmail)
-        .eq('preset_id', preset.id);
-      error = result.error;
-    } else {
-      const result = await supabase
-        .from('user_overlay_presets')
-        .insert(presetData);
-      error = result.error;
-    }
-
-    if (error) {
-      console.error('Error saving overlay preset:', error);
-      return res.status(500).json({ error: 'Failed to save overlay preset' });
-    }
-
-    console.log(`Overlay preset saved: ${preset.name} for ${normalizedEmail}`);
-    res.json({ success: true, id: preset.id });
-  } catch (error) {
-    console.error('Save overlay preset error:', error);
-    res.status(500).json({ error: 'Failed to save overlay preset' });
-  }
-});
-
-// DELETE /api/overlay-presets/:id - Delete an overlay preset (PROTECTED)
-app.delete('/api/overlay-presets/:id', authenticateToken, async (req, res) => {
-  const normalizedEmail = req.userEmail;
-  const presetId = req.params.id;
-
-  if (!presetId) {
-    return res.status(400).json({ error: 'Preset ID is required' });
-  }
-
-  try {
-    const { error } = await supabase
-      .from('user_overlay_presets')
-      .delete()
-      .eq('email', normalizedEmail)
-      .eq('preset_id', presetId);
-
-    if (error) {
-      console.error('Error deleting overlay preset:', error);
-      return res.status(500).json({ error: 'Failed to delete overlay preset' });
-    }
-
-    console.log(`Overlay preset deleted: ${presetId} for ${normalizedEmail}`);
-    res.json({ success: true });
-  } catch (error) {
-    console.error('Delete overlay preset error:', error);
-    res.status(500).json({ error: 'Failed to delete overlay preset' });
-  }
-});
-
-// POST /api/overlay-presets/reset - Delete all overlay presets (PROTECTED)
-app.post('/api/overlay-presets/reset', authenticateToken, async (req, res) => {
-  const normalizedEmail = req.userEmail;
-
-  try {
-    const { error: deleteError } = await supabase
-      .from('user_overlay_presets')
-      .delete()
-      .eq('email', normalizedEmail);
-
-    if (deleteError) {
-      console.error('Error deleting overlay presets:', deleteError);
-      return res.status(500).json({ error: 'Failed to delete overlay presets' });
-    }
-
-    console.log(`Overlay presets reset for ${normalizedEmail}`);
-    res.json({ success: true });
-  } catch (error) {
-    console.error('Reset overlay presets error:', error);
-    res.status(500).json({ error: 'Failed to reset overlay presets' });
-  }
-});
+// ============ LOCK STATUS ENDPOINTS ============
+// (overlay preset endpoints removed)
 
 // ============ LOCK STATUS ENDPOINTS ============
 

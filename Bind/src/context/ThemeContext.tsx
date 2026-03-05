@@ -90,8 +90,8 @@ export const shadow = {
 
 // Screen transition config
 export const transition = {
-  inDuration: 200,    // ms — fade+slide in from right
-  outDuration: 120,   // ms — fade+slide out to left
+  inDuration: 200,    // ms — fade+slide+scale in
+  outDuration: 120,   // ms — fade+slide+scale out
 } as const;
 
 // Haptic feedback config — per-component type, all disabled by default

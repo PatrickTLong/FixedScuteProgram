@@ -5,6 +5,7 @@ import Animated, {
   useAnimatedStyle,
   withTiming,
   Easing,
+  interpolate,
   runOnJS,
 } from 'react-native-reanimated';
 import { NavigationContext } from '@react-navigation/native';
@@ -92,12 +93,15 @@ const ScreenTransition = forwardRef<ScreenTransitionRef, ScreenTransitionProps>(
     const animatedStyle = useAnimatedStyle(() => {
       const remaining = 1 - progress.value;
       const t = getTranslation(currentDir.value, remaining);
+      // Scale from 0.92 → 1.0 as progress goes 0 → 1
+      const scale = interpolate(progress.value, [0, 1], [0.92, 1]);
       return {
         flex: 1,
         opacity: progress.value,
         transform: [
           { translateX: t.x },
           { translateY: t.y },
+          { scale },
         ],
       };
     });

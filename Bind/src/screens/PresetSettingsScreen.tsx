@@ -15,8 +15,10 @@ import AnimatedSwitch from '../components/AnimatedSwitch';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Svg, { Path } from 'react-native-svg';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { API_URL } from '../config/api';
+import { getAuthToken } from '../services/cardApi';
 import ScheduleInfoModal from '../components/ScheduleInfoModal';
 import InfoModal from '../components/InfoModal';
 import DisableTapoutWarningModal from '../components/DisableTapoutWarningModal';
@@ -795,11 +797,15 @@ function PresetSettingsScreen() {
         name: asset.fileName || 'overlay.jpg',
       } as any);
 
-      console.log('[OVERLAY] Uploading to', `${API_URL}/api/overlay-image`);
+      const token = await getAuthToken();
+      console.log('[OVERLAY] Uploading to', `${API_URL}/api/overlay-image`, 'hasToken:', !!token);
       const response = await fetch(`${API_URL}/api/overlay-image`, {
         method: 'POST',
         body: formData,
-        headers: { 'Content-Type': 'multipart/form-data' },
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        },
       });
       const data = await response.json();
       console.log('[OVERLAY] Upload response:', JSON.stringify(data));
@@ -1562,7 +1568,7 @@ function PresetSettingsScreen() {
           <ExpandableInfo expanded={customOverlayEnabled}>
             <View className="px-6 pb-4">
               {/* Custom blocked text */}
-              <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.semibold} mb-1`}>
+              <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.semibold} mb-3`}>
                 Blocked Message
               </Text>
               <TextInput
@@ -1584,15 +1590,17 @@ function PresetSettingsScreen() {
                   padding: s(14),
                   minHeight: s(80),
                   textAlignVertical: 'top',
+                  fontFamily: 'PlusJakartaSans-SemiBold',
+                  fontSize: s(14),
+                  borderRadius: s(12),
                 }}
-                className={`${radius.xl} ${textSize.small} ${fontFamily.semibold}`}
               />
               <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-2 text-right mb-4`}>
                 {customBlockedText.length}/200
               </Text>
 
               {/* Custom overlay image */}
-              <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.semibold} mb-1`}>
+              <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.semibold} mb-3`}>
                 Custom Image
               </Text>
               {customOverlayImage ? (
@@ -1645,11 +1653,9 @@ function PresetSettingsScreen() {
                   onPress={handleImageUpload}
                   activeOpacity={0.7}
                   style={{
-                    backgroundColor: colors.card,
-                    borderWidth: 1,
-                    borderColor: colors.border,
-                    borderRadius: s(10),
-                    paddingHorizontal: s(12),
+                    backgroundColor: '#FFFFFF',
+                    borderRadius: s(999),
+                    paddingHorizontal: s(16),
                     paddingVertical: s(12),
                     marginBottom: s(8),
                     flexDirection: 'row',
@@ -1657,12 +1663,49 @@ function PresetSettingsScreen() {
                     justifyContent: 'center',
                   }}
                 >
-                  <BoxiconsFilled name="bx-upload" size={s(iconSize.sm)} color={colors.textSecondary} style={{ marginRight: s(6) }} />
-                  <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.semibold}`}>
+                  <BoxiconsFilled name="bx-image-sparkle" size={s(iconSize.sm)} color="#000000" style={{ marginRight: s(6) }} />
+                  <Text style={{ color: '#000000' }} className={`${textSize.small} ${fontFamily.semibold}`}>
                     {imageUploading ? 'Uploading...' : 'Upload Image'}
                   </Text>
                 </TouchableOpacity>
               )}
+
+              {/* Phone-shaped preview */}
+              <View style={{
+                alignSelf: 'center',
+                width: s(100),
+                aspectRatio: 9 / 19.5,
+                backgroundColor: '#28282B',
+                borderRadius: s(12),
+                overflow: 'hidden',
+                borderWidth: s(2),
+                borderColor: '#3A3A3C',
+                justifyContent: 'center',
+                alignItems: 'center',
+                marginTop: s(8),
+              }}>
+                {customOverlayImage ? (
+                  <Image
+                    source={{ uri: customOverlayImage }}
+                    style={{
+                      width: s(28),
+                      height: s(28),
+                      borderRadius: s(4),
+                    }}
+                    resizeMode="contain"
+                  />
+                ) : (
+                  <MaterialCommunityIcons name="android" size={s(24)} color="#FFFFFF" />
+                )}
+                <Text style={{
+                  color: '#FFFFFF',
+                  textAlign: 'center',
+                  fontSize: s(6),
+                  marginTop: s(4),
+                }} className={fontFamily.bold} numberOfLines={2}>
+                  {customBlockedText || 'This app is blocked.'}
+                </Text>
+              </View>
             </View>
           </ExpandableInfo>
         </View>
