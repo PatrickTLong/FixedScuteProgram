@@ -190,7 +190,7 @@ function SignInScreen() {
 
       {/* Progress Dots */}
       {showBackButton && (
-        <ProgressBar currentStep={step === 'credentials' ? 1 : 2} totalSteps={2} />
+        <ProgressBar currentStep={step === 'credentials' ? 2 : 3} totalSteps={3} />
       )}
 
       <ScreenTransition ref={transitionRef}>
@@ -217,7 +217,7 @@ function SignInScreen() {
                   <Text style={{ color: colors.text, position: 'absolute', top: s(-30), left: s(8) }} className={`${textSize.small} ${fontFamily.regular}`}>
                     Email
                   </Text>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, height: s(48), borderWidth: 1, borderColor: colors.border, ...shadow.card, overflow: 'hidden', paddingHorizontal: s(20) }} className={radius.xl}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, height: s(48), borderWidth: 1, borderColor: colors.border, ...shadow.card, overflow: 'hidden', paddingLeft: s(12) }} className={radius.xl}>
                     <TextInput
                       value={email}
                       onChangeText={setEmail}
@@ -238,7 +238,7 @@ function SignInScreen() {
                   <Text style={{ color: colors.text, position: 'absolute', top: s(-30), left: s(8) }} className={`${textSize.small} ${fontFamily.regular}`}>
                     Password
                   </Text>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, height: s(48), borderWidth: 1, borderColor: colors.border, ...shadow.card, overflow: 'hidden', paddingLeft: s(20) }} className={radius.xl}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, height: s(48), borderWidth: 1, borderColor: colors.border, ...shadow.card, overflow: 'hidden', paddingLeft: s(12) }} className={radius.xl}>
                     <TextInput
                       value={password}
                       onChangeText={setPassword}

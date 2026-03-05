@@ -242,6 +242,7 @@ function HomeScreen() {
             customBlockedText: preset.customBlockedText ?? '',
             customOverlayImage: preset.customOverlayImage ?? '',
           };
+          console.log('[OVERLAY] Scheduled startBlocking — customBlockedText:', blockingConfig.customBlockedText || '(none)', 'customOverlayImage:', blockingConfig.customOverlayImage || '(none)');
           console.log('[SCHED-DEBUG] Calling BlockingModule.startBlocking:', JSON.stringify(blockingConfig));
           await BlockingModule.startBlocking(blockingConfig);
           console.log('[SCHED-DEBUG] BlockingModule.startBlocking completed');
@@ -1056,6 +1057,7 @@ function HomeScreen() {
               customBlockedText: activePreset.customBlockedText ?? '',
               customOverlayImage: activePreset.customOverlayImage ?? '',
             });
+            console.log('[OVERLAY] Manual startBlocking — customBlockedText:', activePreset.customBlockedText || '(none)', 'customOverlayImage:', activePreset.customOverlayImage || '(none)');
           }
 
           invalidateUserCaches(email);

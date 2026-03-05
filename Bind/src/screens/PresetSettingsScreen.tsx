@@ -523,6 +523,7 @@ function PresetSettingsScreen() {
   const [strictModeWarningVisible, setStrictModeWarningVisible] = useState(false);
 
   // Custom overlay
+  const [customOverlayEnabled, setCustomOverlayEnabled] = useState(false);
   const [customBlockedText, setCustomBlockedText] = useState('');
   const [customOverlayImage, setCustomOverlayImage] = useState('');
   const [imageUploading, setImageUploading] = useState(false);
@@ -568,6 +569,7 @@ function PresetSettingsScreen() {
   const isRecurringRef = useRef(isRecurring);
   const recurringValueRef = useRef(recurringValue);
   const recurringUnitRef = useRef(recurringUnit);
+  const customOverlayEnabledRef = useRef(customOverlayEnabled);
   const customBlockedTextRef = useRef(customBlockedText);
   const customOverlayImageRef = useRef(customOverlayImage);
 
@@ -589,6 +591,7 @@ function PresetSettingsScreen() {
   isRecurringRef.current = isRecurring;
   recurringValueRef.current = recurringValue;
   recurringUnitRef.current = recurringUnit;
+  customOverlayEnabledRef.current = customOverlayEnabled;
   customBlockedTextRef.current = customBlockedText;
   customOverlayImageRef.current = customOverlayImage;
 
@@ -620,6 +623,8 @@ function PresetSettingsScreen() {
         setRecurringUnit(savedState.recurringUnit);
         setCustomBlockedText(savedState.customBlockedText ?? '');
         setCustomOverlayImage(savedState.customOverlayImage ?? '');
+        setCustomOverlayEnabled(!!(savedState.customBlockedText || savedState.customOverlayImage));
+        console.log('[OVERLAY] Restored from savedState — text:', savedState.customBlockedText, 'image:', savedState.customOverlayImage);
       } else {
         const editingPreset = getEditingPreset();
         if (editingPreset) {
@@ -642,6 +647,8 @@ function PresetSettingsScreen() {
           setRecurringUnit(editingPreset.repeat_unit ?? 'hours');
           setCustomBlockedText(editingPreset.customBlockedText ?? '');
           setCustomOverlayImage(editingPreset.customOverlayImage ?? '');
+          setCustomOverlayEnabled(!!(editingPreset.customBlockedText || editingPreset.customOverlayImage));
+          console.log('[OVERLAY] Restored from editingPreset — text:', editingPreset.customBlockedText, 'image:', editingPreset.customOverlayImage);
         } else {
           // New preset defaults
           setBlockSettings(false);
@@ -663,6 +670,8 @@ function PresetSettingsScreen() {
           setRecurringUnit('hours');
           setCustomBlockedText('');
           setCustomOverlayImage('');
+          setCustomOverlayEnabled(false);
+          console.log('[OVERLAY] New preset — defaults cleared');
         }
       }
       // Apply date picker result if returning from DatePicker screen
@@ -762,6 +771,7 @@ function PresetSettingsScreen() {
 
   // ============ Image Upload Handler ============
   const handleImageUpload = useCallback(async () => {
+    console.log('[OVERLAY] Image picker launched');
     try {
       const result = await launchImageLibrary({
         mediaType: 'photo',
@@ -769,10 +779,14 @@ function PresetSettingsScreen() {
         maxWidth: 512,
         maxHeight: 512,
       });
-      if (result.didCancel || !result.assets?.[0]) return;
+      if (result.didCancel || !result.assets?.[0]) {
+        console.log('[OVERLAY] Image picker cancelled');
+        return;
+      }
       const asset = result.assets[0];
       if (!asset.uri) return;
 
+      console.log('[OVERLAY] Image selected:', asset.uri, 'type:', asset.type, 'name:', asset.fileName);
       setImageUploading(true);
       const formData = new FormData();
       formData.append('image', {
@@ -781,17 +795,21 @@ function PresetSettingsScreen() {
         name: asset.fileName || 'overlay.jpg',
       } as any);
 
+      console.log('[OVERLAY] Uploading to', `${API_URL}/api/overlay-image`);
       const response = await fetch(`${API_URL}/api/overlay-image`, {
         method: 'POST',
         body: formData,
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       const data = await response.json();
+      console.log('[OVERLAY] Upload response:', JSON.stringify(data));
       if (data.url) {
-        setCustomOverlayImage(data.url + '?t=' + Date.now());
+        const imageUrl = data.url + '?t=' + Date.now();
+        console.log('[OVERLAY] Image URL set:', imageUrl);
+        setCustomOverlayImage(imageUrl);
       }
     } catch (e) {
-      console.warn('Image upload failed', e);
+      console.warn('[OVERLAY] Image upload failed', e);
     } finally {
       setImageUploading(false);
     }
@@ -869,16 +887,18 @@ function PresetSettingsScreen() {
       repeat_enabled: isScheduled && isRecurring ? true : false,
       repeat_unit: isScheduled && isRecurring ? recurringUnit : undefined,
       repeat_interval: isScheduled && isRecurring ? finalRecurringInterval : undefined,
-      customBlockedText: customBlockedText || undefined,
-      customOverlayImage: customOverlayImage || undefined,
+      customBlockedText: customOverlayEnabled && customBlockedText ? customBlockedText.trim() : undefined,
+      customOverlayImage: customOverlayEnabled && customOverlayImage ? customOverlayImage : undefined,
     };
+
+    console.log('[OVERLAY] Saving preset — overlayEnabled:', customOverlayEnabled, 'text:', newPreset.customBlockedText, 'image:', newPreset.customOverlayImage);
 
     // Navigate immediately — save happens in the background
     setFinalSettingsState(null);
     setPresetSettingsParams(null);
     navigation.navigate({ name: 'Presets' } as any);
     onSave(newPreset);
-  }, [name, canSave, getEditingPreset, getExistingPresets, installedSelectedApps, blockedWebsites, blockSettings, noTimeLimit, timerDays, timerHours, timerMinutes, timerSeconds, targetDate, onSave, allowEmergencyTapout, strictMode, isScheduled, scheduleStartDate, scheduleEndDate, isRecurring, recurringValue, recurringUnit, navigation, setFinalSettingsState, customBlockedText, customOverlayImage]);
+  }, [name, canSave, getEditingPreset, getExistingPresets, installedSelectedApps, blockedWebsites, blockSettings, noTimeLimit, timerDays, timerHours, timerMinutes, timerSeconds, targetDate, onSave, allowEmergencyTapout, strictMode, isScheduled, scheduleStartDate, scheduleEndDate, isRecurring, recurringValue, recurringUnit, navigation, setFinalSettingsState, customBlockedText, customOverlayImage, customOverlayEnabled]);
 
 
   // ============ Render ============
@@ -1508,46 +1528,68 @@ function PresetSettingsScreen() {
           </View>
         </ExpandableInfo>
 
-        {/* Custom Overlay */}
+        {/* Custom Overlay Toggle */}
         <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}>
           <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
             <TouchableOpacity onPress={() => toggleInfo('customOverlay')} activeOpacity={0.7} style={{ maxWidth: '75%' }} className="flex-row items-center">
-              <BoxiconsFilled name="bx-image-sparkle" size={s(iconSize.toggleRow)} color={colors.text} style={{ marginRight: s(14) }} />
+              <BoxiconsFilled name="bx-magic-wand" size={s(iconSize.toggleRow)} color={colors.text} style={{ marginRight: s(14) }} />
               <View>
                 <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Custom Overlay</Text>
-                <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-1`}>
-                  {customBlockedText || customOverlayImage ? 'Customized' : 'Default overlay'}
-                </Text>
+                <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-1`}>Customize blocked screen text and image</Text>
               </View>
             </TouchableOpacity>
+            <AnimatedSwitch
+              size="small"
+              value={customOverlayEnabled}
+              animate={!skipSwitchAnimation}
+              onValueChange={(value: boolean) => {
+                console.log('[OVERLAY] Toggle changed:', value);
+                setCustomOverlayEnabled(value);
+                if (!value) {
+                  setCustomBlockedText('');
+                  setCustomOverlayImage('');
+                }
+              }}
+            />
           </View>
           <ExpandableInfo expanded={!!expandedInfo.customOverlay}>
-            <View className="px-6 pb-4">
-              <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular} leading-5 mb-3`}>
-                Customize the blocked screen message and image.
+            <TouchableOpacity onPress={() => toggleInfo('customOverlay')} activeOpacity={0.7} className="px-6 pb-4">
+              <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular} leading-5`}>
+                When enabled, the overlay that appears when opening a blocked app or website will show your custom message and/or image instead of the defaults.
               </Text>
-
+            </TouchableOpacity>
+          </ExpandableInfo>
+          <ExpandableInfo expanded={customOverlayEnabled}>
+            <View className="px-6 pb-4">
               {/* Custom blocked text */}
               <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.semibold} mb-1`}>
                 Blocked Message
               </Text>
               <TextInput
                 value={customBlockedText}
-                onChangeText={setCustomBlockedText}
-                placeholder="This app is blocked."
+                onChangeText={(text) => {
+                  console.log('[OVERLAY] Text changed:', text);
+                  setCustomBlockedText(text);
+                }}
+                placeholder="e.g. Stay focused! You got this."
                 placeholderTextColor={colors.textMuted}
+                multiline
+                maxLength={200}
                 style={{
-                  color: colors.text,
                   backgroundColor: colors.card,
+                  color: colors.text,
                   borderWidth: 1,
                   borderColor: colors.border,
-                  borderRadius: s(10),
-                  paddingHorizontal: s(12),
-                  paddingVertical: s(10),
-                  fontSize: s(14),
-                  marginBottom: s(16),
+                  ...shadow.card,
+                  padding: s(14),
+                  minHeight: s(80),
+                  textAlignVertical: 'top',
                 }}
+                className={`${radius.xl} ${textSize.small} ${fontFamily.semibold}`}
               />
+              <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-2 text-right mb-4`}>
+                {customBlockedText.length}/200
+              </Text>
 
               {/* Custom overlay image */}
               <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.semibold} mb-1`}>
@@ -1585,7 +1627,10 @@ function PresetSettingsScreen() {
                       </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
-                      onPress={() => setCustomOverlayImage('')}
+                      onPress={() => {
+                        console.log('[OVERLAY] Image removed');
+                        setCustomOverlayImage('');
+                      }}
                       activeOpacity={0.7}
                       style={{ alignSelf: 'center' }}
                       className="flex-row items-center"

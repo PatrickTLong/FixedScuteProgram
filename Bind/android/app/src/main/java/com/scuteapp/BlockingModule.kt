@@ -126,7 +126,7 @@ class BlockingModule(reactContext: ReactApplicationContext) :
 
             Log.d(TAG, "[START-BLOCKING] Config: presetName=\"$presetName\", presetId=$presetId, noTimeLimit=$noTimeLimit, strictMode=$strictMode")
             Log.d(TAG, "[START-BLOCKING] Timing: endTime=$endTime (${java.util.Date(endTime)}), hasTimeLimit=$hasTimeLimit")
-            Log.d(TAG, "[START-BLOCKING] Blocking: apps=${appSet.size}, websites=${websiteSet.size}, customText='$customBlockedText'")
+            Log.d(TAG, "[START-BLOCKING] Blocking: apps=${appSet.size}, websites=${websiteSet.size}, customText='$customBlockedText', customImage='$customOverlayImage'")
 
             // Save to SharedPreferences
             val isScheduled = if (config.hasKey("isScheduled")) config.getBoolean("isScheduled") else false

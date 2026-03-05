@@ -387,12 +387,10 @@ class ScuteAccessibilityService : AccessibilityService() {
             val noTimeLimit = preset.optBoolean("noTimeLimit", false)
             val strictMode = preset.optBoolean("strictMode", false)
             val customBlockedText = preset.optString("customBlockedText", "")
-            val customBlockedTextColor = preset.optString("customBlockedTextColor", "")
             val customOverlayImage = preset.optString("customOverlayImage", "")
-            val customOverlayImageSize = preset.optInt("customOverlayImageSize", 120)
             val finalEndTime = if (noTimeLimit) System.currentTimeMillis() + Long.MAX_VALUE / 2 else endTime
 
-            Log.d(TAG, "[SCHED-DEBUG] Activating preset: name=${preset.optString("name")}, id=$presetId, apps=${selectedApps.size}, websites=${blockedWebsites.size}, noTimeLimit=$noTimeLimit, strictMode=$strictMode, customBlockedText='$customBlockedText', customBlockedTextColor='$customBlockedTextColor', customOverlayImage='$customOverlayImage', endTime=$finalEndTime")
+            Log.d(TAG, "[SCHED-DEBUG] Activating preset: name=${preset.optString("name")}, id=$presetId, apps=${selectedApps.size}, websites=${blockedWebsites.size}, noTimeLimit=$noTimeLimit, strictMode=$strictMode, customBlockedText='$customBlockedText', customOverlayImage='$customOverlayImage', endTime=$finalEndTime")
 
             val sessionPrefs = getSharedPreferences(UninstallBlockerService.PREFS_NAME, Context.MODE_PRIVATE)
             sessionPrefs.edit()
@@ -407,9 +405,7 @@ class ScuteAccessibilityService : AccessibilityService() {
                 .putString("active_preset_id", presetId)
                 .putString("active_preset_name", preset.optString("name", "Scheduled Preset"))
                 .putString("custom_blocked_text", customBlockedText)
-                .putString("custom_blocked_text_color", customBlockedTextColor)
                 .putString("custom_overlay_image", customOverlayImage)
-                .putInt("custom_overlay_image_size", customOverlayImageSize)
                 .apply()
 
             Log.d(TAG, "[SCHED-DEBUG] Session prefs saved (is_scheduled_preset=true)")
