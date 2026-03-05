@@ -20,6 +20,9 @@ import android.os.VibrationEffect
 import android.os.Vibrator
 import android.widget.ImageView
 import android.widget.TextView
+import android.graphics.Matrix
+import android.media.ExifInterface
+import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.net.URL
@@ -294,8 +297,36 @@ class BlockedOverlayManager(private val context: Context) {
                 thread {
                     try {
                         val inputStream: InputStream = URL(customOverlayImage).openStream()
-                        val bitmap = BitmapFactory.decodeStream(inputStream)
+                        val bytes = inputStream.readBytes()
                         inputStream.close()
+
+                        // Decode bitmap
+                        var bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+
+                        // Read EXIF orientation and rotate if needed
+                        if (bitmap != null) {
+                            try {
+                                val exif = ExifInterface(ByteArrayInputStream(bytes))
+                                val orientation = exif.getAttributeInt(
+                                    ExifInterface.TAG_ORIENTATION,
+                                    ExifInterface.ORIENTATION_NORMAL
+                                )
+                                val matrix = Matrix()
+                                when (orientation) {
+                                    ExifInterface.ORIENTATION_ROTATE_90 -> matrix.postRotate(90f)
+                                    ExifInterface.ORIENTATION_ROTATE_180 -> matrix.postRotate(180f)
+                                    ExifInterface.ORIENTATION_ROTATE_270 -> matrix.postRotate(270f)
+                                    ExifInterface.ORIENTATION_FLIP_HORIZONTAL -> matrix.preScale(-1f, 1f)
+                                    ExifInterface.ORIENTATION_FLIP_VERTICAL -> matrix.preScale(1f, -1f)
+                                }
+                                if (!matrix.isIdentity) {
+                                    bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+                                }
+                            } catch (e: Exception) {
+                                Log.w(TAG, "Failed to read EXIF orientation", e)
+                            }
+                        }
+
                         if (bitmap != null) {
                             cachedImageUrl = customOverlayImage
                             cachedImageBitmap = bitmap
