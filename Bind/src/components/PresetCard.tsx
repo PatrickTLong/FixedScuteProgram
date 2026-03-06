@@ -5,7 +5,7 @@ import {
   Pressable,
   Animated,
 } from 'react-native';
-import { ClockIcon, ClockCountdownIcon, XCircleIcon } from 'phosphor-react-native';
+import { AlarmIcon, XCircleIcon } from 'phosphor-react-native';
 import { useTheme , textSize, fontFamily, radius, shadow, buttonPadding, iconSize, haptics } from '../context/ThemeContext';
 import { triggerHaptic } from '../utils/haptics';
 import { useResponsive } from '../utils/responsive';
@@ -341,9 +341,9 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, onExpire
             {status !== null && (
               <View className="ml-2">
                 {status === 'expired' ? (
-                  <ClockCountdownIcon size={iconSize.sm} color={getClockColor()} weight="regular" />
+                  <AlarmIcon size={iconSize.sm} color={getClockColor()} weight="fill" />
                 ) : (
-                  <ClockIcon size={iconSize.sm} color={getClockColor()} weight="regular" />
+                  <AlarmIcon size={iconSize.sm} color={getClockColor()} weight="fill" />
                 )}
               </View>
             )}

@@ -13,7 +13,7 @@ import {
 import LoadingSpinner from '../components/LoadingSpinner';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
-import { IdentificationCardIcon, HandshakeIcon, SignOutIcon, ArrowsClockwiseIcon, WarningIcon, ChatsIcon, BugDroidIcon, ShieldCheckIcon, FileLockIcon, CaretRightIcon, CheckCircleIcon, ArrowBendUpLeftIcon, HeartStraightBreakIcon } from 'phosphor-react-native';
+import { IdentificationCardIcon, StudentIcon, SignOutIcon, ArrowsClockwiseIcon, WarningIcon, ChatsIcon, BugBeetleIcon, ShieldCheckIcon, FolderOpenIcon, CheckCircleIcon, ArrowBendUpLeftIcon, HeartStraightBreakIcon, CaretRightIcon } from 'phosphor-react-native';
 import ConfirmationModal from '../components/ConfirmationModal';
 import HeaderIconButton from '../components/HeaderIconButton';
 import MembershipContent from '../components/MembershipContent';
@@ -29,7 +29,7 @@ const MailIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
 );
 
 const MembershipIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
-  <HandshakeIcon size={iconSize.forTabs} color={color} weight="regular" />
+  <StudentIcon size={iconSize.forTabs} color={color} weight="regular" />
 );
 
 const LogoutIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
@@ -49,7 +49,7 @@ const MessageIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
 );
 
 const BugIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
-  <BugDroidIcon size={iconSize.forTabs} color={color} weight="regular" />
+  <BugBeetleIcon size={iconSize.forTabs} color={color} weight="regular" />
 );
 
 const ShieldIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
@@ -57,11 +57,11 @@ const ShieldIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
 );
 
 const FileTextIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
-  <FileLockIcon size={iconSize.forTabs} color={color} weight="regular" />
+  <FolderOpenIcon size={iconSize.forTabs} color={color} weight="regular" />
 );
 
 const ChevronRightIcon = ({ size = iconSize.chevron, color = "#FFFFFF" }: { size?: number; color?: string }) => (
-  <CaretRightIcon size={size} color={color} weight="regular" />
+  <CaretRightIcon size={size} color={color} weight="fill" />
 );
 
 interface SettingsRowProps {

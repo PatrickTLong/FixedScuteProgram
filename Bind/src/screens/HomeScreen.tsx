@@ -12,9 +12,7 @@ import {
   RefreshControl,
   Animated,
 } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
-const AnimatedPath = Animated.createAnimatedComponent(Path);
-import { ClockIcon, ImageSquareIcon, BellIcon, BellSlashIcon } from 'phosphor-react-native';
+import { AlarmIcon as PhosphorAlarmIcon, ImageSquareIcon, BellIcon, BellSlashIcon, LockIcon, LockOpenIcon } from 'phosphor-react-native';
 
 import HeaderIconButton from '../components/HeaderIconButton';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -33,7 +31,7 @@ const { BlockingModule, PermissionsModule } = NativeModules;
 
 // Alarm icon for schedule badges
 const AlarmIcon = ({ size = 12, color = '#FFFFFF' }: { size?: number; color?: string }) => (
-  <ClockIcon size={size} color={color} weight="regular" />
+  <PhosphorAlarmIcon size={size} color={color} weight="fill" />
 );
 
 
@@ -77,12 +75,13 @@ function HomeScreen() {
   const [widgetBubbleDisabled, setWidgetBubbleDisabled] = useState(false);
 
 
-  // Success checkmark animation
-  const checkmarkOpacity = useRef(new Animated.Value(0)).current;
-  const checkmarkScale = useRef(new Animated.Value(0)).current;
-  const checkmarkStroke = useRef(new Animated.Value(100)).current;
-  const checkmarkAnimRef = useRef<{ popIn: Animated.CompositeAnimation; fadeOut: Animated.CompositeAnimation } | null>(null);
+  // Lock icon animation (slides up, holds, fades out)
+  const lockIconOpacity = useRef(new Animated.Value(0)).current;
+  const lockIconScale = useRef(new Animated.Value(0)).current;
+  const lockIconTranslateY = useRef(new Animated.Value(10)).current;
+  const lockAnimRef = useRef<{ slideIn: Animated.CompositeAnimation; fadeOut: Animated.CompositeAnimation } | null>(null);
   const prevIsLockedRef = useRef(isLocked);
+  const [lastLockAction, setLastLockAction] = useState<'lock' | 'unlock' | null>(null);
 
   // Track app foreground/background so handleTimerExpired can defer UI updates
   const appStateRef = useRef(AppState.currentState);
@@ -97,19 +96,19 @@ function HomeScreen() {
   // Keep ref in sync so handleTimerExpired always sees current value
   useEffect(() => { activePresetRef.current = activePreset; }, [activePreset]);
 
-  // Reset checkmark when screen loses focus so it doesn't freeze mid-animation
+  // Reset lock icon when screen loses focus so it doesn't freeze mid-animation
   useEffect(() => {
     if (!isFocused) {
-      if (checkmarkAnimRef.current) {
-        checkmarkAnimRef.current.popIn.stop();
-        checkmarkAnimRef.current.fadeOut.stop();
-        checkmarkAnimRef.current = null;
+      if (lockAnimRef.current) {
+        lockAnimRef.current.slideIn.stop();
+        lockAnimRef.current.fadeOut.stop();
+        lockAnimRef.current = null;
       }
-      checkmarkOpacity.setValue(0);
-      checkmarkScale.setValue(0);
-      checkmarkStroke.setValue(100);
+      lockIconOpacity.setValue(0);
+      lockIconScale.setValue(0);
+      lockIconTranslateY.setValue(10);
     }
-  }, [isFocused, checkmarkOpacity, checkmarkScale, checkmarkStroke]);
+  }, [isFocused, lockIconOpacity, lockIconScale, lockIconTranslateY]);
 
   // Pull-to-refresh state
   const [refreshing, setRefreshing] = useState(false);
@@ -439,6 +438,7 @@ function HomeScreen() {
 
   // Handle using emergency tapout
   const handleUseEmergencyTapout = useCallback(async () => {
+
     // Check if active preset allows emergency tapout (per-preset setting)
     if (!activePreset?.allowEmergencyTapout) {
       showModal('Not Available', 'Emergency tapout is not enabled for this preset.');
@@ -763,43 +763,45 @@ function HomeScreen() {
     };
   }, [isLocked, lockEndsAt, lockStartedAt]);
 
-  // Success checkmark animation with lock state (pop in, draw stroke, hold, fade out)
+  // Lock/unlock icon animation — only plays while HomeScreen is focused (not on return)
   useEffect(() => {
     if (prevIsLockedRef.current !== isLocked) {
+      setLastLockAction(isLocked ? 'lock' : 'unlock');
+
       // Stop any running animations first
-      if (checkmarkAnimRef.current) {
-        checkmarkAnimRef.current.popIn.stop();
-        checkmarkAnimRef.current.fadeOut.stop();
+      if (lockAnimRef.current) {
+        lockAnimRef.current.slideIn.stop();
+        lockAnimRef.current.fadeOut.stop();
       }
 
-      // Reset scale and stroke first (invisible state)
-      checkmarkScale.setValue(0);
-      checkmarkStroke.setValue(100);
-      checkmarkOpacity.setValue(0);
+      // Reset to invisible state
+      lockIconScale.setValue(0);
+      lockIconOpacity.setValue(0);
+      lockIconTranslateY.setValue(10);
 
       // Show after one frame so reset values have applied
       requestAnimationFrame(() => {
-        checkmarkOpacity.setValue(1);
+        lockIconOpacity.setValue(1);
 
-        // Pop in + draw (circle + stroke appear together)
-        const popIn = Animated.parallel([
-          Animated.spring(checkmarkScale, { toValue: 1, speed: 16, bounciness: 18, useNativeDriver: false }),
-          Animated.timing(checkmarkStroke, { toValue: 0, duration: 350, delay: 80, useNativeDriver: false }),
+        // Slide up + scale in
+        const slideIn = Animated.parallel([
+          Animated.spring(lockIconScale, { toValue: 1, speed: 16, bounciness: 18, useNativeDriver: true }),
+          Animated.timing(lockIconTranslateY, { toValue: 0, duration: 300, useNativeDriver: true }),
         ]);
 
-        // Fade out after fixed delay
+        // Fade out after hold
         const fadeOut = Animated.sequence([
           Animated.delay(900),
-          Animated.timing(checkmarkOpacity, { toValue: 0, duration: 200, useNativeDriver: false }),
+          Animated.timing(lockIconOpacity, { toValue: 0, duration: 200, useNativeDriver: true }),
         ]);
 
-        checkmarkAnimRef.current = { popIn, fadeOut };
-        popIn.start();
+        lockAnimRef.current = { slideIn, fadeOut };
+        slideIn.start();
         fadeOut.start();
       });
     }
     prevIsLockedRef.current = isLocked;
-  }, [isLocked, checkmarkOpacity, checkmarkScale, checkmarkStroke]);
+  }, [isLocked, lockIconOpacity, lockIconScale, lockIconTranslateY]);
 
   const formatScheduleDate = useCallback((dateStr: string): string => {
     const date = new Date(dateStr);
@@ -842,6 +844,7 @@ function HomeScreen() {
   // For scheduled/recurring presets: call backend endpoint (same as emergency tapout but without decrementing tapout count)
   // For regular presets: just unlock but keep preset active
   const handleSlideUnlock = useCallback(async () => {
+
     // Store preset info before starting
     const presetIdToKeep = activePreset?.id;
     const isScheduledPreset = activePreset?.isScheduled;
@@ -898,6 +901,7 @@ function HomeScreen() {
   }, [email, showModal, activePreset]);
 
   const handleBlockNow = useCallback(() => {
+
     console.log('[BLOCKING] handleBlockNow called', { preset: activePreset?.name, presetId: activePreset?.id, strictMode: activePreset?.strictMode, noTimeLimit: activePreset?.noTimeLimit });
     try {
       if (!activePreset) {
@@ -1191,7 +1195,7 @@ function HomeScreen() {
         }
       >
         {/* Status + Preset + Scheduled - centered in full screen */}
-        <View className="flex-1 items-center justify-center">
+        <View className="flex-1 items-center justify-center" style={{ paddingTop: 40 }}>
           {/* Status section - fixed height to prevent layout shift between states */}
           <View className="items-center justify-center mb-2">
             <Text
@@ -1249,7 +1253,7 @@ function HomeScreen() {
         className="mb-10 px-6"
         style={{ position: 'relative' }}
       >
-        {/* Success checkmark — pops in on lock/unlock, then fades out */}
+        {/* Lock/unlock icon — slides up on lock/unlock, then fades out */}
         <Animated.View
           pointerEvents="none"
           style={{
@@ -1259,30 +1263,15 @@ function HomeScreen() {
             right: 0,
             alignItems: 'center',
             marginBottom: s(16),
-            opacity: checkmarkOpacity,
-            transform: [{ scale: checkmarkScale }],
+            opacity: lockIconOpacity,
+            transform: [{ scale: lockIconScale }, { translateY: lockIconTranslateY }],
           }}
         >
-          <View style={{
-            width: s(28),
-            height: s(28),
-            borderRadius: s(14),
-            backgroundColor: colors.green,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}>
-            <Svg width={s(16)} height={s(16)} viewBox="0 0 24 24" fill="none">
-              <AnimatedPath
-                d="M4 12l5 5L20 6"
-                stroke="#FFFFFF"
-                strokeWidth={3.5}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeDasharray={100}
-                strokeDashoffset={checkmarkStroke}
-              />
-            </Svg>
-          </View>
+          {lastLockAction === 'lock' ? (
+            <LockIcon size={s(28)} color={colors.text} weight="bold" />
+          ) : (
+            <LockOpenIcon size={s(28)} color={colors.text} weight="bold" />
+          )}
         </Animated.View>
         <BlockNowButton
           onActivate={handleBlockNow}

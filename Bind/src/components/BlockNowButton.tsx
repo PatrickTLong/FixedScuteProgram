@@ -1,21 +1,25 @@
-import React, { useState, useRef, useCallback, useMemo, memo, useEffect } from 'react';
+import React, { useState, useRef, useCallback, memo, useEffect } from 'react';
 import {
   View,
-  Text,
   Animated,
-  PanResponder,
-  TouchableOpacity,
-  Dimensions,
+  Pressable,
+  type GestureResponderEvent,
 } from 'react-native';
 
-import { useTheme , textSize, fontFamily, radius, shadow, colors, haptics } from '../context/ThemeContext';
+import { HandTapIcon, HandWavingIcon, HandHeartIcon, XIcon } from 'phosphor-react-native';
+import { useTheme , shadow, haptics } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { triggerHaptic } from '../utils/haptics';
 
-const HOLD_DURATION = 1000; // 1 second
-const SCREEN_WIDTH = Dimensions.get('window').width;
-const BASE_BUTTON_HORIZONTAL_PADDING = 48; // px-6 = 24px * 2 from parent
-const FILL_COLOR = colors.green;
+const DOUBLE_TAP_DELAY = 300;
+
+interface Ripple {
+  id: number;
+  x: number;
+  y: number;
+  scale: Animated.Value;
+  opacity: Animated.Value;
+}
 
 interface BlockNowButtonProps {
   onActivate: () => void;
@@ -23,8 +27,8 @@ interface BlockNowButtonProps {
   onSlideUnlock?: () => Promise<void>;
   disabled?: boolean;
   isLocked?: boolean;
-  hasActiveTimer?: boolean; // true when there's a countdown or elapsed time showing
-  strictMode?: boolean; // when false, slide-to-unlock is available even for timed presets
+  hasActiveTimer?: boolean;
+  strictMode?: boolean;
 }
 
 function BlockNowButton({
@@ -38,293 +42,258 @@ function BlockNowButton({
 }: BlockNowButtonProps) {
   const { colors } = useTheme();
   const { s } = useResponsive();
-  const buttonHorizontalPadding = s(BASE_BUTTON_HORIZONTAL_PADDING);
-  const [isPressed, setIsPressed] = useState(false);
   const [isUnlocking, setIsUnlocking] = useState(false);
-  const fillAnimation = useRef(new Animated.Value(0)).current;
-  const animationRef = useRef<Animated.CompositeAnimation | null>(null);
+  const [showX, setShowX] = useState(false);
 
-  // Haptic tracking refs
-  const holdHalfwayFired = useRef(false);
+  // Scale animation (like preset settings bubble)
+  const scaleAnim = useRef(new Animated.Value(1)).current;
 
-  // Slide state — ref-only to avoid re-renders during drag
-  const slidePosition = useRef(new Animated.Value(0)).current;
-  const buttonWidthRef = useRef(SCREEN_WIDTH - buttonHorizontalPadding);
+  // Breathing pulse on the hand icon only
+  const breatheAnim = useRef(new Animated.Value(0)).current;
+  const breatheLoopRef = useRef<Animated.CompositeAnimation | null>(null);
 
-  // Can activate only when not disabled and not locked
-  const canActivate = !disabled && !isLocked;
+  const startBreathe = useCallback(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(breatheAnim, { toValue: 1, duration: 1200, useNativeDriver: true }),
+        Animated.timing(breatheAnim, { toValue: 0, duration: 1200, useNativeDriver: true }),
+      ]),
+    );
+    breatheLoopRef.current = loop;
+    loop.start();
+  }, [breatheAnim]);
 
-  // Stable refs for PanResponder closures (inline assignment, no useEffect needed)
-  const canActivateRef = useRef(canActivate);
-  canActivateRef.current = canActivate;
-  const onActivateRef = useRef(onActivate);
-  onActivateRef.current = onActivate;
-  const onSlideUnlockRef = useRef(onSlideUnlock);
-  onSlideUnlockRef.current = onSlideUnlock;
-  const isUnlockingRef = useRef(isUnlocking);
-  isUnlockingRef.current = isUnlocking;
+  const stopBreathe = useCallback(() => {
+    breatheLoopRef.current?.stop();
+    breatheAnim.setValue(0);
+  }, [breatheAnim]);
 
-  // Determine if we should show slide-to-unlock
-  // Show slide-to-unlock when:
-  // 1. Locked with no active timer (no time limit preset) - always slide-to-unlock
-  // 2. Locked with active timer BUT strictMode is OFF - slide-to-unlock available
-  const showSlideToUnlock = isLocked && (!hasActiveTimer || !strictMode);
+  const shouldBreatheState = !(disabled && !isLocked);
 
-  // Reset slide position when switching modes
   useEffect(() => {
-    if (!showSlideToUnlock) {
-      slidePosition.setValue(0);
+    if (shouldBreatheState) {
+      startBreathe();
+    } else {
+      stopBreathe();
     }
-  }, [showSlideToUnlock, slidePosition]);
+    return () => breatheLoopRef.current?.stop();
+  }, [shouldBreatheState, startBreathe, stopBreathe]);
 
-  // Hold-to-lock animation functions
-  const startAnimation = useCallback(() => {
-    if (!canActivateRef.current) return;
-
-    console.log('[BLOCK-BTN] Hold-to-lock STARTED');
-    setIsPressed(true);
-    fillAnimation.setValue(0);
-    holdHalfwayFired.current = false;
-
-    // Listen for halfway progress to trigger haptic
-    const listenerId = fillAnimation.addListener(({ value }) => {
-      if (haptics.blockNowHold.enabled && !holdHalfwayFired.current && value >= 0.5) {
-        holdHalfwayFired.current = true;
-        triggerHaptic(haptics.blockNowHold.halfwayType);
-      }
-    });
-
-    animationRef.current = Animated.timing(fillAnimation, {
-      toValue: 1,
-      duration: HOLD_DURATION,
-      useNativeDriver: false,
-    });
-
-    animationRef.current.start(({ finished }) => {
-      fillAnimation.removeListener(listenerId);
-      if (finished) {
-        console.log('[BLOCK-BTN] Hold-to-lock COMPLETED — triggering onActivate');
-        if (haptics.blockNowHold.enabled) {
-          triggerHaptic(haptics.blockNowHold.completionType);
-        }
-        onActivateRef.current();
-        setIsPressed(false);
-        fillAnimation.setValue(0);
-      }
-    });
-  }, [fillAnimation]);
-
-  const cancelAnimation = useCallback(() => {
-    console.log('[BLOCK-BTN] Hold-to-lock CANCELLED — released early');
-    animationRef.current?.stop();
-    setIsPressed(false);
-    Animated.timing(fillAnimation, {
-      toValue: 0,
-      duration: 150,
-      useNativeDriver: false,
-    }).start();
-  }, [fillAnimation]);
-
-  // Slide-to-unlock functions
-  const resetSlider = useCallback(() => {
-    Animated.spring(slidePosition, {
-      toValue: 0,
-      useNativeDriver: false,
-      friction: 5,
-    }).start();
-  }, [slidePosition]);
-
-  const handleSlideComplete = useCallback(async () => {
-    console.log('[SLIDE-UNLOCK] Slide threshold reached — triggering unlock');
-    if (haptics.slideToUnlock.enabled) {
-      triggerHaptic(haptics.slideToUnlock.completionType);
-    }
-    setIsUnlocking(true);
-    isUnlockingRef.current = true;
-    try {
-      await onSlideUnlockRef.current?.();
-      console.log('[SLIDE-UNLOCK] Unlock callback completed successfully');
-    } catch (err) {
-      console.log('[SLIDE-UNLOCK] Unlock callback FAILED:', err);
-    } finally {
-      setIsUnlocking(false);
-      isUnlockingRef.current = false;
-      slidePosition.setValue(0);
-    }
-  }, [slidePosition]);
-
-  // Keep refs fresh for PanResponder (inline, no useEffect)
-  const handleSlideCompleteRef = useRef(handleSlideComplete);
-  handleSlideCompleteRef.current = handleSlideComplete;
-  const resetSliderRef = useRef(resetSlider);
-  resetSliderRef.current = resetSlider;
-  // Hold-to-lock PanResponder
-  const holdPanResponder = useMemo(
-    () =>
-      PanResponder.create({
-        onStartShouldSetPanResponder: () => canActivateRef.current,
-        onMoveShouldSetPanResponder: () => false,
-        onPanResponderTerminationRequest: () => false,
-        onPanResponderGrant: () => { startAnimation(); },
-        onPanResponderRelease: () => { cancelAnimation(); },
-        onPanResponderTerminate: () => { cancelAnimation(); },
-      }),
-    [startAnimation, cancelAnimation]
-  );
-
-  // Slide-to-unlock PanResponder
-  const slidePanResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => !isUnlockingRef.current,
-      onMoveShouldSetPanResponder: (_, g) => !isUnlockingRef.current && Math.abs(g.dx) > 5,
-      onPanResponderTerminationRequest: () => false,
-      onPanResponderGrant: () => {
-          console.log('[SLIDE-UNLOCK] Slide STARTED — finger down');
-        },
-      onPanResponderMove: (_, g) => {
-        const maxSlide = buttonWidthRef.current;
-        const pos = Math.max(0, Math.min(g.dx, maxSlide));
-        const pct = Math.round((pos / maxSlide) * 100);
-        if (pct % 25 === 0 && pct > 0) {
-          console.log(`[SLIDE-UNLOCK] Slide progress: ${pct}%`);
-        }
-        slidePosition.setValue(pos);
-      },
-      onPanResponderRelease: (_, g) => {
-        const maxSlide = buttonWidthRef.current;
-        const pos = Math.max(0, Math.min(g.dx, maxSlide));
-        const pct = Math.round((pos / maxSlide) * 100);
-        if (pos >= maxSlide * 0.85) {
-          console.log(`[SLIDE-UNLOCK] Slide RELEASED at ${pct}% — THRESHOLD MET, unlocking`);
-          handleSlideCompleteRef.current();
-        } else {
-          console.log(`[SLIDE-UNLOCK] Slide RELEASED at ${pct}% — below threshold, resetting`);
-          resetSliderRef.current();
-        }
-      },
-      onPanResponderTerminate: () => { console.log('[SLIDE-UNLOCK] Slide TERMINATED — resetting'); resetSliderRef.current(); },
-    })
-  ).current;
-
-  // Interpolate fill width for hold-to-lock
-  const fillWidth = fillAnimation.interpolate({
+  const handScale = breatheAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: ['0%', '100%'],
+    outputRange: [0.93, 1.07],
   });
 
-  const getTextColor = () => {
-    if (!canActivate) return colors.textMuted;
-    return colors.text;
-  };
+  // Shake animation for denied taps
+  const shakeAnim = useRef(new Animated.Value(0)).current;
+  const shakeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // When locked with active timer AND strict mode is ON, show tappable "Locked" button with static glow and dimmed background
-  if (isLocked && hasActiveTimer && strictMode) {
-    return (
-      <TouchableOpacity
-        onPress={() => onUnlockPress?.()}
-        activeOpacity={0.7}
-        className={`h-14 ${radius.full} overflow-hidden`}
-        style={{
-          backgroundColor: colors.card,
-          borderWidth: 1,
-          borderColor: colors.border,
-          ...shadow.card,
-        }}
-      >
-        <View className="flex-1 flex-row items-center justify-center" style={{ opacity: 0.6 }}>
-          <Text style={{ color: colors.textMuted }} className={`${textSize.small} ${fontFamily.semibold}`}>Locked</Text>
-        </View>
-      </TouchableOpacity>
-    );
-  }
+  // Touch ripple pool
+  const [ripples, setRipples] = useState<Ripple[]>([]);
+  const rippleIdRef = useRef(0);
+  const containerRef = useRef<View>(null);
 
-  // When locked without timer (no time limit), show slide-to-unlock
-  if (showSlideToUnlock) {
-    // Green fill only appears when sliding - starts from 0 and grows with slide
-    const slideFillWidth = slidePosition.interpolate({
-      inputRange: [0, buttonWidthRef.current],
-      outputRange: [0, buttonWidthRef.current],
-      extrapolate: 'clamp',
+  const spawnRipple = useCallback((e: GestureResponderEvent) => {
+    const { pageX, pageY } = e.nativeEvent;
+    containerRef.current?.measure((_x, _y, _w, _h, px, py) => {
+      const id = ++rippleIdRef.current;
+      const scale = new Animated.Value(0);
+      const opacity = new Animated.Value(0.35);
+      setRipples(prev => [...prev, { id, x: pageX - px, y: pageY - py, scale, opacity }]);
+      Animated.parallel([
+        Animated.timing(scale, { toValue: 1, duration: 450, useNativeDriver: true }),
+        Animated.timing(opacity, { toValue: 0, duration: 450, useNativeDriver: true }),
+      ]).start(() => {
+        setRipples(prev => prev.filter(r => r.id !== id));
+      });
     });
+  }, []);
 
-    return (
-      <View
-        onLayout={(e) => { buttonWidthRef.current = e.nativeEvent.layout.width; }}
-        {...slidePanResponder.panHandlers}
-        className={`h-14 ${radius.full} overflow-hidden`}
-        style={{
-          backgroundColor: colors.card,
-          borderWidth: 1,
-          borderColor: colors.border,
-          ...shadow.card,
-        }}
-      >
-        {/* Text - always visible, positioned below the fill */}
-        <View className="flex-1 flex-row items-center justify-center" style={{ zIndex: 1 }}>
-          <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
-            {isUnlocking ? 'Unlocking...' : 'Slide to Unlock'}
-          </Text>
-        </View>
+  // Track if breathing should be active based on state
+  const shouldBreatheRef = useRef(true);
 
-        {/* Slide fill animation - overlaps the text */}
-        <Animated.View
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            bottom: 0,
-            width: slideFillWidth,
-            backgroundColor: FILL_COLOR,
-            borderRadius: s(28),
-            zIndex: 2,
-          }}
-        />
-      </View>
-    );
+  const handlePressIn = useCallback((e: GestureResponderEvent) => {
+    if (shouldBreatheRef.current) stopBreathe();
+    spawnRipple(e);
+    Animated.timing(scaleAnim, { toValue: 0.9, useNativeDriver: true, duration: 30 }).start();
+  }, [scaleAnim, spawnRipple, stopBreathe]);
+
+  const handlePressOut = useCallback(() => {
+    Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true, speed: 12, bounciness: 14 }).start();
+    if (shouldBreatheRef.current) startBreathe();
+  }, [scaleAnim, startBreathe]);
+
+  // Shake + show X icon for denied taps
+  const triggerDeny = useCallback(() => {
+    triggerHaptic('notificationError');
+    setShowX(true);
+    shakeAnim.setValue(0);
+    Animated.sequence([
+      Animated.timing(shakeAnim, { toValue: 1, duration: 50, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: -1, duration: 50, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: 1, duration: 50, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: -1, duration: 50, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: 0, duration: 50, useNativeDriver: true }),
+    ]).start();
+    if (shakeTimerRef.current) clearTimeout(shakeTimerRef.current);
+    shakeTimerRef.current = setTimeout(() => setShowX(false), 600);
+  }, [shakeAnim]);
+
+  useEffect(() => {
+    return () => { if (shakeTimerRef.current) clearTimeout(shakeTimerRef.current); };
+  }, []);
+
+  // Double-tap tracking
+  const lastTapRef = useRef<number>(0);
+
+  const canActivate = !disabled && !isLocked;
+  const showDoubleTapUnlock = isLocked && (!hasActiveTimer || !strictMode);
+
+  const handleDoubleTapLock = useCallback(() => {
+    if (!canActivate) return;
+
+    const now = Date.now();
+    const timeSinceLastTap = now - lastTapRef.current;
+    if (timeSinceLastTap < DOUBLE_TAP_DELAY && timeSinceLastTap > 0) {
+      console.log('[BLOCK-BTN] Double-tap DETECTED — triggering onActivate');
+      lastTapRef.current = 0;
+      if (haptics.blockNowHold.enabled) {
+        triggerHaptic(haptics.blockNowHold.completionType);
+      }
+      onActivate();
+    } else {
+      lastTapRef.current = now;
+    }
+  }, [canActivate, onActivate]);
+
+  const handleDoubleTapUnlock = useCallback(async () => {
+    if (isUnlocking) return;
+
+    const now = Date.now();
+    const timeSinceLastTap = now - lastTapRef.current;
+    if (timeSinceLastTap < DOUBLE_TAP_DELAY && timeSinceLastTap > 0) {
+      console.log('[BLOCK-BTN] Double-tap UNLOCK DETECTED — triggering unlock');
+      lastTapRef.current = 0;
+      if (haptics.slideToUnlock.enabled) {
+        triggerHaptic(haptics.slideToUnlock.completionType);
+      }
+      setIsUnlocking(true);
+      try {
+        await onSlideUnlock?.();
+      } catch (err) {
+        console.log('[BLOCK-BTN] Unlock callback FAILED:', err);
+      } finally {
+        setIsUnlocking(false);
+      }
+    } else {
+      lastTapRef.current = now;
+    }
+  }, [isUnlocking, onSlideUnlock]);
+
+  useEffect(() => {
+    lastTapRef.current = 0;
+  }, [isLocked]);
+
+  const bubbleWidth = s(120);
+  const bubbleHeight = s(80);
+  // Max ripple diameter needs to cover the furthest corner
+  const rippleSize = Math.sqrt(bubbleWidth * bubbleWidth + bubbleHeight * bubbleHeight) * 2;
+
+  // Pick the right handler + icon color
+  let onPress: () => void;
+  let iconColor: string;
+  let pressDisabled = false;
+
+  // icon: 'pointing' (default), 'waving' (no preset), 'heart' (strict locked)
+  let iconType: 'pointing' | 'waving' | 'heart' = 'pointing';
+  let shouldBreathe = true;
+  shouldBreatheRef.current = true;
+
+  if (disabled && !isLocked) {
+    onPress = triggerDeny;
+    iconColor = colors.textMuted;
+    iconType = 'waving';
+    shouldBreathe = false;
+    shouldBreatheRef.current = false;
+  } else if (isLocked && hasActiveTimer && strictMode) {
+    onPress = () => { onUnlockPress?.(); };
+    iconColor = colors.text;
+    iconType = 'heart';
+  } else if (showDoubleTapUnlock) {
+    onPress = handleDoubleTapUnlock;
+    iconColor = isUnlocking ? colors.textMuted : colors.text;
+    pressDisabled = isUnlocking;
+  } else {
+    onPress = handleDoubleTapLock;
+    iconColor = colors.text;
   }
 
-  // Default: Hold to begin locking
-  return (
-    <View
-      {...(canActivate ? holdPanResponder.panHandlers : {})}
-      className={`h-14 ${radius.full} overflow-hidden`}
-      style={{
-        backgroundColor: colors.card,
-        borderWidth: 1,
-        borderColor: colors.border,
-        ...shadow.card,
-      }}
-    >
-      {/* Button Content */}
-      <View className="flex-1 flex-row items-center justify-center" style={{ zIndex: 1, opacity: !canActivate ? 0.6 : 1 }}>
-        <Text
-          style={{ color: getTextColor() }}
-          className={`${textSize.small} ${fontFamily.semibold}`}
-        >
-          {isPressed ? 'Hold...' : 'Hold to Begin Locking'}
-        </Text>
-      </View>
+  const shakeTranslate = shakeAnim.interpolate({
+    inputRange: [-1, 0, 1],
+    outputRange: [-8, 0, 8],
+  });
 
-      {/* Fill Animation */}
-      {canActivate && (
-        <Animated.View
+  return (
+    <View style={{ alignItems: 'center' }}>
+      <Animated.View style={{ transform: [{ scale: scaleAnim }, { translateX: shakeTranslate }] }}>
+        <View
+          ref={containerRef}
           style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            bottom: 0,
-            width: fillWidth,
-            backgroundColor: FILL_COLOR,
-            borderRadius: s(28),
-            zIndex: 2,
+            width: bubbleWidth,
+            height: bubbleHeight,
+            borderRadius: bubbleHeight / 2,
+            backgroundColor: colors.card,
+            borderWidth: 1,
+            borderColor: colors.border,
+            overflow: 'hidden',
+            ...shadow.card,
           }}
-        />
-      )}
+        >
+          <Pressable
+            onPress={onPress}
+            onPressIn={handlePressIn}
+            onPressOut={handlePressOut}
+            disabled={pressDisabled}
+            style={{ width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center' }}
+          >
+            {/* Ripples render behind the icon */}
+            {ripples.map(r => (
+              <Animated.View
+                key={r.id}
+                pointerEvents="none"
+                style={{
+                  position: 'absolute',
+                  width: rippleSize,
+                  height: rippleSize,
+                  borderRadius: rippleSize / 2,
+                  backgroundColor: 'rgba(255,255,255,0.3)',
+                  left: r.x - rippleSize / 2,
+                  top: r.y - rippleSize / 2,
+                  transform: [{ scale: r.scale }],
+                  opacity: r.opacity,
+                }}
+              />
+            ))}
+            {showX ? (
+              <XIcon size={s(34)} color={colors.red} weight="bold" />
+            ) : shouldBreathe ? (
+              <Animated.View style={{ transform: [{ scale: handScale }] }}>
+                {iconType === 'heart' ? (
+                  <HandHeartIcon size={s(34)} color={iconColor} />
+                ) : (
+                  <HandTapIcon size={s(34)} color={iconColor} />
+                )}
+              </Animated.View>
+            ) : (
+              <HandWavingIcon size={s(34)} color={iconColor} />
+            )}
+          </Pressable>
+        </View>
+      </Animated.View>
     </View>
   );
 }
 
-// Custom comparison to prevent re-renders when props haven't actually changed
 export default memo(BlockNowButton, (prevProps, nextProps) => {
   return (
     prevProps.disabled === nextProps.disabled &&

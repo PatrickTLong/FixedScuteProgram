@@ -15,7 +15,7 @@ import AnimatedSwitch from '../components/AnimatedSwitch';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Svg, { Path } from 'react-native-svg';
-import { CaretLeftIcon, ArrowBendUpLeftIcon, XCircleIcon, FloppyDiskIcon, CheckCircleIcon, CalendarCheckIcon, CaretRightIcon, PaperPlaneTiltIcon, ArrowsClockwiseIcon, ClockIcon as PhosphorClockIcon, ImageIcon, ImageSquareIcon, LinkIcon, AndroidLogoIcon, CalendarDotsIcon, GearSixIcon, InfoIcon as PhosphorInfoIcon, TrashIcon as PhosphorTrashIcon, GlobeIcon as PhosphorGlobeIcon, HourglassSimpleIcon, PlayCircleIcon, StopCircleIcon, LockIcon, ArticleNyTimesIcon } from 'phosphor-react-native';
+import { ArrowBendUpLeftIcon, XCircleIcon, FloppyDiskIcon, CheckCircleIcon, CalendarCheckIcon, PaperPlaneTiltIcon, ArrowsClockwiseIcon, ClockIcon as PhosphorClockIcon, ImageIcon, ImageSquareIcon, LinkIcon, AndroidLogoIcon, CalendarDotsIcon, GearSixIcon, InfoIcon as PhosphorInfoIcon, TrashIcon as PhosphorTrashIcon, GlobeIcon as PhosphorGlobeIcon, HourglassSimpleIcon, PlayCircleIcon, StopCircleIcon, LockIcon, ArticleNyTimesIcon, CaretRightIcon, CaretLeftIcon } from 'phosphor-react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { API_URL } from '../config/api';
 import { getAuthToken } from '../services/cardApi';
@@ -48,7 +48,7 @@ type RecurringUnit = 'minutes' | 'hours' | 'days' | 'weeks' | 'months';
 
 // ============ Icon Components ============
 const ChevronLeftIcon = ({ size = iconSize.chevron, color = "#FFFFFF" }: { size?: number; color?: string }) => (
-  <CaretLeftIcon size={size} color={color} weight="regular" />
+  <CaretLeftIcon size={size} color={color} weight="fill" />
 );
 
 const BackArrowIcon = ({ size = iconSize.lg, color = "#FFFFFF" }: { size?: number; color?: string }) => (
@@ -80,7 +80,7 @@ const EndDateIcon = ({ size = iconSize.forTabs, color = '#FFFFFF' }: { size?: nu
 );
 
 const ChevronRightIcon = ({ size = iconSize.chevron, color = "#9CA3AF" }: { size?: number; color?: string }) => (
-  <CaretRightIcon size={size} color={color} weight="regular" />
+  <CaretRightIcon size={size} color={color} weight="fill" />
 );
 
 const RotateCwIcon = ({ size = iconSize.lg, color = '#FFFFFF' }: { size?: number; color?: string }) => (

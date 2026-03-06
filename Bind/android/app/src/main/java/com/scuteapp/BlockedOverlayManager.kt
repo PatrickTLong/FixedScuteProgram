@@ -289,9 +289,14 @@ class BlockedOverlayManager(private val context: Context) {
         // Custom overlay image replaces the center icon
         if (customOverlayImage.isNotEmpty()) {
             // Check if we have this image cached
+            val customMarginPx = (32 * context.resources.displayMetrics.density).toInt()
             if (cachedImageUrl == customOverlayImage && cachedImageBitmap != null) {
                 appIconView?.setImageBitmap(cachedImageBitmap)
                 appIconView?.visibility = View.VISIBLE
+                (appIconView?.layoutParams as? android.widget.LinearLayout.LayoutParams)?.let {
+                    it.bottomMargin = customMarginPx
+                    appIconView.layoutParams = it
+                }
             } else {
                 // Download in background and set when ready
                 thread {
@@ -333,6 +338,10 @@ class BlockedOverlayManager(private val context: Context) {
                             appIconView?.post {
                                 appIconView.setImageBitmap(bitmap)
                                 appIconView.visibility = View.VISIBLE
+                                (appIconView.layoutParams as? android.widget.LinearLayout.LayoutParams)?.let {
+                                    it.bottomMargin = customMarginPx
+                                    appIconView.layoutParams = it
+                                }
                             }
                         }
                     } catch (e: Exception) {
@@ -350,6 +359,11 @@ class BlockedOverlayManager(private val context: Context) {
     }
 
     private fun setDefaultIcon(appIconView: ImageView?, blockedType: String) {
+        val defaultMarginPx = (10 * context.resources.displayMetrics.density).toInt()
+        (appIconView?.layoutParams as? android.widget.LinearLayout.LayoutParams)?.let {
+            it.bottomMargin = defaultMarginPx
+            appIconView.layoutParams = it
+        }
         if (blockedType == TYPE_APP || blockedType == TYPE_SETTINGS) {
             try {
                 appIconView?.setImageResource(R.drawable.ic_android)

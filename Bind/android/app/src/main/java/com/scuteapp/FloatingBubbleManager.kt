@@ -832,7 +832,7 @@ class FloatingBubbleManager(private val context: Context) {
                     setPadding(
                         (12 * density).toInt(),
                         (5 * density).toInt(),
-                        (8 * density).toInt(),
+                        (16 * density).toInt(),
                         (5 * density).toInt()
                     )
                 }
@@ -879,7 +879,7 @@ class FloatingBubbleManager(private val context: Context) {
                 setPadding(
                     (12 * density).toInt(),
                     (5 * density).toInt(),
-                    (8 * density).toInt(),
+                    (16 * density).toInt(),
                     (5 * density).toInt()
                 )
             }

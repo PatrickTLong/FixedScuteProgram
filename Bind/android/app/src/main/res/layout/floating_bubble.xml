@@ -52,12 +52,11 @@
                     android:id="@+id/bubble_expanded"
                     android:layout_width="wrap_content"
                     android:layout_height="52dp"
-                    android:minWidth="110dp"
                     android:orientation="horizontal"
                     android:gravity="center_vertical"
                     android:background="@drawable/bubble_background"
                     android:paddingStart="14dp"
-                    android:paddingEnd="10dp"
+                    android:paddingEnd="18dp"
                     android:visibility="gone">
 
                     <!-- Caret icon (0 = points right, 90 = points down) -->
@@ -79,7 +78,8 @@
                         android:textColor="#FFFFFF"
                         android:fontFamily="@font/plusjakartasans_bold"
                         android:letterSpacing="0.03"
-                        android:includeFontPadding="false" />
+                        android:includeFontPadding="false"
+                        android:fontFeatureSettings="tnum" />
 
                 </LinearLayout>
 
