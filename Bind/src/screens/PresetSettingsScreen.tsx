@@ -499,6 +499,38 @@ const AnimatedInfoExpand = ({ expanded, children }: { expanded: boolean; childre
   );
 };
 
+// ============ SectionHeader Component ============
+const SectionHeader = ({ title, expanded, onToggle }: { title: string; expanded: boolean; onToggle: () => void }) => {
+  const { colors } = useTheme();
+  const { s } = useResponsive();
+  const rotation = useRef(new Animated.Value(expanded ? 1 : 0)).current;
+
+  useEffect(() => {
+    Animated.timing(rotation, {
+      toValue: expanded ? 1 : 0,
+      duration: 200,
+      easing: Easing.out(Easing.ease),
+      useNativeDriver: true,
+    }).start();
+  }, [expanded, rotation]);
+
+  return (
+    <TouchableOpacity
+      onPress={onToggle}
+      activeOpacity={0.7}
+      style={{ paddingVertical: s(14), paddingHorizontal: s(24), borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}
+      className="flex-row items-center justify-between"
+    >
+      <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.bold}`}>{title}</Text>
+      <Animated.View style={{ transform: [{ rotate: rotation.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '180deg'] }) }] }}>
+        <Svg width={s(14)} height={s(14)} viewBox="0 0 24 24" fill={colors.textSecondary}>
+          <Path d="M6.343 7.757L4.93 9.172 12 16.242l7.071-7.07-1.414-1.415L12 13.414z" />
+        </Svg>
+      </Animated.View>
+    </TouchableOpacity>
+  );
+};
+
 // ============ InfoIcon Component ============
 const InfoIcon = ({ expanded, color, size }: { expanded: boolean; color: string; size: number }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
@@ -586,6 +618,12 @@ function PresetSettingsScreen() {
   // Custom redirect URL (where browser goes when blocked website detected)
   const [customRedirectEnabled, setCustomRedirectEnabled] = useState(false);
   const [customRedirectUrl, setCustomRedirectUrl] = useState('');
+
+  // Section collapse state (all expanded by default)
+  const [sectionsExpanded, setSectionsExpanded] = useState<Record<string, boolean>>({ time: true, blocking: true, customization: true });
+  const toggleSection = useCallback((key: string) => {
+    setSectionsExpanded(prev => ({ ...prev, [key]: !prev[key] }));
+  }, []);
 
   // Expandable info dropdowns
   const [expandedInfo, setExpandedInfo] = useState<Record<string, boolean>>({});
@@ -996,6 +1034,8 @@ function PresetSettingsScreen() {
       <ScrollView ref={mainScrollRef} className="flex-1" contentContainerStyle={{ paddingBottom: s(100) }}>
 
         {/* ── Time & Duration ── */}
+        <SectionHeader title="TIME & DURATION" expanded={sectionsExpanded.time} onToggle={() => toggleSection('time')} />
+        <ExpandableInfo expanded={sectionsExpanded.time}>
 
         {/* No Time Limit Toggle */}
         <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}>
@@ -1515,7 +1555,11 @@ function PresetSettingsScreen() {
           </View>
         </ExpandableInfo>
 
+        </ExpandableInfo>
+
         {/* ── Block Behavior ── */}
+        <SectionHeader title="BLOCK SETTINGS" expanded={sectionsExpanded.blocking} onToggle={() => toggleSection('blocking')} />
+        <ExpandableInfo expanded={sectionsExpanded.blocking}>
 
         {/* Block Settings Toggle */}
         <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}>
@@ -1648,6 +1692,12 @@ function PresetSettingsScreen() {
           </View>
         </ExpandableInfo>
 
+        </ExpandableInfo>
+
+        {/* ── Customization ── */}
+        <SectionHeader title="CUSTOMIZATION" expanded={sectionsExpanded.customization} onToggle={() => toggleSection('customization')} />
+        <ExpandableInfo expanded={sectionsExpanded.customization}>
+
         {/* Custom Overlay Toggle */}
         <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}>
           <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
@@ -1696,7 +1746,7 @@ function PresetSettingsScreen() {
                   console.log('[OVERLAY] Text changed:', text);
                   setCustomBlockedText(text);
                 }}
-                placeholder="e.g. Stay focused! You got this."
+                placeholder="e.g. Get back to work."
                 placeholderTextColor={colors.textMuted}
                 multiline
                 maxLength={200}
@@ -1905,6 +1955,8 @@ function PresetSettingsScreen() {
             </View>
           </ExpandableInfo>
         </View>
+
+        </ExpandableInfo>
 
         {/* Extra bottom padding */}
         <View style={{ height: s(40) }} />

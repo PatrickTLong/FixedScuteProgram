@@ -251,6 +251,10 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, onExpire
       parts.push('Custom overlay');
     }
 
+    if (preset.customRedirectUrl) {
+      parts.push('Custom redirect');
+    }
+
     return parts.length > 0 ? parts.join(', ') : null;
   };
 
