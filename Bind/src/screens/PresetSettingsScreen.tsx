@@ -583,6 +583,10 @@ function PresetSettingsScreen() {
   const [customOverlayImage, setCustomOverlayImage] = useState('');
   const [imageUploading, setImageUploading] = useState(false);
 
+  // Custom redirect URL (where browser goes when blocked website detected)
+  const [customRedirectEnabled, setCustomRedirectEnabled] = useState(false);
+  const [customRedirectUrl, setCustomRedirectUrl] = useState('');
+
   // Expandable info dropdowns
   const [expandedInfo, setExpandedInfo] = useState<Record<string, boolean>>({});
   const toggleInfo = useCallback((key: string) => {
@@ -627,6 +631,8 @@ function PresetSettingsScreen() {
   const customOverlayEnabledRef = useRef(customOverlayEnabled);
   const customBlockedTextRef = useRef(customBlockedText);
   const customOverlayImageRef = useRef(customOverlayImage);
+  const customRedirectEnabledRef = useRef(customRedirectEnabled);
+  const customRedirectUrlRef = useRef(customRedirectUrl);
 
   // Keep refs in sync with state
   blockSettingsRef.current = blockSettings;
@@ -647,6 +653,8 @@ function PresetSettingsScreen() {
   recurringValueRef.current = recurringValue;
   recurringUnitRef.current = recurringUnit;
   customOverlayEnabledRef.current = customOverlayEnabled;
+  customRedirectEnabledRef.current = customRedirectEnabled;
+  customRedirectUrlRef.current = customRedirectUrl;
   customBlockedTextRef.current = customBlockedText;
   customOverlayImageRef.current = customOverlayImage;
 
@@ -679,6 +687,8 @@ function PresetSettingsScreen() {
         setCustomBlockedText(savedState.customBlockedText ?? '');
         setCustomOverlayImage(savedState.customOverlayImage ?? '');
         setCustomOverlayEnabled(!!(savedState.customBlockedText || savedState.customOverlayImage));
+        setCustomRedirectUrl(savedState.customRedirectUrl ?? '');
+        setCustomRedirectEnabled(!!savedState.customRedirectUrl);
         console.log('[OVERLAY] Restored from savedState — text:', savedState.customBlockedText, 'image:', savedState.customOverlayImage);
       } else {
         const editingPreset = getEditingPreset();
@@ -703,6 +713,8 @@ function PresetSettingsScreen() {
           setCustomBlockedText(editingPreset.customBlockedText ?? '');
           setCustomOverlayImage(editingPreset.customOverlayImage ?? '');
           setCustomOverlayEnabled(!!(editingPreset.customBlockedText || editingPreset.customOverlayImage));
+          setCustomRedirectUrl(editingPreset.customRedirectUrl ?? '');
+          setCustomRedirectEnabled(!!editingPreset.customRedirectUrl);
           console.log('[OVERLAY] Restored from editingPreset — text:', editingPreset.customBlockedText, 'image:', editingPreset.customOverlayImage);
         } else {
           // New preset defaults
@@ -726,6 +738,8 @@ function PresetSettingsScreen() {
           setCustomBlockedText('');
           setCustomOverlayImage('');
           setCustomOverlayEnabled(false);
+          setCustomRedirectUrl('');
+          setCustomRedirectEnabled(false);
           console.log('[OVERLAY] New preset — defaults cleared');
         }
       }
@@ -783,6 +797,7 @@ function PresetSettingsScreen() {
           recurringUnit: recurringUnitRef.current,
           customBlockedText: customBlockedTextRef.current,
           customOverlayImage: customOverlayImageRef.current,
+          customRedirectUrl: customRedirectUrlRef.current,
         });
       };
     }, [getEditingPreset, getFinalSettingsState, setFinalSettingsState, getDatePickerResult, setDatePickerResult])
@@ -951,6 +966,7 @@ function PresetSettingsScreen() {
       repeat_interval: isScheduled && isRecurring ? finalRecurringInterval : undefined,
       customBlockedText: customOverlayEnabled && customBlockedText ? customBlockedText.trim() : undefined,
       customOverlayImage: customOverlayEnabled && customOverlayImage ? customOverlayImage : undefined,
+      customRedirectUrl: customRedirectEnabled && customRedirectUrl ? customRedirectUrl.trim() : undefined,
     };
 
     console.log('[OVERLAY] Saving preset — overlayEnabled:', customOverlayEnabled, 'text:', newPreset.customBlockedText, 'image:', newPreset.customOverlayImage);
@@ -960,7 +976,7 @@ function PresetSettingsScreen() {
     setPresetSettingsParams(null);
     navigation.navigate({ name: 'Presets' } as any);
     onSave(newPreset);
-  }, [name, canSave, getEditingPreset, getExistingPresets, installedSelectedApps, blockedWebsites, blockSettings, noTimeLimit, timerDays, timerHours, timerMinutes, timerSeconds, targetDate, onSave, allowEmergencyTapout, strictMode, isScheduled, scheduleStartDate, scheduleEndDate, isRecurring, recurringValue, recurringUnit, navigation, setFinalSettingsState, customBlockedText, customOverlayImage, customOverlayEnabled]);
+  }, [name, canSave, getEditingPreset, getExistingPresets, installedSelectedApps, blockedWebsites, blockSettings, noTimeLimit, timerDays, timerHours, timerMinutes, timerSeconds, targetDate, onSave, allowEmergencyTapout, strictMode, isScheduled, scheduleStartDate, scheduleEndDate, isRecurring, recurringValue, recurringUnit, navigation, setFinalSettingsState, customBlockedText, customOverlayImage, customOverlayEnabled, customRedirectEnabled, customRedirectUrl]);
 
 
   // ============ Render ============
@@ -977,7 +993,7 @@ function PresetSettingsScreen() {
         </HeaderIconButton>
       </View>
 
-      <ScrollView ref={mainScrollRef} className="flex-1 pt-6" contentContainerStyle={{ paddingBottom: s(100) }}>
+      <ScrollView ref={mainScrollRef} className="flex-1" contentContainerStyle={{ paddingBottom: s(100) }}>
 
         {/* ── Time & Duration ── */}
 
@@ -1118,14 +1134,13 @@ function PresetSettingsScreen() {
                   )}
                 </View>
                 {scheduleStartDate ? (
-                  <TouchableOpacity
-                    onPress={() => setScheduleStartDate(null)}
-                    hitSlop={{ top: s(10), bottom: s(10), left: s(10), right: s(10) }}
-                  >
+                  <HeaderIconButton onPress={() => setScheduleStartDate(null)} flashSize={28}>
                     <XIcon size={s(iconSize.sm)} color={colors.text} />
-                  </TouchableOpacity>
+                  </HeaderIconButton>
                 ) : (
-                  <ChevronRightIcon size={s(iconSize.chevron)} color={colors.text} />
+                  <View className="px-2">
+                    <ChevronRightIcon size={s(iconSize.chevron)} color={colors.text} />
+                  </View>
                 )}
             </TouchableOpacity>
 
@@ -1160,14 +1175,13 @@ function PresetSettingsScreen() {
                   )}
                 </View>
                 {scheduleEndDate ? (
-                  <TouchableOpacity
-                    onPress={() => setScheduleEndDate(null)}
-                    hitSlop={{ top: s(10), bottom: s(10), left: s(10), right: s(10) }}
-                  >
+                  <HeaderIconButton onPress={() => setScheduleEndDate(null)} flashSize={28}>
                     <XIcon size={s(iconSize.sm)} color={colors.text} />
-                  </TouchableOpacity>
+                  </HeaderIconButton>
                 ) : (
-                  <ChevronRightIcon size={s(iconSize.chevron)} color={colors.text} />
+                  <View className="px-2">
+                    <ChevronRightIcon size={s(iconSize.chevron)} color={colors.text} />
+                  </View>
                 )}
             </TouchableOpacity>
 
@@ -1486,7 +1500,15 @@ function PresetSettingsScreen() {
                       </Text>
                     )}
                   </View>
-                  <ChevronRightIcon size={s(iconSize.chevron)} color={colors.text} />
+                  {targetDate ? (
+                    <HeaderIconButton onPress={() => setTargetDate(null)} flashSize={28}>
+                      <XIcon size={s(iconSize.sm)} color={colors.text} />
+                    </HeaderIconButton>
+                  ) : (
+                    <View className="px-2">
+                      <ChevronRightIcon size={s(iconSize.chevron)} color={colors.text} />
+                    </View>
+                  )}
                 </TouchableOpacity>
               </View>
             </ExpandableInfo>
@@ -1630,7 +1652,7 @@ function PresetSettingsScreen() {
         <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}>
           <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
             <View style={{ maxWidth: '75%' }} className="flex-row items-center">
-              <BoxiconsFilled name="bx-magic-wand" size={s(iconSize.toggleRow)} color={colors.text} style={{ marginRight: s(14) }} />
+              <BoxiconsFilled name="bx-image-landscape" size={s(iconSize.toggleRow)} color={colors.text} style={{ marginRight: s(14) }} />
               <View className="flex-1">
                 <View className="flex-row items-center">
                   <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Custom Overlay</Text>
@@ -1822,6 +1844,63 @@ function PresetSettingsScreen() {
                 }} className={fontFamily.bold}>
                   Tap anywhere to dismiss
                 </Text>
+              </View>
+            </View>
+          </ExpandableInfo>
+        </View>
+
+        {/* Custom Redirect URL Toggle */}
+        <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}>
+          <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
+            <View style={{ maxWidth: '75%' }} className="flex-row items-center">
+              <BoxiconsFilled name="bx-link" size={s(iconSize.toggleRow)} color={colors.text} style={{ marginRight: s(14) }} />
+              <View className="flex-1">
+                <View className="flex-row items-center">
+                  <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Custom Redirect</Text>
+                  <TouchableOpacity onPress={() => toggleInfo('customRedirect')} activeOpacity={0.7} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} style={{ marginLeft: s(6) }}>
+                    <InfoIcon expanded={!!expandedInfo.customRedirect} color={colors.textSecondary} size={s(16)} />
+                  </TouchableOpacity>
+                </View>
+                <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-1`}>Redirect blocked websites to a custom URL</Text>
+              </View>
+            </View>
+            <AnimatedSwitch
+              size="small"
+              value={customRedirectEnabled}
+              animate={!skipSwitchAnimation}
+              onValueChange={(value: boolean) => {
+                setCustomRedirectEnabled(value);
+                if (!value) {
+                  setCustomRedirectUrl('');
+                }
+              }}
+            />
+          </View>
+          <AnimatedInfoExpand expanded={!!expandedInfo.customRedirect}>
+            <View className="px-6 pb-4">
+              <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular} leading-5`}>
+                When a blocked website is detected, the browser will redirect to this URL instead of the default (google.com).
+              </Text>
+            </View>
+          </AnimatedInfoExpand>
+          <ExpandableInfo expanded={customRedirectEnabled}>
+            <View className="px-6 pb-4">
+              <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.semibold} mb-3`}>
+                Redirect URL
+              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, height: s(48), borderWidth: 1, borderColor: colors.border, ...shadow.card, overflow: 'hidden', paddingLeft: s(12) }} className={radius.xl}>
+                <TextInput
+                  value={customRedirectUrl}
+                  onChangeText={setCustomRedirectUrl}
+                  placeholder="e.g. https://wikipedia.org"
+                  placeholderTextColor={colors.textSecondary}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  keyboardType="url"
+                  maxLength={500}
+                  style={{ flex: 1, color: colors.text }}
+                  className={`${textSize.small} ${fontFamily.regular}`}
+                />
               </View>
             </View>
           </ExpandableInfo>

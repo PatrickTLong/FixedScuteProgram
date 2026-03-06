@@ -269,6 +269,8 @@ export interface Preset {
   customBlockedText?: string;
   // Custom overlay image URL (replaces center icon)
   customOverlayImage?: string;
+  // Custom redirect URL - where browser goes when a blocked website is detected (default: google.com)
+  customRedirectUrl?: string;
 }
 
 /**

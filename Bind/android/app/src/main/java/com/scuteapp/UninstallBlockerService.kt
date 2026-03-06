@@ -130,11 +130,14 @@ class UninstallBlockerService : Service() {
         // Start website monitoring with fast polling
         websiteMonitor = WebsiteMonitorService(this).apply {
             onRedirectToSafeUrl = {
-                // Redirect to google.com while overlay is showing (underneath)
-                ScuteAccessibilityService.instance?.navigateToUrl("https://google.com")
+                // Redirect to custom URL or google.com while overlay is showing (underneath)
+                val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                val customRedirectUrl = prefs.getString("custom_redirect_url", "") ?: ""
+                val redirectUrl = if (customRedirectUrl.isNotEmpty()) customRedirectUrl else "https://google.com"
+                ScuteAccessibilityService.instance?.navigateToUrl(redirectUrl)
             }
             onDismissed = {
-                // Nothing needed on dismiss - user is already on google.com
+                // Nothing needed on dismiss - user is already on the redirect URL
             }
             startMonitoring()
         }

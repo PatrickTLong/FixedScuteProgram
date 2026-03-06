@@ -168,8 +168,8 @@ class WebsiteMonitorService(private val context: Context) {
 
         Log.d(TAG, "showBlockedOverlay: site=$blockedSite, customBlockedText='$customBlockedText', customOverlayImage='$customOverlayImage'")
 
-        // Redirect to Google BEFORE showing overlay (so it appears underneath)
-        redirectToGoogle()
+        // Redirect to safe URL BEFORE showing overlay (so it appears underneath)
+        redirectToSafeUrl()
 
         // Show overlay instantly with website name (use the blocked site as the display name)
         val shown = overlayManager?.show(
@@ -195,24 +195,27 @@ class WebsiteMonitorService(private val context: Context) {
     }
 
     /**
-     * Redirect the browser to Google search
+     * Redirect the browser to a safe URL (custom redirect URL or Google)
      */
-    private fun redirectToGoogle() {
+    private fun redirectToSafeUrl() {
         try {
             val accessibilityService = ScuteAccessibilityService.instance
             if (accessibilityService != null) {
-                // Navigate to Google in the current browser
-                val success = accessibilityService.navigateToUrl("https://www.google.com")
+                val prefs = context.getSharedPreferences(UninstallBlockerService.PREFS_NAME, Context.MODE_PRIVATE)
+                val customRedirectUrl = prefs.getString("custom_redirect_url", "") ?: ""
+                val redirectUrl = if (customRedirectUrl.isNotEmpty()) customRedirectUrl else "https://www.google.com"
+
+                val success = accessibilityService.navigateToUrl(redirectUrl)
                 if (success) {
-                    Log.d(TAG, "Redirected to Google")
+                    Log.d(TAG, "Redirected to: $redirectUrl")
                 } else {
-                    Log.w(TAG, "Failed to redirect to Google")
+                    Log.w(TAG, "Failed to redirect to: $redirectUrl")
                 }
             } else {
                 Log.w(TAG, "Accessibility service not available for redirect")
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Error redirecting to Google", e)
+            Log.e(TAG, "Error redirecting to safe URL", e)
         }
     }
 }

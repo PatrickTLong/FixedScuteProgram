@@ -1029,6 +1029,8 @@ app.get('/api/presets', authenticateToken, async (req, res) => {
       // Custom overlay fields
       customBlockedText: p.custom_blocked_text || '',
       customOverlayImage: p.custom_overlay_image || '',
+      // Custom redirect URL for blocked websites
+      customRedirectUrl: p.custom_redirect_url || '',
     }));
 
     console.log('[presets:get] Returning', presets.length, 'presets for user:', normalizedEmail);
@@ -1094,6 +1096,8 @@ app.post('/api/presets', authenticateToken, async (req, res) => {
       // Custom overlay fields
       custom_blocked_text: preset.customBlockedText || '',
       custom_overlay_image: preset.customOverlayImage || '',
+      // Custom redirect URL for blocked websites
+      custom_redirect_url: preset.customRedirectUrl || '',
     };
 
     console.log('[presets:save] Preset data:', {

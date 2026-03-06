@@ -73,12 +73,14 @@ function LandingScreen() {
           }),
           Animated.timing(buttonsOpacity, {
             toValue: 1,
-            duration: 250,
+            duration: 400,
+            delay: 100,
             useNativeDriver: true,
           }),
           Animated.timing(buttonsSlide, {
             toValue: 0,
-            duration: 300,
+            duration: 400,
+            delay: 100,
             easing: Easing.out(Easing.cubic),
             useNativeDriver: true,
           }),

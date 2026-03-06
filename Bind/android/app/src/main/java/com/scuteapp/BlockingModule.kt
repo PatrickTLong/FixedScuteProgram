@@ -123,6 +123,7 @@ class BlockingModule(reactContext: ReactApplicationContext) :
             // Get custom blocked text (replaces default "X is blocked." overlay message)
             val customBlockedText = if (config.hasKey("customBlockedText")) config.getString("customBlockedText") else ""
             val customOverlayImage = if (config.hasKey("customOverlayImage")) config.getString("customOverlayImage") else ""
+            val customRedirectUrl = if (config.hasKey("customRedirectUrl")) config.getString("customRedirectUrl") else ""
 
             Log.d(TAG, "[START-BLOCKING] Config: presetName=\"$presetName\", presetId=$presetId, noTimeLimit=$noTimeLimit, strictMode=$strictMode")
             Log.d(TAG, "[START-BLOCKING] Timing: endTime=$endTime (${java.util.Date(endTime)}), hasTimeLimit=$hasTimeLimit")
@@ -145,6 +146,7 @@ class BlockingModule(reactContext: ReactApplicationContext) :
                 .putString("active_preset_id", presetId)
                 .putString("custom_blocked_text", customBlockedText)
                 .putString("custom_overlay_image", customOverlayImage)
+                .putString("custom_redirect_url", customRedirectUrl)
                 .apply()
 
             Log.d(TAG, "[START-BLOCKING] SharedPreferences saved — noTimeLimit=$noTimeLimit, isScheduled=$isScheduled, presetName=\"$presetName\", presetId=$presetId")

@@ -750,14 +750,9 @@ function EditPresetAppsScreen() {
                     <GlobeIcon size={s(iconSize.xl)} color={colors.textSecondary} />
                   </View>
                   <Text style={{ color: colors.text }} className={`flex-1 ${textSize.small} ${fontFamily.regular}`}>{site}</Text>
-                  <TouchableOpacity
-                    onPress={() => removeWebsite(site)}
-                    activeOpacity={0.7}
-                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                    className="p-2"
-                  >
+                  <HeaderIconButton onPress={() => removeWebsite(site)} flashSize={28}>
                     <XIcon size={s(iconSize.sm)} color={colors.text} />
-                  </TouchableOpacity>
+                  </HeaderIconButton>
                 </View>
               ))}
 
