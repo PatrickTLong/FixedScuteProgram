@@ -15,7 +15,7 @@ import AnimatedSwitch from '../components/AnimatedSwitch';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Svg, { Path } from 'react-native-svg';
-import { CaretLeftIcon, ArrowBendUpLeftIcon, XCircleIcon, FloppyDiskIcon, CheckCircleIcon, CalendarCheckIcon, CalendarIcon, CalendarBlankIcon, CaretRightIcon, PaperPlaneTiltIcon, ArrowsClockwiseIcon, ClockIcon as PhosphorClockIcon, KeyIcon, ImageIcon, ImageSquareIcon, LinkIcon, AndroidLogoIcon, InfinityIcon } from 'phosphor-react-native';
+import { CaretLeftIcon, ArrowBendUpLeftIcon, XCircleIcon, FloppyDiskIcon, CheckCircleIcon, CalendarCheckIcon, CaretRightIcon, PaperPlaneTiltIcon, ArrowsClockwiseIcon, ClockIcon as PhosphorClockIcon, ImageIcon, ImageSquareIcon, LinkIcon, AndroidLogoIcon, CalendarDotsIcon, GearSixIcon, InfoIcon as PhosphorInfoIcon, TrashIcon as PhosphorTrashIcon, GlobeIcon as PhosphorGlobeIcon, HourglassSimpleIcon, PlayCircleIcon, StopCircleIcon, LockIcon } from 'phosphor-react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { API_URL } from '../config/api';
 import { getAuthToken } from '../services/cardApi';
@@ -72,11 +72,11 @@ const PickDateIcon = ({ size = iconSize.forTabs, color = '#FFFFFF' }: { size?: n
 );
 
 const StartDateIcon = ({ size = iconSize.forTabs, color = '#FFFFFF' }: { size?: number; color?: string }) => (
-  <CalendarIcon size={size} color={color} weight="regular" />
+  <PlayCircleIcon size={size} color={color} weight="regular" />
 );
 
 const EndDateIcon = ({ size = iconSize.forTabs, color = '#FFFFFF' }: { size?: number; color?: string }) => (
-  <CalendarBlankIcon size={size} color={color} weight="regular" />
+  <StopCircleIcon size={size} color={color} weight="regular" />
 );
 
 const ChevronRightIcon = ({ size = iconSize.chevron, color = "#9CA3AF" }: { size?: number; color?: string }) => (
@@ -470,16 +470,7 @@ const AnimatedInfoExpand = ({ expanded, children }: { expanded: boolean; childre
 
 // ============ InfoIcon Component ============
 const InfoIcon = ({ expanded, color, size }: { expanded: boolean; color: string; size: number }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
-    {expanded ? (
-      <Path d="M12 22c5.51 0 10-4.49 10-10S17.51 2 12 2 2 6.49 2 12s4.49 10 10 10M11 7h2v2h-2zm0 4h2v6h-2z" />
-    ) : (
-      <>
-        <Path d="M11 11h2v6h-2zm0-4h2v2h-2z" />
-        <Path d="M12 22c5.51 0 10-4.49 10-10S17.51 2 12 2 2 6.49 2 12s4.49 10 10 10m0-18c4.41 0 8 3.59 8 8s-3.59 8-8 8-8-3.59-8-8 3.59-8 8-8" />
-      </>
-    )}
-  </Svg>
+  <PhosphorInfoIcon size={size} color={color} weight={expanded ? 'fill' : 'regular'} />
 );
 
 // ============ Navigation Types ============
@@ -937,7 +928,7 @@ function PresetSettingsScreen() {
       repeat_interval: isScheduled && isRecurring ? finalRecurringInterval : undefined,
       customBlockedText: customOverlayEnabled && customBlockedText ? customBlockedText.trim() : undefined,
       customOverlayImage: customOverlayEnabled && customOverlayImage ? customOverlayImage : undefined,
-      customRedirectUrl: customRedirectEnabled && customRedirectUrl ? customRedirectUrl.trim() : undefined,
+      customRedirectUrl: customRedirectEnabled && customRedirectUrl && customRedirectUrl.trim().includes('.') ? customRedirectUrl.trim() : undefined,
     };
 
     console.log('[OVERLAY] Saving preset — overlayEnabled:', customOverlayEnabled, 'text:', newPreset.customBlockedText, 'image:', newPreset.customOverlayImage);
@@ -971,7 +962,7 @@ function PresetSettingsScreen() {
         <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}>
           <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
             <View style={{ maxWidth: '75%' }} className="flex-row items-center">
-              <InfinityIcon size={s(iconSize.toggleRow)} color={colors.text} weight="regular" style={{ marginRight: s(14) }} />
+              <HourglassSimpleIcon size={s(iconSize.toggleRow)} color={colors.text} weight="regular" style={{ marginRight: s(14) }} />
               <View className="flex-1">
                 <View className="flex-row items-center">
                   <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>No Time Limit</Text>
@@ -1021,10 +1012,7 @@ function PresetSettingsScreen() {
           <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}>
             <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
               <View style={{ maxWidth: '75%' }} className="flex-row items-center">
-                <Svg width={s(iconSize.toggleRow)} height={s(iconSize.toggleRow)} viewBox="0 0 24 24" fill={colors.text} style={{ marginRight: s(14) }}>
-                  <Path d="M12 11.993a.75.75 0 0 0-.75.75v.006c0 .414.336.75.75.75h.006a.75.75 0 0 0 .75-.75v-.006a.75.75 0 0 0-.75-.75H12ZM12 16.494a.75.75 0 0 0-.75.75v.005c0 .414.335.75.75.75h.005a.75.75 0 0 0 .75-.75v-.005a.75.75 0 0 0-.75-.75H12ZM8.999 17.244a.75.75 0 0 1 .75-.75h.006a.75.75 0 0 1 .75.75v.006a.75.75 0 0 1-.75.75h-.006a.75.75 0 0 1-.75-.75v-.006ZM7.499 16.494a.75.75 0 0 0-.75.75v.005c0 .414.336.75.75.75h.005a.75.75 0 0 0 .75-.75v-.005a.75.75 0 0 0-.75-.75H7.5ZM13.499 14.997a.75.75 0 0 1 .75-.75h.006a.75.75 0 0 1 .75.75v.005a.75.75 0 0 1-.75.75h-.006a.75.75 0 0 1-.75-.75v-.005ZM14.25 16.494a.75.75 0 0 0-.75.75v.006c0 .414.335.75.75.75h.005a.75.75 0 0 0 .75-.75v-.006a.75.75 0 0 0-.75-.75h-.005ZM15.75 14.995a.75.75 0 0 1 .75-.75h.005a.75.75 0 0 1 .75.75v.006a.75.75 0 0 1-.75.75H16.5a.75.75 0 0 1-.75-.75v-.006ZM13.498 12.743a.75.75 0 0 1 .75-.75h2.25a.75.75 0 1 1 0 1.5h-2.25a.75.75 0 0 1-.75-.75ZM6.748 14.993a.75.75 0 0 1 .75-.75h4.5a.75.75 0 0 1 0 1.5h-4.5a.75.75 0 0 1-.75-.75Z" />
-                  <Path fillRule="evenodd" clipRule="evenodd" d="M18 2.993a.75.75 0 0 0-1.5 0v1.5h-9V2.994a.75.75 0 1 0-1.5 0v1.497h-.752a3 3 0 0 0-3 3v11.252a3 3 0 0 0 3 3h13.5a3 3 0 0 0 3-3V7.492a3 3 0 0 0-3-3H18V2.993ZM3.748 18.743v-7.5a1.5 1.5 0 0 1 1.5-1.5h13.5a1.5 1.5 0 0 1 1.5 1.5v7.5a1.5 1.5 0 0 1-1.5 1.5h-13.5a1.5 1.5 0 0 1-1.5-1.5Z" />
-                </Svg>
+                <CalendarDotsIcon size={s(iconSize.toggleRow)} color={colors.text} weight="regular" style={{ marginRight: s(14) }} />
                 <View className="flex-1">
                   <View className="flex-row items-center">
                     <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Schedule for Later</Text>
@@ -1489,9 +1477,7 @@ function PresetSettingsScreen() {
         <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}>
           <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
             <View style={{ maxWidth: '75%' }} className="flex-row items-center">
-              <Svg width={s(iconSize.toggleRow)} height={s(iconSize.toggleRow)} viewBox="0 0 24 24" fill={colors.text} style={{ marginRight: s(14) }}>
-                <Path d="M22.12 21.46L2.4 1.73L1.12 3L4 5.87L2.34 8.73C2.21 8.95 2.27 9.22 2.46 9.37L4.57 11C4.53 11.34 4.5 11.67 4.5 12S4.53 12.65 4.57 12.97L2.46 14.63C2.27 14.78 2.21 15.05 2.34 15.27L4.34 18.73C4.46 18.95 4.73 19.03 4.95 18.95L7.44 17.94C7.96 18.34 8.5 18.68 9.13 18.93L9.5 21.58C9.54 21.82 9.75 22 10 22H14C14.25 22 14.46 21.82 14.5 21.58L14.87 18.93C15.38 18.72 15.83 18.45 16.26 18.14L20.85 22.73L22.12 21.46M12 15.5C10.07 15.5 8.5 13.93 8.5 12C8.5 11.5 8.62 11.08 8.79 10.67L13.33 15.21C12.92 15.39 12.5 15.5 12 15.5M11.74 8.53L8.56 5.35C8.75 5.25 8.93 5.15 9.13 5.07L9.5 2.42C9.54 2.18 9.75 2 10 2H14C14.25 2 14.46 2.18 14.5 2.42L14.87 5.07C15.5 5.32 16.04 5.66 16.56 6.05L19.05 5.05C19.27 4.96 19.54 5.05 19.66 5.27L21.66 8.73C21.78 8.95 21.73 9.22 21.54 9.37L19.43 11C19.47 11.34 19.5 11.67 19.5 12S19.47 12.65 19.43 12.97L21.54 14.63C21.73 14.78 21.78 15.05 21.66 15.27L20.5 17.29L15.47 12.26C15.5 12.18 15.5 12.09 15.5 12C15.5 10.07 13.93 8.5 12 8.5C11.91 8.5 11.83 8.5 11.74 8.53Z" />
-              </Svg>
+              <GearSixIcon size={s(iconSize.toggleRow)} color={colors.text} weight="regular" style={{ marginRight: s(14) }} />
               <View className="flex-1">
                 <View className="flex-row items-center">
                   <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Block Settings App</Text>
@@ -1535,7 +1521,7 @@ function PresetSettingsScreen() {
           <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}>
             <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
               <View style={{ maxWidth: '75%' }} className="flex-row items-center">
-                <KeyIcon size={s(iconSize.toggleRow)} color={colors.text} weight="regular" style={{ marginRight: s(14) }} />
+                <LockIcon size={s(iconSize.toggleRow)} color={colors.text} weight="regular" style={{ marginRight: s(14) }} />
                 <View className="flex-1">
                   <View className="flex-row items-center">
                     <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Strict Mode</Text>
@@ -1591,7 +1577,7 @@ function PresetSettingsScreen() {
                   </Animated.View>
                 <View className="flex-1">
                   <View className="flex-row items-center">
-                    <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Allow Emergency Tapout</Text>
+                    <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Emergency Tapout</Text>
                     <TouchableOpacity onPress={() => toggleInfo('emergencyTapout')} activeOpacity={0.7} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} style={{ marginLeft: s(6) }}>
                       <InfoIcon expanded={!!expandedInfo.emergencyTapout} color={colors.textSecondary} size={s(16)} />
                     </TouchableOpacity>
@@ -1655,9 +1641,14 @@ function PresetSettingsScreen() {
           <ExpandableInfo expanded={customOverlayEnabled}>
             <View className="px-6 pb-4">
               {/* Custom blocked text */}
-              <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.semibold} mb-3`}>
-                Blocked Message
-              </Text>
+              <View className="flex-row items-center mb-3">
+                <Text style={{ color: colors.textSecondary, marginRight: s(6) }} className={`${textSize.small} ${fontFamily.bold}`}>
+                  Aa
+                </Text>
+                <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.semibold}`}>
+                  Blocked Message
+                </Text>
+              </View>
               <TextInput
                 value={customBlockedText}
                 onChangeText={(text) => {
@@ -1665,7 +1656,7 @@ function PresetSettingsScreen() {
                   setCustomBlockedText(text);
                 }}
                 placeholder="e.g. Get back to work."
-                placeholderTextColor={colors.textMuted}
+                placeholderTextColor={colors.textSecondary}
                 multiline
                 maxLength={200}
                 style={{
@@ -1677,10 +1668,9 @@ function PresetSettingsScreen() {
                   padding: s(14),
                   minHeight: s(80),
                   textAlignVertical: 'top',
-                  fontFamily: 'PlusJakartaSans-SemiBold',
-                  fontSize: s(14),
                   borderRadius: s(12),
                 }}
+                className={`${textSize.small} ${fontFamily.semibold}`}
               />
               <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-2 text-right`}>
                 {customBlockedText.length}/200
@@ -1721,13 +1711,7 @@ function PresetSettingsScreen() {
                         borderRadius: s(12),
                       }}
                     >
-                      <Svg width={s(iconSize.xl)} height={s(iconSize.xl)} viewBox="0 0 24 24" fill={colors.red}>
-                        <Path
-                          fillRule="evenodd"
-                          clipRule="evenodd"
-                          d="M16.5 4.478v.227a48.816 48.816 0 0 1 3.878.512.75.75 0 1 1-.256 1.478l-.209-.035-1.005 13.07a3 3 0 0 1-2.991 2.77H8.084a3 3 0 0 1-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 0 1-.256-1.478A48.567 48.567 0 0 1 7.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 0 1 3.369 0c1.603.051 2.815 1.387 2.815 2.951Zm-6.136-1.452a51.196 51.196 0 0 1 3.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 0 0-6 0v-.113c0-.794.609-1.428 1.364-1.452Zm-.355 5.945a.75.75 0 1 0-1.5.058l.347 9a.75.75 0 1 0 1.499-.058l-.346-9Zm5.48.058a.75.75 0 1 0-1.498-.058l-.347 9a.75.75 0 0 0 1.5.058l.345-9Z"
-                        />
-                      </Svg>
+                      <PhosphorTrashIcon size={s(iconSize.xl)} color={colors.red} weight="regular" />
                     </TouchableOpacity>
                   </View>
                   <TouchableOpacity
@@ -1857,6 +1841,7 @@ function PresetSettingsScreen() {
                 Redirect URL
               </Text>
               <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, height: s(48), borderWidth: 1, borderColor: colors.border, ...shadow.card, overflow: 'hidden', paddingLeft: s(12) }} className={radius.xl}>
+                <PhosphorGlobeIcon size={s(iconSize.md)} color={colors.textSecondary} weight="regular" />
                 <TextInput
                   value={customRedirectUrl}
                   onChangeText={setCustomRedirectUrl}
@@ -1866,7 +1851,7 @@ function PresetSettingsScreen() {
                   autoCorrect={false}
                   keyboardType="url"
                   maxLength={500}
-                  style={{ flex: 1, color: colors.text }}
+                  style={{ flex: 1, color: colors.text, marginLeft: s(8) }}
                   className={`${textSize.small} ${fontFamily.regular}`}
                 />
               </View>

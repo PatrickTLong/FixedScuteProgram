@@ -11,9 +11,8 @@ import {
   NativeScrollEvent,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Svg, { Path } from 'react-native-svg';
 import HeaderIconButton from '../components/HeaderIconButton';
-import { CaretLeftIcon, CaretRightIcon, XCircleIcon, CheckCircleIcon, CalendarXIcon } from 'phosphor-react-native';
+import { CaretLeftIcon, CaretRightIcon, XCircleIcon, CheckCircleIcon, CalendarXIcon, SunIcon, MoonIcon } from 'phosphor-react-native';
 import { useTheme, textSize, fontFamily, radius, shadow, iconSize, buttonPadding, haptics } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { triggerHaptic } from '../utils/haptics';
@@ -48,21 +47,6 @@ const CheckIcon = ({ size = iconSize.headerNav, color = "#FFFFFF" }: { size?: nu
 );
 
 // ============ Sun/Moon Icons ============
-const SunIcon = ({ size = 18, color = '#FFFFFF' }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
-    <Path d="M12 2.25a.75.75 0 0 1 .75.75v2.25a.75.75 0 0 1-1.5 0V3a.75.75 0 0 1 .75-.75ZM7.5 12a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM18.894 6.166a.75.75 0 0 0-1.06-1.06l-1.591 1.59a.75.75 0 1 0 1.06 1.061l1.591-1.59ZM21.75 12a.75.75 0 0 1-.75.75h-2.25a.75.75 0 0 1 0-1.5H21a.75.75 0 0 1 .75.75ZM17.834 18.894a.75.75 0 0 0 1.06-1.06l-1.59-1.591a.75.75 0 1 0-1.061 1.06l1.59 1.591ZM12 18a.75.75 0 0 1 .75.75V21a.75.75 0 0 1-1.5 0v-2.25A.75.75 0 0 1 12 18ZM7.758 17.303a.75.75 0 0 0-1.061-1.06l-1.591 1.59a.75.75 0 0 0 1.06 1.061l1.591-1.59ZM6 12a.75.75 0 0 1-.75.75H3a.75.75 0 0 1 0-1.5h2.25A.75.75 0 0 1 6 12ZM6.697 7.757a.75.75 0 0 0 1.06-1.06l-1.59-1.591a.75.75 0 0 0-1.061 1.06l1.59 1.591Z" />
-  </Svg>
-);
-
-const MoonIcon = ({ size = 18, color = '#FFFFFF' }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
-    <Path
-      fillRule="evenodd"
-      clipRule="evenodd"
-      d="M9.528 1.718a.75.75 0 0 1 .162.819A8.97 8.97 0 0 0 9 6a9 9 0 0 0 9 9 8.97 8.97 0 0 0 3.463-.69.75.75 0 0 1 .981.98 10.503 10.503 0 0 1-9.694 6.46c-5.799 0-10.5-4.7-10.5-10.5 0-4.368 2.667-8.112 6.46-9.694a.75.75 0 0 1 .818.162Z"
-    />
-  </Svg>
-);
 
 // ============ Date Picker Constants ============
 const MONTHS = [
@@ -279,7 +263,7 @@ const AmPmSelector = memo(({ value, onChange, cardColor }: AmPmSelectorProps) =>
           </Text>
         </TouchableOpacity>
         <Animated.View style={{ position: 'absolute', right: -26, transform: [{ scale: sunScale }] }}>
-          <SunIcon size={18} color={value === 'AM' ? colors.yellow : colors.textMuted} />
+          <SunIcon size={18} color={value === 'AM' ? colors.yellow : colors.textMuted} weight={value === 'AM' ? 'fill' : 'regular'} />
         </Animated.View>
       </View>
       {/* PM button with moon icon */}
@@ -295,7 +279,7 @@ const AmPmSelector = memo(({ value, onChange, cardColor }: AmPmSelectorProps) =>
           </Text>
         </TouchableOpacity>
         <Animated.View style={{ position: 'absolute', right: -26, transform: [{ scale: moonScale }] }}>
-          <MoonIcon size={18} color={value === 'PM' ? colors.text : colors.textMuted} />
+          <MoonIcon size={18} color={value === 'PM' ? colors.text : colors.textMuted} weight={value === 'PM' ? 'fill' : 'regular'} />
         </Animated.View>
       </View>
     </View>

@@ -1164,13 +1164,13 @@ function HomeScreen() {
             {!notificationsEnabled ? (
               <BellSlashIcon size={s(iconSize.headerNav)} color="#FFFFFF" weight="regular" />
             ) : (
-              <BellIcon size={s(iconSize.headerNav)} color="#FFFFFF" weight="regular" />
+              <BellIcon size={s(iconSize.headerNav)} color="#FFFFFF" weight="fill" />
             )}
           </HeaderIconButton>
 
           {/* Widget Bubble Toggle */}
           <HeaderIconButton onPress={toggleWidgetBubble}>
-            <ImageSquareIcon size={s(iconSize.headerNav)} color={widgetBubbleDisabled ? colors.textMuted : '#FFFFFF'} weight="regular" />
+            <ImageSquareIcon size={s(iconSize.headerNav)} color={widgetBubbleDisabled ? colors.textMuted : '#FFFFFF'} weight={widgetBubbleDisabled ? 'regular' : 'fill'} />
           </HeaderIconButton>
 
         </View>

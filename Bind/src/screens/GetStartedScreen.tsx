@@ -250,7 +250,7 @@ function GetStartedScreen() {
                     />
                     <View style={{ justifyContent: 'center', alignItems: 'center', paddingHorizontal: s(8), height: '100%' }}>
                       <HeaderIconButton onPress={() => setShowPassword(!showPassword)}>
-                        {showPassword ? <EyeIcon size={s(iconSize.headerNav)} color={colors.text} weight="regular" /> : <EyeSlashIcon size={s(iconSize.headerNav)} color={colors.text} weight="regular" />}
+                        {showPassword ? <EyeIcon size={s(iconSize.headerNav)} color={colors.text} weight="fill" /> : <EyeSlashIcon size={s(iconSize.headerNav)} color={colors.text} weight="regular" />}
                       </HeaderIconButton>
                     </View>
                   </View>

@@ -207,7 +207,7 @@ const AppItemRow = memo(({ item, isSelected, onToggle, colors, s, skipCheckboxAn
     // Scale down and bounce back animation on press
     Animated.sequence([
       Animated.timing(scaleAnim, {
-        toValue: 0.95,
+        toValue: 0.98,
         useNativeDriver: true,
         duration: 30,
       }),

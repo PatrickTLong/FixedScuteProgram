@@ -290,7 +290,7 @@ function ForgotPasswordScreen() {
                     />
                     <View style={{ justifyContent: 'center', alignItems: 'center', paddingHorizontal: s(8), height: '100%' }}>
                       <HeaderIconButton onPress={() => setShowNewPassword(!showNewPassword)}>
-                        {showNewPassword ? <EyeIcon size={s(iconSize.headerNav)} color={colors.text} weight="regular" /> : <EyeSlashIcon size={s(iconSize.headerNav)} color={colors.text} weight="regular" />}
+                        {showNewPassword ? <EyeIcon size={s(iconSize.headerNav)} color={colors.text} weight="fill" /> : <EyeSlashIcon size={s(iconSize.headerNav)} color={colors.text} weight="regular" />}
                       </HeaderIconButton>
                     </View>
                   </View>
@@ -315,7 +315,7 @@ function ForgotPasswordScreen() {
                     />
                     <View style={{ justifyContent: 'center', alignItems: 'center', paddingHorizontal: s(8), height: '100%' }}>
                       <HeaderIconButton onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
-                        {showConfirmPassword ? <EyeIcon size={s(iconSize.headerNav)} color={colors.text} weight="regular" /> : <EyeSlashIcon size={s(iconSize.headerNav)} color={colors.text} weight="regular" />}
+                        {showConfirmPassword ? <EyeIcon size={s(iconSize.headerNav)} color={colors.text} weight="fill" /> : <EyeSlashIcon size={s(iconSize.headerNav)} color={colors.text} weight="regular" />}
                       </HeaderIconButton>
                     </View>
                   </View>

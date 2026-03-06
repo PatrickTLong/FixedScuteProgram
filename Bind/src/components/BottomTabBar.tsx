@@ -2,7 +2,7 @@ import React, { memo, useCallback, useRef, useEffect } from 'react';
 import { View, TouchableOpacity, StyleSheet, Animated, Easing } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { HouseIcon, SquaresFourIcon, TrendUpIcon, GearIcon } from 'phosphor-react-native';
+import { HouseIcon, SquaresFourIcon, TrendUpIcon, GearSixIcon } from 'phosphor-react-native';
 import { useTheme, iconSize, haptics } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { triggerHaptic } from '../utils/haptics';
@@ -162,7 +162,7 @@ function BottomTabBar({ state, navigation }: RNBottomTabBarProps) {
     <TrendUpIcon size={TAB_ICON_SIZE + 6} color={color} weight={active ? 'fill' : 'regular'} />, []);
 
   const renderSettingsIcon = useCallback((color: string, active: boolean) =>
-    <GearIcon size={TAB_ICON_SIZE} color={color} weight={active ? 'fill' : 'regular'} />, []);
+    <GearSixIcon size={TAB_ICON_SIZE} color={color} weight={active ? 'fill' : 'regular'} />, []);
 
   // Hide tab bar on preset editing screens
   if (HIDDEN_ROUTES.includes(currentRouteName)) {

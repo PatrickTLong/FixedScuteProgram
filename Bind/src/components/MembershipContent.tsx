@@ -11,7 +11,7 @@ import {
   UIManager,
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import { ImageIcon, CalendarCheckIcon, SquaresFourIcon } from 'phosphor-react-native';
+import { ImageIcon, CalendarCheckIcon, SquaresFourIcon, HeadsetIcon, RocketLaunchIcon } from 'phosphor-react-native';
 import { useTheme, textSize, fontFamily, radius, shadow, buttonPadding, haptics } from '../context/ThemeContext';
 import { triggerHaptic } from '../utils/haptics';
 import { useResponsive } from '../utils/responsive';
@@ -61,12 +61,8 @@ const FEATURES: Feature[] = [
     'M595-468h-230q0 170 115 170t115-170ZM272.5-652.5Q243-625 231-577l58 14q6-26 20-41.5t31-15.5q17 0 31 15.5t20 41.5l58-14q-12-48-41.5-75.5T340-680q-38 0-67.5 27.5Zm280 0Q523-625 511-577l58 14q6-26 20-41.5t31-15.5q17 0 31 15.5t20 41.5l58-14q-12-48-41.5-75.5T620-680q-38 0-67.5 27.5ZM480-120l-58-50q-101-88-167-152T150-437q-39-51-54.5-94T80-620q0-94 63-157t157-63q52 0 99 22t81 62q34-40 81-62t99-22q94 0 157 63t63 157q0 46-15.5 89T810-437q-39 51-105 115T538-170l-58 50Z',
   ]},
   { label: 'Scheduled blocking sessions', type: 'phosphor', PhosphorIcon: CalendarCheckIcon },
-  { label: 'Priority support', type: 'svg', viewBox: '0 -960 960 960', paths: [
-    'M423.5-743.5Q400-767 400-800t23.5-56.5Q447-880 480-880t56.5 23.5Q560-833 560-800t-23.5 56.5Q513-720 480-720t-56.5-23.5ZM360-80v-520q-60-5-122-15t-118-25l20-80q78 21 166 30.5t174 9.5q86 0 174-9.5T820-720l20 80q-56 15-118 25t-122 15v520h-80v-240h-80v240h-80Z',
-  ]},
-  { label: 'All future updates included', type: 'svg', viewBox: '0 -960 960 960', paths: [
-    'M160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h240l80 80h320q33 0 56.5 23.5T880-640v400q0 33-23.5 56.5T800-160H160Zm280-120h80v-168l64 64 56-56-160-160-160 160 56 56 64-64v168Z',
-  ]},
+  { label: 'Priority support', type: 'phosphor', PhosphorIcon: HeadsetIcon },
+  { label: 'All future updates included', type: 'phosphor', PhosphorIcon: RocketLaunchIcon },
 ];
 
 const SEAL_ONLY_PATH = "M480-80q-24 0-46-9t-39-26q-29-29-50-38t-63-9q-50 0-85-35t-35-85q0-42-9-63t-38-50q-17-17-26-39t-9-46q0-24 9-46t26-39q29-29 38-50t9-63q0-50 35-85t85-35q42 0 63-9t50-38q17-17 39-26t46-9q24 0 46 9t39 26q29 29 50 38t63 9q50 0 85 35t35 85q0 42 9 63t38 50q17 17 26 39t9 46q0 24-9 46t-26 39q-29 29-38 50t-9 63q0 50-35 85t-85 35q-42 0-63 9t-50 38q-17 17-39 26t-46 9Z";

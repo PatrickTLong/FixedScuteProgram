@@ -13,7 +13,7 @@ import {
 import LoadingSpinner from '../components/LoadingSpinner';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
-import { EnvelopeIcon, HandshakeIcon, SignOutIcon, ArrowsClockwiseIcon, WarningIcon, ChatDotsIcon, BugIcon as PhosphorBugIcon, ShieldCheckIcon, FileIcon, CaretRightIcon, CheckCircleIcon, ArrowBendUpLeftIcon } from 'phosphor-react-native';
+import { IdentificationCardIcon, HandshakeIcon, SignOutIcon, ArrowsClockwiseIcon, WarningIcon, ChatsIcon, BugDroidIcon, ShieldCheckIcon, FileLockIcon, CaretRightIcon, CheckCircleIcon, ArrowBendUpLeftIcon, HeartStraightBreakIcon } from 'phosphor-react-native';
 import ConfirmationModal from '../components/ConfirmationModal';
 import HeaderIconButton from '../components/HeaderIconButton';
 import MembershipContent from '../components/MembershipContent';
@@ -25,7 +25,7 @@ import { useAuth } from '../context/AuthContext';
 
 // Icons
 const MailIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
-  <EnvelopeIcon size={iconSize.forTabs} color={color} weight="regular" />
+  <IdentificationCardIcon size={iconSize.forTabs} color={color} weight="regular" />
 );
 
 const MembershipIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
@@ -45,11 +45,11 @@ const TrashIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
 );
 
 const MessageIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
-  <ChatDotsIcon size={iconSize.forTabs} color={color} weight="regular" />
+  <ChatsIcon size={iconSize.forTabs} color={color} weight="regular" />
 );
 
 const BugIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
-  <PhosphorBugIcon size={iconSize.forTabs} color={color} weight="regular" />
+  <BugDroidIcon size={iconSize.forTabs} color={color} weight="regular" />
 );
 
 const ShieldIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
@@ -57,7 +57,7 @@ const ShieldIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
 );
 
 const FileTextIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
-  <FileIcon size={iconSize.forTabs} color={color} weight="regular" />
+  <FileLockIcon size={iconSize.forTabs} color={color} weight="regular" />
 );
 
 const ChevronRightIcon = ({ size = iconSize.chevron, color = "#FFFFFF" }: { size?: number; color?: string }) => (
@@ -441,9 +441,7 @@ function SettingsScreen() {
           >
             <View className="mr-4">
               {tapoutsRemaining === 0 ? (
-                <Svg width={tapoutIconSize} height={tapoutIconSize} viewBox="0 -960 960 960" fill={colors.textMuted}>
-                  <Path d="M481-83Q347-218 267.5-301t-121-138q-41.5-55-54-94T80-620q0-92 64-156t156-64q45 0 87 16.5t75 47.5l-62 216h120l-34 335 114-375H480l71-212q25-14 52.5-21t56.5-7q92 0 156 64t64 156q0 48-13 88t-55 95.5q-42 55.5-121 138T481-83Z" />
-                </Svg>
+                <HeartStraightBreakIcon size={tapoutIconSize} color={colors.textMuted} weight="fill" />
               ) : tapoutsRemaining >= 3 ? (
                 <Animated.View style={{ transform: [{ scale: heartBeat }], opacity: heartBeat.interpolate({ inputRange: [1, 1.15], outputRange: [1, 0.85], extrapolate: 'clamp' }) }}>
                   <Svg width={tapoutIconSize} height={tapoutIconSize} viewBox="0 -960 960 960" fill={colors.red}>
