@@ -14,9 +14,13 @@ import { triggerHaptic } from '../utils/haptics';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { AuthStackParamList } from '../navigation/types';
-import GoogleSignInBtn from '../components/GoogleSignInButton';
+import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '../context/AuthContext';
 import InfoModal from '../components/InfoModal';
+import LoadingSpinner from '../components/LoadingSpinner';
+import { setAuthToken } from '../services/cardApi';
+import { API_URL } from '../config/api';
 import ScreenTransition from '../components/ScreenTransition';
 import type { ScreenTransitionRef } from '../components/ScreenTransition';
 
@@ -29,6 +33,18 @@ const APPLE_LOGO_PATH =
 const ENVELOPE_PATH =
   'M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z';
 
+const GOOGLE_LOGO_PATHS = [
+  { d: 'M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z', fill: '#4285F4' },
+  { d: 'M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z', fill: '#34A853' },
+  { d: 'M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z', fill: '#FBBC05' },
+  { d: 'M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z', fill: '#EA4335' },
+];
+
+GoogleSignin.configure({
+  webClientId: '193061003488-ksk4uod4qllq9avl76vjb2df172ohh2n.apps.googleusercontent.com',
+  offlineAccess: true,
+});
+
 function LandingScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
   const { colors } = useTheme();
@@ -40,11 +56,16 @@ function LandingScreen() {
   const slideValue = useRef(new Animated.Value(1)).current;
   const textOpacity = useRef(new Animated.Value(0)).current;
 
-  // Phase 3: Content slides up + buttons fade in
+  // Phase 3: Content slides up + buttons pop in (staggered)
   const contentShift = useRef(new Animated.Value(0)).current;
-  const buttonsOpacity = useRef(new Animated.Value(0)).current;
-  const buttonsSlide = useRef(new Animated.Value(150)).current;
+  const btn1Opacity = useRef(new Animated.Value(0)).current;
+  const btn1Scale = useRef(new Animated.Value(0.7)).current;
+  const btn2Opacity = useRef(new Animated.Value(0)).current;
+  const btn2Scale = useRef(new Animated.Value(0.7)).current;
+  const btn3Opacity = useRef(new Animated.Value(0)).current;
+  const btn3Scale = useRef(new Animated.Value(0.7)).current;
 
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [modalTitle, setModalTitle] = useState('');
   const [modalMessage, setModalMessage] = useState('');
@@ -63,28 +84,37 @@ function LandingScreen() {
         duration: 400,
         useNativeDriver: true,
       }).start(() => {
-        // Phase 3: Immediately slide content up and reveal buttons
-        Animated.parallel([
-          Animated.timing(contentShift, {
-            toValue: 1,
-            duration: 500,
-            easing: Easing.out(Easing.cubic),
-            useNativeDriver: true,
-          }),
-          Animated.timing(buttonsOpacity, {
-            toValue: 1,
-            duration: 400,
-            delay: 100,
-            useNativeDriver: true,
-          }),
-          Animated.timing(buttonsSlide, {
-            toValue: 0,
-            duration: 400,
-            delay: 100,
-            easing: Easing.out(Easing.cubic),
-            useNativeDriver: true,
-          }),
-        ]).start();
+        // Phase 3: Slide content up, then stagger buttons in with bouncy springs
+        Animated.timing(contentShift, {
+          toValue: 1,
+          duration: 500,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }).start();
+
+        // Stagger each button with a bubbly pop-in
+        const staggerDelay = 80;
+        [
+          { opacity: btn1Opacity, scale: btn1Scale },
+          { opacity: btn2Opacity, scale: btn2Scale },
+          { opacity: btn3Opacity, scale: btn3Scale },
+        ].forEach(({ opacity, scale }, i) => {
+          setTimeout(() => {
+            Animated.parallel([
+              Animated.timing(opacity, {
+                toValue: 1,
+                duration: 150,
+                useNativeDriver: true,
+              }),
+              Animated.spring(scale, {
+                toValue: 1,
+                speed: 10,
+                bounciness: 14,
+                useNativeDriver: true,
+              }),
+            ]).start();
+          }, i * staggerDelay);
+        });
       });
     });
   }, []);
@@ -112,10 +142,53 @@ function LandingScreen() {
     setModalVisible(true);
   }
 
-  const handleGoogleSuccess = async (email: string) => {
-    await transitionRef.current?.animateOut('left');
-    handleLogin(email);
-  };
+  async function handleGooglePress() {
+    if (haptics.googleSignIn.enabled) {
+      triggerHaptic(haptics.googleSignIn.type);
+    }
+    setGoogleLoading(true);
+    try {
+      await GoogleSignin.hasPlayServices();
+      await GoogleSignin.signOut();
+      const userInfo = await GoogleSignin.signIn();
+      const { idToken } = await GoogleSignin.getTokens();
+      if (!idToken) throw new Error('No ID token received from Google');
+
+      const response = await fetch(`${API_URL}/api/google-auth`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          idToken,
+          email: userInfo.data?.user.email,
+          name: userInfo.data?.user.name,
+        }),
+      });
+      const data = await response.json();
+
+      if (response.ok && data.token) {
+        await setAuthToken(data.token);
+        await AsyncStorage.setItem('user_email', userInfo.data?.user.email || '');
+        await transitionRef.current?.animateOut('left');
+        handleLogin(userInfo.data?.user.email || '');
+      } else {
+        throw new Error(data.error || 'Google sign-in failed');
+      }
+    } catch (error: any) {
+      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+        // User cancelled
+      } else if (error.code === statusCodes.IN_PROGRESS) {
+        // Already in progress
+      } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+        showModal('Error', 'Google Play Services not available');
+      } else if (error.message?.includes('getTokens') || error.message?.includes('token')) {
+        // User backed out before completing
+      } else {
+        showModal('Google Sign-In Error', error.message || 'Google sign-in failed');
+      }
+    } finally {
+      setGoogleLoading(false);
+    }
+  }
 
   const handleApplePress = () => {
     showModal('Coming Soon', 'Apple Sign-In is coming soon.');
@@ -147,64 +220,92 @@ function LandingScreen() {
             </Text>
           </Animated.View>
 
-          {/* Auth buttons — in natural flow below text */}
-          <Animated.View style={{ width: '100%', marginTop: s(40), opacity: buttonsOpacity, transform: [{ translateY: buttonsSlide }] }}>
-            <View style={{ marginBottom: s(12) }}>
-              <GoogleSignInBtn
-                onSuccess={handleGoogleSuccess}
-                onError={(error) => showModal('Google Sign-In Error', error)}
-                light
-                noShadow
-              />
-            </View>
-
-            <TouchableOpacity
-              onPress={handleApplePress}
-              activeOpacity={0.8}
-              style={{
-                backgroundColor: '#ffffff',
-                borderWidth: 1,
-                borderColor: colors.border,
-                paddingVertical: s(buttonPadding.standard),
-                marginBottom: s(12),
-              }}
-              className={`${radius.full} items-center justify-center`}
-            >
-              <View className="flex-row items-center justify-center">
-                <View className="mr-3">
-                  <Svg width={20} height={20} viewBox="0 0 24 24" fill="#000000">
-                    <Path d={APPLE_LOGO_PATH} />
-                  </Svg>
+          {/* Auth buttons — staggered bubbly pop-in */}
+          <View style={{ width: '100%', marginTop: s(40) }}>
+            <Animated.View style={{ opacity: btn1Opacity, transform: [{ scale: btn1Scale }], marginBottom: s(12) }}>
+              <TouchableOpacity
+                onPress={handleGooglePress}
+                disabled={googleLoading}
+                activeOpacity={0.8}
+                style={{
+                  backgroundColor: '#ffffff',
+                  borderWidth: 1,
+                  borderColor: colors.border,
+                  paddingVertical: s(buttonPadding.standard),
+                  position: 'relative',
+                }}
+                className={`${radius.full} items-center justify-center`}
+              >
+                <View style={{ opacity: googleLoading ? 0 : 1 }} className="flex-row items-center justify-center">
+                  <View className="mr-3">
+                    <Svg width={20} height={20} viewBox="0 0 24 24">
+                      {GOOGLE_LOGO_PATHS.map((p, i) => (
+                        <Path key={i} d={p.d} fill={p.fill} />
+                      ))}
+                    </Svg>
+                  </View>
+                  <Text style={{ color: '#000000' }} className={`${textSize.small} ${fontFamily.semibold}`}>
+                    Continue with Google
+                  </Text>
                 </View>
-                <Text style={{ color: '#000000' }} className={`${textSize.small} ${fontFamily.semibold}`}>
-                  Continue with Apple
-                </Text>
-              </View>
-            </TouchableOpacity>
+                {googleLoading && (
+                  <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center' }}>
+                    <LoadingSpinner size={s(20)} color="#000000" />
+                  </View>
+                )}
+              </TouchableOpacity>
+            </Animated.View>
 
-            <TouchableOpacity
-              onPress={handleEmailPress}
-              activeOpacity={0.8}
-              style={{
-                backgroundColor: '#ffffff',
-                borderWidth: 1,
-                borderColor: colors.border,
-                paddingVertical: s(buttonPadding.standard),
-              }}
-              className={`${radius.full} items-center justify-center`}
-            >
-              <View className="flex-row items-center justify-center">
-                <View className="mr-3">
-                  <Svg width={20} height={20} viewBox="0 0 24 24" fill="#000000">
-                    <Path d={ENVELOPE_PATH} />
-                  </Svg>
+            <Animated.View style={{ opacity: btn2Opacity, transform: [{ scale: btn2Scale }], marginBottom: s(12) }}>
+              <TouchableOpacity
+                onPress={handleApplePress}
+                activeOpacity={0.8}
+                style={{
+                  backgroundColor: '#ffffff',
+                  borderWidth: 1,
+                  borderColor: colors.border,
+                  paddingVertical: s(buttonPadding.standard),
+                }}
+                className={`${radius.full} items-center justify-center`}
+              >
+                <View className="flex-row items-center justify-center">
+                  <View className="mr-3">
+                    <Svg width={20} height={20} viewBox="0 0 24 24" fill="#000000">
+                      <Path d={APPLE_LOGO_PATH} />
+                    </Svg>
+                  </View>
+                  <Text style={{ color: '#000000' }} className={`${textSize.small} ${fontFamily.semibold}`}>
+                    Continue with Apple
+                  </Text>
                 </View>
-                <Text style={{ color: '#000000' }} className={`${textSize.small} ${fontFamily.semibold}`}>
-                  Continue with Email
-                </Text>
-              </View>
-            </TouchableOpacity>
-          </Animated.View>
+              </TouchableOpacity>
+            </Animated.View>
+
+            <Animated.View style={{ opacity: btn3Opacity, transform: [{ scale: btn3Scale }] }}>
+              <TouchableOpacity
+                onPress={handleEmailPress}
+                activeOpacity={0.8}
+                style={{
+                  backgroundColor: '#ffffff',
+                  borderWidth: 1,
+                  borderColor: colors.border,
+                  paddingVertical: s(buttonPadding.standard),
+                }}
+                className={`${radius.full} items-center justify-center`}
+              >
+                <View className="flex-row items-center justify-center">
+                  <View className="mr-3">
+                    <Svg width={20} height={20} viewBox="0 0 24 24" fill="#000000">
+                      <Path d={ENVELOPE_PATH} />
+                    </Svg>
+                  </View>
+                  <Text style={{ color: '#000000' }} className={`${textSize.small} ${fontFamily.semibold}`}>
+                    Continue with Email
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </Animated.View>
+          </View>
         </Animated.View>
       </View>
       </ScreenTransition>

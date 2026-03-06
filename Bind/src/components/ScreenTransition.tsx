@@ -4,6 +4,7 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
+  withSpring,
   Easing,
   interpolate,
   runOnJS,
@@ -49,9 +50,10 @@ const ScreenTransition = forwardRef<ScreenTransitionRef, ScreenTransitionProps>(
       if (!autoAnimate) return;
       currentDir.value = from ?? 'right';
       const animateIn = () => {
-        progress.value = withTiming(1, {
-          duration: transition.inDuration,
-          easing: Easing.out(Easing.quad),
+        progress.value = withSpring(1, {
+          damping: 18,
+          stiffness: 180,
+          mass: 0.8,
         });
       };
 
@@ -81,9 +83,10 @@ const ScreenTransition = forwardRef<ScreenTransitionRef, ScreenTransitionProps>(
       animateIn: (dir?: TransitionDirection) =>
         new Promise<void>((resolve) => {
           if (dir) currentDir.value = dir;
-          progress.value = withTiming(1, {
-            duration: transition.inDuration,
-            easing: Easing.out(Easing.quad),
+          progress.value = withSpring(1, {
+            damping: 18,
+            stiffness: 180,
+            mass: 0.8,
           }, (finished) => {
             if (finished) runOnJS(resolve)();
           });

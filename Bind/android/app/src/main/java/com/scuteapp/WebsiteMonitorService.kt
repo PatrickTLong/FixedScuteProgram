@@ -202,20 +202,30 @@ class WebsiteMonitorService(private val context: Context) {
             val accessibilityService = ScuteAccessibilityService.instance
             if (accessibilityService != null) {
                 val prefs = context.getSharedPreferences(UninstallBlockerService.PREFS_NAME, Context.MODE_PRIVATE)
-                val customRedirectUrl = prefs.getString("custom_redirect_url", "") ?: ""
+                val rawRedirectUrl = prefs.getString("custom_redirect_url", "") ?: ""
+                val customRedirectUrl = if (rawRedirectUrl.isNotEmpty() && !rawRedirectUrl.startsWith("http://") && !rawRedirectUrl.startsWith("https://")) {
+                    "https://$rawRedirectUrl"
+                } else {
+                    rawRedirectUrl
+                }
                 val redirectUrl = if (customRedirectUrl.isNotEmpty()) customRedirectUrl else "https://www.google.com"
+                Log.d(TAG, "[REDIRECT] SharedPrefs custom_redirect_url='$customRedirectUrl', resolved redirectUrl='$redirectUrl'")
+
+                val allPrefs = prefs.all
+                Log.d(TAG, "[REDIRECT] All SharedPrefs keys: ${allPrefs.keys.joinToString()}")
+                Log.d(TAG, "[REDIRECT] custom_redirect_url value from prefs.all: ${allPrefs["custom_redirect_url"]}")
 
                 val success = accessibilityService.navigateToUrl(redirectUrl)
                 if (success) {
-                    Log.d(TAG, "Redirected to: $redirectUrl")
+                    Log.d(TAG, "[REDIRECT] Successfully redirected to: $redirectUrl")
                 } else {
-                    Log.w(TAG, "Failed to redirect to: $redirectUrl")
+                    Log.w(TAG, "[REDIRECT] FAILED to redirect to: $redirectUrl")
                 }
             } else {
-                Log.w(TAG, "Accessibility service not available for redirect")
+                Log.w(TAG, "[REDIRECT] Accessibility service not available for redirect")
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Error redirecting to safe URL", e)
+            Log.e(TAG, "[REDIRECT] Error redirecting to safe URL", e)
         }
     }
 }

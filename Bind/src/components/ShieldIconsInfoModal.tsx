@@ -7,7 +7,7 @@ import {
   Pressable,
   Animated,
 } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
+import { BookmarkSimpleIcon, ArrowsClockwiseIcon } from 'phosphor-react-native';
 import { useTheme , textSize, fontFamily, radius, shadow, iconSize } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 
@@ -16,37 +16,14 @@ interface ShieldIconsInfoModalProps {
   onClose: (dontShowAgain: boolean) => void;
 }
 
-// Bookmark icon (Feather Icons) for scheduled presets
+// Bookmark icon for scheduled presets
 const BookmarkIcon = ({ color, size = iconSize.lg }: { color: string; size?: number }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"
-      stroke={color}
-      strokeWidth={2.5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </Svg>
+  <BookmarkSimpleIcon size={size} color={color} weight="regular" />
 );
 
-// Rotate CW icon (Feather Icons) for recurring presets
+// Rotate CW icon for recurring presets
 const RotateCwIcon = ({ color, size = iconSize.lg }: { color: string; size?: number }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M23 4v6h-6"
-      stroke={color}
-      strokeWidth={2.5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <Path
-      d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"
-      stroke={color}
-      strokeWidth={2.5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </Svg>
+  <ArrowsClockwiseIcon size={size} color={color} weight="regular" />
 );
 
 function ShieldIconsInfoModal({ visible, onClose }: ShieldIconsInfoModalProps) {

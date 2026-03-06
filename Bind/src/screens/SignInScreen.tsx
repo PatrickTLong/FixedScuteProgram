@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import BoxiconsFilled from '../components/BoxiconsFilled';
+import { EyeIcon, EyeSlashIcon } from 'phosphor-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import BackButton from '../components/BackButton';
 import ProgressBar from '../components/ProgressBar';
@@ -252,7 +252,7 @@ function SignInScreen() {
                     />
                     <View style={{ justifyContent: 'center', alignItems: 'center', paddingHorizontal: s(8), height: '100%' }}>
                       <HeaderIconButton onPress={() => setShowPassword(!showPassword)}>
-                        <BoxiconsFilled name={showPassword ? 'bx-eye' : 'bx-eye-slash'} size={s(iconSize.headerNav)} color={colors.text} />
+                        {showPassword ? <EyeIcon size={s(iconSize.headerNav)} color={colors.text} weight="regular" /> : <EyeSlashIcon size={s(iconSize.headerNav)} color={colors.text} weight="regular" />}
                       </HeaderIconButton>
                     </View>
                   </View>
@@ -322,20 +322,6 @@ function SignInScreen() {
                 </View>
               )}
             </TouchableOpacity>
-
-            {/* Hidden "Already have an account" placeholder for layout consistency */}
-            {step === 'credentials' && (
-              <View
-                style={{ opacity: 0 }}
-                pointerEvents="none"
-                className="items-center py-2 mt-4"
-              >
-                <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular}`}>
-                  Already have an account?{' '}
-                  <Text style={{ color: colors.text }} className={`${fontFamily.semibold}`}>Sign In</Text>
-                </Text>
-              </View>
-            )}
 
           </View>
         </ScrollView>

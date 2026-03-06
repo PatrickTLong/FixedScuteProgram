@@ -1035,7 +1035,7 @@ app.get('/api/presets', authenticateToken, async (req, res) => {
 
     console.log('[presets:get] Returning', presets.length, 'presets for user:', normalizedEmail);
     presets.forEach(p => {
-      console.log(`[presets:get]   - ${p.name}: strictMode=${p.strictMode}, allowEmergencyTapout=${p.allowEmergencyTapout}, noTimeLimit=${p.noTimeLimit}`);
+      console.log(`[presets:get]   - ${p.name}: strictMode=${p.strictMode}, allowEmergencyTapout=${p.allowEmergencyTapout}, noTimeLimit=${p.noTimeLimit}, customRedirectUrl='${p.customRedirectUrl}'`);
     });
 
     res.json({ presets });
@@ -1109,6 +1109,8 @@ app.post('/api/presets', authenticateToken, async (req, res) => {
       repeat_enabled: preset.repeat_enabled,
       repeat_unit: preset.repeat_unit,
       repeat_interval: preset.repeat_interval,
+      customRedirectUrl_from_request: preset.customRedirectUrl,
+      custom_redirect_url_to_save: presetData.custom_redirect_url,
     });
 
     let error;

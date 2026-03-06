@@ -15,7 +15,7 @@ import AnimatedSwitch from '../components/AnimatedSwitch';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Svg, { Path } from 'react-native-svg';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { CaretLeftIcon, ArrowBendUpLeftIcon, XCircleIcon, FloppyDiskIcon, CheckCircleIcon, CalendarCheckIcon, CalendarIcon, CalendarBlankIcon, CaretRightIcon, PaperPlaneTiltIcon, ArrowsClockwiseIcon, ClockIcon as PhosphorClockIcon, KeyIcon, ImageIcon, ImageSquareIcon, LinkIcon, AndroidLogoIcon, InfinityIcon } from 'phosphor-react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { API_URL } from '../config/api';
 import { getAuthToken } from '../services/cardApi';
@@ -27,7 +27,6 @@ import RecurrenceInfoModal from '../components/RecurrenceInfoModal';
 import StrictModeWarningModal from '../components/StrictModeWarningModal';
 import { Preset } from '../components/PresetCard';
 import HeaderIconButton from '../components/HeaderIconButton';
-import BoxiconsFilled from '../components/BoxiconsFilled';
 import { useAuth } from '../context/AuthContext';
 import { useTheme, textSize, fontFamily, radius, shadow, iconSize, buttonPadding, haptics } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
@@ -49,81 +48,51 @@ type RecurringUnit = 'minutes' | 'hours' | 'days' | 'weeks' | 'months';
 
 // ============ Icon Components ============
 const ChevronLeftIcon = ({ size = iconSize.chevron, color = "#FFFFFF" }: { size?: number; color?: string }) => (
-  <BoxiconsFilled name="bx-caret-big-left" size={size} color={color} />
+  <CaretLeftIcon size={size} color={color} weight="regular" />
 );
 
 const BackArrowIcon = ({ size = iconSize.lg, color = "#FFFFFF" }: { size?: number; color?: string }) => (
-  <BoxiconsFilled name="bx-reply-big" size={size} color={color} />
+  <ArrowBendUpLeftIcon size={size} color={color} weight="regular" />
 );
 
 const XIcon = ({ size = iconSize.headerNav, color = "#FFFFFF" }: { size?: number; color?: string }) => (
-  <BoxiconsFilled name="bx-x-circle" size={size} color={color} />
+  <XCircleIcon size={size} color={color} weight="regular" />
 );
 
-const FileIcon = ({ size = iconSize.headerNav, color = "#FFFFFF" }: { size?: number; color?: string }) => (
-  <BoxiconsFilled name="bx-save" size={size} color={color} />
+const SaveIcon = ({ size = iconSize.headerNav, color = "#FFFFFF" }: { size?: number; color?: string }) => (
+  <FloppyDiskIcon size={size} color={color} weight="regular" />
 );
 
 const CheckIcon = ({ size = iconSize.headerNav, color = "#FFFFFF" }: { size?: number; color?: string }) => (
-  <BoxiconsFilled name="bx-check-circle" size={size} color={color} />
+  <CheckCircleIcon size={size} color={color} weight="regular" />
 );
 
 const PickDateIcon = ({ size = iconSize.forTabs, color = '#FFFFFF' }: { size?: number; color?: string }) => (
-  <BoxiconsFilled name="bx-calendar-check" size={size} color={color} />
+  <CalendarCheckIcon size={size} color={color} weight="regular" />
 );
 
 const StartDateIcon = ({ size = iconSize.forTabs, color = '#FFFFFF' }: { size?: number; color?: string }) => (
-  <BoxiconsFilled name="bx-calendar-event" size={size} color={color} />
+  <CalendarIcon size={size} color={color} weight="regular" />
 );
 
 const EndDateIcon = ({ size = iconSize.forTabs, color = '#FFFFFF' }: { size?: number; color?: string }) => (
-  <BoxiconsFilled name="bx-calendar-alt-2" size={size} color={color} />
+  <CalendarBlankIcon size={size} color={color} weight="regular" />
 );
 
 const ChevronRightIcon = ({ size = iconSize.chevron, color = "#9CA3AF" }: { size?: number; color?: string }) => (
-  <BoxiconsFilled name="bx-caret-right-circle" size={size} color={color} />
+  <CaretRightIcon size={size} color={color} weight="regular" />
 );
 
 const RotateCwIcon = ({ size = iconSize.lg, color = '#FFFFFF' }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M23 4v6h-6"
-      stroke={color}
-      strokeWidth={2.5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <Path
-      d="M20.49 15a9 9 0 11-2.12-9.36L23 10"
-      stroke={color}
-      strokeWidth={2.5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </Svg>
+  <ArrowsClockwiseIcon size={size} color={color} weight="regular" />
 );
 
 const ClockIcon = ({ size = iconSize.lg, color = '#FFFFFF' }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M12 2a10 10 0 100 20 10 10 0 000-20z"
-      stroke={color}
-      strokeWidth={2.5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <Path
-      d="M12 6v6l4 2"
-      stroke={color}
-      strokeWidth={2.5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </Svg>
+  <PhosphorClockIcon size={size} color={color} weight="regular" />
 );
 
 const SendIcon = ({ size = iconSize.forTabs, color = '#FFFFFF' }: { size?: number; color?: string }) => (
-  <BoxiconsFilled name="bx-paper-plane" size={size} color={color} />
+  <PaperPlaneTiltIcon size={size} color={color} weight="regular" />
 );
 
 // ============ Time Preset Circles ============
@@ -972,6 +941,7 @@ function PresetSettingsScreen() {
     };
 
     console.log('[OVERLAY] Saving preset — overlayEnabled:', customOverlayEnabled, 'text:', newPreset.customBlockedText, 'image:', newPreset.customOverlayImage);
+    console.log('[REDIRECT] Saving preset — redirectEnabled:', customRedirectEnabled, 'rawUrl:', customRedirectUrl, 'savedUrl:', newPreset.customRedirectUrl);
 
     // Navigate immediately — save happens in the background
     setFinalSettingsState(null);
@@ -991,7 +961,7 @@ function PresetSettingsScreen() {
         </HeaderIconButton>
         <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.bold}`}>Final Settings</Text>
         <HeaderIconButton onPress={handleSave} disabled={!canSave} style={{ width: s(40) }}>
-          <FileIcon size={s(iconSize.headerNav)} color={canSave ? '#FFFFFF' : colors.textMuted} />
+          <SaveIcon size={s(iconSize.headerNav)} color={canSave ? '#FFFFFF' : colors.textMuted} />
         </HeaderIconButton>
       </View>
 
@@ -1001,7 +971,7 @@ function PresetSettingsScreen() {
         <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}>
           <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
             <View style={{ maxWidth: '75%' }} className="flex-row items-center">
-              <BoxiconsFilled name="bx-infinite" size={s(iconSize.toggleRow)} color={colors.text} style={{ marginRight: s(14) }} />
+              <InfinityIcon size={s(iconSize.toggleRow)} color={colors.text} weight="regular" style={{ marginRight: s(14) }} />
               <View className="flex-1">
                 <View className="flex-row items-center">
                   <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>No Time Limit</Text>
@@ -1201,7 +1171,7 @@ function PresetSettingsScreen() {
                 <View>
                   <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
                     <View style={{ maxWidth: '75%' }} className="flex-row items-center">
-                      <BoxiconsFilled name="bx-refresh-cw" size={s(iconSize.toggleRow)} color={colors.text} style={{ marginRight: s(14) }} />
+                      <ArrowsClockwiseIcon size={s(iconSize.toggleRow)} color={colors.text} weight="regular" style={{ marginRight: s(14) }} />
                       <View className="flex-1">
                         <View className="flex-row items-center">
                           <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Recurring Schedule</Text>
@@ -1339,7 +1309,7 @@ function PresetSettingsScreen() {
           <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}>
             <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
               <View style={{ maxWidth: '75%' }} className="flex-row items-center">
-                <BoxiconsFilled name="bx-alarm-check" size={s(iconSize.toggleRow)} color={colors.text} style={{ marginRight: s(14) }} />
+                <PhosphorClockIcon size={s(iconSize.toggleRow)} color={colors.text} weight="regular" style={{ marginRight: s(14) }} />
                 <View className="flex-1">
                   <View className="flex-row items-center">
                     <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Set Fixed Time</Text>
@@ -1565,7 +1535,7 @@ function PresetSettingsScreen() {
           <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}>
             <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
               <View style={{ maxWidth: '75%' }} className="flex-row items-center">
-                <BoxiconsFilled name="bx-key" size={s(iconSize.toggleRow)} color={colors.text} style={{ marginRight: s(14) }} />
+                <KeyIcon size={s(iconSize.toggleRow)} color={colors.text} weight="regular" style={{ marginRight: s(14) }} />
                 <View className="flex-1">
                   <View className="flex-row items-center">
                     <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Strict Mode</Text>
@@ -1650,7 +1620,7 @@ function PresetSettingsScreen() {
         <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}>
           <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
             <View style={{ maxWidth: '75%' }} className="flex-row items-center">
-              <BoxiconsFilled name="bx-image-landscape" size={s(iconSize.toggleRow)} color={colors.text} style={{ marginRight: s(14) }} />
+              <ImageIcon size={s(iconSize.toggleRow)} color={colors.text} weight="regular" style={{ marginRight: s(14) }} />
               <View className="flex-1">
                 <View className="flex-row items-center">
                   <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Custom Overlay</Text>
@@ -1791,7 +1761,7 @@ function PresetSettingsScreen() {
                     justifyContent: 'center',
                   }}
                 >
-                  <BoxiconsFilled name="bx-image-sparkle" size={s(iconSize.sm)} color="#000000" style={{ marginRight: s(6) }} />
+                  <ImageSquareIcon size={s(iconSize.sm)} color="#000000" weight="regular" style={{ marginRight: s(6) }} />
                   <Text style={{ color: '#000000' }} className={`${textSize.small} ${fontFamily.semibold}`}>
                     {imageUploading ? 'Uploading...' : 'Upload Image'}
                   </Text>
@@ -1823,7 +1793,7 @@ function PresetSettingsScreen() {
                     resizeMode="cover"
                   />
                 ) : (
-                  <MaterialCommunityIcons name="android" size={s(100)} color="#FFFFFF" style={{ marginBottom: s(12) }} />
+                  <AndroidLogoIcon size={s(100)} color="#FFFFFF" weight="regular" style={{ marginBottom: s(12) }} />
                 )}
                 <Text style={{
                   color: '#FFFFFF',
@@ -1851,7 +1821,7 @@ function PresetSettingsScreen() {
         <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}>
           <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
             <View style={{ maxWidth: '75%' }} className="flex-row items-center">
-              <BoxiconsFilled name="bx-link" size={s(iconSize.toggleRow)} color={colors.text} style={{ marginRight: s(14) }} />
+              <LinkIcon size={s(iconSize.toggleRow)} color={colors.text} weight="regular" style={{ marginRight: s(14) }} />
               <View className="flex-1">
                 <View className="flex-row items-center">
                   <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Custom Redirect</Text>

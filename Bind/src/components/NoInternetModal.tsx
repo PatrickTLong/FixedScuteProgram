@@ -11,7 +11,7 @@ import NetInfo from '@react-native-community/netinfo';
 import { useTheme, textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { useAuth } from '../context/AuthContext';
-import Svg, { Path } from 'react-native-svg';
+import { AirplaneTakeoffIcon } from 'phosphor-react-native';
 
 function NoInternetModal() {
   const { colors } = useTheme();
@@ -109,9 +109,7 @@ function NoInternetModal() {
                 marginBottom: s(16),
               }}
             >
-              <Svg width={s(28)} height={s(28)} viewBox="0 -960 960 960" fill={colors.red}>
-                <Path d="M250-320h60v-10q0-71 49.5-120.5T480-500q71 0 120.5 49.5T650-330v10h60v-10q0-96-67-163t-163-67q-96 0-163 67t-67 163v10Zm34-270q41-6 86.5-32t72.5-59l-46-38q-20 24-55.5 44T276-650l8 60Zm392 0 8-60q-30-5-65.5-25T563-719l-46 38q27 33 72.5 59t86.5 32ZM324-111.5Q251-143 197-197t-85.5-127Q80-397 80-480t31.5-156Q143-709 197-763t127-85.5Q397-880 480-880t156 31.5Q709-817 763-763t85.5 127Q880-563 880-480t-31.5 156Q817-251 763-197t-127 85.5Q563-80 480-80t-156-31.5Z" />
-              </Svg>
+              <AirplaneTakeoffIcon size={s(28)} color={colors.red} weight="regular" />
             </View>
             <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.bold} text-center mb-2`}>
               No Internet Connection

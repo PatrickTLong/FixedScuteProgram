@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import BoxiconsFilled from '../components/BoxiconsFilled';
+import { EyeIcon, EyeSlashIcon } from 'phosphor-react-native';
 import BackButton from '../components/BackButton';
 import ProgressBar from '../components/ProgressBar';
 import InfoModal from '../components/InfoModal';
@@ -290,7 +290,7 @@ function ForgotPasswordScreen() {
                     />
                     <View style={{ justifyContent: 'center', alignItems: 'center', paddingHorizontal: s(8), height: '100%' }}>
                       <HeaderIconButton onPress={() => setShowNewPassword(!showNewPassword)}>
-                        <BoxiconsFilled name={showNewPassword ? 'bx-eye' : 'bx-eye-slash'} size={s(iconSize.headerNav)} color={colors.text} />
+                        {showNewPassword ? <EyeIcon size={s(iconSize.headerNav)} color={colors.text} weight="regular" /> : <EyeSlashIcon size={s(iconSize.headerNav)} color={colors.text} weight="regular" />}
                       </HeaderIconButton>
                     </View>
                   </View>
@@ -315,7 +315,7 @@ function ForgotPasswordScreen() {
                     />
                     <View style={{ justifyContent: 'center', alignItems: 'center', paddingHorizontal: s(8), height: '100%' }}>
                       <HeaderIconButton onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
-                        <BoxiconsFilled name={showConfirmPassword ? 'bx-eye' : 'bx-eye-slash'} size={s(iconSize.headerNav)} color={colors.text} />
+                        {showConfirmPassword ? <EyeIcon size={s(iconSize.headerNav)} color={colors.text} weight="regular" /> : <EyeSlashIcon size={s(iconSize.headerNav)} color={colors.text} weight="regular" />}
                       </HeaderIconButton>
                     </View>
                   </View>

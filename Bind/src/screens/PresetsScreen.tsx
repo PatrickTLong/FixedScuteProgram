@@ -13,7 +13,7 @@ import {
 import LoadingSpinner from '../components/LoadingSpinner';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
-import BoxiconsFilled from '../components/BoxiconsFilled';
+import { PlusIcon as PhosphorPlusIcon, TrashIcon as PhosphorTrashIcon, PlusCircleIcon, FloppyDiskIcon, SquaresFourIcon } from 'phosphor-react-native';
 import HeaderIconButton from '../components/HeaderIconButton';
 import PresetCard, { Preset } from '../components/PresetCard';
 import ConfirmationModal from '../components/ConfirmationModal';
@@ -35,23 +35,11 @@ import { useAuth } from '../context/AuthContext';
 const { InstalledAppsModule, ScheduleModule } = NativeModules;
 
 const PlusIcon = ({ size = iconSize.lg, color = '#FFFFFF' }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
-    <Path
-      fillRule="evenodd"
-      clipRule="evenodd"
-      d="M12 3.75a.75.75 0 0 1 .75.75v6.75h6.75a.75.75 0 0 1 0 1.5h-6.75v6.75a.75.75 0 0 1-1.5 0v-6.75H4.5a.75.75 0 0 1 0-1.5h6.75V4.5a.75.75 0 0 1 .75-.75Z"
-    />
-  </Svg>
+  <PhosphorPlusIcon size={size} color={color} weight="regular" />
 );
 
 const TrashIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
-  <Svg width={iconSize.forTabs} height={iconSize.forTabs} viewBox="0 0 24 24" fill={color}>
-    <Path
-      fillRule="evenodd"
-      clipRule="evenodd"
-      d="M16.5 4.478v.227a48.816 48.816 0 0 1 3.878.512.75.75 0 1 1-.256 1.478l-.209-.035-1.005 13.07a3 3 0 0 1-2.991 2.77H8.084a3 3 0 0 1-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 0 1-.256-1.478A48.567 48.567 0 0 1 7.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 0 1 3.369 0c1.603.051 2.815 1.387 2.815 2.951Zm-6.136-1.452a51.196 51.196 0 0 1 3.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 0 0-6 0v-.113c0-.794.609-1.428 1.364-1.452Zm-.355 5.945a.75.75 0 1 0-1.5.058l.347 9a.75.75 0 1 0 1.499-.058l-.346-9Zm5.48.058a.75.75 0 1 0-1.498-.058l-.347 9a.75.75 0 0 0 1.5.058l.345-9Z"
-    />
-  </Svg>
+  <PhosphorTrashIcon size={iconSize.forTabs} color={color} weight="regular" />
 );
 
 // Pure function - check if two date ranges overlap
@@ -779,18 +767,13 @@ function PresetsScreen() {
     <View style={{ alignItems: 'center', paddingTop: s(60), paddingHorizontal: s(32) }}>
       {!loading && (
         <>
-          <Svg width={s(48)} height={s(48)} viewBox="0 0 24 24" fill={colors.textMuted}>
-              <Path d="M3 3h4v4H3zm7 0h4v4h-4z" />
-              <Path d="M10 3h4v4h-4zm7 0h4v4h-4zM3 17h4v4H3zm7 0h4v4h-4z" />
-              <Path d="M10 17h4v4h-4zm7 0h4v4h-4zM3 10h4v4H3zm7 0h4v4h-4z" />
-              <Path d="M10 10h4v4h-4zm7 0h4v4h-4z" />
-            </Svg>
+          <SquaresFourIcon size={s(48)} color={colors.textMuted} weight="regular" />
           <Text style={{ color: colors.textSecondary, textAlign: 'center', marginTop: s(12) }} className={`${textSize.small} ${fontFamily.regular}`}>
             No presets yet
           </Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: s(4) }}>
             <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>Tap </Text>
-            <BoxiconsFilled name="bx-plus-circle" size={s(14)} color={colors.textMuted} />
+            <PlusCircleIcon size={s(14)} color={colors.textMuted} weight="regular" />
             <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular}`}> to create one</Text>
           </View>
         </>
@@ -829,7 +812,7 @@ function PresetsScreen() {
 
         {/* Add Button - stays green but disabled when locked */}
           <HeaderIconButton onPress={handleAddPresetWithFlag} disabled={isDisabled}>
-            <BoxiconsFilled name="bx-plus-circle" size={s(iconSize.headerNav)} color="#fff" />
+            <PlusCircleIcon size={s(iconSize.headerNav)} color="#fff" weight="regular" />
           </HeaderIconButton>
       </View>
 
@@ -920,7 +903,7 @@ function PresetsScreen() {
           }}
         >
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <BoxiconsFilled name="bx-save" size={24} color={colors.text} />
+            <FloppyDiskIcon size={24} color={colors.text} weight="regular" />
             <Text style={{ color: colors.text, marginLeft: s(8) }} className={`${textSize.large} ${fontFamily.semibold}`}>
               Preset Saved
             </Text>

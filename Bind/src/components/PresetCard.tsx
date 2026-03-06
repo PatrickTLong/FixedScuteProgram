@@ -5,15 +5,14 @@ import {
   Pressable,
   Animated,
 } from 'react-native';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import BoxiconsFilled from './BoxiconsFilled';
+import { ClockIcon, ClockCountdownIcon, XCircleIcon } from 'phosphor-react-native';
 import { useTheme , textSize, fontFamily, radius, shadow, buttonPadding, iconSize, haptics } from '../context/ThemeContext';
 import { triggerHaptic } from '../utils/haptics';
 import { useResponsive } from '../utils/responsive';
 import { useAuth } from '../context/AuthContext';
 import AnimatedSwitch from './AnimatedSwitch';
 
-// Schedule status uses BoxiconsFilled alarm variants
+// Schedule status uses Phosphor Clock variants
 
 // Pure date formatting helper - no component state dependency
 function formatScheduleDate(dateStr: string): string {
@@ -341,11 +340,11 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, onExpire
             </Text>
             {status !== null && (
               <View className="ml-2">
-                <BoxiconsFilled
-                  name={status === 'expired' ? 'bx-alarm-exclamation' : 'bx-alarm'}
-                  size={iconSize.sm}
-                  color={getClockColor()}
-                />
+                {status === 'expired' ? (
+                  <ClockCountdownIcon size={iconSize.sm} color={getClockColor()} weight="regular" />
+                ) : (
+                  <ClockIcon size={iconSize.sm} color={getClockColor()} weight="regular" />
+                )}
               </View>
             )}
           </View>
@@ -374,7 +373,7 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, onExpire
         {/* Toggle Switch */}
         <View style={{ alignItems: 'center' }}>
           {sharedIsLocked && !disabled && !isExpired && (
-            <MaterialCommunityIcons name="close-circle" size={iconSize.xs} color={colors.red} style={{ position: 'absolute', top: s(-20), zIndex: 1 }} />
+            <XCircleIcon size={iconSize.xs} color={colors.red} weight="fill" style={{ position: 'absolute', top: s(-20), zIndex: 1 }} />
           )}
           <AnimatedSwitch
             size="small"

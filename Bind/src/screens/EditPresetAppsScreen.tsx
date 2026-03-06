@@ -19,8 +19,7 @@ import AnimatedCheckbox, { AnimatedCheckboxRef } from '../components/AnimatedChe
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Svg, { Path, Rect } from 'react-native-svg';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import BoxiconsFilled from '../components/BoxiconsFilled';
+import { XCircleIcon, CaretRightIcon, ArrowBendUpLeftIcon, PlusIcon as PhosphorPlusIcon, CompassIcon, GlobeIcon as PhosphorGlobeIcon, AndroidLogoIcon, SquaresFourIcon, CursorClickIcon, PlusCircleIcon } from 'phosphor-react-native';
 import ExcludedAppsInfoModal from '../components/ExcludedAppsInfoModal';
 import { Preset } from '../components/PresetCard';
 import HeaderIconButton from '../components/HeaderIconButton';
@@ -36,55 +35,39 @@ const EXCLUDED_APPS_INFO_DISMISSED_KEY = 'excluded_apps_info_dismissed';
 // ============ Icon Components ============
 
 const XIcon = ({ size = iconSize.headerNav, color = "#FFFFFF" }: { size?: number; color?: string }) => (
-  <BoxiconsFilled name="bx-x-circle" size={size} color={color} />
+  <XCircleIcon size={size} color={color} weight="regular" />
 );
 
 const ChevronRightIcon = ({ size = iconSize.chevron, color = "#9CA3AF" }: { size?: number; color?: string }) => (
-  <BoxiconsFilled name="bx-caret-big-right" size={size} color={color} />
+  <CaretRightIcon size={size} color={color} weight="regular" />
 );
 
 const ForwardIcon = ({ size = iconSize.lg, color = "#FFFFFF" }: { size?: number; color?: string }) => (
-  <BoxiconsFilled name="bx-reply-big" size={size} color={color} style={{ transform: [{ scaleX: -1 }] }} />
+  <ArrowBendUpLeftIcon size={size} color={color} weight="regular" style={{ transform: [{ scaleX: -1 }] }} />
 );
 
 const EditIcon = ({ size = iconSize.md, color = '#FFFFFF' }: { size?: number; color?: string }) => (
-  <BoxiconsFilled name="bx-feather-plus" size={size} color={color} />
+  <PhosphorPlusIcon size={size} color={color} weight="regular" />
 );
 
 const SearchIcon = ({ size = iconSize.md, color = '#FFFFFF' }: { size?: number; color?: string }) => (
-  <MaterialCommunityIcons name="compass" size={size} color={color} />
+  <CompassIcon size={size} color={color} weight="regular" />
 );
 
 const PlusIcon = ({ size = iconSize.lg, color = '#FFFFFF' }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
-    <Path
-      fillRule="evenodd"
-      clipRule="evenodd"
-      d="M12 3.75a.75.75 0 0 1 .75.75v6.75h6.75a.75.75 0 0 1 0 1.5h-6.75v6.75a.75.75 0 0 1-1.5 0v-6.75H4.5a.75.75 0 0 1 0-1.5h6.75V4.5a.75.75 0 0 1 .75-.75Z"
-    />
-  </Svg>
+  <PhosphorPlusIcon size={size} color={color} weight="regular" />
 );
 
 const GlobeIcon = ({ size = iconSize.sm, color = "#FFFFFF" }: { size?: number; color?: string }) => (
-  <BoxiconsFilled name="bx-globe-alt" size={size} color={color} />
+  <PhosphorGlobeIcon size={size} color={color} weight="regular" />
 );
 
 const AndroidIcon = ({ size = iconSize.sm, color = "#FFFFFF" }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M17.6 9.48l1.84-3.18c.16-.31.04-.69-.26-.85a.637.637 0 0 0-.83.22l-1.88 3.24a11.46 11.46 0 0 0-8.94 0L5.65 5.67a.643.643 0 0 0-.87-.2c-.28.18-.37.54-.22.83L6.4 9.48C3.3 11.25 1.28 14.44 1 18h22c-.28-3.56-2.3-6.75-5.4-8.52M7 15.25a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5m10 0a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5"
-      fill={color}
-    />
-  </Svg>
+  <AndroidLogoIcon size={size} color={color} weight="regular" />
 );
 
 const AppsIcon = ({ size = iconSize.sm, color = "#FFFFFF" }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Rect x="3" y="3" width="7" height="7" rx="1.5" stroke={color} strokeWidth={2} />
-    <Rect x="14" y="3" width="7" height="7" rx="1.5" stroke={color} strokeWidth={2} />
-    <Rect x="3" y="14" width="7" height="7" rx="1.5" stroke={color} strokeWidth={2} />
-    <Rect x="14" y="14" width="7" height="7" rx="1.5" stroke={color} strokeWidth={2} />
-  </Svg>
+  <SquaresFourIcon size={size} color={color} weight="regular" />
 );
 
 // ============ Expandable Info ============
@@ -718,7 +701,7 @@ function EditPresetAppsScreen() {
                   style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card, flex: 1 }}
                   className={`${radius.xl} px-5 h-12 flex-row items-center mr-2`}
                 >
-                  <BoxiconsFilled name="bx-cursor-add" size={s(iconSize.md)} color={colors.textSecondary} />
+                  <CursorClickIcon size={s(iconSize.md)} color={colors.textSecondary} weight="regular" />
                   <TextInput
                     placeholder="e.g. instagram.com"
                     placeholderTextColor={colors.textSecondary}
@@ -731,7 +714,7 @@ function EditPresetAppsScreen() {
                   />
                 </View>
                 <HeaderIconButton onPress={addWebsite}>
-                  <BoxiconsFilled name="bx-plus-circle" size={s(iconSize.headerNav)} color="#fff" />
+                  <PlusCircleIcon size={s(iconSize.headerNav)} color="#fff" weight="regular" />
                 </HeaderIconButton>
               </View>
 

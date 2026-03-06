@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import BoxiconsFilled from '../components/BoxiconsFilled';
+import { EyeIcon, EyeSlashIcon } from 'phosphor-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import BackButton from '../components/BackButton';
 import ProgressBar from '../components/ProgressBar';
@@ -250,18 +250,9 @@ function GetStartedScreen() {
                     />
                     <View style={{ justifyContent: 'center', alignItems: 'center', paddingHorizontal: s(8), height: '100%' }}>
                       <HeaderIconButton onPress={() => setShowPassword(!showPassword)}>
-                        <BoxiconsFilled name={showPassword ? 'bx-eye' : 'bx-eye-slash'} size={s(iconSize.headerNav)} color={colors.text} />
+                        {showPassword ? <EyeIcon size={s(iconSize.headerNav)} color={colors.text} weight="regular" /> : <EyeSlashIcon size={s(iconSize.headerNav)} color={colors.text} weight="regular" />}
                       </HeaderIconButton>
                     </View>
-                  </View>
-                  {/* Hidden Forgot Password placeholder for layout consistency */}
-                  <View
-                    style={{ alignSelf: 'flex-end', marginTop: s(8), opacity: 0 }}
-                    pointerEvents="none"
-                  >
-                    <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular}`}>
-                      Forgot Password?
-                    </Text>
                   </View>
                 </View>
               </>

@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import BoxiconsFilled from '../components/BoxiconsFilled';
+import { BellRingingIcon, WheelchairIcon, ChartBarIcon, MonitorIcon, BatteryChargingIcon, ShieldCheckIcon, TimerIcon, BellIcon } from 'phosphor-react-native';
 import Svg, { Path } from 'react-native-svg';
 import { useAuth } from '../context/AuthContext';
 import { useTheme, textSize, fontFamily, radius } from '../context/ThemeContext';
@@ -25,7 +25,7 @@ interface Permission {
   id: string;
   title: string;
   description: string;
-  icon: string;
+  icon: React.ComponentType<any>;
   svgPath?: string;
   isGranted: boolean;
   androidIntent?: string;
@@ -45,7 +45,7 @@ const ANDROID_PERMISSIONS: Permission[] = [
     id: 'notification',
     title: 'Notification Access',
     description: 'Block notifications from restricted apps and send you updates about blocking sessions.',
-    icon: 'bx-bell-ring',
+    icon: BellRingingIcon,
     isGranted: false,
     androidIntent: 'android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS',
   },
@@ -53,7 +53,7 @@ const ANDROID_PERMISSIONS: Permission[] = [
     id: 'accessibility',
     title: 'Accessibility Service',
     description: 'Monitor and block distracting apps.',
-    icon: 'bx-universal-access',
+    icon: WheelchairIcon,
     isGranted: false,
     androidIntent: 'android.settings.ACCESSIBILITY_SETTINGS',
   },
@@ -61,7 +61,7 @@ const ANDROID_PERMISSIONS: Permission[] = [
     id: 'usageAccess',
     title: 'Usage Access',
     description: 'Monitor app usage and enforce blocking rules.',
-    icon: 'bx-chart-area',
+    icon: ChartBarIcon,
     isGranted: false,
     androidIntent: 'android.settings.USAGE_ACCESS_SETTINGS',
   },
@@ -69,7 +69,7 @@ const ANDROID_PERMISSIONS: Permission[] = [
     id: 'displayOverlay',
     title: 'Display Overlay',
     description: 'Display blocking screens over restricted apps.',
-    icon: 'bx-screen-light',
+    icon: MonitorIcon,
     isGranted: false,
     androidIntent: 'android.settings.action.MANAGE_OVERLAY_PERMISSION',
   },
@@ -77,7 +77,7 @@ const ANDROID_PERMISSIONS: Permission[] = [
     id: 'batteryOptimization',
     title: 'Unrestricted Battery',
     description: 'Ensure scheduled presets work reliably even when the app is closed.',
-    icon: 'bx-battery',
+    icon: BatteryChargingIcon,
     isGranted: false,
     androidIntent: 'battery_optimization_request',
   },
@@ -85,7 +85,7 @@ const ANDROID_PERMISSIONS: Permission[] = [
     id: 'deviceAdmin',
     title: 'Device Admin',
     description: 'Prevent Scute from being uninstalled during active blocking sessions.',
-    icon: 'bx-shield',
+    icon: ShieldCheckIcon,
     isGranted: false,
     androidIntent: 'device_admin_request',
   },
@@ -97,7 +97,7 @@ const IOS_PERMISSIONS: Permission[] = [
     id: 'screenTime',
     title: 'Screen Time Access',
     description: 'Block apps and websites during focus sessions.',
-    icon: 'bx-timer',
+    icon: TimerIcon,
     isGranted: false,
     iosAction: 'screenTime',
   },
@@ -105,7 +105,7 @@ const IOS_PERMISSIONS: Permission[] = [
     id: 'notifications',
     title: 'Notifications',
     description: 'Receive alerts when blocking sessions start and end.',
-    icon: 'bx-bell',
+    icon: BellIcon,
     isGranted: false,
     iosAction: 'notifications',
   },
@@ -448,10 +448,10 @@ function PermissionsChecklistScreen() {
                 <Path d={SVG_PATHS[displayedPermission.id]} fill={colors.text} />
               </Svg>
             ) : (
-              <BoxiconsFilled
-                name={displayedPermission.icon}
+              <displayedPermission.icon
                 size={s(90)}
                 color={colors.text}
+                weight="regular"
               />
             )}
           </Animated.View>

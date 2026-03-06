@@ -57,7 +57,7 @@
                     android:gravity="center_vertical"
                     android:background="@drawable/bubble_background"
                     android:paddingStart="14dp"
-                    android:paddingEnd="14dp"
+                    android:paddingEnd="10dp"
                     android:visibility="gone">
 
                     <!-- Caret icon (0 = points right, 90 = points down) -->

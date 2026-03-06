@@ -13,7 +13,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import HeaderIconButton from '../components/HeaderIconButton';
-import BoxiconsFilled from '../components/BoxiconsFilled';
+import { CaretLeftIcon, CaretRightIcon, XCircleIcon, CheckCircleIcon, CalendarXIcon } from 'phosphor-react-native';
 import { useTheme, textSize, fontFamily, radius, shadow, iconSize, buttonPadding, haptics } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { triggerHaptic } from '../utils/haptics';
@@ -32,19 +32,19 @@ function getFirstDayOfMonth(month: number, year: number): number {
 
 // ============ Icon Components ============
 const ChevronLeftIcon = ({ size = iconSize.chevron, color = "#FFFFFF" }: { size?: number; color?: string }) => (
-  <BoxiconsFilled name="bx-caret-big-left" size={size} color={color} />
+  <CaretLeftIcon size={size} color={color} weight="regular" />
 );
 
 const ChevronRightIcon = ({ size = iconSize.chevron, color = "#9CA3AF" }: { size?: number; color?: string }) => (
-  <BoxiconsFilled name="bx-caret-big-right" size={size} color={color} />
+  <CaretRightIcon size={size} color={color} weight="regular" />
 );
 
 const XIcon = ({ size = iconSize.headerNav, color = "#FFFFFF" }: { size?: number; color?: string }) => (
-  <BoxiconsFilled name="bx-x-circle" size={size} color={color} />
+  <XCircleIcon size={size} color={color} weight="regular" />
 );
 
 const CheckIcon = ({ size = iconSize.headerNav, color = "#FFFFFF" }: { size?: number; color?: string }) => (
-  <BoxiconsFilled name="bx-check-circle" size={size} color={color} />
+  <CheckCircleIcon size={size} color={color} weight="regular" />
 );
 
 // ============ Sun/Moon Icons ============
@@ -663,7 +663,7 @@ function DatePickerScreen() {
             </View>
             {tempSelectedDate && (
               <HeaderIconButton onPress={handleClear} flashSize={46}>
-                <BoxiconsFilled name="bx-calendar-x" size={s(iconSize.toggleRow)} color={colors.text} />
+                <CalendarXIcon size={s(iconSize.toggleRow)} color={colors.text} weight="regular" />
               </HeaderIconButton>
             )}
           </View>

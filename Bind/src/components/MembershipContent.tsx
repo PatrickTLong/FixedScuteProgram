@@ -11,7 +11,7 @@ import {
   UIManager,
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import BoxiconsFilled from './BoxiconsFilled';
+import { ImageIcon, CalendarCheckIcon, SquaresFourIcon } from 'phosphor-react-native';
 import { useTheme, textSize, fontFamily, radius, shadow, buttonPadding, haptics } from '../context/ThemeContext';
 import { triggerHaptic } from '../utils/haptics';
 import { useResponsive } from '../utils/responsive';
@@ -51,21 +51,16 @@ type PlanKey = keyof typeof PLANS;
 const PLAN_KEYS: PlanKey[] = ['monthly', 'yearly', 'lifetime'];
 
 type Feature =
-  | { label: string; type: 'boxicon'; icon: string }
+  | { label: string; type: 'phosphor'; PhosphorIcon: React.ComponentType<any> }
   | { label: string; type: 'svg'; paths: string[]; viewBox: string };
 
 const FEATURES: Feature[] = [
-  { label: 'Unlimited presets', type: 'svg', viewBox: '0 0 24 24', paths: [
-    'M3 3h4v4H3zm7 0h4v4h-4z',
-    'M10 3h4v4h-4zm7 0h4v4h-4zM3 17h4v4H3zm7 0h4v4h-4z',
-    'M10 17h4v4h-4zm7 0h4v4h-4zM3 10h4v4H3zm7 0h4v4h-4z',
-    'M10 10h4v4h-4zm7 0h4v4h-4z',
-  ]},
-  { label: 'Unlock Overlay Editor', type: 'boxicon', icon: 'bx-image-landscape' },
+  { label: 'Unlimited presets', type: 'phosphor', PhosphorIcon: SquaresFourIcon },
+  { label: 'Unlock Overlay Editor', type: 'phosphor', PhosphorIcon: ImageIcon },
   { label: 'Emergency tapout access', type: 'svg', viewBox: '0 -960 960 960', paths: [
     'M595-468h-230q0 170 115 170t115-170ZM272.5-652.5Q243-625 231-577l58 14q6-26 20-41.5t31-15.5q17 0 31 15.5t20 41.5l58-14q-12-48-41.5-75.5T340-680q-38 0-67.5 27.5Zm280 0Q523-625 511-577l58 14q6-26 20-41.5t31-15.5q17 0 31 15.5t20 41.5l58-14q-12-48-41.5-75.5T620-680q-38 0-67.5 27.5ZM480-120l-58-50q-101-88-167-152T150-437q-39-51-54.5-94T80-620q0-94 63-157t157-63q52 0 99 22t81 62q34-40 81-62t99-22q94 0 157 63t63 157q0 46-15.5 89T810-437q-39 51-105 115T538-170l-58 50Z',
   ]},
-  { label: 'Scheduled blocking sessions', type: 'boxicon', icon: 'bx-calendar-check' },
+  { label: 'Scheduled blocking sessions', type: 'phosphor', PhosphorIcon: CalendarCheckIcon },
   { label: 'Priority support', type: 'svg', viewBox: '0 -960 960 960', paths: [
     'M423.5-743.5Q400-767 400-800t23.5-56.5Q447-880 480-880t56.5 23.5Q560-833 560-800t-23.5 56.5Q513-720 480-720t-56.5-23.5ZM360-80v-520q-60-5-122-15t-118-25l20-80q78 21 166 30.5t174 9.5q86 0 174-9.5T820-720l20 80q-56 15-118 25t-122 15v520h-80v-240h-80v240h-80Z',
   ]},
@@ -267,11 +262,11 @@ function MembershipContent() {
                   transform: [{ translateY: featureAnims[index].interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }],
                 }}
               >
-                {feature.type === 'boxicon' ? (
-                  <BoxiconsFilled name={feature.icon} size={s(22)} color={colors.text} />
+                {feature.type === 'phosphor' ? (
+                  <feature.PhosphorIcon size={s(22)} color={colors.text} weight="regular" />
                 ) : (
                   <Svg width={s(22)} height={s(22)} viewBox={feature.viewBox} fill={colors.text}>
-                    {feature.paths.map((d, i) => <Path key={i} d={d} />)}
+                    {feature.paths.map((d: string, i: number) => <Path key={i} d={d} />)}
                   </Svg>
                 )}
                 <Text style={{ color: colors.text, marginLeft: s(12) }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>

@@ -13,7 +13,7 @@ import {
 import LoadingSpinner from '../components/LoadingSpinner';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
-import BoxiconsFilled from '../components/BoxiconsFilled';
+import { EnvelopeIcon, HandshakeIcon, SignOutIcon, ArrowsClockwiseIcon, WarningIcon, ChatDotsIcon, BugIcon as PhosphorBugIcon, ShieldCheckIcon, FileIcon, CaretRightIcon, CheckCircleIcon, ArrowBendUpLeftIcon } from 'phosphor-react-native';
 import ConfirmationModal from '../components/ConfirmationModal';
 import HeaderIconButton from '../components/HeaderIconButton';
 import MembershipContent from '../components/MembershipContent';
@@ -23,54 +23,45 @@ import { triggerHaptic } from '../utils/haptics';
 import { useResponsive } from '../utils/responsive';
 import { useAuth } from '../context/AuthContext';
 
-// Icons - white with thicker strokes
+// Icons
 const MailIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
-  <Svg width={iconSize.forTabs} height={iconSize.forTabs} viewBox="0 -960 960 960" fill={color}>
-    <Path d="M560-520h280v-200H560v200Zm140-50-100-70v-40l100 70 100-70v40l-100 70ZM80-120q-33 0-56.5-23.5T0-200v-560q0-33 23.5-56.5T80-840h800q33 0 56.5 23.5T960-760v560q0 33-23.5 56.5T880-120H80Zm365-315q35-35 35-85t-35-85q-35-35-85-35t-85 35q-35 35-35 85t35 85q35 35 85 35t85-35ZM84-200h552q-42-75-116-117.5T360-360q-86 0-160 42.5T84-200Z" />
-  </Svg>
+  <EnvelopeIcon size={iconSize.forTabs} color={color} weight="regular" />
 );
 
 const MembershipIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
-  <BoxiconsFilled name="bx-handshake" size={iconSize.forTabs} color={color} />
+  <HandshakeIcon size={iconSize.forTabs} color={color} weight="regular" />
 );
 
 const LogoutIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
-  <BoxiconsFilled name="bx-door-open-alt" size={iconSize.forTabs} color={color} />
+  <SignOutIcon size={iconSize.forTabs} color={color} weight="regular" />
 );
 
 const RefreshIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
-  <Svg width={iconSize.forTabs} height={iconSize.forTabs} viewBox="0 -960 960 960" fill={color}>
-    <Path d="M314-115q-104-48-169-145T80-479q0-26 2.5-51t8.5-49l-46 27-40-69 191-110 110 190-70 40-54-94q-11 27-16.5 56t-5.5 60q0 97 53 176.5T354-185l-40 70Zm306-485v-80h109q-46-57-111-88.5T480-800q-55 0-104 17t-90 48l-40-70q50-35 109-55t125-20q79 0 151 29.5T760-765v-55h80v220H620ZM594 0 403-110l110-190 69 40-57 98q118-17 196.5-107T800-480q0-11-.5-20.5T797-520h81q1 10 1.5 19.5t.5 20.5q0 135-80.5 241.5T590-95l44 26-40 69Z" />
-  </Svg>
+  <ArrowsClockwiseIcon size={iconSize.forTabs} color={color} weight="regular" />
 );
 
 const TrashIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
-  <Svg width={iconSize.forTabs} height={iconSize.forTabs} viewBox="0 -960 960 960">
-    <Path d="m40-120 440-760 440 760H40Z" fill={color} />
-    <Path d="M508.5-251.5Q520-263 520-280t-11.5-28.5Q497-320 480-320t-28.5 11.5Q440-297 440-280t11.5 28.5Q463-240 480-240t28.5-11.5ZM440-360h80v-200h-80v200Z" fill="#000000" />
-  </Svg>
+  <WarningIcon size={iconSize.forTabs} color={color} weight="fill" />
 );
 
 const MessageIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
-  <BoxiconsFilled name="bx-message-dots" size={iconSize.forTabs} color={color} />
+  <ChatDotsIcon size={iconSize.forTabs} color={color} weight="regular" />
 );
 
 const BugIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
-  <BoxiconsFilled name="bx-report" size={iconSize.forTabs} color={color} />
+  <PhosphorBugIcon size={iconSize.forTabs} color={color} weight="regular" />
 );
 
 const ShieldIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
-  <BoxiconsFilled name="bx-info-shield" size={iconSize.forTabs} color={color} />
+  <ShieldCheckIcon size={iconSize.forTabs} color={color} weight="regular" />
 );
 
 const FileTextIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
-  <Svg width={iconSize.forTabs} height={iconSize.forTabs} viewBox="0 -960 960 960" fill={color}>
-    <Path d="M240-80q-33 0-56.5-23.5T160-160v-640q0-33 23.5-56.5T240-880h320l240 240v480q0 33-23.5 56.5T720-80H240Zm40-120h400q-4-49-30-90t-68-65l38-68q2-4 1-9t-6-7q-4-2-8.5-1t-6.5 5l-39 70q-20-8-40-12.5t-41-4.5q-21 0-41 4.5T399-365l-39-70q-2-5-6.5-5t-9.5 2l-4 15 38 68q-42 24-68 65t-30 90Zm96-66q-6-6-6-14t6-14q6-6 14-6t14 6q6 6 6 14t-6 14q-6 6-14 6t-14-6Zm180 0q-6-6-6-14t6-14q6-6 14-6t14 6q6 6 6 14t-6 14q-6 6-14 6t-14-6Zm-36-334h200L520-800v200Z" />
-  </Svg>
+  <FileIcon size={iconSize.forTabs} color={color} weight="regular" />
 );
 
 const ChevronRightIcon = ({ size = iconSize.chevron, color = "#FFFFFF" }: { size?: number; color?: string }) => (
-  <BoxiconsFilled name="bx-caret-right-circle" size={size} color={color} />
+  <CaretRightIcon size={size} color={color} weight="regular" />
 );
 
 interface SettingsRowProps {
@@ -623,7 +614,7 @@ function SettingsScreen() {
             <View style={{ width: s(40) }} />
             <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.bold}`}>Privacy Policy</Text>
             <HeaderIconButton onPress={() => setPrivacyModalVisible(false)} style={{ width: s(40) }} className="px-2 items-end">
-              <BoxiconsFilled name="bx-check-circle" size={s(iconSize.headerNav)} color="#FFFFFF" />
+              <CheckCircleIcon size={s(iconSize.headerNav)} color="#FFFFFF" weight="regular" />
             </HeaderIconButton>
           </View>
 
@@ -747,7 +738,7 @@ function SettingsScreen() {
             <View style={{ width: s(40) }} />
             <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.bold}`}>Terms of Service</Text>
             <HeaderIconButton onPress={() => setTermsModalVisible(false)} style={{ width: s(40) }} className="px-2 items-end">
-              <BoxiconsFilled name="bx-check-circle" size={s(iconSize.headerNav)} color="#FFFFFF" />
+              <CheckCircleIcon size={s(iconSize.headerNav)} color="#FFFFFF" weight="regular" />
             </HeaderIconButton>
           </View>
 
@@ -884,7 +875,7 @@ function SettingsScreen() {
             {/* Only show back button if trial hasn't expired */}
             {!membershipStatus?.trialExpired ? (
               <HeaderIconButton onPress={() => setMembershipModalVisible(false)} style={{ width: s(40) }}>
-                <BoxiconsFilled name="bx-reply-big" size={s(iconSize.headerNav)} color="#FFFFFF" />
+                <ArrowBendUpLeftIcon size={s(iconSize.headerNav)} color="#FFFFFF" weight="regular" />
               </HeaderIconButton>
             ) : (
               <View style={{ width: s(40) }} />

@@ -132,8 +132,14 @@ class UninstallBlockerService : Service() {
             onRedirectToSafeUrl = {
                 // Redirect to custom URL or google.com while overlay is showing (underneath)
                 val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-                val customRedirectUrl = prefs.getString("custom_redirect_url", "") ?: ""
+                val rawRedirectUrl = prefs.getString("custom_redirect_url", "") ?: ""
+                val customRedirectUrl = if (rawRedirectUrl.isNotEmpty() && !rawRedirectUrl.startsWith("http://") && !rawRedirectUrl.startsWith("https://")) {
+                    "https://$rawRedirectUrl"
+                } else {
+                    rawRedirectUrl
+                }
                 val redirectUrl = if (customRedirectUrl.isNotEmpty()) customRedirectUrl else "https://google.com"
+                Log.d(TAG, "[REDIRECT] onRedirectToSafeUrl callback — custom_redirect_url='$customRedirectUrl', redirectUrl='$redirectUrl'")
                 ScuteAccessibilityService.instance?.navigateToUrl(redirectUrl)
             }
             onDismissed = {

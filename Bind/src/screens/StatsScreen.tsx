@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import BoxiconsFilled from '../components/BoxiconsFilled';
+import { ArrowsClockwiseIcon, ArrowsOutIcon, ArrowsInIcon } from 'phosphor-react-native';
 import { useTheme, textSize, fontFamily, radius, shadow, buttonPadding, iconSize } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import HeaderIconButton from '../components/HeaderIconButton';
@@ -84,13 +84,13 @@ const SpinningRefresh = memo(({ size, color }: { size: number; color: string }) 
   });
   return (
     <Animated.View style={{ transform: [{ rotate }], marginLeft: size * 0.4 }}>
-      <BoxiconsFilled name="bx-refresh-cw" size={size} color={color} />
+      <ArrowsClockwiseIcon size={size} color={color} weight="regular" />
     </Animated.View>
   );
 });
 
 const ExpandIcon = ({ size = iconSize.sm, color = '#FFFFFF' }: { size?: number; color?: string }) => (
-  <BoxiconsFilled name="bx-maximize" size={size} color={color} />
+  <ArrowsOutIcon size={size} color={color} weight="regular" />
 );
 
 const AnimatedBar = memo(({ percentage, color, delay, barWidth, maxHeight, label, time, mutedColor, icon, s, animationKey, glintKey }: {
@@ -503,7 +503,7 @@ function StatsScreen() {
                 onPress={() => setExpandedVisible(false)}
                 className="p-3"
               >
-                <BoxiconsFilled name="bx-minimize" size={s(iconSize.headerNav)} color="#FFFFFF" />
+                <ArrowsInIcon size={s(iconSize.headerNav)} color="#FFFFFF" weight="regular" />
               </HeaderIconButton>
             </View>
 

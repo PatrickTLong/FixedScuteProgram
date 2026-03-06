@@ -128,6 +128,22 @@ class BlockingModule(reactContext: ReactApplicationContext) :
             Log.d(TAG, "[START-BLOCKING] Config: presetName=\"$presetName\", presetId=$presetId, noTimeLimit=$noTimeLimit, strictMode=$strictMode")
             Log.d(TAG, "[START-BLOCKING] Timing: endTime=$endTime (${java.util.Date(endTime)}), hasTimeLimit=$hasTimeLimit")
             Log.d(TAG, "[START-BLOCKING] Blocking: apps=${appSet.size}, websites=${websiteSet.size}, customText='$customBlockedText', customImage='$customOverlayImage'")
+            Log.d(TAG, "[START-BLOCKING] Redirect: customRedirectUrl='$customRedirectUrl'")
+
+            // Clean up legacy overlay SharedPrefs keys from old versions
+            val legacyKeys = listOf(
+                "dismiss_text_size", "icon_visible", "custom_dismiss_color",
+                "blocked_text_pos_y", "blocked_text_pos_x", "blocked_text_visible",
+                "blocked_text_size", "dismiss_text_visible", "custom_overlay_image_size",
+                "custom_dismiss_text", "icon_pos_x", "icon_pos_y",
+                "dismiss_text_pos_x", "dismiss_text_pos_y", "custom_overlay_bg_color",
+                "custom_blocked_text_color"
+            )
+            val editor = sessionPrefs.edit()
+            for (key in legacyKeys) {
+                editor.remove(key)
+            }
+            editor.apply()
 
             // Save to SharedPreferences
             val isScheduled = if (config.hasKey("isScheduled")) config.getBoolean("isScheduled") else false
@@ -149,7 +165,7 @@ class BlockingModule(reactContext: ReactApplicationContext) :
                 .putString("custom_redirect_url", customRedirectUrl)
                 .apply()
 
-            Log.d(TAG, "[START-BLOCKING] SharedPreferences saved — noTimeLimit=$noTimeLimit, isScheduled=$isScheduled, presetName=\"$presetName\", presetId=$presetId")
+            Log.d(TAG, "[START-BLOCKING] SharedPreferences saved — noTimeLimit=$noTimeLimit, isScheduled=$isScheduled, presetName=\"$presetName\", presetId=$presetId, customRedirectUrl='$customRedirectUrl'")
 
             // Start the foreground service
             Log.d(TAG, "[START-BLOCKING] Starting foreground service (bubble will be shown by onStartCommand)...")
@@ -384,6 +400,9 @@ class BlockingModule(reactContext: ReactApplicationContext) :
                 .remove("active_preset_id")
                 .remove("active_preset_name")
                 .remove("is_scheduled_preset")
+                .remove("custom_blocked_text")
+                .remove("custom_overlay_image")
+                .remove("custom_redirect_url")
                 .apply()
             Log.d(TAG, "[FORCE-UNLOCK] SharedPreferences cleared")
 
