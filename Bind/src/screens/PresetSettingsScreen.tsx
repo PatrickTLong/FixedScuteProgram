@@ -15,7 +15,7 @@ import AnimatedSwitch from '../components/AnimatedSwitch';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Svg, { Path } from 'react-native-svg';
-import { CaretLeftIcon, ArrowBendUpLeftIcon, XCircleIcon, FloppyDiskIcon, CheckCircleIcon, CalendarCheckIcon, CaretRightIcon, PaperPlaneTiltIcon, ArrowsClockwiseIcon, ClockIcon as PhosphorClockIcon, ImageIcon, ImageSquareIcon, LinkIcon, AndroidLogoIcon, CalendarDotsIcon, GearSixIcon, InfoIcon as PhosphorInfoIcon, TrashIcon as PhosphorTrashIcon, GlobeIcon as PhosphorGlobeIcon, HourglassSimpleIcon, PlayCircleIcon, StopCircleIcon, LockIcon } from 'phosphor-react-native';
+import { CaretLeftIcon, ArrowBendUpLeftIcon, XCircleIcon, FloppyDiskIcon, CheckCircleIcon, CalendarCheckIcon, CaretRightIcon, PaperPlaneTiltIcon, ArrowsClockwiseIcon, ClockIcon as PhosphorClockIcon, ImageIcon, ImageSquareIcon, LinkIcon, AndroidLogoIcon, CalendarDotsIcon, GearSixIcon, InfoIcon as PhosphorInfoIcon, TrashIcon as PhosphorTrashIcon, GlobeIcon as PhosphorGlobeIcon, HourglassSimpleIcon, PlayCircleIcon, StopCircleIcon, LockIcon, ArticleNyTimesIcon } from 'phosphor-react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { API_URL } from '../config/api';
 import { getAuthToken } from '../services/cardApi';
@@ -1641,40 +1641,24 @@ function PresetSettingsScreen() {
           <ExpandableInfo expanded={customOverlayEnabled}>
             <View className="px-6 pb-4">
               {/* Custom blocked text */}
-              <View className="flex-row items-center mb-3">
-                <Text style={{ color: colors.textSecondary, marginRight: s(6) }} className={`${textSize.small} ${fontFamily.bold}`}>
-                  Aa
-                </Text>
-                <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.semibold}`}>
-                  Blocked Message
-                </Text>
-              </View>
-              <TextInput
-                value={customBlockedText}
-                onChangeText={(text) => {
-                  console.log('[OVERLAY] Text changed:', text);
-                  setCustomBlockedText(text);
-                }}
-                placeholder="e.g. Get back to work."
-                placeholderTextColor={colors.textSecondary}
-                multiline
-                maxLength={200}
-                style={{
-                  backgroundColor: colors.card,
-                  color: colors.text,
-                  borderWidth: 1,
-                  borderColor: colors.border,
-                  ...shadow.card,
-                  padding: s(14),
-                  minHeight: s(80),
-                  textAlignVertical: 'top',
-                  borderRadius: s(12),
-                }}
-                className={`${textSize.small} ${fontFamily.semibold}`}
-              />
-              <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-2 text-right`}>
-                {customBlockedText.length}/200
+              <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.semibold} mb-3`}>
+                Blocked Message
               </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, height: s(48), borderWidth: 1, borderColor: colors.border, ...shadow.card, overflow: 'hidden', paddingLeft: s(12) }} className={radius.xl}>
+                <ArticleNyTimesIcon size={s(iconSize.md)} color={colors.textSecondary} weight="regular" />
+                <TextInput
+                  value={customBlockedText}
+                  onChangeText={(text) => {
+                    console.log('[OVERLAY] Text changed:', text);
+                    setCustomBlockedText(text);
+                  }}
+                  placeholder="e.g. Get back to work."
+                  placeholderTextColor={colors.textSecondary}
+                  maxLength={200}
+                  style={{ flex: 1, color: colors.text, marginLeft: s(8) }}
+                  className={`${textSize.small} ${fontFamily.regular}`}
+                />
+              </View>
 
               {/* Divider */}
               <View style={{ height: 1, backgroundColor: colors.dividerLight, marginVertical: s(16) }} />
