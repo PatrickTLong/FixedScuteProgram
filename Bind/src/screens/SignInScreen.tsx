@@ -15,7 +15,6 @@ import BackButton from '../components/BackButton';
 import ProgressBar from '../components/ProgressBar';
 import InfoModal from '../components/InfoModal';
 import OTPInput from '../components/OTPInput';
-import GoogleSignInBtn from '../components/GoogleSignInButton';
 import HeaderIconButton from '../components/HeaderIconButton';
 import { useTheme , textSize, fontFamily, radius, shadow, iconSize } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
@@ -323,17 +322,6 @@ function SignInScreen() {
                 </View>
               )}
             </TouchableOpacity>
-
-            {/* Google Sign In - only show on credentials step */}
-            {step === 'credentials' && (
-              <View className="mt-2">
-                <GoogleSignInBtn
-                  onSuccess={onSuccess}
-                  onError={(error) => showModal('Google Sign-In Error', error)}
-                  disabled={loading}
-                />
-              </View>
-            )}
 
             {/* Hidden "Already have an account" placeholder for layout consistency */}
             {step === 'credentials' && (

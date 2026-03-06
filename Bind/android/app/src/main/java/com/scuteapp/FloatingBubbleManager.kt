@@ -832,7 +832,7 @@ class FloatingBubbleManager(private val context: Context) {
                     setPadding(
                         (12 * density).toInt(),
                         (5 * density).toInt(),
-                        (12 * density).toInt(),
+                        (8 * density).toInt(),
                         (5 * density).toInt()
                     )
                 }
@@ -853,6 +853,7 @@ class FloatingBubbleManager(private val context: Context) {
                     setTextColor(0xFFFFFFFF.toInt())
                     textSize = 12f
                     typeface = ResourcesCompat.getFont(context, R.font.plusjakartasans_bold)
+                    letterSpacing = 0.03f
                     maxLines = 1
                     ellipsize = TextUtils.TruncateAt.END
                     layoutParams = LinearLayout.LayoutParams(
@@ -878,7 +879,7 @@ class FloatingBubbleManager(private val context: Context) {
                 setPadding(
                     (12 * density).toInt(),
                     (5 * density).toInt(),
-                    (12 * density).toInt(),
+                    (8 * density).toInt(),
                     (5 * density).toInt()
                 )
             }
@@ -899,6 +900,7 @@ class FloatingBubbleManager(private val context: Context) {
                 setTextColor(0xFFFFFFFF.toInt())
                 textSize = 12f
                 typeface = ResourcesCompat.getFont(context, R.font.plusjakartasans_bold)
+                letterSpacing = 0.03f
                 maxLines = 1
                 ellipsize = TextUtils.TruncateAt.END
                 layoutParams = LinearLayout.LayoutParams(

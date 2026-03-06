@@ -17,6 +17,8 @@ interface Props {
   onSuccess: (email: string) => void;
   onError?: (error: string) => void;
   disabled?: boolean;
+  light?: boolean;
+  noShadow?: boolean;
 }
 
 // Google "G" Logo SVG
@@ -47,10 +49,13 @@ GoogleSignin.configure({
   offlineAccess: true,
 });
 
-function GoogleSignInBtn({ onSuccess, onError, disabled }: Props) {
+function GoogleSignInBtn({ onSuccess, onError, disabled, light, noShadow }: Props) {
   const { colors } = useTheme();
   const { s } = useResponsive();
   const [loading, setLoading] = useState(false);
+  const bgColor = light ? '#ffffff' : colors.card;
+  const borderColor = colors.border;
+  const txtColor = light ? '#000000' : colors.text;
 
   async function handleGoogleSignIn() {
     if (haptics.googleSignIn.enabled) {
@@ -114,11 +119,11 @@ function GoogleSignInBtn({ onSuccess, onError, disabled }: Props) {
       disabled={disabled || loading}
       activeOpacity={0.8}
       style={{
-        backgroundColor: colors.card,
+        backgroundColor: bgColor,
         position: 'relative',
-        borderWidth: 1, borderColor: colors.border,
+        borderWidth: 1, borderColor: borderColor,
         paddingVertical: s(buttonPadding.standard),
-        ...shadow.card,
+        ...(noShadow ? {} : shadow.card),
       }}
       className={`${radius.full} items-center justify-center`}
     >
@@ -126,13 +131,13 @@ function GoogleSignInBtn({ onSuccess, onError, disabled }: Props) {
         <View className="mr-3">
           <GoogleLogo size={20} />
         </View>
-        <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
+        <Text style={{ color: txtColor }} className={`${textSize.small} ${fontFamily.semibold}`}>
           Continue with Google
         </Text>
       </View>
       {loading && (
         <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center' }}>
-          <LoadingSpinner size={s(20)} color={colors.text} />
+          <LoadingSpinner size={s(20)} color={txtColor} />
         </View>
       )}
     </TouchableOpacity>

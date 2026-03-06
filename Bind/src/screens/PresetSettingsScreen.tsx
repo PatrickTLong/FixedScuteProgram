@@ -460,6 +460,59 @@ const ExpandableInfo = ({ expanded, children, lazy = false }: { expanded: boolea
   );
 };
 
+// ============ AnimatedInfoExpand Component ============
+const AnimatedInfoExpand = ({ expanded, children }: { expanded: boolean; children: React.ReactNode }) => {
+  const anim = useRef(new Animated.Value(expanded ? 1 : 0)).current;
+  const [contentHeight, setContentHeight] = useState(0);
+  const measured = useRef(false);
+
+  useEffect(() => {
+    Animated.timing(anim, {
+      toValue: expanded ? 1 : 0,
+      duration: 200,
+      easing: Easing.out(Easing.ease),
+      useNativeDriver: false,
+    }).start();
+  }, [expanded, anim]);
+
+  return (
+    <Animated.View
+      style={{
+        height: contentHeight > 0
+          ? anim.interpolate({ inputRange: [0, 1], outputRange: [0, contentHeight] })
+          : expanded ? undefined : 0,
+        opacity: anim,
+        overflow: 'hidden',
+      }}
+    >
+      <View
+        onLayout={(e) => {
+          if (!measured.current) {
+            measured.current = true;
+            setContentHeight(e.nativeEvent.layout.height);
+          }
+        }}
+      >
+        {children}
+      </View>
+    </Animated.View>
+  );
+};
+
+// ============ InfoIcon Component ============
+const InfoIcon = ({ expanded, color, size }: { expanded: boolean; color: string; size: number }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
+    {expanded ? (
+      <Path d="M12 22c5.51 0 10-4.49 10-10S17.51 2 12 2 2 6.49 2 12s4.49 10 10 10M11 7h2v2h-2zm0 4h2v6h-2z" />
+    ) : (
+      <>
+        <Path d="M11 11h2v6h-2zm0-4h2v2h-2z" />
+        <Path d="M12 22c5.51 0 10-4.49 10-10S17.51 2 12 2 2 6.49 2 12s4.49 10 10 10m0-18c4.41 0 8 3.59 8 8s-3.59 8-8 8-8-3.59-8-8 3.59-8 8-8" />
+      </>
+    )}
+  </Svg>
+);
+
 // ============ Navigation Types ============
 type PresetSettingsNavigationProp = BottomTabNavigationProp<MainTabParamList, 'PresetSettings'>;
 
@@ -926,22 +979,23 @@ function PresetSettingsScreen() {
 
       <ScrollView ref={mainScrollRef} className="flex-1 pt-6" contentContainerStyle={{ paddingBottom: s(100) }}>
 
-        <Text style={{ color: colors.text }} className={`${textSize.extraSmall} ${fontFamily.regular} px-6 mb-4`}>
-          Tap on toggle text to see further details
-        </Text>
-
         {/* ── Time & Duration ── */}
 
         {/* No Time Limit Toggle */}
         <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}>
           <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
-            <TouchableOpacity onPress={() => toggleInfo('noTimeLimit')} activeOpacity={0.7} style={{ maxWidth: '75%' }} className="flex-row items-center">
+            <View style={{ maxWidth: '75%' }} className="flex-row items-center">
               <BoxiconsFilled name="bx-infinite" size={s(iconSize.toggleRow)} color={colors.text} style={{ marginRight: s(14) }} />
-              <View>
-                <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>No Time Limit</Text>
+              <View className="flex-1">
+                <View className="flex-row items-center">
+                  <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>No Time Limit</Text>
+                  <TouchableOpacity onPress={() => toggleInfo('noTimeLimit')} activeOpacity={0.7} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} style={{ marginLeft: s(6) }}>
+                    <InfoIcon expanded={!!expandedInfo.noTimeLimit} color={colors.textSecondary} size={s(16)} />
+                  </TouchableOpacity>
+                </View>
                 <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-1`}>Block until manually unlocked</Text>
               </View>
-            </TouchableOpacity>
+            </View>
             <AnimatedSwitch
               size="small"
               value={noTimeLimit}
@@ -967,29 +1021,34 @@ function PresetSettingsScreen() {
               }}
             />
           </View>
-          <ExpandableInfo expanded={!!expandedInfo.noTimeLimit}>
-            <TouchableOpacity onPress={() => toggleInfo('noTimeLimit')} activeOpacity={0.7} className="px-6 pb-4">
+          <AnimatedInfoExpand expanded={!!expandedInfo.noTimeLimit}>
+            <View className="px-6 pb-4">
               <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular} leading-5`}>
                 Block stays active until manually ended via home screen for No Time Limit Presets.
               </Text>
-            </TouchableOpacity>
-          </ExpandableInfo>
+            </View>
+          </AnimatedInfoExpand>
         </View>
 
         {/* Schedule for Later Toggle */}
         <ExpandableInfo expanded={!noTimeLimit} lazy>
           <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}>
             <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
-              <TouchableOpacity onPress={() => toggleInfo('schedule')} activeOpacity={0.7} style={{ maxWidth: '75%' }} className="flex-row items-center">
+              <View style={{ maxWidth: '75%' }} className="flex-row items-center">
                 <Svg width={s(iconSize.toggleRow)} height={s(iconSize.toggleRow)} viewBox="0 0 24 24" fill={colors.text} style={{ marginRight: s(14) }}>
                   <Path d="M12 11.993a.75.75 0 0 0-.75.75v.006c0 .414.336.75.75.75h.006a.75.75 0 0 0 .75-.75v-.006a.75.75 0 0 0-.75-.75H12ZM12 16.494a.75.75 0 0 0-.75.75v.005c0 .414.335.75.75.75h.005a.75.75 0 0 0 .75-.75v-.005a.75.75 0 0 0-.75-.75H12ZM8.999 17.244a.75.75 0 0 1 .75-.75h.006a.75.75 0 0 1 .75.75v.006a.75.75 0 0 1-.75.75h-.006a.75.75 0 0 1-.75-.75v-.006ZM7.499 16.494a.75.75 0 0 0-.75.75v.005c0 .414.336.75.75.75h.005a.75.75 0 0 0 .75-.75v-.005a.75.75 0 0 0-.75-.75H7.5ZM13.499 14.997a.75.75 0 0 1 .75-.75h.006a.75.75 0 0 1 .75.75v.005a.75.75 0 0 1-.75.75h-.006a.75.75 0 0 1-.75-.75v-.005ZM14.25 16.494a.75.75 0 0 0-.75.75v.006c0 .414.335.75.75.75h.005a.75.75 0 0 0 .75-.75v-.006a.75.75 0 0 0-.75-.75h-.005ZM15.75 14.995a.75.75 0 0 1 .75-.75h.005a.75.75 0 0 1 .75.75v.006a.75.75 0 0 1-.75.75H16.5a.75.75 0 0 1-.75-.75v-.006ZM13.498 12.743a.75.75 0 0 1 .75-.75h2.25a.75.75 0 1 1 0 1.5h-2.25a.75.75 0 0 1-.75-.75ZM6.748 14.993a.75.75 0 0 1 .75-.75h4.5a.75.75 0 0 1 0 1.5h-4.5a.75.75 0 0 1-.75-.75Z" />
                   <Path fillRule="evenodd" clipRule="evenodd" d="M18 2.993a.75.75 0 0 0-1.5 0v1.5h-9V2.994a.75.75 0 1 0-1.5 0v1.497h-.752a3 3 0 0 0-3 3v11.252a3 3 0 0 0 3 3h13.5a3 3 0 0 0 3-3V7.492a3 3 0 0 0-3-3H18V2.993ZM3.748 18.743v-7.5a1.5 1.5 0 0 1 1.5-1.5h13.5a1.5 1.5 0 0 1 1.5 1.5v7.5a1.5 1.5 0 0 1-1.5 1.5h-13.5a1.5 1.5 0 0 1-1.5-1.5Z" />
                 </Svg>
-                <View>
-                  <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Schedule for Later</Text>
+                <View className="flex-1">
+                  <View className="flex-row items-center">
+                    <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Schedule for Later</Text>
+                    <TouchableOpacity onPress={() => toggleInfo('schedule')} activeOpacity={0.7} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} style={{ marginLeft: s(6) }}>
+                      <InfoIcon expanded={!!expandedInfo.schedule} color={colors.textSecondary} size={s(16)} />
+                    </TouchableOpacity>
+                  </View>
                   <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-1`}>Set a future start and end time, with optional recurrence</Text>
                 </View>
-              </TouchableOpacity>
+              </View>
               <AnimatedSwitch
                 size="small"
                 value={isScheduled}
@@ -1019,13 +1078,13 @@ function PresetSettingsScreen() {
                 }}
               />
             </View>
-            <ExpandableInfo expanded={!!expandedInfo.schedule}>
-              <TouchableOpacity onPress={() => toggleInfo('schedule')} activeOpacity={0.7} className="px-6 pb-4">
+            <AnimatedInfoExpand expanded={!!expandedInfo.schedule}>
+              <View className="px-6 pb-4">
                 <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular} leading-5`}>
                   Set a future start and end time. Hides timer options since duration is determined by your schedule. You can also set up recurring blocks when picking your end date.
                 </Text>
-              </TouchableOpacity>
-            </ExpandableInfo>
+              </View>
+            </AnimatedInfoExpand>
             {/* Schedule Date Pickers */}
             <ExpandableInfo expanded={isScheduled}>
               <View className="px-6" style={{ paddingTop: s(8) }}>
@@ -1127,13 +1186,18 @@ function PresetSettingsScreen() {
                 <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }} />
                 <View>
                   <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
-                    <TouchableOpacity onPress={() => toggleInfo('recurring')} activeOpacity={0.7} style={{ maxWidth: '75%' }} className="flex-row items-center">
+                    <View style={{ maxWidth: '75%' }} className="flex-row items-center">
                       <BoxiconsFilled name="bx-refresh-cw" size={s(iconSize.toggleRow)} color={colors.text} style={{ marginRight: s(14) }} />
-                      <View>
-                        <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Recurring Schedule</Text>
+                      <View className="flex-1">
+                        <View className="flex-row items-center">
+                          <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Recurring Schedule</Text>
+                          <TouchableOpacity onPress={() => toggleInfo('recurring')} activeOpacity={0.7} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} style={{ marginLeft: s(6) }}>
+                            <InfoIcon expanded={!!expandedInfo.recurring} color={colors.textSecondary} size={s(16)} />
+                          </TouchableOpacity>
+                        </View>
                         <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-1`}>Repeat this block automatically</Text>
                       </View>
-                    </TouchableOpacity>
+                    </View>
                     <AnimatedSwitch
                       size="small"
                       value={isRecurring}
@@ -1150,13 +1214,13 @@ function PresetSettingsScreen() {
                       }}
                     />
                   </View>
-                  <ExpandableInfo expanded={!!expandedInfo.recurring}>
-                    <TouchableOpacity onPress={() => toggleInfo('recurring')} activeOpacity={0.7} className="px-6 pb-4">
+                  <AnimatedInfoExpand expanded={!!expandedInfo.recurring}>
+                    <View className="px-6 pb-4">
                       <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular} leading-5`}>
                         Automatically repeats this blocking session at the interval you choose. After each session ends, the next one will start based on your selected frequency.
                       </Text>
-                    </TouchableOpacity>
-                  </ExpandableInfo>
+                    </View>
+                  </AnimatedInfoExpand>
                   {/* Recurring Options */}
                   <ExpandableInfo expanded={isRecurring}>
                     <View
@@ -1260,15 +1324,20 @@ function PresetSettingsScreen() {
         <ExpandableInfo expanded={!noTimeLimit && !isScheduled} lazy>
           <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}>
             <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
-              <TouchableOpacity onPress={() => toggleInfo('setTimer')} activeOpacity={0.7} style={{ maxWidth: '75%' }} className="flex-row items-center">
+              <View style={{ maxWidth: '75%' }} className="flex-row items-center">
                 <BoxiconsFilled name="bx-alarm-check" size={s(iconSize.toggleRow)} color={colors.text} style={{ marginRight: s(14) }} />
-                <View>
-                  <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Set Fixed Time</Text>
+                <View className="flex-1">
+                  <View className="flex-row items-center">
+                    <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Set Fixed Time</Text>
+                    <TouchableOpacity onPress={() => toggleInfo('setTimer')} activeOpacity={0.7} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} style={{ marginLeft: s(6) }}>
+                      <InfoIcon expanded={!!expandedInfo.setTimer} color={colors.textSecondary} size={s(16)} />
+                    </TouchableOpacity>
+                  </View>
                   <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-1`}>
                     Set a countdown duration
                   </Text>
                 </View>
-              </TouchableOpacity>
+              </View>
               <AnimatedSwitch
                 size="small"
                 value={timerEnabled}
@@ -1289,13 +1358,13 @@ function PresetSettingsScreen() {
                 }}
               />
             </View>
-            <ExpandableInfo expanded={!!expandedInfo.setTimer}>
-              <TouchableOpacity onPress={() => toggleInfo('setTimer')} activeOpacity={0.7} className="px-6 pb-4">
+            <AnimatedInfoExpand expanded={!!expandedInfo.setTimer}>
+              <View className="px-6 pb-4">
                 <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular} leading-5`}>
                   Set a fixed countdown timer for how long the block should last. Each bubble is formatted as HH:MM:SS (hours, minutes, seconds).
                 </Text>
-              </TouchableOpacity>
-            </ExpandableInfo>
+              </View>
+            </AnimatedInfoExpand>
             {/* Time preset circles (shown when timer is enabled) */}
             <ExpandableInfo expanded={timerEnabled}>
               <View className="pb-4" style={{ paddingTop: s(8) }}>
@@ -1352,17 +1421,22 @@ function PresetSettingsScreen() {
         <ExpandableInfo expanded={!noTimeLimit && !isScheduled} lazy>
           <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}>
             <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
-              <TouchableOpacity onPress={() => toggleInfo('pickDate')} activeOpacity={0.7} style={{ maxWidth: '75%' }} className="flex-row items-center">
+              <View style={{ maxWidth: '75%' }} className="flex-row items-center">
                 <PickDateIcon size={s(iconSize.toggleRow)} color={colors.text} />
-                <View style={{ marginLeft: s(14) }}>
-                  <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Pick a Date</Text>
+                <View style={{ marginLeft: s(14) }} className="flex-1">
+                  <View className="flex-row items-center">
+                    <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Pick a Date</Text>
+                    <TouchableOpacity onPress={() => toggleInfo('pickDate')} activeOpacity={0.7} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} style={{ marginLeft: s(6) }}>
+                      <InfoIcon expanded={!!expandedInfo.pickDate} color={colors.textSecondary} size={s(16)} />
+                    </TouchableOpacity>
+                  </View>
                   <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-1`}>
                     {targetDate
                       ? `Until ${targetDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} at ${targetDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`
                       : 'Block until a specific date and time'}
                   </Text>
                 </View>
-              </TouchableOpacity>
+              </View>
               <AnimatedSwitch
                 size="small"
                 value={dateEnabled}
@@ -1383,13 +1457,13 @@ function PresetSettingsScreen() {
                 }}
               />
             </View>
-            <ExpandableInfo expanded={!!expandedInfo.pickDate}>
-              <TouchableOpacity onPress={() => toggleInfo('pickDate')} activeOpacity={0.7} className="px-6 pb-4">
+            <AnimatedInfoExpand expanded={!!expandedInfo.pickDate}>
+              <View className="px-6 pb-4">
                 <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular} leading-5`}>
                   Choose a specific date and time for the block to end.
                 </Text>
-              </TouchableOpacity>
-            </ExpandableInfo>
+              </View>
+            </AnimatedInfoExpand>
             {/* Date picker button (shown when date is enabled) */}
             <ExpandableInfo expanded={dateEnabled}>
               <View className="px-6 pb-4">
@@ -1424,15 +1498,20 @@ function PresetSettingsScreen() {
         {/* Block Settings Toggle */}
         <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}>
           <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
-            <TouchableOpacity onPress={() => toggleInfo('blockSettings')} activeOpacity={0.7} style={{ maxWidth: '75%' }} className="flex-row items-center">
+            <View style={{ maxWidth: '75%' }} className="flex-row items-center">
               <Svg width={s(iconSize.toggleRow)} height={s(iconSize.toggleRow)} viewBox="0 0 24 24" fill={colors.text} style={{ marginRight: s(14) }}>
                 <Path d="M22.12 21.46L2.4 1.73L1.12 3L4 5.87L2.34 8.73C2.21 8.95 2.27 9.22 2.46 9.37L4.57 11C4.53 11.34 4.5 11.67 4.5 12S4.53 12.65 4.57 12.97L2.46 14.63C2.27 14.78 2.21 15.05 2.34 15.27L4.34 18.73C4.46 18.95 4.73 19.03 4.95 18.95L7.44 17.94C7.96 18.34 8.5 18.68 9.13 18.93L9.5 21.58C9.54 21.82 9.75 22 10 22H14C14.25 22 14.46 21.82 14.5 21.58L14.87 18.93C15.38 18.72 15.83 18.45 16.26 18.14L20.85 22.73L22.12 21.46M12 15.5C10.07 15.5 8.5 13.93 8.5 12C8.5 11.5 8.62 11.08 8.79 10.67L13.33 15.21C12.92 15.39 12.5 15.5 12 15.5M11.74 8.53L8.56 5.35C8.75 5.25 8.93 5.15 9.13 5.07L9.5 2.42C9.54 2.18 9.75 2 10 2H14C14.25 2 14.46 2.18 14.5 2.42L14.87 5.07C15.5 5.32 16.04 5.66 16.56 6.05L19.05 5.05C19.27 4.96 19.54 5.05 19.66 5.27L21.66 8.73C21.78 8.95 21.73 9.22 21.54 9.37L19.43 11C19.47 11.34 19.5 11.67 19.5 12S19.47 12.65 19.43 12.97L21.54 14.63C21.73 14.78 21.78 15.05 21.66 15.27L20.5 17.29L15.47 12.26C15.5 12.18 15.5 12.09 15.5 12C15.5 10.07 13.93 8.5 12 8.5C11.91 8.5 11.83 8.5 11.74 8.53Z" />
               </Svg>
-              <View>
-                <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Block Settings App</Text>
+              <View className="flex-1">
+                <View className="flex-row items-center">
+                  <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Block Settings App</Text>
+                  <TouchableOpacity onPress={() => toggleInfo('blockSettings')} activeOpacity={0.7} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} style={{ marginLeft: s(6) }}>
+                    <InfoIcon expanded={!!expandedInfo.blockSettings} color={colors.textSecondary} size={s(16)} />
+                  </TouchableOpacity>
+                </View>
                 <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-1`}>Essential settings remain accessible</Text>
               </View>
-            </TouchableOpacity>
+            </View>
             <AnimatedSwitch
               size="small"
               value={blockSettings}
@@ -1452,28 +1531,33 @@ function PresetSettingsScreen() {
               }}
             />
           </View>
-          <ExpandableInfo expanded={!!expandedInfo.blockSettings}>
-            <TouchableOpacity onPress={() => toggleInfo('blockSettings')} activeOpacity={0.7} className="px-6 pb-4">
+          <AnimatedInfoExpand expanded={!!expandedInfo.blockSettings}>
+            <View className="px-6 pb-4">
               <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular} leading-5`}>
                 Prevents access to Android Settings during the block so that overlays and essential permissions cannot be disabled. Essential settings like WiFi or battery settings remain accessible via quick panel by sliding down from your phone.
               </Text>
-            </TouchableOpacity>
-          </ExpandableInfo>
+            </View>
+          </AnimatedInfoExpand>
         </View>
 
         {/* Strict Mode Toggle - hidden for no time limit presets */}
         <ExpandableInfo expanded={!noTimeLimit} lazy>
           <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}>
             <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
-              <TouchableOpacity onPress={() => toggleInfo('strictMode')} activeOpacity={0.7} style={{ maxWidth: '75%' }} className="flex-row items-center">
+              <View style={{ maxWidth: '75%' }} className="flex-row items-center">
                 <BoxiconsFilled name="bx-key" size={s(iconSize.toggleRow)} color={colors.text} style={{ marginRight: s(14) }} />
-                <View>
-                  <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Strict Mode</Text>
+                <View className="flex-1">
+                  <View className="flex-row items-center">
+                    <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Strict Mode</Text>
+                    <TouchableOpacity onPress={() => toggleInfo('strictMode')} activeOpacity={0.7} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} style={{ marginLeft: s(6) }}>
+                      <InfoIcon expanded={!!expandedInfo.strictMode} color={colors.textSecondary} size={s(16)} />
+                    </TouchableOpacity>
+                  </View>
                   <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-1`}>
                     Lock until timer ends or emergency tapout
                   </Text>
                 </View>
-              </TouchableOpacity>
+              </View>
               <AnimatedSwitch
                 size="small"
                 value={strictMode}
@@ -1495,13 +1579,13 @@ function PresetSettingsScreen() {
                 }}
               />
             </View>
-            <ExpandableInfo expanded={!!expandedInfo.strictMode}>
-              <TouchableOpacity onPress={() => toggleInfo('strictMode')} activeOpacity={0.7} className="px-6 pb-4">
+            <AnimatedInfoExpand expanded={!!expandedInfo.strictMode}>
+              <View className="px-6 pb-4">
                 <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular} leading-5`}>
                   Removes the ability to unlock in any way and to dismiss blocked apps or sites. ONLY EXITS: timer expiring or Emergency Tapout (if enabled). Pair with the block settings toggle for maximum strictness.
                 </Text>
-              </TouchableOpacity>
-            </ExpandableInfo>
+              </View>
+            </AnimatedInfoExpand>
           </View>
         </ExpandableInfo>
 
@@ -1509,17 +1593,22 @@ function PresetSettingsScreen() {
         <ExpandableInfo expanded={strictMode && !noTimeLimit} lazy>
           <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}>
             <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
-              <TouchableOpacity onPress={() => toggleInfo('emergencyTapout')} activeOpacity={0.7} style={{ maxWidth: '75%' }} className="flex-row items-center">
+              <View style={{ maxWidth: '75%' }} className="flex-row items-center">
 <Animated.View style={{ marginRight: s(14), transform: [{ scale: tapoutHeartBeat }], opacity: tapoutHeartBeat.interpolate({ inputRange: [1, 1.15], outputRange: [1, 0.85], extrapolate: 'clamp' }) }}>
                     <Svg width={s(iconSize.toggleRow)} height={s(iconSize.toggleRow)} viewBox="0 -960 960 960" fill={colors.red}>
                       <Path d="M595-468h-230q0 170 115 170t115-170ZM272.5-652.5Q243-625 231-577l58 14q6-26 20-41.5t31-15.5q17 0 31 15.5t20 41.5l58-14q-12-48-41.5-75.5T340-680q-38 0-67.5 27.5Zm280 0Q523-625 511-577l58 14q6-26 20-41.5t31-15.5q17 0 31 15.5t20 41.5l58-14q-12-48-41.5-75.5T620-680q-38 0-67.5 27.5ZM480-120l-58-50q-101-88-167-152T150-437q-39-51-54.5-94T80-620q0-94 63-157t157-63q52 0 99 22t81 62q34-40 81-62t99-22q94 0 157 63t63 157q0 46-15.5 89T810-437q-39 51-105 115T538-170l-58 50Z" />
                     </Svg>
                   </Animated.View>
-                <View>
-                  <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Allow Emergency Tapout</Text>
+                <View className="flex-1">
+                  <View className="flex-row items-center">
+                    <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Allow Emergency Tapout</Text>
+                    <TouchableOpacity onPress={() => toggleInfo('emergencyTapout')} activeOpacity={0.7} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} style={{ marginLeft: s(6) }}>
+                      <InfoIcon expanded={!!expandedInfo.emergencyTapout} color={colors.textSecondary} size={s(16)} />
+                    </TouchableOpacity>
+                  </View>
                   <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-1`}>Use your emergency tapouts for this preset</Text>
                 </View>
-              </TouchableOpacity>
+              </View>
               <AnimatedSwitch
                 size="small"
                 value={allowEmergencyTapout}
@@ -1527,26 +1616,31 @@ function PresetSettingsScreen() {
                 onValueChange={handleEmergencyTapoutToggle}
               />
             </View>
-            <ExpandableInfo expanded={!!expandedInfo.emergencyTapout}>
-              <TouchableOpacity onPress={() => toggleInfo('emergencyTapout')} activeOpacity={0.7} className="px-6 pb-4">
+            <AnimatedInfoExpand expanded={!!expandedInfo.emergencyTapout}>
+              <View className="px-6 pb-4">
                 <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular} leading-5`}>
                   Your safety net for Strict Mode blocks. Limited uses that refill +1 every two weeks. Disabling means NO way out except waiting.
                 </Text>
-              </TouchableOpacity>
-            </ExpandableInfo>
+              </View>
+            </AnimatedInfoExpand>
           </View>
         </ExpandableInfo>
 
         {/* Custom Overlay Toggle */}
         <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight }}>
           <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
-            <TouchableOpacity onPress={() => toggleInfo('customOverlay')} activeOpacity={0.7} style={{ maxWidth: '75%' }} className="flex-row items-center">
+            <View style={{ maxWidth: '75%' }} className="flex-row items-center">
               <BoxiconsFilled name="bx-magic-wand" size={s(iconSize.toggleRow)} color={colors.text} style={{ marginRight: s(14) }} />
-              <View>
-                <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Custom Overlay</Text>
+              <View className="flex-1">
+                <View className="flex-row items-center">
+                  <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Custom Overlay</Text>
+                  <TouchableOpacity onPress={() => toggleInfo('customOverlay')} activeOpacity={0.7} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} style={{ marginLeft: s(6) }}>
+                    <InfoIcon expanded={!!expandedInfo.customOverlay} color={colors.textSecondary} size={s(16)} />
+                  </TouchableOpacity>
+                </View>
                 <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-1`}>Customize blocked screen text and image</Text>
               </View>
-            </TouchableOpacity>
+            </View>
             <AnimatedSwitch
               size="small"
               value={customOverlayEnabled}
@@ -1561,13 +1655,13 @@ function PresetSettingsScreen() {
               }}
             />
           </View>
-          <ExpandableInfo expanded={!!expandedInfo.customOverlay}>
-            <TouchableOpacity onPress={() => toggleInfo('customOverlay')} activeOpacity={0.7} className="px-6 pb-4">
+          <AnimatedInfoExpand expanded={!!expandedInfo.customOverlay}>
+            <View className="px-6 pb-4">
               <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular} leading-5`}>
                 When enabled, the overlay that appears when opening a blocked app or website will show your custom message and/or image instead of the defaults.
               </Text>
-            </TouchableOpacity>
-          </ExpandableInfo>
+            </View>
+          </AnimatedInfoExpand>
           <ExpandableInfo expanded={customOverlayEnabled}>
             <View className="px-6 pb-4">
               {/* Custom blocked text */}
@@ -1716,13 +1810,15 @@ function PresetSettingsScreen() {
                   textAlign: 'center',
                   fontSize: s(11),
                   lineHeight: s(15),
+                  letterSpacing: s(0.3),
                 }} className={fontFamily.bold}>
                   {customBlockedText.trim() || 'This app is blocked.'}
                 </Text>
                 <Text style={{
                   color: '#9CA3AF',
                   fontSize: s(7),
-                  marginTop: s(12),
+                  marginTop: s(6),
+                  letterSpacing: s(0.3),
                 }} className={fontFamily.bold}>
                   Tap anywhere to dismiss
                 </Text>

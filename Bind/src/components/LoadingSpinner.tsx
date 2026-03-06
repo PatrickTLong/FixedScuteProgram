@@ -14,6 +14,7 @@ export default function LoadingSpinner({ size, color = colors.text, fullScreen =
   const baseSize = size ?? s(32);
   const dotSize = Math.max(4, Math.round(baseSize * 0.22));
   const dotGap = Math.max(3, Math.round(baseSize * 0.15));
+  const bounceHeight = Math.max(3, Math.round(baseSize * 0.15));
 
   const dot1 = useRef(new Animated.Value(0)).current;
   const dot2 = useRef(new Animated.Value(0)).current;
@@ -27,7 +28,7 @@ export default function LoadingSpinner({ size, color = colors.text, fullScreen =
       const loop = Animated.loop(
         Animated.sequence([
           Animated.delay(i * 100),
-          Animated.timing(dot, { toValue: -6, duration: 160, easing: Easing.out(Easing.quad), useNativeDriver: false }),
+          Animated.timing(dot, { toValue: -bounceHeight, duration: 160, easing: Easing.out(Easing.quad), useNativeDriver: false }),
           Animated.timing(dot, { toValue: 0, duration: 160, easing: Easing.in(Easing.quad), useNativeDriver: false }),
         ]),
       );
