@@ -1373,17 +1373,15 @@ function PresetSettingsScreen() {
                 animate={!skipSwitchAnimation}
                 onValueChange={(value: boolean) => {
                   setTimerEnabled(value);
-                  requestAnimationFrame(() => {
-                    if (value) {
-                      setDateEnabled(false);
-                      setTargetDate(null);
-                    } else {
-                      setTimerDays(0);
-                      setTimerHours(0);
-                      setTimerMinutes(0);
-                      setTimerSeconds(0);
-                    }
-                  });
+                  if (value) {
+                    setDateEnabled(false);
+                    setTargetDate(null);
+                  } else {
+                    setTimerDays(0);
+                    setTimerHours(0);
+                    setTimerMinutes(0);
+                    setTimerSeconds(0);
+                  }
                 }}
               />
             </View>
@@ -1471,17 +1469,15 @@ function PresetSettingsScreen() {
                 animate={!skipSwitchAnimation}
                 onValueChange={(value: boolean) => {
                   setDateEnabled(value);
-                  requestAnimationFrame(() => {
-                    if (value) {
-                      setTimerEnabled(false);
-                      setTimerDays(0);
-                      setTimerHours(0);
-                      setTimerMinutes(0);
-                      setTimerSeconds(0);
-                    } else {
-                      setTargetDate(null);
-                    }
-                  });
+                  if (value) {
+                    setTimerEnabled(false);
+                    setTimerDays(0);
+                    setTimerHours(0);
+                    setTimerMinutes(0);
+                    setTimerSeconds(0);
+                  } else {
+                    setTargetDate(null);
+                  }
                 }}
               />
             </View>
