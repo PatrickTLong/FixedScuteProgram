@@ -13,7 +13,7 @@ import {
 import LoadingSpinner from '../components/LoadingSpinner';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
-import { IdentificationCardIcon, StudentIcon, SignOutIcon, ArrowsClockwiseIcon, WarningIcon, ChatsIcon, BugBeetleIcon, ShieldCheckIcon, FolderOpenIcon, CheckCircleIcon, ArrowBendUpLeftIcon, HeartStraightBreakIcon, CaretRightIcon } from 'phosphor-react-native';
+import { IdentificationCardIcon, StudentIcon, DoorOpenIcon, ArrowsClockwiseIcon, WarningIcon, ChatsCircleIcon, BugBeetleIcon, ShieldCheckIcon, FolderOpenIcon, CheckCircleIcon, ArrowBendUpLeftIcon, HeartStraightBreakIcon, CaretRightIcon } from 'phosphor-react-native';
 import ConfirmationModal from '../components/ConfirmationModal';
 import HeaderIconButton from '../components/HeaderIconButton';
 import MembershipContent from '../components/MembershipContent';
@@ -33,7 +33,7 @@ const MembershipIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
 );
 
 const LogoutIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
-  <SignOutIcon size={iconSize.forTabs} color={color} weight="regular" />
+  <DoorOpenIcon size={iconSize.forTabs} color={color} weight="regular" />
 );
 
 const RefreshIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
@@ -45,7 +45,7 @@ const TrashIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
 );
 
 const MessageIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
-  <ChatsIcon size={iconSize.forTabs} color={color} weight="regular" />
+  <ChatsCircleIcon size={iconSize.forTabs} color={color} weight="regular" />
 );
 
 const BugIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
