@@ -8,7 +8,6 @@ import {
   Easing,
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import { HeartStraightBreakIcon } from 'phosphor-react-native';
 import LoadingSpinner from './LoadingSpinner';
 import { useTheme , textSize, fontFamily, radius, shadow, haptics } from '../context/ThemeContext';
 import { triggerHaptic } from '../utils/haptics';
@@ -147,7 +146,9 @@ function EmergencyTapoutModal({
               </Animated.View>
             ) : (
               <View style={{ marginBottom: 12 }}>
-                <HeartStraightBreakIcon size={iconSize} color={colors.textMuted} weight="fill" />
+                <Svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill={colors.textMuted}>
+                  <Path d="M12 0.5a10 10 0 0 0 -10 10V13a5.49 5.49 0 0 0 3.2 5 2 2 0 0 1 1 2.48c-0.64 1.82 -0.91 2.17 -0.43 2.7a1 1 0 0 0 0.74 0.33h2A0.5 0.5 0 0 0 9 23v-2a1 1 0 0 1 2 0v2a0.5 0.5 0 0 0 0.5 0.5h1a0.5 0.5 0 0 0 0.5 -0.5v-2a1 1 0 0 1 2 0v2a0.5 0.5 0 0 0 0.5 0.5h1.95a1 1 0 0 0 0.74 -0.33c0.48 -0.53 0.22 -0.87 -0.43 -2.7a2 2 0 0 1 1 -2.48A5.49 5.49 0 0 0 22 13v-2.5a10 10 0 0 0 -10 -10Zm-4.5 14A2.5 2.5 0 1 1 10 12a2.5 2.5 0 0 1 -2.5 2.51Zm5.68 2.76a0.51 0.51 0 0 1 -0.43 0.24h-1.5a0.49 0.49 0 0 1 -0.42 -0.24 0.5 0.5 0 0 1 0 -0.49l0.75 -1.5a0.52 0.52 0 0 1 0.9 0l0.75 1.5a0.5 0.5 0 0 1 -0.05 0.5Zm3.32 -2.76A2.5 2.5 0 1 1 19 12a2.5 2.5 0 0 1 -2.5 2.51Z" />
+                </Svg>
               </View>
             )}
 

@@ -1283,6 +1283,7 @@ function HomeScreen() {
           isLocked={isLocked}
           hasActiveTimer={!!timeRemaining}
           strictMode={activePreset?.strictMode ?? false}
+          allowEmergencyTapout={activePreset?.allowEmergencyTapout ?? false}
         />
       </View>
 

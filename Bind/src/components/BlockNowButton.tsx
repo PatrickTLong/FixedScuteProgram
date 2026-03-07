@@ -30,6 +30,7 @@ interface BlockNowButtonProps {
   isLocked?: boolean;
   hasActiveTimer?: boolean;
   strictMode?: boolean;
+  allowEmergencyTapout?: boolean;
 }
 
 function BlockNowButton({
@@ -40,6 +41,7 @@ function BlockNowButton({
   isLocked = false,
   hasActiveTimer = false,
   strictMode = false,
+  allowEmergencyTapout = false,
 }: BlockNowButtonProps) {
   const { colors } = useTheme();
   const { s } = useResponsive();
@@ -205,8 +207,8 @@ function BlockNowButton({
   let iconColor: string;
   let pressDisabled = false;
 
-  // icon: 'pointing' (default), 'waving' (no preset), 'heart' (strict locked)
-  let iconType: 'pointing' | 'waving' | 'heart' = 'pointing';
+  // icon: 'pointing' (default), 'waving' (no preset), 'heart' (strict+tapout), 'skull' (strict, no tapout)
+  let iconType: 'pointing' | 'waving' | 'heart' | 'skull' = 'pointing';
   let shouldBreathe = true;
   shouldBreatheRef.current = true;
 
@@ -216,10 +218,14 @@ function BlockNowButton({
     iconType = 'waving';
     shouldBreathe = false;
     shouldBreatheRef.current = false;
-  } else if (isLocked && hasActiveTimer && strictMode) {
+  } else if (isLocked && hasActiveTimer && strictMode && allowEmergencyTapout) {
     onPress = () => { onUnlockPress?.(); };
     iconColor = colors.text;
     iconType = 'heart';
+  } else if (isLocked && hasActiveTimer && strictMode && !allowEmergencyTapout) {
+    onPress = () => { onUnlockPress?.(); };
+    iconColor = colors.text;
+    iconType = 'skull';
   } else if (showDoubleTapUnlock) {
     onPress = handleDoubleTapUnlock;
     iconColor = isUnlocking ? colors.textMuted : colors.text;
@@ -283,6 +289,10 @@ function BlockNowButton({
               <Animated.View style={{ transform: [{ scale: handScale }] }}>
                 {iconType === 'heart' ? (
                   <HandHeartIcon size={s(34)} color={iconColor} weight="fill" />
+                ) : iconType === 'skull' ? (
+                  <Svg width={s(34)} height={s(34)} viewBox="0 0 24 24" fill={iconColor}>
+                    <Path d="M12 0.5a10 10 0 0 0 -10 10V13a5.49 5.49 0 0 0 3.2 5 2 2 0 0 1 1 2.48c-0.64 1.82 -0.91 2.17 -0.43 2.7a1 1 0 0 0 0.74 0.33h2A0.5 0.5 0 0 0 9 23v-2a1 1 0 0 1 2 0v2a0.5 0.5 0 0 0 0.5 0.5h1a0.5 0.5 0 0 0 0.5 -0.5v-2a1 1 0 0 1 2 0v2a0.5 0.5 0 0 0 0.5 0.5h1.95a1 1 0 0 0 0.74 -0.33c0.48 -0.53 0.22 -0.87 -0.43 -2.7a2 2 0 0 1 1 -2.48A5.49 5.49 0 0 0 22 13v-2.5a10 10 0 0 0 -10 -10Zm-4.5 14A2.5 2.5 0 1 1 10 12a2.5 2.5 0 0 1 -2.5 2.51Zm5.68 2.76a0.51 0.51 0 0 1 -0.43 0.24h-1.5a0.49 0.49 0 0 1 -0.42 -0.24 0.5 0.5 0 0 1 0 -0.49l0.75 -1.5a0.52 0.52 0 0 1 0.9 0l0.75 1.5a0.5 0.5 0 0 1 -0.05 0.5Zm3.32 -2.76A2.5 2.5 0 1 1 19 12a2.5 2.5 0 0 1 -2.5 2.51Z" />
+                  </Svg>
                 ) : (
                   <HandTapIcon size={s(34)} color={iconColor} weight="fill" />
                 )}
@@ -303,6 +313,7 @@ export default memo(BlockNowButton, (prevProps, nextProps) => {
     prevProps.isLocked === nextProps.isLocked &&
     prevProps.hasActiveTimer === nextProps.hasActiveTimer &&
     prevProps.strictMode === nextProps.strictMode &&
+    prevProps.allowEmergencyTapout === nextProps.allowEmergencyTapout &&
     prevProps.onActivate === nextProps.onActivate &&
     prevProps.onUnlockPress === nextProps.onUnlockPress &&
     prevProps.onSlideUnlock === nextProps.onSlideUnlock

@@ -866,9 +866,9 @@ function PresetSettingsScreen() {
     try {
       const result = await launchImageLibrary({
         mediaType: 'photo',
-        quality: 0.8,
-        maxWidth: 512,
-        maxHeight: 512,
+        quality: 1,
+        maxWidth: 1080,
+        maxHeight: 1080,
       });
       if (result.didCancel || !result.assets?.[0]) {
         console.log('[OVERLAY] Image picker cancelled');
