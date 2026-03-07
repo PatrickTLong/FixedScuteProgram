@@ -5,11 +5,11 @@ import {
   ScrollView,
   TouchableHighlight,
   Linking,
-  Modal,
   Animated,
   Easing,
   RefreshControl,
 } from 'react-native';
+import SlideUpModal from '../components/SlideUpModal';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
@@ -623,21 +623,18 @@ function SettingsScreen() {
       />
 
       {/* Privacy Policy Modal */}
-      <Modal
+      <SlideUpModal
         visible={privacyModalVisible}
-        animationType="slide"
-        presentationStyle="pageSheet"
         onRequestClose={() => setPrivacyModalVisible(false)}
       >
-        <View style={{ flex: 1, backgroundColor: colors.bg }}>
-          {/* Header */}
-          <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight, overflow: 'hidden' }} className="flex-row items-center justify-between px-4 py-3.5">
-            <View style={{ width: s(40) }} />
-            <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.bold}`}>Privacy Policy</Text>
-            <HeaderIconButton onPress={() => setPrivacyModalVisible(false)} style={{ width: s(40) }} className="px-2 items-end">
-              <CheckCircleIcon size={s(iconSize.headerNav)} color="#FFFFFF" weight="fill" />
-            </HeaderIconButton>
-          </View>
+        {/* Header */}
+        <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight, overflow: 'hidden' }} className="flex-row items-center justify-between px-4 py-3.5">
+          <View style={{ width: s(40) }} />
+          <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.bold}`}>Privacy Policy</Text>
+          <HeaderIconButton onPress={() => setPrivacyModalVisible(false)} style={{ width: s(40) }} className="px-2 items-end">
+            <CheckCircleIcon size={s(iconSize.headerNav)} color="#FFFFFF" weight="fill" />
+          </HeaderIconButton>
+        </View>
 
           <ScrollView className="flex-1 px-6 py-4">
             <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.bold} mb-4`}>Privacy Policy</Text>
@@ -742,26 +739,22 @@ function SettingsScreen() {
             <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} text-center mb-8`}>
               © 2026 Scute LLC
             </Text>
-          </ScrollView>
-        </View>
-      </Modal>
+        </ScrollView>
+      </SlideUpModal>
 
       {/* Terms of Service Modal */}
-      <Modal
+      <SlideUpModal
         visible={termsModalVisible}
-        animationType="slide"
-        presentationStyle="pageSheet"
         onRequestClose={() => setTermsModalVisible(false)}
       >
-        <View style={{ flex: 1, backgroundColor: colors.bg }}>
-          {/* Header */}
-          <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight, overflow: 'hidden' }} className="flex-row items-center justify-between px-4 py-3.5">
-            <View style={{ width: s(40) }} />
-            <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.bold}`}>Terms of Service</Text>
-            <HeaderIconButton onPress={() => setTermsModalVisible(false)} style={{ width: s(40) }} className="px-2 items-end">
-              <CheckCircleIcon size={s(iconSize.headerNav)} color="#FFFFFF" weight="fill" />
-            </HeaderIconButton>
-          </View>
+        {/* Header */}
+        <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight, overflow: 'hidden' }} className="flex-row items-center justify-between px-4 py-3.5">
+          <View style={{ width: s(40) }} />
+          <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.bold}`}>Terms of Service</Text>
+          <HeaderIconButton onPress={() => setTermsModalVisible(false)} style={{ width: s(40) }} className="px-2 items-end">
+            <CheckCircleIcon size={s(iconSize.headerNav)} color="#FFFFFF" weight="fill" />
+          </HeaderIconButton>
+        </View>
 
           <ScrollView className="flex-1 px-6 py-4">
             <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.bold} mb-4`}>Terms of Service</Text>
@@ -874,40 +867,31 @@ function SettingsScreen() {
             <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} text-center mb-8`}>
               © 2026 Scute LLC
             </Text>
-          </ScrollView>
-        </View>
-      </Modal>
+        </ScrollView>
+      </SlideUpModal>
 
       {/* Membership Modal */}
-      <Modal
+      <SlideUpModal
         visible={membershipModalVisible}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => {
-          // Only allow dismissal if trial hasn't expired
-          if (!membershipStatus?.trialExpired) {
-            setMembershipModalVisible(false);
-          }
-        }}
+        preventClose={!!membershipStatus?.trialExpired}
+        onRequestClose={() => setMembershipModalVisible(false)}
       >
-        <View style={{ flex: 1, backgroundColor: colors.bg }}>
-          {/* Header */}
-          <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight, overflow: 'hidden' }} className="flex-row items-center justify-between px-4 py-3.5">
-            {/* Only show back button if trial hasn't expired */}
-            {!membershipStatus?.trialExpired ? (
-              <HeaderIconButton onPress={() => setMembershipModalVisible(false)} style={{ width: s(40) }}>
-                <ReplyArrowIcon size={s(iconSize.headerNav)} color="#FFFFFF" direction="left" />
-              </HeaderIconButton>
-            ) : (
-              <View style={{ width: s(40) }} />
-            )}
-            <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.bold}`}>Membership</Text>
+        {/* Header */}
+        <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight, overflow: 'hidden' }} className="flex-row items-center justify-between px-4 py-3.5">
+          {/* Only show back button if trial hasn't expired */}
+          {!membershipStatus?.trialExpired ? (
+            <HeaderIconButton onPress={() => setMembershipModalVisible(false)} style={{ width: s(40) }}>
+              <ReplyArrowIcon size={s(iconSize.headerNav)} color="#FFFFFF" direction="left" />
+            </HeaderIconButton>
+          ) : (
             <View style={{ width: s(40) }} />
-          </View>
-
-          <MembershipContent />
+          )}
+          <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.bold}`}>Membership</Text>
+          <View style={{ width: s(40) }} />
         </View>
-      </Modal>
+
+        <MembershipContent />
+      </SlideUpModal>
     </View>
   );
 }
