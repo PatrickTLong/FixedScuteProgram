@@ -2,7 +2,9 @@ import React, { memo, useCallback, useRef, useEffect } from 'react';
 import { View, TouchableOpacity, StyleSheet, Animated, Easing } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { HouseIcon, SquaresFourIcon, TrendUpIcon, GearSixIcon } from 'phosphor-react-native';
+import { HouseIcon, TrendUpIcon } from 'phosphor-react-native';
+import SettingsCogIcon from './SettingsCogIcon';
+import PresetsIcon from './PresetsIcon';
 import { useTheme, iconSize, haptics } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { triggerHaptic } from '../utils/haptics';
@@ -153,16 +155,16 @@ function BottomTabBar({ state, navigation }: RNBottomTabBarProps) {
   const bottomPadding = Math.max(insets.bottom, s(24));
 
   const renderHomeIcon = useCallback((color: string, active: boolean) =>
-    <HouseIcon size={TAB_ICON_SIZE} color={color} weight={active ? 'fill' : 'regular'} />, []);
+    <HouseIcon size={TAB_ICON_SIZE} color={color} weight="fill" />, []);
 
-  const renderPresetsIcon = useCallback((color: string, active: boolean) =>
-    <SquaresFourIcon size={TAB_ICON_SIZE} color={color} weight={active ? 'fill' : 'regular'} />, []);
+  const renderPresetsIcon = useCallback((color: string, _active: boolean) =>
+    <PresetsIcon size={TAB_ICON_SIZE} color={color} />, []);
 
   const renderStatsIcon = useCallback((color: string, active: boolean) =>
-    <TrendUpIcon size={TAB_ICON_SIZE + 6} color={color} weight={active ? 'fill' : 'regular'} />, []);
+    <TrendUpIcon size={TAB_ICON_SIZE + 6} color={color} weight="fill" />, []);
 
   const renderSettingsIcon = useCallback((color: string, active: boolean) =>
-    <GearSixIcon size={TAB_ICON_SIZE} color={color} weight={active ? 'fill' : 'regular'} />, []);
+    <SettingsCogIcon size={TAB_ICON_SIZE} color={color} weight="fill" />, []);
 
   // Hide tab bar on preset editing screens
   if (HIDDEN_ROUTES.includes(currentRouteName)) {

@@ -259,7 +259,7 @@ function MembershipContent() {
                 }}
               >
                 {feature.type === 'phosphor' ? (
-                  <feature.PhosphorIcon size={s(22)} color={colors.text} weight="regular" />
+                  <feature.PhosphorIcon size={s(22)} color={colors.text} weight="fill" />
                 ) : (
                   <Svg width={s(22)} height={s(22)} viewBox={feature.viewBox} fill={colors.text}>
                     {feature.paths.map((d: string, i: number) => <Path key={i} d={d} />)}

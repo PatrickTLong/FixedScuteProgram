@@ -18,12 +18,12 @@ interface ShieldIconsInfoModalProps {
 
 // Bookmark icon for scheduled presets
 const BookmarkIcon = ({ color, size = iconSize.lg }: { color: string; size?: number }) => (
-  <BookmarkSimpleIcon size={size} color={color} weight="regular" />
+  <BookmarkSimpleIcon size={size} color={color} weight="fill" />
 );
 
 // Rotate CW icon for recurring presets
 const RotateCwIcon = ({ color, size = iconSize.lg }: { color: string; size?: number }) => (
-  <ArrowsClockwiseIcon size={size} color={color} weight="regular" />
+  <ArrowsClockwiseIcon size={size} color={color} weight="fill" />
 );
 
 function ShieldIconsInfoModal({ visible, onClose }: ShieldIconsInfoModalProps) {

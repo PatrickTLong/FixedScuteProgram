@@ -9,12 +9,14 @@ import {
 } from 'react-native';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { EyeIcon, EyeSlashIcon } from 'phosphor-react-native';
+import { EyeIcon, EyeClosedIcon } from 'phosphor-react-native';
+import Svg, { Path } from 'react-native-svg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import BackButton from '../components/BackButton';
 import ProgressBar from '../components/ProgressBar';
 import InfoModal from '../components/InfoModal';
 import OTPInput from '../components/OTPInput';
+import GoogleSignInBtn from '../components/GoogleSignInButton';
 import HeaderIconButton from '../components/HeaderIconButton';
 import { useTheme , textSize, fontFamily, radius, shadow, iconSize } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
@@ -26,6 +28,18 @@ import type { ScreenTransitionRef, TransitionDirection } from '../components/Scr
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import type { AuthStackParamList } from '../navigation/types';
+
+const SendEmailIcon = ({ size = 24, color = '#FFFFFF' }: { size?: number; color?: string }) => (
+  <Svg viewBox="0 0 24 24" width={size} height={size}>
+    <Path d="M23.82 1.12a0.5 0.5 0 0 0 -0.51 -0.12l-23 9.5A0.5 0.5 0 0 0 0 11a0.51 0.51 0 0 0 0.32 0.46l6.33 2.45a0.52 0.52 0 0 0 0.47 -0.05l8.4 -6a0.5 0.5 0 0 1 0.64 0.77l-7 6.75a0.51 0.51 0 0 0 -0.15 0.36v6.76a0.49 0.49 0 0 0 0.37 0.48 0.49 0.49 0 0 0 0.56 -0.23l3.17 -5.42a0.25 0.25 0 0 1 0.33 -0.1l5.83 3.21a0.5 0.5 0 0 0 0.73 -0.33l4 -18.5a0.5 0.5 0 0 0 -0.18 -0.49Z" fill={color} />
+  </Svg>
+);
+
+const LoginKeyIcon = ({ size = 24, color = '#FFFFFF' }: { size?: number; color?: string }) => (
+  <Svg viewBox="0 0 24 24" width={size} height={size}>
+    <Path d="M19.5 9.5h-0.75V6.75a6.75 6.75 0 0 0 -13.5 0V9.5H4.5a2 2 0 0 0 -2 2V22a2 2 0 0 0 2 2h15a2 2 0 0 0 2 -2V11.5a2 2 0 0 0 -2 -2Zm-7.5 9a2 2 0 1 1 2 -2 2 2 0 0 1 -2 2ZM16.25 9a0.5 0.5 0 0 1 -0.5 0.5h-7.5a0.5 0.5 0 0 1 -0.5 -0.5V6.75a4.25 4.25 0 0 1 8.5 0Z" fill={color} />
+  </Svg>
+);
 
 function GetStartedScreen() {
   const navigation = useNavigation<StackNavigationProp<AuthStackParamList>>();
@@ -214,7 +228,8 @@ function GetStartedScreen() {
                   <Text style={{ color: colors.text, position: 'absolute', top: s(-30), left: s(8) }} className={`${textSize.small} ${fontFamily.regular}`}>
                     Email
                   </Text>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, height: s(48), borderWidth: 1, borderColor: colors.border, ...shadow.card, overflow: 'hidden', paddingLeft: s(12) }} className={radius.xl}>
+                  <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }} className={`${radius.full} px-5 h-12 flex-row items-center`}>
+                    <SendEmailIcon size={s(iconSize.md)} color={colors.textSecondary} />
                     <TextInput
                       value={email}
                       onChangeText={setEmail}
@@ -224,7 +239,7 @@ function GetStartedScreen() {
                       autoCapitalize="none"
                       autoCorrect={false}
                       editable={!loading}
-                      style={{ flex: 1, color: colors.text }}
+                      style={{ flex: 1, color: colors.text, marginLeft: s(8) }}
                       className={`${textSize.small} ${fontFamily.regular}`}
                     />
                   </View>
@@ -235,7 +250,8 @@ function GetStartedScreen() {
                   <Text style={{ color: colors.text, position: 'absolute', top: s(-30), left: s(8) }} className={`${textSize.small} ${fontFamily.regular}`}>
                     Password
                   </Text>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, height: s(48), borderWidth: 1, borderColor: colors.border, ...shadow.card, overflow: 'hidden', paddingLeft: s(12) }} className={radius.xl}>
+                  <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }} className={`${radius.full} px-5 h-12 flex-row items-center`}>
+                    <LoginKeyIcon size={s(iconSize.md)} color={colors.textSecondary} />
                     <TextInput
                       value={password}
                       onChangeText={setPassword}
@@ -245,14 +261,23 @@ function GetStartedScreen() {
                       autoCapitalize="none"
                       autoCorrect={false}
                       editable={!loading}
-                      style={{ flex: 1, color: colors.text }}
+                      style={{ flex: 1, color: colors.text, marginLeft: s(8) }}
                       className={`${textSize.small} ${fontFamily.regular}`}
                     />
                     <View style={{ justifyContent: 'center', alignItems: 'center', paddingHorizontal: s(8), height: '100%' }}>
                       <HeaderIconButton onPress={() => setShowPassword(!showPassword)}>
-                        {showPassword ? <EyeIcon size={s(iconSize.headerNav)} color={colors.text} weight="fill" /> : <EyeSlashIcon size={s(iconSize.headerNav)} color={colors.text} weight="regular" />}
+                        {showPassword ? <EyeIcon size={s(iconSize.headerNav)} color={colors.textSecondary} weight="fill" /> : <EyeClosedIcon size={s(iconSize.headerNav)} color={colors.textSecondary} weight="fill" />}
                       </HeaderIconButton>
                     </View>
+                  </View>
+                  {/* Hidden Forgot Password placeholder for layout consistency */}
+                  <View
+                    style={{ alignSelf: 'flex-end', marginTop: s(8), opacity: 0 }}
+                    pointerEvents="none"
+                  >
+                    <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular}`}>
+                      Forgot Password?
+                    </Text>
                   </View>
                 </View>
               </>
@@ -293,7 +318,7 @@ function GetStartedScreen() {
             )}
 
             {/* Action Button */}
-            <View className="mt-4" />
+            <View className="mt-2" />
             <TouchableOpacity
               onPress={() => { step === 'form' ? handleSignUp() : handleVerifyCode(); }}
               disabled={loading}
@@ -310,6 +335,17 @@ function GetStartedScreen() {
                 </View>
               )}
             </TouchableOpacity>
+
+            {/* Google Sign In - only show on form step */}
+            {step === 'form' && (
+              <View className="mt-2">
+                <GoogleSignInBtn
+                  onSuccess={onSuccess}
+                  onError={(error) => showModal('Google Sign-In Error', error)}
+                  disabled={loading}
+                />
+              </View>
+            )}
 
             {/* Already have an account */}
             {step === 'form' && (

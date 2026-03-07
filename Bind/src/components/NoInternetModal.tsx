@@ -109,7 +109,7 @@ function NoInternetModal() {
                 marginBottom: s(16),
               }}
             >
-              <AirplaneTakeoffIcon size={s(28)} color={colors.text} weight="regular" />
+              <AirplaneTakeoffIcon size={s(28)} color={colors.text} weight="fill" />
             </View>
             <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.bold} text-center mb-2`}>
               No Internet Connection

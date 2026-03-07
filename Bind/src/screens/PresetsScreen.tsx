@@ -13,7 +13,8 @@ import {
 import LoadingSpinner from '../components/LoadingSpinner';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
-import { PlusIcon as PhosphorPlusIcon, TrashIcon as PhosphorTrashIcon, PlusCircleIcon, FloppyDiskIcon, SquaresFourIcon } from 'phosphor-react-native';
+import { PlusIcon as PhosphorPlusIcon, PlusCircleIcon } from 'phosphor-react-native';
+import PresetsIcon from '../components/PresetsIcon';
 import HeaderIconButton from '../components/HeaderIconButton';
 import PresetCard, { Preset } from '../components/PresetCard';
 import ConfirmationModal from '../components/ConfirmationModal';
@@ -35,11 +36,17 @@ import { useAuth } from '../context/AuthContext';
 const { InstalledAppsModule, ScheduleModule } = NativeModules;
 
 const PlusIcon = ({ size = iconSize.lg, color = '#FFFFFF' }: { size?: number; color?: string }) => (
-  <PhosphorPlusIcon size={size} color={color} weight="regular" />
+  <PhosphorPlusIcon size={size} color={color} weight="fill" />
 );
 
-const TrashIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
-  <PhosphorTrashIcon size={iconSize.forTabs} color={color} weight="regular" />
+const TrashIcon = ({ color = '#FFFFFF', size = iconSize.forTabs }: { color?: string; size?: number }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path d="m1.751 6.368 20.541-4.366" stroke={color} strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
+    <Path d="m13.6 0.783-4.4 0.935A1.5 1.5 0 0 0 8.042 3.5l0.312 1.468 7.336-1.56-0.312-1.467A1.5 1.5 0 0 0 13.6 0.783Z" stroke={color} strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
+    <Path d="m10.751 18 0-7.5" stroke={color} strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
+    <Path d="m15.251 18 0-7.5" stroke={color} strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
+    <Path d="M18.626 6h2.625l-1.385 15.874a1.5 1.5 0 0 1-1.5 1.376H7.631a1.5 1.5 0 0 1-1.494-1.376L5.1 9.377" stroke={color} strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
+  </Svg>
 );
 
 // Pure function - check if two date ranges overlap
@@ -767,13 +774,13 @@ function PresetsScreen() {
     <View style={{ alignItems: 'center', paddingTop: s(60), paddingHorizontal: s(32) }}>
       {!loading && (
         <>
-          <SquaresFourIcon size={s(48)} color={colors.textMuted} weight="regular" />
+          <PresetsIcon size={s(48)} color={colors.textMuted} />
           <Text style={{ color: colors.textSecondary, textAlign: 'center', marginTop: s(12) }} className={`${textSize.small} ${fontFamily.regular}`}>
             No presets yet
           </Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: s(4) }}>
             <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>Tap </Text>
-            <PlusCircleIcon size={s(14)} color={colors.textMuted} weight="regular" />
+            <PlusCircleIcon size={s(14)} color={colors.textMuted} weight="fill" />
             <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular}`}> to create one</Text>
           </View>
         </>
@@ -812,7 +819,7 @@ function PresetsScreen() {
 
         {/* Add Button - stays green but disabled when locked */}
           <HeaderIconButton onPress={handleAddPresetWithFlag} disabled={isDisabled}>
-            <PlusCircleIcon size={s(iconSize.headerNav)} color="#fff" weight="regular" />
+            <PlusCircleIcon size={s(iconSize.headerNav)} color="#fff" weight="fill" />
           </HeaderIconButton>
       </View>
 
@@ -903,7 +910,9 @@ function PresetsScreen() {
           }}
         >
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <FloppyDiskIcon size={24} color={colors.text} weight="regular" />
+            <Svg width={24} height={24} viewBox="0 0 24 24" fill={colors.text}>
+              <Path d="M5 21h14c1.1 0 2-.9 2-2V8c0-.27-.11-.52-.29-.71l-4-4A1 1 0 0 0 16 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2M7 5h4v2h2V5h2v4H7zm0 8c0-.55.45-1 1-1h8c.55 0 1 .45 1 1v6H7z" />
+            </Svg>
             <Text style={{ color: colors.text, marginLeft: s(8) }} className={`${textSize.large} ${fontFamily.semibold}`}>
               Preset Saved
             </Text>

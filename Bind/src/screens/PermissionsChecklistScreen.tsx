@@ -451,7 +451,7 @@ function PermissionsChecklistScreen() {
               <displayedPermission.icon
                 size={s(90)}
                 color={colors.text}
-                weight="regular"
+                weight="fill"
               />
             )}
           </Animated.View>

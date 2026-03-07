@@ -19,7 +19,8 @@ import AnimatedCheckbox, { AnimatedCheckboxRef } from '../components/AnimatedChe
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Svg, { Path, Rect } from 'react-native-svg';
-import { XCircleIcon, CaretRightIcon, ArrowBendUpLeftIcon, PlusIcon as PhosphorPlusIcon, CompassIcon, GlobeIcon as PhosphorGlobeIcon, AndroidLogoIcon, SquaresFourIcon, CursorClickIcon, PlusCircleIcon } from 'phosphor-react-native';
+import { XCircleIcon, CaretRightIcon, PlusIcon as PhosphorPlusIcon, MagicWandIcon, AndroidLogoIcon, SquaresFourIcon, CursorClickIcon, PlusCircleIcon } from 'phosphor-react-native';
+import ReplyArrowIcon from '../components/ReplyArrowIcon';
 import ExcludedAppsInfoModal from '../components/ExcludedAppsInfoModal';
 import { Preset } from '../components/PresetCard';
 import HeaderIconButton from '../components/HeaderIconButton';
@@ -35,39 +36,39 @@ const EXCLUDED_APPS_INFO_DISMISSED_KEY = 'excluded_apps_info_dismissed';
 // ============ Icon Components ============
 
 const XIcon = ({ size = iconSize.headerNav, color = "#FFFFFF" }: { size?: number; color?: string }) => (
-  <XCircleIcon size={size} color={color} weight="regular" />
+  <XCircleIcon size={size} color={color} weight="fill" />
 );
 
 const ChevronRightIcon = ({ size = iconSize.chevron, color = "#9CA3AF" }: { size?: number; color?: string }) => (
-  <CaretRightIcon size={size} color={color} weight="regular" />
+  <CaretRightIcon size={size} color={color} weight="fill" />
 );
 
 const ForwardIcon = ({ size = iconSize.lg, color = "#FFFFFF" }: { size?: number; color?: string }) => (
-  <ArrowBendUpLeftIcon size={size} color={color} weight="regular" style={{ transform: [{ scaleX: -1 }] }} />
-);
-
-const EditIcon = ({ size = iconSize.md, color = '#FFFFFF' }: { size?: number; color?: string }) => (
-  <PhosphorPlusIcon size={size} color={color} weight="regular" />
+  <ReplyArrowIcon size={size} color={color} direction="right" />
 );
 
 const SearchIcon = ({ size = iconSize.md, color = '#FFFFFF' }: { size?: number; color?: string }) => (
-  <CompassIcon size={size} color={color} weight="regular" />
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
+    <Path d="M12 2C6.49 2 2 6.49 2 12s4.49 10 10 10 10-4.49 10-10S17.51 2 12 2m1.99 12L8 16l2-6 6-2z" />
+  </Svg>
 );
 
 const PlusIcon = ({ size = iconSize.lg, color = '#FFFFFF' }: { size?: number; color?: string }) => (
-  <PhosphorPlusIcon size={size} color={color} weight="regular" />
+  <PhosphorPlusIcon size={size} color={color} weight="fill" />
 );
 
 const GlobeIcon = ({ size = iconSize.sm, color = "#FFFFFF" }: { size?: number; color?: string }) => (
-  <PhosphorGlobeIcon size={size} color={color} weight="regular" />
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
+    <Path d="M12 22c1.38 0 3.27-3.4 3.48-9H8.52c.2 5.6 2.1 9 3.48 9m0-20c-1.38 0-3.27 3.4-3.48 9h6.96c-.2-5.6-2.1-9-3.48-9m3.53.65c1.17 2.12 1.83 5.22 1.95 8.35h4.47c-.38-3.83-2.94-7.03-6.42-8.35m0 18.7c3.48-1.32 6.04-4.51 6.42-8.35h-4.47c-.12 3.12-.78 6.23-1.95 8.35M2.05 13c.38 3.83 2.94 7.03 6.42 8.35C7.3 19.23 6.64 16.13 6.52 13zm0-2h4.47c.12-3.12.78-6.23 1.95-8.35C4.99 3.97 2.43 7.16 2.05 11" />
+  </Svg>
 );
 
 const AndroidIcon = ({ size = iconSize.sm, color = "#FFFFFF" }: { size?: number; color?: string }) => (
-  <AndroidLogoIcon size={size} color={color} weight="regular" />
+  <AndroidLogoIcon size={size} color={color} weight="fill" />
 );
 
 const AppsIcon = ({ size = iconSize.sm, color = "#FFFFFF" }: { size?: number; color?: string }) => (
-  <SquaresFourIcon size={size} color={color} weight="regular" />
+  <SquaresFourIcon size={size} color={color} weight="fill" />
 );
 
 // ============ Expandable Info ============
@@ -207,7 +208,7 @@ const AppItemRow = memo(({ item, isSelected, onToggle, colors, s, skipCheckboxAn
     // Scale down and bounce back animation on press
     Animated.sequence([
       Animated.timing(scaleAnim, {
-        toValue: 0.98,
+        toValue: 0.95,
         useNativeDriver: true,
         duration: 30,
       }),
@@ -232,12 +233,12 @@ const AppItemRow = memo(({ item, isSelected, onToggle, colors, s, skipCheckboxAn
           backgroundColor: colors.card,
           borderWidth: 1,
           borderColor: colors.border,
-          paddingVertical: s(buttonPadding.standard),
+          paddingVertical: s(buttonPadding.standard + 4),
           ...shadow.card,
           opacity: opacityAnim,
           transform: [{ scale: scaleAnim }],
         }}
-        className={`flex-row items-center px-4 ${radius.xl} mb-2`}
+        className={`flex-row items-center px-5 ${radius.xl} mb-2`}
       >
         {item.icon ? (
           <Image
@@ -525,9 +526,9 @@ function EditPresetAppsScreen() {
         <View className="px-6 py-4">
           <View
             style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
-            className={`${radius.xl} px-5 h-12 flex-row items-center`}
+            className={`${radius.full} px-5 h-12 flex-row items-center`}
           >
-            <EditIcon size={s(iconSize.headerNav)} color={colors.textSecondary} />
+            <MagicWandIcon size={s(iconSize.headerNav)} color={colors.textSecondary} weight="fill" />
             <TextInput
               placeholder="Preset Name"
               placeholderTextColor={colors.textSecondary}
@@ -579,8 +580,8 @@ function EditPresetAppsScreen() {
                 <TouchableOpacity
                   onPress={openIOSAppPicker}
                   activeOpacity={0.7}
-                  style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, paddingVertical: s(buttonPadding.standard), ...shadow.card }}
-                  className={`flex-row items-center px-4 ${radius.xl} mb-4`}
+                  style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, paddingVertical: s(buttonPadding.standard + 4), ...shadow.card }}
+                  className={`flex-row items-center px-5 ${radius.xl} mb-4`}
                 >
                   <View className={`w-12 h-12 ${radius.xl} items-center justify-center mr-4`}>
                     <AppsIcon size={s(iconSize.lg)} color={colors.text} />
@@ -609,7 +610,7 @@ function EditPresetAppsScreen() {
                 <View className="px-6 mb-4">
                   <View
                     style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
-                    className={`${radius.xl} px-5 h-12 flex-row items-center`}
+                    className={`${radius.full} px-5 h-12 flex-row items-center`}
                   >
                     <SearchIcon size={s(iconSize.headerNav)} color={colors.textSecondary} />
                     <TextInput
@@ -699,9 +700,9 @@ function EditPresetAppsScreen() {
               <View className="flex-row items-center mb-4">
                 <View
                   style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card, flex: 1 }}
-                  className={`${radius.xl} px-5 h-12 flex-row items-center mr-2`}
+                  className={`${radius.full} px-5 h-12 flex-row items-center mr-2`}
                 >
-                  <CursorClickIcon size={s(iconSize.md)} color={colors.textSecondary} weight="regular" />
+                  <CursorClickIcon size={s(iconSize.md)} color={colors.textSecondary} weight="fill" />
                   <TextInput
                     placeholder="e.g. instagram.com"
                     placeholderTextColor={colors.textSecondary}
@@ -714,7 +715,7 @@ function EditPresetAppsScreen() {
                   />
                 </View>
                 <HeaderIconButton onPress={addWebsite}>
-                  <PlusCircleIcon size={s(iconSize.headerNav)} color="#fff" weight="regular" />
+                  <PlusCircleIcon size={s(iconSize.headerNav)} color="#fff" weight="fill" />
                 </HeaderIconButton>
               </View>
 
@@ -726,8 +727,8 @@ function EditPresetAppsScreen() {
               {blockedWebsites.map((site) => (
                 <View
                   key={site}
-                  style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
-                  className={`flex-row items-center py-3 px-4 ${radius.xl} mb-2`}
+                  style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, paddingVertical: s(buttonPadding.standard + 4), ...shadow.card }}
+                  className={`flex-row items-center px-5 ${radius.xl} mb-2`}
                 >
                   <View className="w-10 h-10 items-center justify-center mr-3">
                     <GlobeIcon size={s(iconSize.xl)} color={colors.textSecondary} />

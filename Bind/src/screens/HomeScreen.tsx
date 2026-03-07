@@ -12,7 +12,8 @@ import {
   RefreshControl,
   Animated,
 } from 'react-native';
-import { AlarmIcon as PhosphorAlarmIcon, ImageSquareIcon, BellIcon, BellSlashIcon, LockIcon, LockOpenIcon } from 'phosphor-react-native';
+import { AlarmIcon as PhosphorAlarmIcon, LockIcon, LockOpenIcon } from 'phosphor-react-native';
+import Svg, { Path } from 'react-native-svg';
 
 import HeaderIconButton from '../components/HeaderIconButton';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -1165,16 +1166,17 @@ function HomeScreen() {
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: s(8) }}>
           {/* Notification Permission Toggle */}
           <HeaderIconButton onPress={openNotificationSettings}>
-            {!notificationsEnabled ? (
-              <BellSlashIcon size={s(iconSize.headerNav)} color="#FFFFFF" weight="regular" />
-            ) : (
-              <BellIcon size={s(iconSize.headerNav)} color="#FFFFFF" weight="fill" />
-            )}
+            <Svg width={s(iconSize.headerNav)} height={s(iconSize.headerNav)} viewBox="0 0 24 24" fill={notificationsEnabled ? '#FFFFFF' : colors.textMuted}>
+              <Path d="M5.85 3.5a.75.75 0 0 0-1.117-1 9.719 9.719 0 0 0-2.348 4.876.75.75 0 0 0 1.479.248A8.219 8.219 0 0 1 5.85 3.5ZM19.267 2.5a.75.75 0 1 0-1.118 1 8.22 8.22 0 0 1 1.987 4.124.75.75 0 0 0 1.48-.248A9.72 9.72 0 0 0 19.266 2.5Z" />
+              <Path fillRule="evenodd" clipRule="evenodd" d="M12 2.25A6.75 6.75 0 0 0 5.25 9v.75a8.217 8.217 0 0 1-2.119 5.52.75.75 0 0 0 .298 1.206c1.544.57 3.16.99 4.831 1.243a3.75 3.75 0 1 0 7.48 0 24.583 24.583 0 0 0 4.83-1.244.75.75 0 0 0 .298-1.205 8.217 8.217 0 0 1-2.118-5.52V9A6.75 6.75 0 0 0 12 2.25ZM9.75 18c0-.034 0-.067.002-.1a25.05 25.05 0 0 0 4.496 0l.002.1a2.25 2.25 0 1 1-4.5 0Z" />
+            </Svg>
           </HeaderIconButton>
 
           {/* Widget Bubble Toggle */}
           <HeaderIconButton onPress={toggleWidgetBubble}>
-            <ImageSquareIcon size={s(iconSize.headerNav)} color={widgetBubbleDisabled ? colors.textMuted : '#FFFFFF'} weight={widgetBubbleDisabled ? 'regular' : 'fill'} />
+            <Svg width={s(iconSize.headerNav)} height={s(iconSize.headerNav)} viewBox="0 0 24 24" fill={widgetBubbleDisabled ? colors.textMuted : '#FFFFFF'}>
+              <Path d="M12 2C6.49 2 2 6.49 2 12s4.49 10 10 10 10-4.49 10-10S17.51 2 12 2M8.5 8c.83 0 1.5.67 1.5 1.5S9.33 11 8.5 11 7 10.33 7 9.5 7.67 8 8.5 8M7 16l2.5-3 1.5 1.5 3-3.5 3 5z" />
+            </Svg>
           </HeaderIconButton>
 
         </View>
@@ -1268,9 +1270,9 @@ function HomeScreen() {
           }}
         >
           {lastLockAction === 'lock' ? (
-            <LockIcon size={s(28)} color={colors.text} weight="bold" />
+            <LockIcon size={s(28)} color={colors.text} weight="fill" />
           ) : (
-            <LockOpenIcon size={s(28)} color={colors.text} weight="bold" />
+            <LockOpenIcon size={s(28)} color={colors.text} weight="fill" />
           )}
         </Animated.View>
         <BlockNowButton

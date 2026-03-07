@@ -10,7 +10,8 @@ import {
 import LoadingSpinner from '../components/LoadingSpinner';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
-import { MagnifyingGlassIcon, ArrowBendUpLeftIcon, GlobeIcon as PhosphorGlobeIcon } from 'phosphor-react-native';
+import { MagnifyingGlassIcon, GlobeIcon as PhosphorGlobeIcon } from 'phosphor-react-native';
+import ReplyArrowIcon from '../components/ReplyArrowIcon';
 import { useTheme , textSize, fontFamily, radius, shadow, iconSize } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import HeaderIconButton from '../components/HeaderIconButton';
@@ -36,17 +37,17 @@ interface Props {
 
 // Search Icon
 const SearchIcon = ({ color }: { color: string }) => (
-  <MagnifyingGlassIcon size={iconSize.md} color={color} weight="regular" />
+  <MagnifyingGlassIcon size={iconSize.md} color={color} weight="fill" />
 );
 
 // Back arrow icon
 const BackIcon = ({ color, size = iconSize.headerNav }: { color: string; size?: number }) => (
-  <ArrowBendUpLeftIcon size={size} color={color} weight="regular" />
+  <ReplyArrowIcon size={size} color={color} direction="left" />
 );
 
 // Globe Icon for websites
 const GlobeIcon = ({ color, size = iconSize.lg }: { color: string; size?: number }) => (
-  <PhosphorGlobeIcon size={size} color={color} weight="regular" />
+  <PhosphorGlobeIcon size={size} color={color} weight="fill" />
 );
 
 interface AppItemProps {

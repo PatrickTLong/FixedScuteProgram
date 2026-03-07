@@ -279,13 +279,13 @@ function BlockNowButton({
             ) : shouldBreathe ? (
               <Animated.View style={{ transform: [{ scale: handScale }] }}>
                 {iconType === 'heart' ? (
-                  <HandHeartIcon size={s(34)} color={iconColor} />
+                  <HandHeartIcon size={s(34)} color={iconColor} weight="fill" />
                 ) : (
-                  <HandTapIcon size={s(34)} color={iconColor} />
+                  <HandTapIcon size={s(34)} color={iconColor} weight="fill" />
                 )}
               </Animated.View>
             ) : (
-              <HandWavingIcon size={s(34)} color={iconColor} />
+              <HandWavingIcon size={s(34)} color={iconColor} weight="fill" />
             )}
           </Pressable>
         </View>

@@ -31,19 +31,19 @@ function getFirstDayOfMonth(month: number, year: number): number {
 
 // ============ Icon Components ============
 const ChevronLeftIcon = ({ size = iconSize.chevron, color = "#FFFFFF" }: { size?: number; color?: string }) => (
-  <CaretLeftIcon size={size} color={color} weight="regular" />
+  <CaretLeftIcon size={size} color={color} weight="fill" />
 );
 
 const ChevronRightIcon = ({ size = iconSize.chevron, color = "#9CA3AF" }: { size?: number; color?: string }) => (
-  <CaretRightIcon size={size} color={color} weight="regular" />
+  <CaretRightIcon size={size} color={color} weight="fill" />
 );
 
 const XIcon = ({ size = iconSize.headerNav, color = "#FFFFFF" }: { size?: number; color?: string }) => (
-  <XCircleIcon size={size} color={color} weight="regular" />
+  <XCircleIcon size={size} color={color} weight="fill" />
 );
 
 const CheckIcon = ({ size = iconSize.headerNav, color = "#FFFFFF" }: { size?: number; color?: string }) => (
-  <CheckCircleIcon size={size} color={color} weight="regular" />
+  <CheckCircleIcon size={size} color={color} weight="fill" />
 );
 
 // ============ Sun/Moon Icons ============
@@ -263,7 +263,7 @@ const AmPmSelector = memo(({ value, onChange, cardColor }: AmPmSelectorProps) =>
           </Text>
         </TouchableOpacity>
         <Animated.View style={{ position: 'absolute', right: -26, transform: [{ scale: sunScale }] }}>
-          <SunIcon size={18} color={value === 'AM' ? colors.yellow : colors.textMuted} weight={value === 'AM' ? 'fill' : 'regular'} />
+          <SunIcon size={18} color={value === 'AM' ? colors.yellow : colors.textMuted} weight="fill" />
         </Animated.View>
       </View>
       {/* PM button with moon icon */}
@@ -279,7 +279,7 @@ const AmPmSelector = memo(({ value, onChange, cardColor }: AmPmSelectorProps) =>
           </Text>
         </TouchableOpacity>
         <Animated.View style={{ position: 'absolute', right: -26, transform: [{ scale: moonScale }] }}>
-          <MoonIcon size={18} color={value === 'PM' ? colors.text : colors.textMuted} weight={value === 'PM' ? 'fill' : 'regular'} />
+          <MoonIcon size={18} color={value === 'PM' ? colors.text : colors.textMuted} weight="fill" />
         </Animated.View>
       </View>
     </View>
@@ -647,7 +647,7 @@ function DatePickerScreen() {
             </View>
             {tempSelectedDate && (
               <HeaderIconButton onPress={handleClear} flashSize={46}>
-                <CalendarXIcon size={s(iconSize.toggleRow)} color={colors.text} weight="regular" />
+                <CalendarXIcon size={s(iconSize.toggleRow)} color={colors.text} weight="fill" />
               </HeaderIconButton>
             )}
           </View>

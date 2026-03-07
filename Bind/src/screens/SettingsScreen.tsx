@@ -3,7 +3,7 @@ import {
   Text,
   View,
   ScrollView,
-  TouchableOpacity,
+  TouchableHighlight,
   Linking,
   Modal,
   Animated,
@@ -13,7 +13,8 @@ import {
 import LoadingSpinner from '../components/LoadingSpinner';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
-import { IdentificationCardIcon, StudentIcon, DoorOpenIcon, ArrowsClockwiseIcon, WarningIcon, ChatsCircleIcon, BugBeetleIcon, ShieldCheckIcon, FolderOpenIcon, CheckCircleIcon, ArrowBendUpLeftIcon, HeartStraightBreakIcon, CaretRightIcon } from 'phosphor-react-native';
+import { IdentificationCardIcon, WarningIcon, FolderOpenIcon, CheckCircleIcon, HeartStraightBreakIcon } from 'phosphor-react-native';
+import ReplyArrowIcon from '../components/ReplyArrowIcon';
 import ConfirmationModal from '../components/ConfirmationModal';
 import HeaderIconButton from '../components/HeaderIconButton';
 import MembershipContent from '../components/MembershipContent';
@@ -25,19 +26,32 @@ import { useAuth } from '../context/AuthContext';
 
 // Icons
 const MailIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
-  <IdentificationCardIcon size={iconSize.forTabs} color={color} weight="regular" />
+  <IdentificationCardIcon size={iconSize.forTabs} color={color} weight="fill" />
 );
 
 const MembershipIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
-  <StudentIcon size={iconSize.forTabs} color={color} weight="regular" />
+  <Svg width={iconSize.forTabs} height={iconSize.forTabs} viewBox="0 0 24 24" fill={color}>
+    <Path d="M5.49 22a2 2 0 0 1 -1.87 -1.34l-0.55 -1.52a0.27 0.27 0 0 0 -0.14 -0.14 0.26 0.26 0 0 0 -0.21 0 5.72 5.72 0 0 1 -2.22 0.5 0.49 0.49 0 0 0 -0.48 0.37 0.5 0.5 0 0 0 0.22 0.56l2.11 1.26 -0.8 1.59a0.51 0.51 0 0 0 0 0.48A0.52 0.52 0 0 0 2 24c0.48 0 4.16 0 4.88 -2a0.27 0.27 0 0 0 -0.08 -0.28 0.26 0.26 0 0 0 -0.29 0 2 2 0 0 1 -1.02 0.28Z" />
+    <Path d="M23.5 19.5a5.72 5.72 0 0 1 -2.22 -0.5 0.26 0.26 0 0 0 -0.21 0 0.27 0.27 0 0 0 -0.14 0.14l-0.55 1.52A2 2 0 0 1 18.61 22a2 2 0 0 1 -1.13 -0.28 0.25 0.25 0 0 0 -0.36 0.3c0.7 2 4.4 2 4.88 2a0.52 0.52 0 0 0 0.43 -0.24 0.51 0.51 0 0 0 0 -0.48l-0.8 -1.59 2.11 -1.26a0.5 0.5 0 0 0 0.22 -0.56 0.49 0.49 0 0 0 -0.46 -0.39Z" />
+    <Path d="M18.05 20.22a0.51 0.51 0 0 0 0.45 0.28 0.5 0.5 0 0 0 0.47 -0.33l1.72 -4.73a1.49 1.49 0 0 0 -0.69 -1.82 16.6 16.6 0 0 0 -8 -2.12 16.6 16.6 0 0 0 -8 2.12 1.49 1.49 0 0 0 -0.67 1.82L5 20.17a0.5 0.5 0 0 0 0.44 0.33 0.52 0.52 0 0 0 0.56 -0.27c0 -0.11 1.4 -2.73 6 -2.73s6 2.62 6.05 2.72Z" />
+    <Path d="M5.72 11.32a0.86 0.86 0 0 0 0.28 -1l-0.47 -1.24a0.25 0.25 0 0 1 0.07 -0.28l1 -0.81A0.86 0.86 0 0 0 6 6.47H4.88a0.24 0.24 0 0 1 -0.23 -0.17l-0.39 -1.2a0.85 0.85 0 0 0 -1.63 0l-0.39 1.2a0.25 0.25 0 0 1 -0.24 0.17H0.86A0.87 0.87 0 0 0 0.05 7a0.88 0.88 0 0 0 0.26 1l1 0.81a0.24 0.24 0 0 1 0.08 0.28l-0.5 1.25a0.84 0.84 0 0 0 0.28 1 0.86 0.86 0 0 0 1 0l1.11 -0.79a0.23 0.23 0 0 1 0.29 0l1.11 0.79a0.86 0.86 0 0 0 1.04 -0.02Z" />
+    <Path d="M9.47 5.25a0.26 0.26 0 0 1 0.08 0.28l-0.64 1.7a0.95 0.95 0 0 0 1.44 1.1l1.5 -1.07a0.26 0.26 0 0 1 0.29 0l1.5 1.07a0.93 0.93 0 0 0 1.12 0 1 1 0 0 0 0.32 -1.09l-0.64 -1.7a0.24 0.24 0 0 1 0.07 -0.28l1.33 -1.11a0.95 0.95 0 0 0 -0.61 -1.67h-1.57a0.25 0.25 0 0 1 -0.24 -0.18L12.89 0.66A0.92 0.92 0 0 0 12 0a0.94 0.94 0 0 0 -0.9 0.66l-0.53 1.63a0.23 0.23 0 0 1 -0.23 0.18H8.75a0.94 0.94 0 0 0 -0.6 1.67Z" />
+    <Path d="m19.3 11.34 1.11 -0.79a0.23 0.23 0 0 1 0.29 0l1.11 0.79a0.86 0.86 0 0 0 1 0 0.84 0.84 0 0 0 0.28 -1l-0.47 -1.26a0.25 0.25 0 0 1 0.07 -0.28l1 -0.81a0.86 0.86 0 0 0 -0.55 -1.52H22a0.25 0.25 0 0 1 -0.24 -0.17l-0.39 -1.2a0.85 0.85 0 0 0 -1.63 0l-0.39 1.2a0.24 0.24 0 0 1 -0.23 0.17H18A0.86 0.86 0 0 0 17.42 8l1 0.81a0.25 0.25 0 0 1 0.07 0.28L18 10.34a0.86 0.86 0 0 0 1.3 1Z" />
+  </Svg>
 );
 
 const LogoutIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
-  <DoorOpenIcon size={iconSize.forTabs} color={color} weight="regular" />
+  <Svg width={iconSize.forTabs} height={iconSize.forTabs} viewBox="0 0 24 24" fill={color}>
+    <Path d="M17.51 18.5a1 1 0 0 0 -1 1v0.5a0.5 0.5 0 0 1 -0.5 0.5h-5.5A0.5 0.5 0 0 1 10 20V4a0.5 0.5 0 0 1 0.5 -0.5H16a0.5 0.5 0 0 1 0.5 0.5v1a1 1 0 0 0 2 0V2.5a1 1 0 0 0 -1 -1H10v-1a0.51 0.51 0 0 0 -0.18 -0.39A0.53 0.53 0 0 0 9.4 0l-9 2a0.5 0.5 0 0 0 -0.4 0.5v19a0.5 0.5 0 0 0 0.4 0.5l9 2a0.51 0.51 0 0 0 0.6 -0.5v-1h7.5a1 1 0 0 0 1 -1v-2a1 1 0 0 0 -0.99 -1Zm-10 -6A1.5 1.5 0 1 1 6 11a1.5 1.5 0 0 1 1.51 1.5Z" />
+    <Path d="M22.49 11h-4.12V9.25a1 1 0 0 0 -0.53 -0.88 1 1 0 0 0 -1 0.05l-4.87 3.25a1 1 0 0 0 0 1.66l4.87 3.25a1 1 0 0 0 1.56 -0.83V14h4.12a1.5 1.5 0 0 0 0 -3Z" />
+  </Svg>
 );
 
 const RefreshIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
-  <ArrowsClockwiseIcon size={iconSize.forTabs} color={color} weight="regular" />
+  <Svg width={iconSize.forTabs} height={iconSize.forTabs} viewBox="0 0 24 24" fill={color}>
+    <Path d="M6.18 6.17a8.22 8.22 0 0 1 8.35 -2 1.25 1.25 0 1 0 0.76 -2.38A10.75 10.75 0 0 0 2.05 16a0.25 0.25 0 0 1 -0.1 0.3l-1.4 0.93a1 1 0 0 0 -0.43 1 1 1 0 0 0 0.78 0.79l4.41 0.98 0.2 0a1 1 0 0 0 0.55 -0.17 1 1 0 0 0 0.43 -0.63l0.91 -4.41a1 1 0 0 0 -0.42 -1 1 1 0 0 0 -1.11 0l-1.34 0.88a0.29 0.29 0 0 1 -0.22 0 0.28 0.28 0 0 1 -0.16 -0.16 8.28 8.28 0 0 1 2.03 -8.34Z" />
+    <Path d="M23.88 5.83a1 1 0 0 0 -0.76 -0.8L18.73 4a1 1 0 0 0 -1.2 0.75l-1 4.38a1 1 0 0 0 0.4 1 1 1 0 0 0 0.58 0.19 0.94 0.94 0 0 0 0.53 -0.16l1.44 -0.9a0.29 0.29 0 0 1 0.22 0 0.28 0.28 0 0 1 0.16 0.16A8.25 8.25 0 0 1 9.57 19.88a1.25 1.25 0 0 0 -1.57 0.83 1.24 1.24 0 0 0 0.82 1.56 10.6 10.6 0 0 0 3.19 0.48A10.75 10.75 0 0 0 22 8a0.27 0.27 0 0 1 0.1 -0.31l1.35 -0.84a1 1 0 0 0 0.43 -1.02Z" />
+  </Svg>
 );
 
 const TrashIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
@@ -45,23 +59,28 @@ const TrashIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
 );
 
 const MessageIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
-  <ChatsCircleIcon size={iconSize.forTabs} color={color} weight="regular" />
+  <Svg width={iconSize.forTabs} height={iconSize.forTabs} viewBox="0 0 24 24" fill={color}>
+    <Path d="M16.3 8.51a8.74 8.74 0 0 1 1.37 0.11 0.25 0.25 0 0 0 0.19 0A0.23 0.23 0 0 0 18 8.4l0 -0.65C18 3.75 14.07 0.5 9.25 0.5S0.5 3.75 0.5 7.75a6.52 6.52 0 0 0 2.25 4.85L1 15.58a0.52 0.52 0 0 0 0.06 0.58 0.5 0.5 0 0 0 0.56 0.13l4.48 -1.77a11.72 11.72 0 0 0 1.42 0.34 0.26 0.26 0 0 0 0.29 -0.19 8.65 8.65 0 0 1 8.49 -6.16Z" />
+    <Path d="M16.3 10c-3.9 0 -7.19 2.86 -7.19 6.24a6.22 6.22 0 0 0 3 5.18 7.15 7.15 0 0 0 6.64 0.62l3.58 1.42a0.56 0.56 0 0 0 0.68 -0.75l-0.84 -2.95a5.14 5.14 0 0 0 1.37 -3.52C23.5 12.87 20.2 10 16.3 10Z" />
+  </Svg>
 );
 
 const BugIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
-  <BugBeetleIcon size={iconSize.forTabs} color={color} weight="regular" />
+  <Svg width={iconSize.forTabs} height={iconSize.forTabs} viewBox="0 0 24 24" fill={color}>
+    <Path d="M23.09 8.4a0.73 0.73 0 0 0 -0.83 0.5 2.78 2.78 0 0 1 -1.18 1.47 1.37 1.37 0 0 1 -1.17 0C18 9.6 18 6.78 18 6.75v-0.69a0.5 0.5 0 0 1 0.32 -0.46 3.73 3.73 0 0 1 2.45 0 1 1 0 1 0 0.58 -1.91 5.52 5.52 0 0 0 -4.64 0.52 9.83 9.83 0 0 0 -3.07 3.37A8.52 8.52 0 0 0 8.19 6C3.53 6 0.28 9.45 0.28 14.38 0.28 16.15 0.7 17 1.51 17H2l-0.3 1.48a0.23 0.23 0 0 1 -0.2 0.15 1 1 0 0 0 0 2 2.17 2.17 0 0 0 2.14 -1.71L4 17.43a0.49 0.49 0 0 1 0.47 -0.43h2a0.49 0.49 0 0 1 0.38 0.17 0.49 0.49 0 0 1 0.12 0.4l-0.13 0.93a0.1 0.1 0 0 1 -0.1 0.08 1 1 0 0 0 0 2 2.12 2.12 0 0 0 2.08 -1.8L9 17.47a0.49 0.49 0 0 1 0.52 -0.47h5.73a0.49 0.49 0 0 1 0.48 0.39l0.33 1.48a2.18 2.18 0 0 0 2.14 1.71 1 1 0 0 0 0 -2 0.23 0.23 0 0 1 -0.19 -0.15l-0.19 -0.83a0.48 0.48 0 0 1 0.1 -0.42 0.49 0.49 0 0 1 0.39 -0.19h0.83c2.86 0 4.57 -1.84 4.57 -3.61V9.14a0.75 0.75 0 0 0 -0.62 -0.74Zm-19 3.81a0.74 0.74 0 0 1 -0.41 -1 4.57 4.57 0 0 1 4 -2.86 0.75 0.75 0 0 1 0 1.5 3.12 3.12 0 0 0 -2.61 1.95 0.75 0.75 0 0 1 -0.98 0.41Zm14.35 1a1 1 0 1 1 -1 1 0.94 0.94 0 0 1 1 -1.02Z" />
+  </Svg>
 );
 
 const ShieldIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
-  <ShieldCheckIcon size={iconSize.forTabs} color={color} weight="regular" />
+  <Svg width={iconSize.forTabs} height={iconSize.forTabs} viewBox="0 0 24 24" fill={color}>
+    <Path d="M2.49 3.5a3.5 3.5 0 1 0 7 0 3.5 3.5 0 1 0 -7 0" />
+    <Path d="M9.5 13.46a3 3 0 0 1 1.58 -2.67A6.06 6.06 0 0 0 6 8a6 6 0 0 0 -6 5.33 1 1 0 0 0 0.26 0.82 1.05 1.05 0 0 0 0.78 0.35H9.5Z" />
+    <Path d="M23.07 12a16.45 16.45 0 0 0 -5.59 -1 16 16 0 0 0 -5.55 1 1.54 1.54 0 0 0 -0.93 1.46v3.39a7.7 7.7 0 0 0 5.19 6.8l0.55 0.21a1.91 1.91 0 0 0 0.74 0.14 1.83 1.83 0 0 0 0.73 -0.14l0.56 -0.21c3.08 -1.17 5.23 -4 5.23 -6.8v-3.39a1.54 1.54 0 0 0 -0.93 -1.46ZM21 15l-2.84 3.79a1.49 1.49 0 0 1 -2.24 0.16l-1.47 -1.47a0.75 0.75 0 1 1 1.06 -1.06L17 17.84l2.82 -3.79A0.75 0.75 0 1 1 21 15Z" />
+  </Svg>
 );
 
 const FileTextIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
-  <FolderOpenIcon size={iconSize.forTabs} color={color} weight="regular" />
-);
-
-const ChevronRightIcon = ({ size = iconSize.chevron, color = "#FFFFFF" }: { size?: number; color?: string }) => (
-  <CaretRightIcon size={size} color={color} weight="fill" />
+  <FolderOpenIcon size={iconSize.forTabs} color={color} weight="fill" />
 );
 
 interface SettingsRowProps {
@@ -69,7 +88,6 @@ interface SettingsRowProps {
   label: string;
   value?: string;
   onPress?: () => void;
-  showArrow?: boolean;
   labelColor?: string;
   isLast?: boolean;
   borderColor?: string;
@@ -82,30 +100,31 @@ const SettingsRow = memo(({
   label,
   value,
   onPress,
-  showArrow = true,
   labelColor,
   isLast = false,
   borderColor,
   valueColor,
   s,
 }: SettingsRowProps) => (
-  <TouchableOpacity
-    onPress={onPress || undefined}
-    onPressIn={() => { if (onPress && haptics.settingsRow.enabled) triggerHaptic(haptics.settingsRow.type); }}
-    disabled={!onPress}
-    activeOpacity={onPress ? 0.7 : 1}
-    style={!isLast ? { borderBottomWidth: 1, borderBottomColor: borderColor, paddingVertical: s(buttonPadding.standard) } : { paddingVertical: s(buttonPadding.standard) }}
-    className="flex-row items-center px-4"
-  >
-    <View className="mr-4">{icon}</View>
-    <Text style={{ color: labelColor }} className={`flex-1 ${textSize.small} ${fontFamily.regular}`}>{label}</Text>
-    {value && (
-      <Text style={{ color: valueColor }} className={`${textSize.small} ${fontFamily.regular} mr-2`}>{value}</Text>
+  <View>
+    <TouchableHighlight
+      onPress={onPress || undefined}
+      onPressIn={() => { if (onPress && haptics.settingsRow.enabled) triggerHaptic(haptics.settingsRow.type); }}
+      disabled={!onPress}
+      underlayColor="rgba(255,255,255,0.08)"
+    >
+      <View style={{ paddingVertical: s(buttonPadding.standard + 4) }} className="flex-row items-center px-5">
+        <View className="mr-4">{icon}</View>
+        <Text style={{ color: labelColor }} className={`flex-1 ${textSize.small} ${fontFamily.regular}`}>{label}</Text>
+        {value && (
+          <Text style={{ color: valueColor }} className={`${textSize.small} ${fontFamily.regular} mr-2`}>{value}</Text>
+        )}
+      </View>
+    </TouchableHighlight>
+    {!isLast && (
+      <View style={{ height: 1, backgroundColor: borderColor }} />
     )}
-    {showArrow && (
-      <ChevronRightIcon size={s(iconSize.chevron)} />
-    )}
-  </TouchableOpacity>
+  </View>
 ));
 
 function SettingsScreen() {
@@ -319,14 +338,14 @@ function SettingsScreen() {
   }, [email, refreshLockStatus, refreshTapoutStatus]);
 
   // Memoize icon JSX so SettingsRow memo isn't defeated by new element references
-  const mailIcon = useMemo(() => <MailIcon />, []);
-  const membershipIcon = useMemo(() => <MembershipIcon />, []);
-  const logoutIcon = useMemo(() => <LogoutIcon />, []);
-  const messageIcon = useMemo(() => <MessageIcon />, []);
-  const bugIcon = useMemo(() => <BugIcon />, []);
-  const shieldIcon = useMemo(() => <ShieldIcon />, []);
-  const fileTextIcon = useMemo(() => <FileTextIcon />, []);
-  const refreshIcon = useMemo(() => <RefreshIcon />, []);
+  const mailIcon = useMemo(() => <MailIcon color={colors.textSecondary} />, [colors.textSecondary]);
+  const membershipIcon = useMemo(() => <MembershipIcon color={colors.textSecondary} />, [colors.textSecondary]);
+  const logoutIcon = useMemo(() => <LogoutIcon color={colors.textSecondary} />, [colors.textSecondary]);
+  const messageIcon = useMemo(() => <MessageIcon color={colors.textSecondary} />, [colors.textSecondary]);
+  const bugIcon = useMemo(() => <BugIcon color={colors.textSecondary} />, [colors.textSecondary]);
+  const shieldIcon = useMemo(() => <ShieldIcon color={colors.textSecondary} />, [colors.textSecondary]);
+  const fileTextIcon = useMemo(() => <FileTextIcon color={colors.textSecondary} />, [colors.textSecondary]);
+  const refreshIcon = useMemo(() => <RefreshIcon color={colors.textSecondary} />, [colors.textSecondary]);
   const trashIcon = useMemo(() => <TrashIcon color={colors.yellow} />, [colors.yellow]);
 
   // Show full-screen loading only for destructive actions (reset/delete/logout)
@@ -374,47 +393,46 @@ function SettingsScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* ACCOUNT Section */}
-        <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} tracking-wider mb-2`}>
+        <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold} tracking-wider mb-2`}>
           Account
         </Text>
-        <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }} className={`${radius['2xl']} mb-6`}>
+        <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, overflow: 'hidden', ...shadow.card }} className={`${radius['2xl']} mb-6`}>
           <SettingsRow
             icon={mailIcon}
             label={email}
-            showArrow={false}
             labelColor={colors.text}
             borderColor={colors.divider}
             s={s}
           />
           {/* Membership Row with Trial Countdown */}
-          <TouchableOpacity
-            onPress={() => setMembershipModalVisible(true)}
-            onPressIn={() => { if (haptics.settingsRow.enabled) triggerHaptic(haptics.settingsRow.type); }}
-            activeOpacity={0.7}
-            style={{ borderBottomWidth: 1, borderBottomColor: colors.divider, paddingVertical: s(buttonPadding.standard) }}
-            className="px-4"
-          >
-            <View className="flex-row items-center">
-              <View className="mr-4"><MembershipIcon /></View>
-              <View className="flex-1">
-                <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular}`}>Membership</Text>
-                {membershipStatus?.isMember ? (
-                  <Text style={{ color: colors.green }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-0.5`}>
-                    Active Member
-                  </Text>
-                ) : getTrialTimeRemaining() ? (
-                  <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-0.5`}>
-                    Trial ends in {getTrialTimeRemaining()}
-                  </Text>
-                ) : (
-                  <Text style={{ color: colors.red }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-0.5`}>
-                    Trial expired
-                  </Text>
-                )}
+          <View>
+            <TouchableHighlight
+              onPress={() => setMembershipModalVisible(true)}
+              onPressIn={() => { if (haptics.settingsRow.enabled) triggerHaptic(haptics.settingsRow.type); }}
+              underlayColor="rgba(255,255,255,0.08)"
+            >
+              <View style={{ paddingVertical: s(buttonPadding.standard + 4) }} className="px-5 flex-row items-center">
+                <View className="mr-4"><MembershipIcon color={colors.textSecondary} /></View>
+                <View className="flex-1">
+                  <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular}`}>Membership</Text>
+                  {membershipStatus?.isMember ? (
+                    <Text style={{ color: colors.green }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-0.5`}>
+                      Active Member
+                    </Text>
+                  ) : getTrialTimeRemaining() ? (
+                    <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-0.5`}>
+                      Trial ends in {getTrialTimeRemaining()}
+                    </Text>
+                  ) : (
+                    <Text style={{ color: colors.red }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-0.5`}>
+                      Trial expired
+                    </Text>
+                  )}
+                </View>
               </View>
-              <ChevronRightIcon size={s(iconSize.chevron)} />
-            </View>
-          </TouchableOpacity>
+            </TouchableHighlight>
+            <View style={{ height: 1, backgroundColor: colors.divider }} />
+          </View>
           <View style={{ opacity: isDisabled ? 0.6 : 1 }}>
             <SettingsRow
               icon={logoutIcon}
@@ -430,14 +448,14 @@ function SettingsScreen() {
         </View>
 
         {/* EMERGENCY TAPOUT Section */}
-        <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular}  tracking-wider mb-2`}>
+        <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold} tracking-wider mb-2`}>
           Emergency Tapout
         </Text>
-        <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }} className={`${radius['2xl']} mb-6`}>
+        <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, overflow: 'hidden', ...shadow.card }} className={`${radius['2xl']} mb-6`}>
           {/* Header Row */}
           <View
-            style={getTimeUntilRefill() ? { borderBottomWidth: 1, borderBottomColor: colors.divider, paddingVertical: s(buttonPadding.standard) } : { paddingVertical: s(buttonPadding.standard) }}
-            className="flex-row items-center px-4"
+            style={{ paddingVertical: s(buttonPadding.standard + 4) }}
+            className="flex-row items-center px-5"
           >
             <View className="mr-4">
               {tapoutsRemaining === 0 ? (
@@ -469,20 +487,23 @@ function SettingsScreen() {
 
           {/* Refill Timer Row - shows when below 3 tapouts */}
           {tapoutStatus && getTimeUntilRefill() && (
-            <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-4">
+            <>
+            <View style={{ height: 1, backgroundColor: colors.divider }} />
+            <View style={{ paddingVertical: s(buttonPadding.standard + 4) }} className="flex-row items-center justify-between px-5">
               <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular}`}>Next Refill</Text>
               <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
                 {getTimeUntilRefill()}
               </Text>
             </View>
+            </>
           )}
         </View>
 
         {/* SUPPORT Section */}
-        <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular}  tracking-wider mb-2`}>
+        <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold} tracking-wider mb-2`}>
           Support
         </Text>
-        <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }} className={`${radius['2xl']}`}>
+        <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, overflow: 'hidden', ...shadow.card }} className={`${radius['2xl']}`}>
           <SettingsRow
             icon={messageIcon}
             label="Contact Support"
@@ -523,7 +544,7 @@ function SettingsScreen() {
         </View>
 
         {/* DATA Section */}
-        <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular} tracking-wider mb-2 mt-6`}>
+        <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold} tracking-wider mb-2 mt-6`}>
           Data
         </Text>
         {resetError && (
@@ -536,7 +557,7 @@ function SettingsScreen() {
             <Text style={{ color: colors.red }} className={`${textSize.small} ${fontFamily.regular}`}>{deleteError}</Text>
           </View>
         )}
-        <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }} className={`${radius['2xl']}`}>
+        <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, overflow: 'hidden', ...shadow.card }} className={`${radius['2xl']}`}>
           <View style={{ opacity: isDisabled ? 0.6 : 1 }}>
             <SettingsRow
               icon={refreshIcon}
@@ -612,7 +633,7 @@ function SettingsScreen() {
             <View style={{ width: s(40) }} />
             <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.bold}`}>Privacy Policy</Text>
             <HeaderIconButton onPress={() => setPrivacyModalVisible(false)} style={{ width: s(40) }} className="px-2 items-end">
-              <CheckCircleIcon size={s(iconSize.headerNav)} color="#FFFFFF" weight="regular" />
+              <CheckCircleIcon size={s(iconSize.headerNav)} color="#FFFFFF" weight="fill" />
             </HeaderIconButton>
           </View>
 
@@ -736,7 +757,7 @@ function SettingsScreen() {
             <View style={{ width: s(40) }} />
             <Text style={{ color: colors.text }} className={`${textSize.large} ${fontFamily.bold}`}>Terms of Service</Text>
             <HeaderIconButton onPress={() => setTermsModalVisible(false)} style={{ width: s(40) }} className="px-2 items-end">
-              <CheckCircleIcon size={s(iconSize.headerNav)} color="#FFFFFF" weight="regular" />
+              <CheckCircleIcon size={s(iconSize.headerNav)} color="#FFFFFF" weight="fill" />
             </HeaderIconButton>
           </View>
 
@@ -873,7 +894,7 @@ function SettingsScreen() {
             {/* Only show back button if trial hasn't expired */}
             {!membershipStatus?.trialExpired ? (
               <HeaderIconButton onPress={() => setMembershipModalVisible(false)} style={{ width: s(40) }}>
-                <ArrowBendUpLeftIcon size={s(iconSize.headerNav)} color="#FFFFFF" weight="regular" />
+                <ReplyArrowIcon size={s(iconSize.headerNav)} color="#FFFFFF" direction="left" />
               </HeaderIconButton>
             ) : (
               <View style={{ width: s(40) }} />

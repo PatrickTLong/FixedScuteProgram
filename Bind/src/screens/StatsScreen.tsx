@@ -15,7 +15,8 @@ import {
 } from 'react-native';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowsClockwiseIcon, ArrowsOutIcon, ArrowsInIcon } from 'phosphor-react-native';
+import { ArrowsOutIcon, ArrowsInIcon } from 'phosphor-react-native';
+import Svg, { Path } from 'react-native-svg';
 import { useTheme, textSize, fontFamily, radius, shadow, buttonPadding, iconSize } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import HeaderIconButton from '../components/HeaderIconButton';
@@ -84,13 +85,16 @@ const SpinningRefresh = memo(({ size, color }: { size: number; color: string }) 
   });
   return (
     <Animated.View style={{ transform: [{ rotate }], marginLeft: size * 0.4 }}>
-      <ArrowsClockwiseIcon size={size} color={color} weight="regular" />
+      <Svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
+        <Path d="M6.18 6.17a8.22 8.22 0 0 1 8.35 -2 1.25 1.25 0 1 0 0.76 -2.38A10.75 10.75 0 0 0 2.05 16a0.25 0.25 0 0 1 -0.1 0.3l-1.4 0.93a1 1 0 0 0 -0.43 1 1 1 0 0 0 0.78 0.79l4.41 0.98 0.2 0a1 1 0 0 0 0.55 -0.17 1 1 0 0 0 0.43 -0.63l0.91 -4.41a1 1 0 0 0 -0.42 -1 1 1 0 0 0 -1.11 0l-1.34 0.88a0.29 0.29 0 0 1 -0.22 0 0.28 0.28 0 0 1 -0.16 -0.16 8.28 8.28 0 0 1 2.03 -8.34Z" />
+        <Path d="M23.88 5.83a1 1 0 0 0 -0.76 -0.8L18.73 4a1 1 0 0 0 -1.2 0.75l-1 4.38a1 1 0 0 0 0.4 1 1 1 0 0 0 0.58 0.19 0.94 0.94 0 0 0 0.53 -0.16l1.44 -0.9a0.29 0.29 0 0 1 0.22 0 0.28 0.28 0 0 1 0.16 0.16A8.25 8.25 0 0 1 9.57 19.88a1.25 1.25 0 0 0 -1.57 0.83 1.24 1.24 0 0 0 0.82 1.56 10.6 10.6 0 0 0 3.19 0.48A10.75 10.75 0 0 0 22 8a0.27 0.27 0 0 1 0.1 -0.31l1.35 -0.84a1 1 0 0 0 0.43 -1.02Z" />
+      </Svg>
     </Animated.View>
   );
 });
 
 const ExpandIcon = ({ size = iconSize.sm, color = '#FFFFFF' }: { size?: number; color?: string }) => (
-  <ArrowsOutIcon size={size} color={color} weight="regular" />
+  <ArrowsOutIcon size={size} color={color} weight="fill" />
 );
 
 const AnimatedBar = memo(({ percentage, color, delay, barWidth, maxHeight, label, time, mutedColor, icon, s, animationKey, glintKey }: {
@@ -503,7 +507,7 @@ function StatsScreen() {
                 onPress={() => setExpandedVisible(false)}
                 className="p-3"
               >
-                <ArrowsInIcon size={s(iconSize.headerNav)} color="#FFFFFF" weight="regular" />
+                <ArrowsInIcon size={s(iconSize.headerNav)} color="#FFFFFF" weight="fill" />
               </HeaderIconButton>
             </View>
 

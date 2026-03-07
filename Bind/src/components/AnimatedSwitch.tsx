@@ -11,12 +11,13 @@ interface AnimatedSwitchProps {
   disabled?: boolean;
   trackColorFalse?: string;
   trackColorTrue?: string;
-  size?: 'default' | 'small' | 'medium' | 'large';
+  size?: 'default' | 'xs' | 'small' | 'medium' | 'large';
   animate?: boolean; // Set to false to skip animation (for programmatic changes)
 }
 
 // Size dimensions lookup - avoids recreating functions on every render
 const SIZE_DIMENSIONS = {
+  xs:      { trackWidth: 38, trackHeight: 22, thumbSize: 16, thumbOffset: 2 },
   small:   { trackWidth: 44, trackHeight: 24, thumbSize: 18, thumbOffset: 2 },
   medium:  { trackWidth: 56, trackHeight: 30, thumbSize: 26, thumbOffset: 2 },
   large:   { trackWidth: 62, trackHeight: 34, thumbSize: 30, thumbOffset: 2 },

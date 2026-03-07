@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import { ArrowBendUpLeftIcon } from 'phosphor-react-native';
+import ReplyArrowIcon from './ReplyArrowIcon';
 import HeaderIconButton from './HeaderIconButton';
 import { useTheme, iconSize, buttonPadding } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
@@ -16,7 +16,7 @@ function BackButton({ onPress }: BackButtonProps) {
       onPress={onPress}
       style={{ padding: s(buttonPadding.standard), paddingLeft: s(22) }}
     >
-      <ArrowBendUpLeftIcon size={s(iconSize.headerNav)} color={colors.text} weight="regular" />
+      <ReplyArrowIcon size={s(iconSize.headerNav)} color={colors.text} direction="left" />
     </HeaderIconButton>
   );
 }
