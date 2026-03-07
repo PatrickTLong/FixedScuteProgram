@@ -12,7 +12,8 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import HeaderIconButton from '../components/HeaderIconButton';
-import { CaretLeftIcon, CaretRightIcon, XCircleIcon, CheckCircleIcon, CalendarXIcon, SunIcon, MoonIcon } from 'phosphor-react-native';
+import { CaretLeftIcon, CaretRightIcon, XCircleIcon, CheckCircleIcon, SunIcon, MoonIcon } from 'phosphor-react-native';
+import Svg, { Path } from 'react-native-svg';
 import { useTheme, textSize, fontFamily, radius, shadow, iconSize, buttonPadding, haptics } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { triggerHaptic } from '../utils/haptics';
@@ -44,6 +45,13 @@ const XIcon = ({ size = iconSize.headerNav, color = "#FFFFFF" }: { size?: number
 
 const CheckIcon = ({ size = iconSize.headerNav, color = "#FFFFFF" }: { size?: number; color?: string }) => (
   <CheckCircleIcon size={size} color={color} weight="fill" />
+);
+
+const CalendarSyncIcon = ({ size = iconSize.toggleRow, color = '#FFFFFF' }: { size?: number; color?: string }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
+    <Path d="M21.5 3h-2.75a0.25 0.25 0 0 1 -0.25 -0.25V1a1 1 0 0 0 -2 0v4.75a0.75 0.75 0 0 1 -1.5 0V3.5a0.5 0.5 0 0 0 -0.5 -0.5H8.25A0.25 0.25 0 0 1 8 2.75V1a1 1 0 0 0 -2 0v4.75a0.75 0.75 0 0 1 -1.5 0V3.5A0.5 0.5 0 0 0 4 3H2.5a2 2 0 0 0 -2 2v17a2 2 0 0 0 2 2h19a2 2 0 0 0 2 -2V5a2 2 0 0 0 -2 -2Zm0 18.5a0.5 0.5 0 0 1 -0.5 0.5H3a0.5 0.5 0 0 1 -0.5 -0.5v-12A0.5 0.5 0 0 1 3 9h18a0.5 0.5 0 0 1 0.5 0.5Z" />
+    <Path d="M16.29 11.53a0.32 0.32 0 0 0 -0.37 0.07l-0.94 0.94a4.39 4.39 0 1 0 0.31 5.83 0.75 0.75 0 1 0 -1.17 -0.94 2.91 2.91 0 1 1 -0.21 -3.81l-1 1a0.34 0.34 0 0 0 -0.08 0.37 0.35 0.35 0 0 0 0.32 0.21h3a0.34 0.34 0 0 0 0.34 -0.34v-3a0.33 0.33 0 0 0 -0.2 -0.33Z" />
+  </Svg>
 );
 
 // ============ Sun/Moon Icons ============
@@ -647,7 +655,7 @@ function DatePickerScreen() {
             </View>
             {tempSelectedDate && (
               <HeaderIconButton onPress={handleClear} flashSize={46}>
-                <CalendarXIcon size={s(iconSize.toggleRow)} color={colors.text} weight="fill" />
+                <CalendarSyncIcon size={s(iconSize.toggleRow)} color={colors.text} />
               </HeaderIconButton>
             )}
           </View>

@@ -15,7 +15,7 @@ import AnimatedSwitch from '../components/AnimatedSwitch';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Svg, { Path } from 'react-native-svg';
-import { XCircleIcon, CheckCircleIcon, PaperPlaneTiltIcon, ArrowsClockwiseIcon, ImageIcon, ImageSquareIcon, LinkIcon, AndroidLogoIcon, CalendarDotsIcon, InfoIcon as PhosphorInfoIcon, GlobeIcon as PhosphorGlobeIcon, LockIcon, ArticleNyTimesIcon } from 'phosphor-react-native';
+import { XCircleIcon, CheckCircleIcon, PaperPlaneTiltIcon, ArrowsClockwiseIcon, ImageIcon, ImageSquareIcon, AndroidLogoIcon, InfoIcon as PhosphorInfoIcon, ArticleNyTimesIcon } from 'phosphor-react-native';
 import SettingsCogIcon from '../components/SettingsCogIcon';
 import ReplyArrowIcon from '../components/ReplyArrowIcon';
 import { launchImageLibrary } from 'react-native-image-picker';
@@ -69,9 +69,7 @@ const CheckIcon = ({ size = iconSize.headerNav, color = "#FFFFFF" }: { size?: nu
 
 const HourglassIcon = ({ size = iconSize.lg, color = '#FFFFFF' }: { size?: number; color?: string }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
-    <Path d="M20.5 22h-1v-3.5a7.51 7.51 0 0 0 -3.76 -6.5 7.49 7.49 0 0 0 3.76 -6.5V2h1a1 1 0 0 0 0 -2h-17a1 1 0 0 0 0 2h1v3.5A7.49 7.49 0 0 0 8.26 12a7.51 7.51 0 0 0 -3.76 6.5V22h-1a1 1 0 0 0 0 2h17a1 1 0 0 0 0 -2Zm-14 -3.5a5.51 5.51 0 0 1 6.05 -5.5 5.67 5.67 0 0 1 4.95 5.72v2.78a0.5 0.5 0 0 1 -0.5 0.5H7a0.5 0.5 0 0 1 -0.5 -0.5ZM7 2h10a0.5 0.5 0 0 1 0.5 0.5v2.76A5.65 5.65 0 0 1 12.55 11 5.5 5.5 0 0 1 6.5 5.5v-3A0.5 0.5 0 0 1 7 2Z" />
-    <Path d="M12 9.63a4 4 0 0 0 3.43 -2.17 0.5 0.5 0 0 0 0 -0.5 0.5 0.5 0 0 0 -0.43 -0.25H9a0.5 0.5 0 0 0 -0.43 0.29 0.5 0.5 0 0 0 0 0.5A4 4 0 0 0 12 9.63Z" />
-    <Path d="M12.75 15.59a1 1 0 0 0 -1.5 0l-3.33 3.75A1 1 0 0 0 8.67 21h6.66a1 1 0 0 0 0.75 -1.66Z" />
+    <Path fillRule="evenodd" clipRule="evenodd" d="M1.946 7.139C3.04 5.572 4.552 4.5 6 4.5c1.654 0 3.116 1.08 4.338 2.333 1.255 1.286 2.467 2.977 3.598 4.594l0.379 0.541c1.01 1.45 1.956 2.804 2.865 3.842 0.508 0.58 0.97 1.02 1.387 1.31 0.42 0.291 0.723 0.38 0.933 0.38 0.684 0 1.273 -0.272 1.71 -0.805 0.449 -0.547 0.79 -1.44 0.79 -2.739 0 -2.5 -0.707 -4.412 -1.587 -5.673C19.495 6.966 18.51 6.5 18 6.5c-0.784 0 -1.734 0.535 -2.879 1.7a1 1 0 1 1 -1.427 -1.4C14.908 5.563 16.36 4.5 18 4.5c1.448 0 2.961 1.072 4.054 2.639C23.185 8.76 24 11.077 24 13.956c0 1.636 -0.43 3.016 -1.243 4.007A4.136 4.136 0 0 1 19.5 19.5c-0.769 0 -1.468 -0.317 -2.073 -0.737 -0.608 -0.421 -1.193 -0.997 -1.752 -1.635 -0.987 -1.128 -2 -2.581 -2.998 -4.012l-0.38 -0.543c-1.143 -1.633 -2.266 -3.192 -3.39 -4.343C7.75 7.045 6.792 6.5 6 6.5c-0.509 0 -1.495 0.466 -2.414 1.783C2.706 9.544 2 11.455 2 13.957c0 1.298 0.341 2.19 0.79 2.738a2.137 2.137 0 0 0 1.71 0.805c0.385 0 0.991 -0.297 1.862 -1.192 0.829 -0.852 1.708 -2.04 2.655 -3.384a1 1 0 0 1 1.635 1.152c-0.942 1.337 -1.904 2.648 -2.857 3.627 -0.91 0.935 -2.027 1.797 -3.295 1.797a4.136 4.136 0 0 1 -3.257 -1.537C0.43 16.972 0 15.593 0 13.956 0 11.078 0.815 8.76 1.946 7.14Z" />
   </Svg>
 );
 
@@ -101,14 +99,50 @@ const CalendarAddIcon = ({ size = iconSize.forTabs, color = '#FFFFFF' }: { size?
 );
 
 const AlarmClockIcon = ({ size = iconSize.lg, color = '#FFFFFF' }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path d="M3 12.75a9 9 0 1 0 18 0 9 9 0 1 0 -18 0Z" stroke={color} strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} />
-    <Path d="m6 23.25 1.386 -2.771" stroke={color} strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} />
-    <Path d="m12 12.75 -3.391 0" stroke={color} strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} />
-    <Path d="m12 7.5 0 5.25" stroke={color} strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} />
-    <Path d="m1.5 3.75 3.75 -3" stroke={color} strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} />
-    <Path d="m18 23.25 -1.386 -2.772" stroke={color} strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} />
-    <Path d="m22.5 3.75 -3.75 -3" stroke={color} strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} />
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
+    <Path d="M9.93 15h-0.72l1.48 -1.69a1 1 0 0 0 -0.76 -1.66H7a1 1 0 1 0 0 2h0.73l-1.48 1.69A1 1 0 0 0 7 17h2.93a1 1 0 0 0 0 -2Z" />
+    <Path d="M16 10.4h-1.49l2.26 -2.77A1 1 0 0 0 16 6h-3.6a1 1 0 1 0 0 2h1.49l-2.26 2.77a1 1 0 0 0 -0.13 1.06 1 1 0 0 0 0.9 0.57H16a1 1 0 0 0 0 -2Z" />
+    <Path d="M12 0a12 12 0 1 0 12 12A12 12 0 0 0 12 0Zm8.68 12.75H22a9.88 9.88 0 0 1 -2.39 5.76l-0.9 -0.9a0.75 0.75 0 0 0 -1.06 1.06l0.9 0.9a9.88 9.88 0 0 1 -5.8 2.43v-1.32a0.75 0.75 0 0 0 -1.5 0V22a9.88 9.88 0 0 1 -5.76 -2.39l0.9 -0.9a0.75 0.75 0 0 0 -1.06 -1.06l-0.9 0.9A9.88 9.88 0 0 1 2 12.75h1.32a0.75 0.75 0 1 0 0 -1.5H2a9.88 9.88 0 0 1 2.43 -5.76l0.9 0.9a0.75 0.75 0 0 0 1.06 0 0.75 0.75 0 0 0 0 -1.06l-0.9 -0.9A9.88 9.88 0 0 1 11.25 2v1.32a0.75 0.75 0 0 0 1.5 0V2a9.88 9.88 0 0 1 5.76 2.39l-0.9 0.9a0.75 0.75 0 0 0 0 1.06 0.75 0.75 0 0 0 1.06 0l0.9 -0.9a9.88 9.88 0 0 1 2.43 5.8h-1.32a0.75 0.75 0 0 0 0 1.5Z" />
+  </Svg>
+);
+
+const LinkBrokenIcon = ({ size = iconSize.toggleRow, color = '#FFFFFF' }: { size?: number; color?: string }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
+    <Path d="M12 0.5A4.51 4.51 0 0 0 7.5 5v3.13a1 1 0 1 0 2 0V5a2.5 2.5 0 0 1 5 0v5.5A2.5 2.5 0 0 1 12 13a1 1 0 0 0 0 2 4.51 4.51 0 0 0 4.5 -4.5V5A4.51 4.51 0 0 0 12 0.5Z" />
+    <Path d="M15.5 15.63a1 1 0 0 0 -1 1V19a2.5 2.5 0 0 1 -5 0v-5a2.5 2.5 0 0 1 2.5 -2.5 1 1 0 0 0 0 -2A4.51 4.51 0 0 0 7.5 14v5a4.5 4.5 0 0 0 9 0v-2.37a1 1 0 0 0 -1 -1Z" />
+    <Path d="m5.24 6.88 -1.3 -0.75a1 1 0 1 0 -1 1.74l1.3 0.75a1 1 0 0 0 1.36 -0.37 1 1 0 0 0 -0.36 -1.37Z" />
+    <Path d="M4 12.5a1 1 0 0 0 0 -2H2.5a1 1 0 0 0 0 2Z" />
+    <Path d="m4.24 14.38 -1.3 0.75a1 1 0 0 0 1 1.74l1.3 -0.75a1 1 0 0 0 -1 -1.74Z" />
+    <Path d="M19.26 8.75a1 1 0 0 0 0.5 -0.13l1.3 -0.75a1 1 0 0 0 -1 -1.74l-1.3 0.75a1 1 0 0 0 0.5 1.87Z" />
+    <Path d="M21.5 10.5H20a1 1 0 0 0 0 2h1.5a1 1 0 0 0 0 -2Z" />
+    <Path d="m21.06 15.13 -1.3 -0.75a1 1 0 0 0 -1 1.74l1.3 0.75a1 1 0 1 0 1 -1.74Z" />
+  </Svg>
+);
+
+const Calendar3Icon = ({ size = iconSize.toggleRow, color = '#FFFFFF' }: { size?: number; color?: string }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
+    <Path d="M7.5 10.5h-1a1 1 0 0 0 0 2h1a1 1 0 0 0 0 -2Z" />
+    <Path d="M12.5 10.5h-1a1 1 0 0 0 0 2h1a1 1 0 0 0 0 -2Z" />
+    <Path d="M17.5 10.5h-1a1 1 0 0 0 0 2h1a1 1 0 0 0 0 -2Z" />
+    <Path d="M7.5 14.5h-1a1 1 0 0 0 0 2h1a1 1 0 0 0 0 -2Z" />
+    <Path d="M12.5 14.5h-1a1 1 0 0 0 0 2h1a1 1 0 0 0 0 -2Z" />
+    <Path d="M17.5 14.5h-1a1 1 0 0 0 0 2h1a1 1 0 0 0 0 -2Z" />
+    <Path d="M7.5 18.5h-1a1 1 0 0 0 0 2h1a1 1 0 0 0 0 -2Z" />
+    <Path d="M12.5 18.5h-1a1 1 0 0 0 0 2h1a1 1 0 0 0 0 -2Z" />
+    <Path d="M17.5 18.5h-1a1 1 0 0 0 0 2h1a1 1 0 0 0 0 -2Z" />
+    <Path d="M21.5 3h-2.75a0.25 0.25 0 0 1 -0.25 -0.25V1a1 1 0 0 0 -2 0v4.75a0.75 0.75 0 0 1 -1.5 0V3.5a0.5 0.5 0 0 0 -0.5 -0.5H8.25A0.25 0.25 0 0 1 8 2.75V1a1 1 0 0 0 -2 0v4.75a0.75 0.75 0 0 1 -1.5 0V3.5A0.5 0.5 0 0 0 4 3H2.5a2 2 0 0 0 -2 2v17a2 2 0 0 0 2 2h19a2 2 0 0 0 2 -2V5a2 2 0 0 0 -2 -2Zm0 18.5a0.5 0.5 0 0 1 -0.5 0.5H3a0.5 0.5 0 0 1 -0.5 -0.5v-12A0.5 0.5 0 0 1 3 9h18a0.5 0.5 0 0 1 0.5 0.5Z" />
+  </Svg>
+);
+
+const SkullIcon = ({ size = iconSize.toggleRow, color = '#FFFFFF' }: { size?: number; color?: string }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
+    <Path d="M12 0.5a10 10 0 0 0 -10 10V13a5.49 5.49 0 0 0 3.2 5 2 2 0 0 1 1 2.48c-0.64 1.82 -0.91 2.17 -0.43 2.7a1 1 0 0 0 0.74 0.33h2A0.5 0.5 0 0 0 9 23v-2a1 1 0 0 1 2 0v2a0.5 0.5 0 0 0 0.5 0.5h1a0.5 0.5 0 0 0 0.5 -0.5v-2a1 1 0 0 1 2 0v2a0.5 0.5 0 0 0 0.5 0.5h1.95a1 1 0 0 0 0.74 -0.33c0.48 -0.53 0.22 -0.87 -0.43 -2.7a2 2 0 0 1 1 -2.48A5.49 5.49 0 0 0 22 13v-2.5a10 10 0 0 0 -10 -10Zm-4.5 14A2.5 2.5 0 1 1 10 12a2.5 2.5 0 0 1 -2.5 2.51Zm5.68 2.76a0.51 0.51 0 0 1 -0.43 0.24h-1.5a0.49 0.49 0 0 1 -0.42 -0.24 0.5 0.5 0 0 1 0 -0.49l0.75 -1.5a0.52 0.52 0 0 1 0.9 0l0.75 1.5a0.5 0.5 0 0 1 -0.05 0.5Zm3.32 -2.76A2.5 2.5 0 1 1 19 12a2.5 2.5 0 0 1 -2.5 2.51Z" />
+  </Svg>
+);
+
+const GlobeIcon = ({ size = iconSize.md, color = '#FFFFFF' }: { size?: number; color?: string }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
+    <Path d="M12 22c1.38 0 3.27-3.4 3.48-9H8.52c.2 5.6 2.1 9 3.48 9m0-20c-1.38 0-3.27 3.4-3.48 9h6.96c-.2-5.6-2.1-9-3.48-9m3.53.65c1.17 2.12 1.83 5.22 1.95 8.35h4.47c-.38-3.83-2.94-7.03-6.42-8.35m0 18.7c3.48-1.32 6.04-4.51 6.42-8.35h-4.47c-.12 3.12-.78 6.23-1.95 8.35M2.05 13c.38 3.83 2.94 7.03 6.42 8.35C7.3 19.23 6.64 16.13 6.52 13zm0-2h4.47c.12-3.12.78-6.23 1.95-8.35C4.99 3.97 2.43 7.16 2.05 11" />
   </Svg>
 );
 
@@ -1041,7 +1075,7 @@ function PresetSettingsScreen() {
             <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
               <View style={{ maxWidth: '75%' }} className="flex-row items-center">
                 <View className="mr-4">
-                  <CalendarDotsIcon size={s(iconSize.toggleRow)} color={colors.textSecondary} weight="fill" />
+                  <Calendar3Icon size={s(iconSize.toggleRow)} color={colors.textSecondary} />
                 </View>
                 <View className="flex-1">
                   <View className="flex-row items-center">
@@ -1541,7 +1575,9 @@ function PresetSettingsScreen() {
           <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight, paddingVertical: s(4) }}>
             <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
               <View style={{ maxWidth: '75%' }} className="flex-row items-center">
-                <LockIcon size={s(iconSize.toggleRow)} color={colors.textSecondary} weight="fill" style={{ marginRight: s(14) }} />
+                <View className="mr-4">
+                  <SkullIcon size={s(iconSize.toggleRow)} color={colors.textSecondary} />
+                </View>
                 <View className="flex-1">
                   <View className="flex-row items-center">
                     <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Strict Mode</Text>
@@ -1724,15 +1760,10 @@ function PresetSettingsScreen() {
                   <TouchableOpacity
                     onPress={handleImageUpload}
                     activeOpacity={0.7}
-                    style={{
-                      backgroundColor: '#FFFFFF',
-                      borderRadius: s(999),
-                      paddingHorizontal: s(14),
-                      paddingVertical: s(8),
-                      marginTop: s(10),
-                    }}
+                    style={{ backgroundColor: colors.text, borderWidth: 1, borderColor: colors.border, ...shadow.card, marginTop: s(10), paddingHorizontal: s(14), paddingVertical: s(8) }}
+                    className={radius.full}
                   >
-                    <Text style={{ color: '#000000' }} className={`${textSize.extraSmall} ${fontFamily.semibold}`}>
+                    <Text style={{ color: colors.bg }} className={`${textSize.extraSmall} ${fontFamily.semibold}`}>
                       {imageUploading ? 'Uploading...' : 'Change'}
                     </Text>
                   </TouchableOpacity>
@@ -1741,19 +1772,11 @@ function PresetSettingsScreen() {
                 <TouchableOpacity
                   onPress={handleImageUpload}
                   activeOpacity={0.7}
-                  style={{
-                    backgroundColor: '#FFFFFF',
-                    borderRadius: s(999),
-                    paddingHorizontal: s(16),
-                    paddingVertical: s(12),
-                    marginBottom: s(8),
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
+                  style={{ backgroundColor: colors.text, borderWidth: 1, borderColor: colors.border, ...shadow.card, marginBottom: s(8) }}
+                  className={`${radius.full} py-4 items-center justify-center flex-row`}
                 >
-                  <ImageSquareIcon size={s(iconSize.sm)} color="#000000" weight="fill" style={{ marginRight: s(6) }} />
-                  <Text style={{ color: '#000000' }} className={`${textSize.small} ${fontFamily.semibold}`}>
+                  <ImageSquareIcon size={s(iconSize.sm)} color={colors.bg} weight="fill" style={{ marginRight: s(6) }} />
+                  <Text style={{ color: colors.bg }} className={`${textSize.small} ${fontFamily.semibold}`}>
                     {imageUploading ? 'Uploading...' : 'Upload Image'}
                   </Text>
                 </TouchableOpacity>
@@ -1810,7 +1833,9 @@ function PresetSettingsScreen() {
         <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight, paddingVertical: s(4) }}>
           <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
             <View style={{ maxWidth: '75%' }} className="flex-row items-center">
-              <LinkIcon size={s(iconSize.toggleRow)} color={colors.textSecondary} weight="fill" style={{ marginRight: s(14) }} />
+              <View className="mr-4">
+                <LinkBrokenIcon size={s(iconSize.toggleRow)} color={colors.textSecondary} />
+              </View>
               <View className="flex-1">
                 <View className="flex-row items-center">
                   <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Custom Redirect</Text>
@@ -1846,7 +1871,7 @@ function PresetSettingsScreen() {
                 Redirect URL
               </Text>
               <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }} className={`${radius.full} px-5 h-12 flex-row items-center`}>
-                <PhosphorGlobeIcon size={s(iconSize.md)} color={colors.textSecondary} weight="fill" />
+                <GlobeIcon size={s(iconSize.md)} color={colors.textSecondary} />
                 <TextInput
                   value={customRedirectUrl}
                   onChangeText={setCustomRedirectUrl}
