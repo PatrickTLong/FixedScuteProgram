@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { ImageIcon, CalendarCheckIcon, SquaresFourIcon, HeadsetIcon, RocketLaunchIcon } from 'phosphor-react-native';
-import { useTheme, textSize, fontFamily, radius, shadow, buttonPadding, haptics } from '../context/ThemeContext';
+import { useTheme, textSize, fontFamily, radius, shadow, buttonPadding, haptics, pill } from '../context/ThemeContext';
 import { triggerHaptic } from '../utils/haptics';
 import { useResponsive } from '../utils/responsive';
 
@@ -282,7 +282,7 @@ function MembershipContent() {
             onPress={() => { /* TODO: Google Play purchase */ }}
             activeOpacity={0.8}
             style={{ backgroundColor: colors.text, ...shadow.card }}
-            className={`${radius.full} py-4 items-center`}
+            className={`${radius.full} ${pill} items-center justify-center`}
           >
             <Text style={{ color: colors.bg }} className={`${textSize.small} ${fontFamily.bold}`}>
               {selectedPlan === 'lifetime' ? 'Purchase Lifetime' : 'Subscribe'}

@@ -12,7 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import { MagnifyingGlassIcon, GlobeIcon as PhosphorGlobeIcon } from 'phosphor-react-native';
 import ReplyArrowIcon from '../components/ReplyArrowIcon';
-import { useTheme , textSize, fontFamily, radius, shadow, iconSize } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius, shadow, iconSize, pill } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import HeaderIconButton from '../components/HeaderIconButton';
 
@@ -179,7 +179,7 @@ function SelectAppsScreen({
         <TouchableOpacity
           onPress={() => setActiveTab('apps')}
           style={{ backgroundColor: activeTab === 'apps' ? colors.text : colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
-          className={`flex-1 py-2 ${radius.full} items-center`}
+          className={`flex-1 ${radius.full} ${pill} items-center justify-center`}
         >
           <Text style={{ color: activeTab === 'apps' ? colors.bg : colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>
             Apps
@@ -189,7 +189,7 @@ function SelectAppsScreen({
         <TouchableOpacity
           onPress={() => setActiveTab('websites')}
           style={{ backgroundColor: activeTab === 'websites' ? colors.text : colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
-          className={`flex-1 py-2 ${radius.full} items-center`}
+          className={`flex-1 ${radius.full} ${pill} items-center justify-center`}
         >
           <Text style={{ color: activeTab === 'websites' ? colors.bg : colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>
             Websites
@@ -314,7 +314,7 @@ function SelectAppsScreen({
           onPress={() => onSave()}
           activeOpacity={0.8}
           style={{ backgroundColor: colors.text, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
-          className={`${radius.full} py-4 items-center`}
+          className={`${radius.full} ${pill} items-center justify-center`}
         >
           <Text style={{ color: colors.bg }} className={`${textSize.large} ${fontFamily.semibold}`}>
             Save Selection

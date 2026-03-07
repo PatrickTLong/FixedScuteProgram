@@ -9,7 +9,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { setAuthToken } from '../services/cardApi';
 import { API_URL } from '../config/api';
 import LoadingSpinner from './LoadingSpinner';
-import { useTheme , textSize, fontFamily, radius, shadow, buttonPadding, iconSize, haptics } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius, shadow, buttonPadding, iconSize, haptics, pill } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { triggerHaptic } from '../utils/haptics';
 
@@ -122,10 +122,9 @@ function GoogleSignInBtn({ onSuccess, onError, disabled, light, noShadow }: Prop
         backgroundColor: bgColor,
         position: 'relative',
         borderWidth: 1, borderColor: borderColor,
-        paddingVertical: s(buttonPadding.standard),
         ...(noShadow ? {} : shadow.card),
       }}
-      className={`${radius.full} items-center justify-center`}
+      className={`${radius.full} ${pill} items-center justify-center`}
     >
       <View style={{ opacity: loading ? 0 : 1 }} className="flex-row items-center justify-center">
         <View className="mr-3">

@@ -17,7 +17,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowsOutIcon, ArrowsInIcon } from 'phosphor-react-native';
 import Svg, { Path } from 'react-native-svg';
-import { useTheme, textSize, fontFamily, radius, shadow, buttonPadding, iconSize } from '../context/ThemeContext';
+import { useTheme, textSize, fontFamily, radius, shadow, buttonPadding, iconSize, pill } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import HeaderIconButton from '../components/HeaderIconButton';
 import { useAuth } from '../context/AuthContext';
@@ -399,10 +399,9 @@ function StatsScreen() {
                     backgroundColor: activePeriod === period ? colors.text : colors.card,
                     borderWidth: 1,
                     borderColor: colors.border,
-                    paddingVertical: s(buttonPadding.smallStandard),
                     ...shadow.card,
                   }}
-                  className={`${radius.full} items-center justify-center`}
+                  className={`${radius.full} ${pill} items-center justify-center`}
                 >
                   <Text
                     style={{ color: activePeriod === period ? colors.bg : colors.text }}

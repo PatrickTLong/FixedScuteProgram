@@ -2,7 +2,7 @@ import React, { memo } from 'react';
 import { TouchableOpacity, Text, View } from 'react-native';
 import LoadingSpinner from './LoadingSpinner';
 
-import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius, shadow, pill } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 
 interface ButtonProps {
@@ -68,7 +68,7 @@ function Button({
         borderWidth: 1, borderColor: colors.border,
         ...shadow.card,
       }]}
-      className={`${radius.full} py-4 px-6 items-center justify-center${fullWidth ? ' w-full' : ''}`}
+      className={`${radius.full} ${pill} items-center justify-center${fullWidth ? ' w-full' : ''}`}
     >
       <Text style={[getTextStyle(), loading && { opacity: 0 }]} className={`${textSize.base} ${fontFamily.semibold}`}>{title}</Text>
       {loading && (

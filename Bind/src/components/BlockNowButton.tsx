@@ -6,7 +6,8 @@ import {
   type GestureResponderEvent,
 } from 'react-native';
 
-import { HandTapIcon, HandWavingIcon, HandHeartIcon, XIcon } from 'phosphor-react-native';
+import { HandTapIcon, HandWavingIcon, HandHeartIcon } from 'phosphor-react-native';
+import Svg, { Path } from 'react-native-svg';
 import { useTheme , shadow, haptics } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { triggerHaptic } from '../utils/haptics';
@@ -275,7 +276,9 @@ function BlockNowButton({
               />
             ))}
             {showX ? (
-              <XIcon size={s(34)} color={colors.red} weight="bold" />
+              <Svg width={s(34)} height={s(34)} viewBox="0 0 24 24" fill={colors.red}>
+                <Path d="M12 0a12 12 0 1 0 12 12A12 12 0 0 0 12 0ZM5.29 5.29a9.63 9.63 0 0 1 12.23 -1 0.26 0.26 0 0 1 0 0.4L4.67 17.56a0.27 0.27 0 0 1 -0.4 0 9.49 9.49 0 0 1 1 -12.24Zm13.46 13.47a9.53 9.53 0 0 1 -12.23 1 0.26 0.26 0 0 1 0 -0.4L19.37 6.49a0.26 0.26 0 0 1 0.4 0 9.49 9.49 0 0 1 -1 12.24Z" />
+              </Svg>
             ) : shouldBreathe ? (
               <Animated.View style={{ transform: [{ scale: handScale }] }}>
                 {iconType === 'heart' ? (

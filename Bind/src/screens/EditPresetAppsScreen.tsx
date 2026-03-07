@@ -24,7 +24,7 @@ import ReplyArrowIcon from '../components/ReplyArrowIcon';
 import ExcludedAppsInfoModal from '../components/ExcludedAppsInfoModal';
 import { Preset } from '../components/PresetCard';
 import HeaderIconButton from '../components/HeaderIconButton';
-import { useTheme, textSize, fontFamily, radius, shadow, iconSize, buttonPadding } from '../context/ThemeContext';
+import { useTheme, textSize, fontFamily, radius, shadow, iconSize, buttonPadding, pill } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
@@ -526,7 +526,7 @@ function EditPresetAppsScreen() {
         <View className="px-6 py-4">
           <View
             style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
-            className={`${radius.full} px-5 h-12 flex-row items-center`}
+            className={`${radius.full} ${pill} flex-row items-center`}
           >
             <MagicWandIcon size={s(iconSize.headerNav)} color={colors.textSecondary} weight="fill" />
             <TextInput
@@ -549,8 +549,8 @@ function EditPresetAppsScreen() {
           <TouchableOpacity
             onPress={() => switchTab('apps')}
             activeOpacity={0.7}
-            style={{ flex: 1, backgroundColor: activeTab === 'apps' ? colors.text : colors.card, borderWidth: 1, borderColor: colors.border, paddingVertical: s(buttonPadding.smallStandard), ...shadow.card }}
-            className={`${radius.full} items-center justify-center flex-row`}
+            style={{ flex: 1, backgroundColor: activeTab === 'apps' ? colors.text : colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
+            className={`${radius.full} ${pill} items-center justify-center flex-row`}
           >
             <AndroidIcon size={s(iconSize.lg)} color={activeTab === 'apps' ? colors.bg : colors.text} />
             <Text style={{ color: activeTab === 'apps' ? colors.bg : colors.text, marginLeft: s(6) }} className={`${textSize.small} ${fontFamily.semibold}`}>
@@ -561,8 +561,8 @@ function EditPresetAppsScreen() {
           <TouchableOpacity
             onPress={() => switchTab('websites')}
             activeOpacity={0.7}
-            style={{ flex: 1, backgroundColor: activeTab === 'websites' ? colors.text : colors.card, borderWidth: 1, borderColor: colors.border, paddingVertical: s(buttonPadding.smallStandard), ...shadow.card }}
-            className={`${radius.full} items-center justify-center flex-row`}
+            style={{ flex: 1, backgroundColor: activeTab === 'websites' ? colors.text : colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
+            className={`${radius.full} ${pill} items-center justify-center flex-row`}
           >
             <GlobeIcon size={s(iconSize.lg)} color={activeTab === 'websites' ? colors.bg : colors.text} />
             <Text style={{ color: activeTab === 'websites' ? colors.bg : colors.text, marginLeft: s(6) }} className={`${textSize.small} ${fontFamily.semibold}`}>
@@ -610,7 +610,7 @@ function EditPresetAppsScreen() {
                 <View className="px-6 mb-4">
                   <View
                     style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
-                    className={`${radius.full} px-5 h-12 flex-row items-center`}
+                    className={`${radius.full} ${pill} flex-row items-center`}
                   >
                     <SearchIcon size={s(iconSize.headerNav)} color={colors.textSecondary} />
                     <TextInput
@@ -700,7 +700,7 @@ function EditPresetAppsScreen() {
               <View className="flex-row items-center mb-4">
                 <View
                   style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card, flex: 1 }}
-                  className={`${radius.full} px-5 h-12 flex-row items-center mr-2`}
+                  className={`${radius.full} ${pill} flex-row items-center mr-2`}
                 >
                   <CursorClickIcon size={s(iconSize.md)} color={colors.textSecondary} weight="fill" />
                   <TextInput

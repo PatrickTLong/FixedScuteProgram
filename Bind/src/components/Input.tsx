@@ -1,6 +1,6 @@
 import React, { memo } from 'react';
 import { View, TextInput, Text, TextInputProps } from 'react-native';
-import { useTheme , textSize, fontFamily, radius } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius, pill } from '../context/ThemeContext';
 
 interface InputProps extends TextInputProps {
   label?: string;
@@ -24,7 +24,7 @@ function Input({
       <TextInput
         placeholderTextColor={colors.textSecondary}
         style={{ backgroundColor: colors.bg, borderColor: colors.border, color: colors.text }}
-        className={`border ${radius.full} px-5 py-4 ${textSize.base} ${fontFamily.regular}`}
+        className={`border ${radius.full} ${pill} ${textSize.base} ${fontFamily.regular}`}
         {...textInputProps}
       />
       {error && (

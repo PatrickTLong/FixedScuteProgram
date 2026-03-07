@@ -159,7 +159,7 @@ function SettingsScreen() {
 
   // Heartbeat animation for tapout icon
   const heartBeat = useRef(new Animated.Value(1)).current;
-  const tapoutIconSize = iconSize.forTabs;
+  const tapoutIconSize = iconSize.toggleRow;
 
   const tapoutsRemaining = tapoutStatus?.remaining ?? 0;
 

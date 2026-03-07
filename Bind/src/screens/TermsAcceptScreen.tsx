@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius, shadow, pill } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ScreenTransition from '../components/ScreenTransition';
@@ -164,7 +164,7 @@ function TermsAcceptScreen() {
           disabled={!hasScrolledToBottom || isAccepting}
           activeOpacity={0.8}
           style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
-          className={`${radius.full} py-4 items-center`}
+          className={`${radius.full} ${pill} items-center justify-center`}
         >
           {isAccepting ? (
             <LoadingSpinner size={20} />

@@ -30,7 +30,7 @@ import StrictModeWarningModal from '../components/StrictModeWarningModal';
 import { Preset } from '../components/PresetCard';
 import HeaderIconButton from '../components/HeaderIconButton';
 import { useAuth } from '../context/AuthContext';
-import { useTheme, textSize, fontFamily, radius, shadow, iconSize, buttonPadding, haptics } from '../context/ThemeContext';
+import { useTheme, textSize, fontFamily, radius, shadow, iconSize, buttonPadding, haptics, pill } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { triggerHaptic } from '../utils/haptics';
 import { usePresetSave } from '../navigation/PresetsStack';
@@ -1621,7 +1621,7 @@ function PresetSettingsScreen() {
           <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight, paddingVertical: s(4) }}>
             <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
               <View style={{ maxWidth: '75%' }} className="flex-row items-center">
-<Animated.View style={{ marginRight: s(14), transform: [{ scale: tapoutHeartBeat }], opacity: tapoutHeartBeat.interpolate({ inputRange: [1, 1.15], outputRange: [1, 0.85], extrapolate: 'clamp' }) }}>
+                <Animated.View className="mr-4" style={{ transform: [{ scale: tapoutHeartBeat }], opacity: tapoutHeartBeat.interpolate({ inputRange: [1, 1.15], outputRange: [1, 0.85], extrapolate: 'clamp' }) }}>
                     <Svg width={s(iconSize.toggleRow)} height={s(iconSize.toggleRow)} viewBox="0 -960 960 960" fill={colors.red}>
                       <Path d="M595-468h-230q0 170 115 170t115-170ZM272.5-652.5Q243-625 231-577l58 14q6-26 20-41.5t31-15.5q17 0 31 15.5t20 41.5l58-14q-12-48-41.5-75.5T340-680q-38 0-67.5 27.5Zm280 0Q523-625 511-577l58 14q6-26 20-41.5t31-15.5q17 0 31 15.5t20 41.5l58-14q-12-48-41.5-75.5T620-680q-38 0-67.5 27.5ZM480-120l-58-50q-101-88-167-152T150-437q-39-51-54.5-94T80-620q0-94 63-157t157-63q52 0 99 22t81 62q34-40 81-62t99-22q94 0 157 63t63 157q0 46-15.5 89T810-437q-39 51-105 115T538-170l-58 50Z" />
                     </Svg>
@@ -1696,7 +1696,7 @@ function PresetSettingsScreen() {
               <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold} mb-3`}>
                 Blocked Message
               </Text>
-              <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }} className={`${radius.full} px-5 h-12 flex-row items-center`}>
+              <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }} className={`${radius.full} ${pill} flex-row items-center`}>
                 <ArticleNyTimesIcon size={s(iconSize.md)} color={colors.textSecondary} weight="fill" />
                 <TextInput
                   value={customBlockedText}
@@ -1744,12 +1744,10 @@ function PresetSettingsScreen() {
                         borderRadius: s(12),
                       }}
                     >
-                      <Svg width={s(iconSize.xl)} height={s(iconSize.xl)} viewBox="0 0 24 24" fill="none">
-                        <Path d="m1.751 6.368 20.541-4.366" stroke={colors.red} strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
-                        <Path d="m13.6 0.783-4.4 0.935A1.5 1.5 0 0 0 8.042 3.5l0.312 1.468 7.336-1.56-0.312-1.467A1.5 1.5 0 0 0 13.6 0.783Z" stroke={colors.red} strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
-                        <Path d="m10.751 18 0-7.5" stroke={colors.red} strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
-                        <Path d="m15.251 18 0-7.5" stroke={colors.red} strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
-                        <Path d="M18.626 6h2.625l-1.385 15.874a1.5 1.5 0 0 1-1.5 1.376H7.631a1.5 1.5 0 0 1-1.494-1.376L5.1 9.377" stroke={colors.red} strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
+                      <Svg width={s(iconSize.xl)} height={s(iconSize.xl)} viewBox="0 0 24 24" fill={colors.red}>
+                        <Path d="M11.67 19.1a1.68 1.68 0 0 1 0 -2.51l4.86 -4.35a2.22 2.22 0 0 1 1.47 -0.57h0.5l0.5 -5.23a0.53 0.53 0 0 0 -0.13 -0.38 0.52 0.52 0 0 0 -0.37 -0.16H11L2.21 7.76l1.23 14.6A1.89 1.89 0 0 0 5.37 24h10.32a2 2 0 0 0 1.16 -0.37 2.43 2.43 0 0 1 -0.32 -0.24Z" />
+                        <Path d="M7 5.41 13.75 4l5.92 -1.26 0.15 0a0.74 0.74 0 0 0 -0.15 -1.47 0.85 0.85 0 0 0 -0.16 0l-5.34 1.08 -0.17 -0.62a2.15 2.15 0 0 0 -0.88 -1.34 2.13 2.13 0 0 0 -1.61 -0.3L7.46 1a2.14 2.14 0 0 0 -1.65 2.48l0.13 0.62L0.75 5.2l-0.16 0a0.75 0.75 0 0 0 -0.59 0.92 0.74 0.74 0 0 0 0.73 0.6l0.16 0Zm0.32 -2.24a0.64 0.64 0 0 1 0.49 -0.75l4.05 -0.86 -0.19 -0.74 0.15 0.74a0.62 0.62 0 0 1 0.48 0.08 0.64 0.64 0 0 1 0.27 0.41l0.13 0.61 -5.29 1.13Z" />
+                        <Path d="M24 20.47a3.41 3.41 0 0 0 -3.38 -3.38H18v-2.7a0.75 0.75 0 0 0 -1.26 -0.56L13 17.29a0.55 0.55 0 0 0 -0.13 0.18l0 0.06a0.82 0.82 0 0 0 -0.07 0.3 0.73 0.73 0 0 0 0.07 0.3l0 0.06a0.46 0.46 0 0 0 0.13 0.18l3.78 3.45a0.74 0.74 0 0 0 0.51 0.2 0.8 0.8 0 0 0 0.3 -0.06 0.76 0.76 0 0 0 0.41 -0.66v-2.71h2.6a1.88 1.88 0 0 1 0 3.76 0.75 0.75 0 1 0 0 1.5 3.33 3.33 0 0 0 2.24 -0.85A3.38 3.38 0 0 0 24 20.47Z" />
                       </Svg>
                     </TouchableOpacity>
                   </View>
@@ -1769,7 +1767,7 @@ function PresetSettingsScreen() {
                   onPress={handleImageUpload}
                   activeOpacity={0.7}
                   style={{ backgroundColor: colors.text, borderWidth: 1, borderColor: colors.border, ...shadow.card, marginBottom: s(8) }}
-                  className={`${radius.full} py-4 items-center justify-center flex-row`}
+                  className={`${radius.full} ${pill} items-center justify-center flex-row`}
                 >
                   <ImageSquareIcon size={s(iconSize.sm)} color={colors.bg} weight="fill" style={{ marginRight: s(6) }} />
                   <Text style={{ color: colors.bg }} className={`${textSize.small} ${fontFamily.semibold}`}>
@@ -1866,7 +1864,7 @@ function PresetSettingsScreen() {
               <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.semibold} mb-3`}>
                 Redirect URL
               </Text>
-              <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }} className={`${radius.full} px-5 h-12 flex-row items-center`}>
+              <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }} className={`${radius.full} ${pill} flex-row items-center`}>
                 <GlobeIcon size={s(iconSize.md)} color={colors.textSecondary} />
                 <TextInput
                   value={customRedirectUrl}

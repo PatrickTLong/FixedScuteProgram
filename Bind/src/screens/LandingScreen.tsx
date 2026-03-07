@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
-import { useTheme, textSize, fontFamily, radius, buttonPadding, haptics } from '../context/ThemeContext';
+import { useTheme, textSize, fontFamily, radius, buttonPadding, haptics, pill } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { triggerHaptic } from '../utils/haptics';
 import { useNavigation } from '@react-navigation/native';
@@ -231,10 +231,9 @@ function LandingScreen() {
                   backgroundColor: '#ffffff',
                   borderWidth: 1,
                   borderColor: colors.border,
-                  paddingVertical: s(buttonPadding.standard),
                   position: 'relative',
                 }}
-                className={`${radius.full} items-center justify-center`}
+                className={`${radius.full} ${pill} items-center justify-center`}
               >
                 <View style={{ opacity: googleLoading ? 0 : 1 }} className="flex-row items-center justify-center">
                   <View className="mr-3">
@@ -264,9 +263,8 @@ function LandingScreen() {
                   backgroundColor: '#ffffff',
                   borderWidth: 1,
                   borderColor: colors.border,
-                  paddingVertical: s(buttonPadding.standard),
                 }}
-                className={`${radius.full} items-center justify-center`}
+                className={`${radius.full} ${pill} items-center justify-center`}
               >
                 <View className="flex-row items-center justify-center">
                   <View className="mr-3">
@@ -289,9 +287,8 @@ function LandingScreen() {
                   backgroundColor: '#ffffff',
                   borderWidth: 1,
                   borderColor: colors.border,
-                  paddingVertical: s(buttonPadding.standard),
                 }}
-                className={`${radius.full} items-center justify-center`}
+                className={`${radius.full} ${pill} items-center justify-center`}
               >
                 <View className="flex-row items-center justify-center">
                   <View className="mr-3">

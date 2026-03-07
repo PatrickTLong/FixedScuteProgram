@@ -63,6 +63,9 @@ export const radius = {
   full: 'rounded-full',
 } as const;
 
+// Shared pill sizing for inputs and rounded-full buttons
+export const pill = 'px-5 h-12' as const;
+
 // Shadow style objects
 export const shadow = {
   card: {

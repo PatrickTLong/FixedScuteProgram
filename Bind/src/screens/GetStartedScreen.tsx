@@ -18,7 +18,7 @@ import InfoModal from '../components/InfoModal';
 import OTPInput from '../components/OTPInput';
 import GoogleSignInBtn from '../components/GoogleSignInButton';
 import HeaderIconButton from '../components/HeaderIconButton';
-import { useTheme , textSize, fontFamily, radius, shadow, iconSize } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius, shadow, iconSize, pill } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { setAuthToken } from '../services/cardApi';
 import { API_URL } from '../config/api';
@@ -228,7 +228,7 @@ function GetStartedScreen() {
                   <Text style={{ color: colors.text, position: 'absolute', top: s(-30), left: s(8) }} className={`${textSize.small} ${fontFamily.regular}`}>
                     Email
                   </Text>
-                  <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }} className={`${radius.full} px-5 h-12 flex-row items-center`}>
+                  <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }} className={`${radius.full} ${pill} flex-row items-center`}>
                     <SendEmailIcon size={s(iconSize.md)} color={colors.textSecondary} />
                     <TextInput
                       value={email}
@@ -250,7 +250,7 @@ function GetStartedScreen() {
                   <Text style={{ color: colors.text, position: 'absolute', top: s(-30), left: s(8) }} className={`${textSize.small} ${fontFamily.regular}`}>
                     Password
                   </Text>
-                  <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }} className={`${radius.full} px-5 h-12 flex-row items-center`}>
+                  <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }} className={`${radius.full} ${pill} flex-row items-center`}>
                     <LoginKeyIcon size={s(iconSize.md)} color={colors.textSecondary} />
                     <TextInput
                       value={password}
@@ -324,7 +324,7 @@ function GetStartedScreen() {
               disabled={loading}
               activeOpacity={0.8}
               style={{ backgroundColor: colors.text, borderWidth: 1, borderColor: colors.border, ...shadow.card, position: 'relative' }}
-              className={`${radius.full} py-4 items-center mb-4`}
+              className={`${radius.full} ${pill} items-center justify-center mb-4`}
             >
               <Text style={{ color: colors.bg, opacity: loading ? 0 : 1 }} className={`${textSize.small} ${fontFamily.semibold}`}>
                 {step === 'form' ? 'Sign Up' : 'Verify'}

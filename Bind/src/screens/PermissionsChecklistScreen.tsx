@@ -14,7 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { BellRingingIcon, WheelchairIcon, ChartBarIcon, MonitorIcon, BatteryChargingIcon, ShieldCheckIcon, TimerIcon, BellIcon } from 'phosphor-react-native';
 import Svg, { Path } from 'react-native-svg';
 import { useAuth } from '../context/AuthContext';
-import { useTheme, textSize, fontFamily, radius } from '../context/ThemeContext';
+import { useTheme, textSize, fontFamily, radius, pill } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import ScreenTransition from '../components/ScreenTransition';
 import type { ScreenTransitionRef } from '../components/ScreenTransition';
@@ -478,7 +478,7 @@ function PermissionsChecklistScreen() {
                 onPress={() => openPermissionSettings(displayedPermission)}
                 activeOpacity={0.8}
                 style={{ backgroundColor: colors.text }}
-                className={`${radius.full} py-4 items-center`}
+                className={`${radius.full} ${pill} items-center justify-center`}
               >
                 <Text
                   style={{ color: colors.bg }}
