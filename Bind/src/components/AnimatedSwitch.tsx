@@ -60,37 +60,34 @@ function AnimatedSwitch({
   }, [isFocused, pulseProgress]);
 
   useEffect(() => {
+    const wasPressed = pressedRef.current;
+
     if (animate) {
-      Animated.timing(animatedValue, {
+      Animated.spring(animatedValue, {
         toValue: value ? 1 : 0,
-        duration: ANIMATION_DURATION,
+        speed: 28,
+        bounciness: 4,
         useNativeDriver: false,
       }).start();
     } else {
-      // Skip animation - set value instantly
       animatedValue.setValue(value ? 1 : 0);
     }
 
-    // Only pulse on manual press, not programmatic changes
+    // Only flash on manual press, not programmatic changes
     if (pressedRef.current) {
       pressedRef.current = false;
-      const pulseDelay = setTimeout(() => {
-        pulseProgress.setValue(0);
-        Animated.timing(pulseProgress, {
-          toValue: 1,
-          duration: 200,
-          useNativeDriver: false,
-        }).start();
-      }, 70);
-      return () => clearTimeout(pulseDelay);
+      pulseProgress.setValue(1);
+      Animated.timing(pulseProgress, {
+        toValue: 0,
+        duration: 180,
+        useNativeDriver: false,
+      }).start();
     }
   }, [value, animatedValue, pulseProgress, animate]);
 
   const handlePress = useCallback(() => {
     if (!disabled) {
-      if (haptics.toggle.enabled) {
-        triggerHaptic(haptics.toggle.type);
-      }
+      if (haptics.toggle.enabled) triggerHaptic(haptics.toggle.type);
       pressedRef.current = true;
       onValueChange(!value);
     }
@@ -106,14 +103,9 @@ function AnimatedSwitch({
     outputRange: [effectiveTrackColorFalse, trackColorTrue],
   });
 
-  const pulseScale = pulseProgress.interpolate({
+  const flashOpacity = pulseProgress.interpolate({
     inputRange: [0, 1],
-    outputRange: [1, 2.2],
-  });
-
-  const pulseOpacity = pulseProgress.interpolate({
-    inputRange: [0, 0.3, 1],
-    outputRange: [0.7, 0.5, 0],
+    outputRange: [0, 0.35],
   });
 
   return (
@@ -143,16 +135,15 @@ function AnimatedSwitch({
             justifyContent: 'center',
           }}
         >
-          {/* Pulse circle */}
+          {/* Flash circle */}
           <Animated.View
             style={{
               position: 'absolute',
-              width: thumbSize,
-              height: thumbSize,
-              borderRadius: thumbSize / 2,
+              width: thumbSize * 1.8,
+              height: thumbSize * 1.8,
+              borderRadius: (thumbSize * 1.8) / 2,
               backgroundColor: '#FFFFFF',
-              opacity: pulseOpacity,
-              transform: [{ scale: pulseScale }],
+              opacity: flashOpacity,
             }}
           />
           {/* Thumb */}

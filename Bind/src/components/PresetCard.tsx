@@ -376,7 +376,7 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, onExpire
             <XCircleIcon size={iconSize.xs} color={colors.red} weight="fill" style={{ position: 'absolute', top: s(-20), zIndex: 1 }} />
           )}
           <AnimatedSwitch
-            size="xs"
+            size="small"
             value={isActive && !isExpired}
             onValueChange={handleToggle}
             disabled={disabled || isExpired || sharedIsLocked}

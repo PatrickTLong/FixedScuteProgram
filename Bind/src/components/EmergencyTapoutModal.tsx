@@ -180,7 +180,7 @@ function EmergencyTapoutModal({
             <TouchableOpacity
               onPressIn={() => triggerFlash(tapoutFlash)}
               onPressOut={() => releaseFlash(tapoutFlash)}
-              onPress={() => { if (haptics.slideToUnlock.enabled) triggerHaptic(haptics.slideToUnlock.completionType); onUseTapout(); }}
+              onPress={() => { if (haptics.blockNowButton.enabled) triggerHaptic(haptics.blockNowButton.unlockType); onUseTapout(); }}
               disabled={!canUseTapout || isLoading}
               activeOpacity={1}
               className="flex-1 py-4 items-center justify-center"

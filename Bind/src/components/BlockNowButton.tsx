@@ -6,7 +6,7 @@ import {
   type GestureResponderEvent,
 } from 'react-native';
 
-import { HandTapIcon, HandWavingIcon, HandHeartIcon } from 'phosphor-react-native';
+import { HandHeartIcon } from 'phosphor-react-native';
 import Svg, { Path } from 'react-native-svg';
 import { useTheme , shadow, haptics } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
@@ -128,7 +128,9 @@ function BlockNowButton({
 
   // Shake + show X icon for denied taps
   const triggerDeny = useCallback(() => {
-    triggerHaptic('notificationError');
+    if (haptics.blockNowButton.enabled) {
+      triggerHaptic(haptics.blockNowButton.denyType);
+    }
     setShowX(true);
     shakeAnim.setValue(0);
     Animated.sequence([
@@ -160,8 +162,8 @@ function BlockNowButton({
     if (timeSinceLastTap < DOUBLE_TAP_DELAY && timeSinceLastTap > 0) {
       console.log('[BLOCK-BTN] Double-tap DETECTED — triggering onActivate');
       lastTapRef.current = 0;
-      if (haptics.blockNowHold.enabled) {
-        triggerHaptic(haptics.blockNowHold.completionType);
+      if (haptics.blockNowButton.enabled) {
+        triggerHaptic(haptics.blockNowButton.activateType);
       }
       onActivate();
     } else {
@@ -177,8 +179,8 @@ function BlockNowButton({
     if (timeSinceLastTap < DOUBLE_TAP_DELAY && timeSinceLastTap > 0) {
       console.log('[BLOCK-BTN] Double-tap UNLOCK DETECTED — triggering unlock');
       lastTapRef.current = 0;
-      if (haptics.slideToUnlock.enabled) {
-        triggerHaptic(haptics.slideToUnlock.completionType);
+      if (haptics.blockNowButton.enabled) {
+        triggerHaptic(haptics.blockNowButton.unlockType);
       }
       setIsUnlocking(true);
       try {
@@ -294,11 +296,25 @@ function BlockNowButton({
                     <Path d="M12 0.5a10 10 0 0 0 -10 10V13a5.49 5.49 0 0 0 3.2 5 2 2 0 0 1 1 2.48c-0.64 1.82 -0.91 2.17 -0.43 2.7a1 1 0 0 0 0.74 0.33h2A0.5 0.5 0 0 0 9 23v-2a1 1 0 0 1 2 0v2a0.5 0.5 0 0 0 0.5 0.5h1a0.5 0.5 0 0 0 0.5 -0.5v-2a1 1 0 0 1 2 0v2a0.5 0.5 0 0 0 0.5 0.5h1.95a1 1 0 0 0 0.74 -0.33c0.48 -0.53 0.22 -0.87 -0.43 -2.7a2 2 0 0 1 1 -2.48A5.49 5.49 0 0 0 22 13v-2.5a10 10 0 0 0 -10 -10Zm-4.5 14A2.5 2.5 0 1 1 10 12a2.5 2.5 0 0 1 -2.5 2.51Zm5.68 2.76a0.51 0.51 0 0 1 -0.43 0.24h-1.5a0.49 0.49 0 0 1 -0.42 -0.24 0.5 0.5 0 0 1 0 -0.49l0.75 -1.5a0.52 0.52 0 0 1 0.9 0l0.75 1.5a0.5 0.5 0 0 1 -0.05 0.5Zm3.32 -2.76A2.5 2.5 0 1 1 19 12a2.5 2.5 0 0 1 -2.5 2.51Z" />
                   </Svg>
                 ) : (
-                  <HandTapIcon size={s(34)} color={iconColor} weight="fill" />
+                  <Svg width={s(34)} height={s(34)} viewBox="0 0 24 24" fill={iconColor}>
+                    <Path d="M17.13 17H14.5a0.25 0.25 0 0 1 -0.25 -0.25v-6.38a2.38 2.38 0 0 0 -4.75 0v8.53a0.25 0.25 0 0 1 -0.17 0.24 0.25 0.25 0 0 1 -0.28 -0.09l-0.89 -1.24a2 2 0 0 0 -1.22 -1 2.07 2.07 0 0 0 -2.45 2.95l2.1 4A0.52 0.52 0 0 0 7 24h14.25a0.51 0.51 0 0 0 0.5 -0.5v-1.66A4.8 4.8 0 0 0 17.13 17Z" />
+                    <Path d="M11.75 5a1 1 0 0 0 1 -1V1a1 1 0 0 0 -2 0v3a1 1 0 0 0 1 1Z" />
+                    <Path d="m16.35 6.32 2.12 -2.13a1 1 0 0 0 0 -1.41 1 1 0 0 0 -1.42 0L14.93 4.9a1 1 0 0 0 1.42 1.42Z" />
+                    <Path d="M16.25 9.5a1 1 0 0 0 1 1h3a1 1 0 0 0 0 -2h-3a1 1 0 0 0 -1 1Z" />
+                    <Path d="M7.15 6.32A1 1 0 0 0 8.57 4.9L6.45 2.78a1 1 0 0 0 -1.45 0 1 1 0 0 0 0 1.41Z" />
+                    <Path d="M7.25 9.5a1 1 0 0 0 -1 -1h-3a1 1 0 0 0 0 2h3a1 1 0 0 0 1 -1Z" />
+                  </Svg>
                 )}
               </Animated.View>
             ) : (
-              <HandWavingIcon size={s(34)} color={iconColor} weight="fill" />
+              <Svg width={s(34)} height={s(34)} viewBox="0 0 24 24" fill={iconColor}>
+                <Path d="M17.13 17H14.5a0.25 0.25 0 0 1 -0.25 -0.25v-6.38a2.38 2.38 0 0 0 -4.75 0v8.53a0.25 0.25 0 0 1 -0.17 0.24 0.25 0.25 0 0 1 -0.28 -0.09l-0.89 -1.24a2 2 0 0 0 -1.22 -1 2.07 2.07 0 0 0 -2.45 2.95l2.1 4A0.52 0.52 0 0 0 7 24h14.25a0.51 0.51 0 0 0 0.5 -0.5v-1.66A4.8 4.8 0 0 0 17.13 17Z" />
+                <Path d="M11.75 5a1 1 0 0 0 1 -1V1a1 1 0 0 0 -2 0v3a1 1 0 0 0 1 1Z" />
+                <Path d="m16.35 6.32 2.12 -2.13a1 1 0 0 0 0 -1.41 1 1 0 0 0 -1.42 0L14.93 4.9a1 1 0 0 0 1.42 1.42Z" />
+                <Path d="M16.25 9.5a1 1 0 0 0 1 1h3a1 1 0 0 0 0 -2h-3a1 1 0 0 0 -1 1Z" />
+                <Path d="M7.15 6.32A1 1 0 0 0 8.57 4.9L6.45 2.78a1 1 0 0 0 -1.45 0 1 1 0 0 0 0 1.41Z" />
+                <Path d="M7.25 9.5a1 1 0 0 0 -1 -1h-3a1 1 0 0 0 0 2h3a1 1 0 0 0 1 -1Z" />
+              </Svg>
             )}
           </Pressable>
         </View>

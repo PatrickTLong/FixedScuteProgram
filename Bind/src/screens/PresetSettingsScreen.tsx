@@ -1035,7 +1035,7 @@ function PresetSettingsScreen() {
               </View>
             </View>
             <AnimatedSwitch
-              size="xs"
+              size="small"
               value={noTimeLimit}
               animate={!skipSwitchAnimation}
               onValueChange={(value: boolean) => {
@@ -1088,7 +1088,7 @@ function PresetSettingsScreen() {
                 </View>
               </View>
               <AnimatedSwitch
-                size="xs"
+                size="small"
                 value={isScheduled}
                 animate={!skipSwitchAnimation}
                 onValueChange={(value: boolean) => {
@@ -1227,7 +1227,7 @@ function PresetSettingsScreen() {
                       </View>
                     </View>
                     <AnimatedSwitch
-                      size="xs"
+                      size="small"
                       value={isRecurring}
                       animate={!skipSwitchAnimation}
                       onValueChange={(value: boolean) => {
@@ -1368,7 +1368,7 @@ function PresetSettingsScreen() {
                 </View>
               </View>
               <AnimatedSwitch
-                size="xs"
+                size="small"
                 value={timerEnabled}
                 animate={!skipSwitchAnimation}
                 onValueChange={(value: boolean) => {
@@ -1464,7 +1464,7 @@ function PresetSettingsScreen() {
                 </View>
               </View>
               <AnimatedSwitch
-                size="xs"
+                size="small"
                 value={dateEnabled}
                 animate={!skipSwitchAnimation}
                 onValueChange={(value: boolean) => {
@@ -1538,7 +1538,7 @@ function PresetSettingsScreen() {
               </View>
             </View>
             <AnimatedSwitch
-              size="xs"
+              size="small"
               value={blockSettings}
               animate={!skipSwitchAnimation}
               onValueChange={(value: boolean) => {
@@ -1585,7 +1585,7 @@ function PresetSettingsScreen() {
                 </View>
               </View>
               <AnimatedSwitch
-                size="xs"
+                size="small"
                 value={strictMode}
                 animate={!skipSwitchAnimation}
                 onValueChange={(value: boolean) => {
@@ -1637,7 +1637,7 @@ function PresetSettingsScreen() {
                 </View>
               </View>
               <AnimatedSwitch
-                size="xs"
+                size="small"
                 value={allowEmergencyTapout}
                 animate={!skipSwitchAnimation}
                 onValueChange={handleEmergencyTapoutToggle}
@@ -1670,7 +1670,7 @@ function PresetSettingsScreen() {
               </View>
             </View>
             <AnimatedSwitch
-              size="xs"
+              size="small"
               value={customOverlayEnabled}
               animate={!skipSwitchAnimation}
               onValueChange={(value: boolean) => {
@@ -1841,7 +1841,7 @@ function PresetSettingsScreen() {
               </View>
             </View>
             <AnimatedSwitch
-              size="xs"
+              size="small"
               value={customRedirectEnabled}
               animate={!skipSwitchAnimation}
               onValueChange={(value: boolean) => {

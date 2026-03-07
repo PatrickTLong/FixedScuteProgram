@@ -100,21 +100,20 @@ export const transition = {
 // Haptic feedback config — per-component type, all disabled by default
 // Flip `enabled` to true and adjust type/strength as needed
 export const haptics = {
-  blockNowHold: { enabled: true, halfwayType: 'impactHeavy' as const, completionType: 'notificationSuccess' as const },
-  slideToUnlock: { enabled: true, halfwayType: 'impactHeavy' as const, completionType: 'notificationSuccess' as const },
-  toggle: { enabled: true, type: 'impactHeavy' as const },
+  blockNowButton: { enabled: true, activateType: 'impactLight' as const, unlockType: 'impactLight' as const, denyType: 'impactLight' as const },
+  toggle: { enabled: true, type: 'impactLight' as const },
   timeWheel: { enabled: true, type: 'impactLight' as const },
   headerButton: { enabled: false, type: 'impactLight' as const },
-  bubbleButton: { enabled: true, type: 'impactHeavy' as const },
+  bubbleButton: { enabled: true, type: 'impactLight' as const },
   overlayDismiss: { enabled: true, type: 'impactLight' as const },
   landingTap: { enabled: true, type: 'impactLight' as const },
   tabBar: { enabled: false, type: 'impactLight' as const },
   settingsRow: { enabled: false, type: 'impactLight' as const },
-  modalButton: { enabled: false, type: 'impactMedium' as const },
+  modalButton: { enabled: false, type: 'impactLight' as const },
   planTab: { enabled: false, type: 'impactLight' as const },
   presetCard: { enabled: false, type: 'impactLight' as const },
-  recurrenceWheel: { enabled: true, type: 'impact' as const },
-  longPressDelete: { enabled: true, type: 'impactHeavy' as const },
+  recurrenceWheel: { enabled: true, type: 'impactLight' as const },
+  longPressDelete: { enabled: true, type: 'impactLight' as const },
   googleSignIn: { enabled: true, type: 'impactLight' as const },
 };
 
