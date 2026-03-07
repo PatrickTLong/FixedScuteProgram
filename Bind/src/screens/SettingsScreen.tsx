@@ -13,7 +13,7 @@ import {
 import LoadingSpinner from '../components/LoadingSpinner';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
-import { IdentificationCardIcon, WarningIcon, FolderOpenIcon, CheckCircleIcon, HeartStraightBreakIcon } from 'phosphor-react-native';
+import { IdentificationCardIcon, FolderOpenIcon, CheckCircleIcon, HeartStraightBreakIcon } from 'phosphor-react-native';
 import ReplyArrowIcon from '../components/ReplyArrowIcon';
 import ConfirmationModal from '../components/ConfirmationModal';
 import HeaderIconButton from '../components/HeaderIconButton';
@@ -55,7 +55,9 @@ const RefreshIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
 );
 
 const TrashIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
-  <WarningIcon size={iconSize.forTabs} color={color} weight="fill" />
+  <Svg width={iconSize.forTabs} height={iconSize.forTabs} viewBox="0 0 24 24" fill={color}>
+    <Path d="M23.25 23.23a0.75 0.75 0 0 0 0.66 -1.1l-11.25 -21a0.78 0.78 0 0 0 -1.32 0l-11.25 21a0.73 0.73 0 0 0 0 0.74 0.73 0.73 0 0 0 0.64 0.36ZM12 20.48A1.5 1.5 0 1 1 13.5 19a1.5 1.5 0 0 1 -1.5 1.48Zm0 -12.25a1 1 0 0 1 1 1v5.47a1 1 0 0 1 -2 0V9.23a1 1 0 0 1 1 -1Z" />
+  </Svg>
 );
 
 const MessageIcon = ({ color = '#FFFFFF' }: { color?: string }) => (

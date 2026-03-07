@@ -40,12 +40,9 @@ const PlusIcon = ({ size = iconSize.lg, color = '#FFFFFF' }: { size?: number; co
 );
 
 const TrashIcon = ({ color = '#FFFFFF', size = iconSize.forTabs }: { color?: string; size?: number }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path d="m1.751 6.368 20.541-4.366" stroke={color} strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
-    <Path d="m13.6 0.783-4.4 0.935A1.5 1.5 0 0 0 8.042 3.5l0.312 1.468 7.336-1.56-0.312-1.467A1.5 1.5 0 0 0 13.6 0.783Z" stroke={color} strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
-    <Path d="m10.751 18 0-7.5" stroke={color} strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
-    <Path d="m15.251 18 0-7.5" stroke={color} strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
-    <Path d="M18.626 6h2.625l-1.385 15.874a1.5 1.5 0 0 1-1.5 1.376H7.631a1.5 1.5 0 0 1-1.494-1.376L5.1 9.377" stroke={color} strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
+    <Path d="M19.45 7.5H4.55a0.5 0.5 0 0 0 -0.5 0.54l1.28 14.14a2 2 0 0 0 2 1.82h9.34a2 2 0 0 0 2 -1.82L20 8a0.5 0.5 0 0 0 -0.5 -0.54Zm-9.2 13a0.75 0.75 0 0 1 -1.5 0v-9a0.75 0.75 0 0 1 1.5 0Zm5 0a0.75 0.75 0 0 1 -1.5 0v-9a0.75 0.75 0 0 1 1.5 0Z" />
+    <Path d="M22 4h-4.75a0.25 0.25 0 0 1 -0.25 -0.25V2.5A2.5 2.5 0 0 0 14.5 0h-5A2.5 2.5 0 0 0 7 2.5v1.25a0.25 0.25 0 0 1 -0.25 0.25H2a1 1 0 0 0 0 2h20a1 1 0 0 0 0 -2ZM9 3.75V2.5a0.5 0.5 0 0 1 0.5 -0.5h5a0.5 0.5 0 0 1 0.5 0.5v1.25a0.25 0.25 0 0 1 -0.25 0.25h-5.5A0.25 0.25 0 0 1 9 3.75Z" />
   </Svg>
 );
 
