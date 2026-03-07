@@ -21,11 +21,9 @@ import ReplyArrowIcon from '../components/ReplyArrowIcon';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { API_URL } from '../config/api';
 import { getAuthToken } from '../services/cardApi';
-import ScheduleInfoModal from '../components/ScheduleInfoModal';
 import InfoModal from '../components/InfoModal';
 import DisableTapoutWarningModal from '../components/DisableTapoutWarningModal';
 import BlockSettingsWarningModal from '../components/BlockSettingsWarningModal';
-import RecurrenceInfoModal from '../components/RecurrenceInfoModal';
 import StrictModeWarningModal from '../components/StrictModeWarningModal';
 import { Preset } from '../components/PresetCard';
 import HeaderIconButton from '../components/HeaderIconButton';
@@ -39,10 +37,8 @@ import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { MainTabParamList } from '../navigation/types';
 
 // ============ AsyncStorage Keys ============
-const SCHEDULE_INFO_DISMISSED_KEY = 'schedule_info_dismissed';
 const DISABLE_TAPOUT_WARNING_DISMISSED_KEY = 'disable_tapout_warning_dismissed';
 const BLOCK_SETTINGS_WARNING_DISMISSED_KEY = 'block_settings_warning_dismissed';
-const RECURRENCE_INFO_DISMISSED_KEY = 'recurrence_info_dismissed';
 const STRICT_MODE_WARNING_DISMISSED_KEY = 'strict_mode_warning_dismissed';
 
 // ============ Recurring schedule unit types ============
@@ -618,13 +614,11 @@ function PresetSettingsScreen() {
   const [isScheduled, setIsScheduled] = useState(false);
   const [scheduleStartDate, setScheduleStartDate] = useState<Date | null>(null);
   const [scheduleEndDate, setScheduleEndDate] = useState<Date | null>(null);
-  const [scheduleInfoVisible, setScheduleInfoVisible] = useState(false);
 
   // Recurring schedule feature
   const [isRecurring, setIsRecurring] = useState(false);
   const [recurringValue, setRecurringValue] = useState<string>('1');
   const [recurringUnit, setRecurringUnit] = useState<RecurringUnit>('hours');
-  const [recurrenceInfoVisible, setRecurrenceInfoVisible] = useState(false);
   const [svgKey, setSvgKey] = useState(0);
   const [skipSwitchAnimation, setSkipSwitchAnimation] = useState(false);
 
@@ -1103,11 +1097,7 @@ function PresetSettingsScreen() {
                       setTimerEnabled(false);
                       setTargetDate(null);
                       setDateEnabled(false);
-                      AsyncStorage.getItem(SCHEDULE_INFO_DISMISSED_KEY).then(dismissed => {
-                        if (dismissed !== 'true') {
-                          setScheduleInfoVisible(true);
-                        }
-                      });
+                      // TUTORIAL POINT: Schedule toggle enabled — show tutorial step for scheduling feature here
                     } else {
                       setScheduleStartDate(null);
                       setScheduleEndDate(null);
@@ -1232,13 +1222,7 @@ function PresetSettingsScreen() {
                       animate={!skipSwitchAnimation}
                       onValueChange={(value: boolean) => {
                         setIsRecurring(value);
-                        if (value) {
-                          AsyncStorage.getItem(RECURRENCE_INFO_DISMISSED_KEY).then(dismissed => {
-                            if (dismissed !== 'true') {
-                              setRecurrenceInfoVisible(true);
-                            }
-                          });
-                        }
+                        // TUTORIAL POINT: Recurrence toggle enabled — show tutorial step for recurring blocks here
                       }}
                     />
                   </View>
@@ -1889,28 +1873,6 @@ function PresetSettingsScreen() {
       </ScrollView>
 
       {/* ============ Modals ============ */}
-
-      {/* Schedule Info Modal */}
-      <ScheduleInfoModal
-        visible={scheduleInfoVisible}
-        onClose={async (dontShowAgain) => {
-          setScheduleInfoVisible(false);
-          if (dontShowAgain) {
-            await AsyncStorage.setItem(SCHEDULE_INFO_DISMISSED_KEY, 'true');
-          }
-        }}
-      />
-
-      {/* Recurrence Info Modal */}
-      <RecurrenceInfoModal
-        visible={recurrenceInfoVisible}
-        onClose={async (dontShowAgain) => {
-          setRecurrenceInfoVisible(false);
-          if (dontShowAgain) {
-            await AsyncStorage.setItem(RECURRENCE_INFO_DISMISSED_KEY, 'true');
-          }
-        }}
-      />
 
       {/* No Tapouts Remaining Modal */}
       <InfoModal

@@ -50,7 +50,7 @@ function DisableTapoutWarningModal({ visible, onConfirm, onCancel }: DisableTapo
       onRequestClose={handleCancel}
     >
       <View className="flex-1 bg-black/70 justify-center items-center px-6">
-        <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.modal }} className={`w-full ${radius['2xl']} overflow-hidden`}>
+        <View style={{ backgroundColor: colors.card, ...shadow.modal }} className={`w-full ${radius['2xl']} overflow-hidden`}>
           {/* Content */}
           <View className="p-6">
             <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.bold} text-center mb-4`}>

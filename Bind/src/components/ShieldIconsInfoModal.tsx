@@ -60,7 +60,6 @@ function ShieldIconsInfoModal({ visible, onClose }: ShieldIconsInfoModalProps) {
             <View
               style={{
                 backgroundColor: colors.card,
-                borderWidth: 1, borderColor: colors.border,
                 ...shadow.modal,
               }}
               className={`w-full ${radius['2xl']} overflow-hidden`}

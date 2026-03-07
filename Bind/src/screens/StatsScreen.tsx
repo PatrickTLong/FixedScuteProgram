@@ -493,8 +493,6 @@ function StatsScreen() {
           <View
             style={{
               backgroundColor: colors.card,
-              borderWidth: 1,
-              borderColor: colors.border,
               ...shadow.modal,
               maxHeight: '85%',
             }}
