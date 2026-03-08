@@ -13,8 +13,6 @@ import {
   Image,
 } from 'react-native';
 import AnimatedSwitch from '../components/AnimatedSwitch';
-import FlashPressable from '../components/FlashPressable';
-import { useFlashPress } from '../utils/useFlashPress';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Svg, { Path } from 'react-native-svg';
@@ -206,7 +204,6 @@ const TimePresetCircle = memo(({ label, onPress, onLongPressAdd }: {
   const activeRef = useRef(false);
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const borderAnim = useRef(new Animated.Value(0)).current;
-  const { flashOpacity, onPressIn: flashIn, onPressOut: flashOut } = useFlashPress();
 
   const clearTimers = useCallback(() => {
     activeRef.current = false;
@@ -230,7 +227,6 @@ const TimePresetCircle = memo(({ label, onPress, onLongPressAdd }: {
     clearTimers();
     didLongPress.current = false;
     activeRef.current = true;
-    flashIn();
     Animated.timing(scaleAnim, { toValue: 0.9, useNativeDriver: true, duration: 30 }).start();
     Animated.timing(borderAnim, { toValue: 1, useNativeDriver: false, duration: 30 }).start();
     timeoutRef.current = setTimeout(() => {
@@ -241,14 +237,13 @@ const TimePresetCircle = memo(({ label, onPress, onLongPressAdd }: {
       onLongPressAddRef.current();
       scheduleNext(LONG_PRESS_START_INTERVAL);
     }, LONG_PRESS_INITIAL_DELAY);
-  }, [clearTimers, scheduleNext, scaleAnim, borderAnim, flashIn]);
+  }, [clearTimers, scheduleNext, scaleAnim, borderAnim]);
 
   const handlePressOut = useCallback(() => {
     clearTimers();
-    flashOut();
     Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true, speed: 12, bounciness: 14 }).start();
     Animated.timing(borderAnim, { toValue: 0, useNativeDriver: false, duration: 200 }).start();
-  }, [clearTimers, scaleAnim, borderAnim, flashOut]);
+  }, [clearTimers, scaleAnim, borderAnim]);
 
   const handlePress = useCallback(() => {
     if (!didLongPress.current) {
@@ -283,7 +278,6 @@ const TimePresetCircle = memo(({ label, onPress, onLongPressAdd }: {
           overflow: 'hidden',
         }}
       >
-        <Animated.View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#FFFFFF', opacity: flashOpacity }} pointerEvents="none" />
         <Pressable
           onPress={handlePress}
           onPressIn={handlePressIn}
@@ -1139,7 +1133,7 @@ function PresetSettingsScreen() {
               <View className="px-6" style={{ paddingTop: s(8) }}>
 
             {/* Start Date */}
-            <FlashPressable
+            <TouchableOpacity activeOpacity={0.8}
               onPress={() => openDatePicker('scheduleStart')}
               style={{ backgroundColor: colors.card, paddingVertical: s(buttonPadding.standard + 4), borderWidth: 1, borderColor: colors.border, ...shadow.card }}
               className={`flex-row items-center px-5 ${radius.xl} mb-3`}
@@ -1170,12 +1164,12 @@ function PresetSettingsScreen() {
                     <XIcon size={s(iconSize.headerNav)} color={colors.text} />
                   </HeaderIconButton>
                 )}
-            </FlashPressable>
+            </TouchableOpacity>
 
             {/* Date picker rendered as full-screen overlay */}
 
             {/* End Date */}
-            <FlashPressable
+            <TouchableOpacity activeOpacity={0.8}
               onPress={() => openDatePicker('scheduleEnd')}
                 style={{ backgroundColor: colors.card, paddingVertical: s(buttonPadding.standard + 4), borderWidth: 1, borderColor: colors.border, ...shadow.card }}
                 className={`flex-row items-center px-5 ${radius.xl} mb-4`}
@@ -1206,7 +1200,7 @@ function PresetSettingsScreen() {
                     <XIcon size={s(iconSize.headerNav)} color={colors.text} />
                   </HeaderIconButton>
                 )}
-            </FlashPressable>
+            </TouchableOpacity>
 
             {/* Date picker rendered as full-screen overlay */}
 
@@ -1514,7 +1508,7 @@ function PresetSettingsScreen() {
             {/* Date picker button (shown when date is enabled) */}
             <ExpandableInfo expanded={dateEnabled}>
               <View className="px-6 pb-4">
-                <FlashPressable
+                <TouchableOpacity activeOpacity={0.8}
                   onPress={() => openDatePicker('targetDate')}
                   style={{ backgroundColor: colors.card, paddingVertical: s(buttonPadding.standard + 4), borderWidth: 1, borderColor: colors.border, ...shadow.card }}
                   className={`flex-row items-center px-5 ${radius.xl}`}
@@ -1537,7 +1531,7 @@ function PresetSettingsScreen() {
                       <XIcon size={s(iconSize.headerNav)} color={colors.text} />
                     </HeaderIconButton>
                   )}
-                </FlashPressable>
+                </TouchableOpacity>
               </View>
             </ExpandableInfo>
   

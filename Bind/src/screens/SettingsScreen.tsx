@@ -3,7 +3,7 @@ import {
   Text,
   View,
   ScrollView,
-  Pressable,
+  TouchableOpacity,
   Linking,
   Animated,
   Easing,
@@ -23,7 +23,8 @@ import { useTheme , textSize, fontFamily, radius, shadow, iconSize, buttonPaddin
 import { triggerHaptic } from '../utils/haptics';
 import { useResponsive } from '../utils/responsive';
 import { useAuth } from '../context/AuthContext';
-import { useFlashPress } from '../utils/useFlashPress';
+
+
 
 // Icons
 const MailIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
@@ -108,37 +109,26 @@ const SettingsRow = memo(({
   borderColor,
   valueColor,
   s,
-}: SettingsRowProps) => {
-  const { flashOpacity, onPressIn, onPressOut } = useFlashPress(!onPress);
-
-  const handlePressIn = useCallback(() => {
-    if (onPress && haptics.settingsRow.enabled) triggerHaptic(haptics.settingsRow.type);
-    onPressIn();
-  }, [onPress, onPressIn]);
-
-  return (
-    <View>
-      <Pressable
-        onPress={onPress || undefined}
-        onPressIn={handlePressIn}
-        onPressOut={onPressOut}
-        disabled={!onPress}
-      >
-        <View style={{ paddingVertical: s(buttonPadding.standard + 4), paddingHorizontal: s(buttonPadding.standard + 4) }} className="flex-row items-center">
-          <Animated.View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#FFFFFF', opacity: flashOpacity }} pointerEvents="none" />
-          <View className="mr-4">{icon}</View>
-          <Text style={{ color: labelColor }} className={`flex-1 ${textSize.small} ${fontFamily.regular}`}>{label}</Text>
-          {value && (
-            <Text style={{ color: valueColor }} className={`${textSize.small} ${fontFamily.regular} mr-2`}>{value}</Text>
-          )}
-        </View>
-      </Pressable>
-      {!isLast && (
-        <View style={{ height: 1, backgroundColor: borderColor }} />
-      )}
-    </View>
-  );
-});
+}: SettingsRowProps) => (
+  <View>
+    <TouchableOpacity
+      onPress={() => { if (haptics.settingsRow.enabled) triggerHaptic(haptics.settingsRow.type); onPress?.(); }}
+      disabled={!onPress}
+      activeOpacity={0.8}
+    >
+      <View style={{ paddingVertical: s(buttonPadding.standard + 4), paddingHorizontal: s(buttonPadding.standard + 4) }} className="flex-row items-center">
+        <View className="mr-4">{icon}</View>
+        <Text style={{ color: labelColor }} className={`flex-1 ${textSize.small} ${fontFamily.regular}`}>{label}</Text>
+        {value && (
+          <Text style={{ color: valueColor }} className={`${textSize.small} ${fontFamily.regular} mr-2`}>{value}</Text>
+        )}
+      </View>
+    </TouchableOpacity>
+    {!isLast && (
+      <View style={{ height: 1, backgroundColor: borderColor }} />
+    )}
+  </View>
+));
 
 function SettingsScreen() {
   const { userEmail: email, handleLogout: onLogout, handleResetAccount: onResetAccount, handleDeleteAccount: onDeleteAccount, sharedIsLocked, sharedLockStatus, tapoutStatus, refreshLockStatus, refreshTapoutStatus } = useAuth();
@@ -168,7 +158,8 @@ function SettingsScreen() {
   const [loading, setLoading] = useState(!hasCache);
   const [refreshing, setRefreshing] = useState(false);
 
-  const { flashOpacity: membershipFlash, onPressIn: membershipPressIn, onPressOut: membershipPressOut } = useFlashPress();
+
+
 
   // Heartbeat animation for tapout icon
   const heartBeat = useRef(new Animated.Value(1)).current;
@@ -421,13 +412,11 @@ function SettingsScreen() {
           />
           {/* Membership Row with Trial Countdown */}
           <View>
-            <Pressable
-              onPress={() => setMembershipModalVisible(true)}
-              onPressIn={() => { if (haptics.settingsRow.enabled) triggerHaptic(haptics.settingsRow.type); membershipPressIn(); }}
-              onPressOut={membershipPressOut}
+            <TouchableOpacity
+              onPress={() => { if (haptics.settingsRow.enabled) triggerHaptic(haptics.settingsRow.type); setMembershipModalVisible(true); }}
+              activeOpacity={0.8}
             >
               <View style={{ paddingVertical: s(buttonPadding.standard + 4), paddingHorizontal: s(buttonPadding.standard + 4) }} className="flex-row items-center">
-                <Animated.View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#FFFFFF', opacity: membershipFlash }} pointerEvents="none" />
                 <View className="mr-4"><MembershipIcon color={colors.textSecondary} /></View>
                 <View className="flex-1">
                   <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular}`}>Membership</Text>
@@ -446,7 +435,7 @@ function SettingsScreen() {
                   )}
                 </View>
               </View>
-            </Pressable>
+            </TouchableOpacity>
             <View style={{ height: 1, backgroundColor: colors.divider }} />
           </View>
           <View style={{ opacity: isDisabled ? 0.6 : 1 }}>

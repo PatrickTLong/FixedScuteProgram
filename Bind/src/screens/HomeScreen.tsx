@@ -26,7 +26,8 @@ import { updateLockStatus, Preset, useEmergencyTapout, activatePreset, savePrese
 import { useTheme , textSize, fontFamily, radius, shadow, iconSize } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { useAuth } from '../context/AuthContext';
-import FlashPressable from '../components/FlashPressable';
+
+
 
 
 const { BlockingModule, PermissionsModule } = NativeModules;
@@ -1184,14 +1185,11 @@ function HomeScreen() {
           <HeaderIconButton onPress={openNotificationSettings}>
             {notificationsEnabled ? (
               <Svg width={s(iconSize.headerNav)} height={s(iconSize.headerNav)} viewBox="0 0 24 24" fill="#FFFFFF">
-                <Path d="M14.24 21H9.76a0.25 0.25 0 0 0-0.24 0.22 2.64 2.64 0 0 0 0 0.28 2.5 2.5 0 0 0 5 0 2.64 2.64 0 0 0 0-0.28 0.25 0.25 0 0 0-0.28-0.22Z" />
-                <Path d="M21.45 19.28a16.29 16.29 0 0 1-1.75-7.34v-0.76a9.11 9.11 0 0 0-3.87-7.63 6.31 6.31 0 0 0-2.33-0.91V1.5a1.5 1.5 0 0 0-3 0v1.15a6.68 6.68 0 0 0-2.85 1.28 9.18 9.18 0 0 0-3.35 7.25v0.76a16.29 16.29 0 0 1-1.75 7.34 0.51 0.51 0 0 0 0 0.48A0.52 0.52 0 0 0 3 20h18a0.52 0.52 0 0 0 0.43-0.24 0.51 0.51 0 0 0 0.02-0.48Z" />
+                <Path d="M19 12.59V10c0-3.22-2.18-5.93-5.14-6.74C13.57 2.52 12.85 2 12 2s-1.56.52-1.86 1.26C7.18 4.08 5 6.79 5 10v2.59L3.29 14.3a1 1 0 0 0-.29.71v2c0 .55.45 1 1 1h16c.55 0 1-.45 1-1v-2c0-.27-.11-.52-.29-.71zM5.64 3.3 4.23 1.89A10.9 10.9 0 0 0 1 9.67h2c0-2.4.94-4.66 2.64-6.36Zm12.72 0C20.06 5 21 7.26 21 9.66h2c0-2.94-1.14-5.7-3.22-7.78l-1.41 1.41ZM12 22c1.31 0 2.41-.83 2.82-2H9.18c.41 1.17 1.51 2 2.82 2" />
               </Svg>
             ) : (
               <Svg width={s(iconSize.headerNav)} height={s(iconSize.headerNav)} viewBox="0 0 24 24" fill={colors.textMuted}>
-                <Path d="M21 19.5a1 1 0 0 0 0-2 1.5 1.5 0 0 1-1.5-1.5v-4.86a8.65 8.65 0 0 0-0.4-2.62l-11 11Z" />
-                <Path d="M14.24 21H9.76a0.25 0.25 0 0 0-0.24 0.22 2.64 2.64 0 0 0 0 0.28 2.5 2.5 0 0 0 5 0 2.64 2.64 0 0 0 0-0.28 0.25 0.25 0 0 0-0.28-0.22Z" />
-                <Path d="M1 24a1 1 0 0 0 0.71-0.28l22-22a1 1 0 0 0 0-1.42 1 1 0 0 0-1.42 0l-5 5A7.31 7.31 0 0 0 13 3.07V1a1 1 0 0 0-2 0v2.07a8 8 0 0 0-6.5 8.07V16A1.5 1.5 0 0 1 3 17.5a1 1 0 0 0 0 2h0.09l-2.8 2.79a1 1 0 0 0 0 1.42A1 1 0 0 0 1 24Z" />
+                <Path d="M12 22c1.31 0 2.41-.83 2.82-2H9.18c.41 1.17 1.51 2 2.82 2m8-4c.55 0 1-.45 1-1v-2c0-.27-.11-.52-.29-.71L19 12.58V9.99c0-3.22-2.18-5.93-5.14-6.74-.29-.74-1.01-1.26-1.86-1.26s-1.56.52-1.86 1.26a6.93 6.93 0 0 0-3.36 2.12L2.71 1.29 1.3 2.7l20 20 1.41-1.41L19.42 18h.59ZM5.06 9.3c-.02.23-.06.46-.06.7v2.59L3.29 14.3a1 1 0 0 0-.29.71v2c0 .55.45 1 1 1h9.76z" />
               </Svg>
             )}
           </HeaderIconButton>
@@ -1249,7 +1247,7 @@ function HomeScreen() {
 
             {/* Scheduled Presets Button - absolutely positioned under preset text */}
             {scheduledPresets.length > 0 && (
-              <FlashPressable
+              <TouchableOpacity activeOpacity={0.8}
                 onPress={() => { setScheduledPresetsModalVisible(true); }}
                 className={`px-5 py-2.5 ${radius.full} flex-row items-center`}
                 style={{
@@ -1267,7 +1265,7 @@ function HomeScreen() {
                 <Text style={{ color: colors.text }} className={`${textSize.extraSmall} ${fontFamily.semibold}`}>
                   {scheduledPresets.length} Scheduled
                 </Text>
-              </FlashPressable>
+              </TouchableOpacity>
             )}
           </View>
         </View>

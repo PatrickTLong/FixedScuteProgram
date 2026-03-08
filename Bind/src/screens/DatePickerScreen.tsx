@@ -18,7 +18,8 @@ import { useTheme, textSize, fontFamily, radius, shadow, iconSize, buttonPadding
 import { useResponsive } from '../utils/responsive';
 import { triggerHaptic } from '../utils/haptics';
 import { usePresetSave } from '../navigation/PresetsStack';
-import FlashPressable from '../components/FlashPressable';
+
+
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { MainTabParamList } from '../navigation/types';
@@ -262,7 +263,7 @@ const AmPmSelector = memo(({ value, onChange, cardColor }: AmPmSelectorProps) =>
     <View className="ml-2">
       {/* AM button with sun icon */}
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-        <FlashPressable
+        <TouchableOpacity activeOpacity={0.8}
           onPress={() => onChange('AM')}
           style={{ backgroundColor: value === 'AM' ? colors.green : cardColor, borderWidth: 1, borderColor: value === 'AM' ? colors.green : colors.border, ...shadow.card }}
           className={`px-3 py-2 ${radius.AMPM}`}
@@ -270,14 +271,14 @@ const AmPmSelector = memo(({ value, onChange, cardColor }: AmPmSelectorProps) =>
           <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
             AM
           </Text>
-        </FlashPressable>
+        </TouchableOpacity>
         <Animated.View style={{ position: 'absolute', right: -26, transform: [{ scale: sunScale }] }}>
           <SunIcon size={18} color={value === 'AM' ? colors.yellow : colors.textMuted} weight="fill" />
         </Animated.View>
       </View>
       {/* PM button with moon icon */}
       <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
-        <FlashPressable
+        <TouchableOpacity activeOpacity={0.8}
           onPress={() => onChange('PM')}
           style={{ backgroundColor: value === 'PM' ? colors.green : cardColor, borderWidth: 1, borderColor: value === 'PM' ? colors.green : colors.border, ...shadow.card }}
           className={`px-3 py-2 ${radius.AMPM}`}
@@ -285,7 +286,7 @@ const AmPmSelector = memo(({ value, onChange, cardColor }: AmPmSelectorProps) =>
           <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
             PM
           </Text>
-        </FlashPressable>
+        </TouchableOpacity>
         <Animated.View style={{ position: 'absolute', right: -26, transform: [{ scale: moonScale }] }}>
           <MoonIcon size={18} color={value === 'PM' ? colors.text : colors.textMuted} weight="fill" />
         </Animated.View>

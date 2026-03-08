@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   Modal,
-  Animated,
   AppState,
 } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
@@ -19,7 +18,6 @@ function NoInternetModal() {
   const { handleReconnect } = useAuth();
   const [visible, setVisible] = useState(false);
   const wasDisconnectedRef = useRef(false);
-  const flash = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     // Subscribe to connectivity changes
@@ -56,14 +54,6 @@ function NoInternetModal() {
 
     return () => subscription.remove();
   }, [handleReconnect]);
-
-  const triggerFlash = useCallback((anim: Animated.Value) => {
-    anim.setValue(0.3);
-  }, []);
-
-  const releaseFlash = useCallback((anim: Animated.Value) => {
-    Animated.timing(anim, { toValue: 0, duration: 300, useNativeDriver: true }).start();
-  }, []);
 
   const handleRetry = useCallback(() => {
     NetInfo.fetch().then(state => {
@@ -120,13 +110,10 @@ function NoInternetModal() {
           {/* Retry Button */}
           <View style={{ borderTopWidth: 1, borderTopColor: colors.divider }}>
             <TouchableOpacity
-              onPressIn={() => triggerFlash(flash)}
-              onPressOut={() => releaseFlash(flash)}
               onPress={handleRetry}
-              activeOpacity={1}
+              activeOpacity={0.8}
               className="py-4 items-center justify-center"
             >
-              <Animated.View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#ffffff', opacity: flash }} />
               <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
                 Retry
               </Text>

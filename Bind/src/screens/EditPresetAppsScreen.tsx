@@ -30,8 +30,8 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { MainTabParamList } from '../navigation/types';
 import { usePresetSave } from '../navigation/PresetsStack';
-import FlashPressable from '../components/FlashPressable';
-import { useFlashPress } from '../utils/useFlashPress';
+
+
 
 const EXCLUDED_APPS_INFO_DISMISSED_KEY = 'excluded_apps_info_dismissed';
 
@@ -185,15 +185,8 @@ const AppItemRow = memo(({ item, isSelected, onToggle, colors, s, skipCheckboxAn
 }) => {
   const checkboxRef = useRef<AnimatedCheckboxRef>(null);
   const scaleAnim = useRef(new Animated.Value(1)).current;
-  const { flashOpacity, onPressIn: flashIn, onPressOut: flashOut } = useFlashPress();
 
-  const handlePressIn = useCallback(() => {
-    flashIn();
-  }, [flashIn]);
 
-  const handlePressOut = useCallback(() => {
-    flashOut();
-  }, [flashOut]);
 
   const handlePress = useCallback(() => {
     onToggle(item.id);
@@ -215,10 +208,8 @@ const AppItemRow = memo(({ item, isSelected, onToggle, colors, s, skipCheckboxAn
 
   return (
     <TouchableOpacity
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
       onPress={handlePress}
-      activeOpacity={1}
+      activeOpacity={0.8}
     >
       <Animated.View
         style={{
@@ -226,13 +217,11 @@ const AppItemRow = memo(({ item, isSelected, onToggle, colors, s, skipCheckboxAn
           borderWidth: 1,
           borderColor: colors.border,
           paddingVertical: s(buttonPadding.standard + 4),
-          overflow: 'hidden',
           ...shadow.card,
           transform: [{ scale: scaleAnim }],
         }}
         className={`flex-row items-center px-5 ${radius.xl} mb-2`}
       >
-        <Animated.View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#FFFFFF', opacity: flashOpacity }} pointerEvents="none" />
         {item.icon ? (
           <Image
             source={{ uri: item.icon }}
@@ -539,7 +528,7 @@ function EditPresetAppsScreen() {
 
         {/* Tabs */}
         <View className="flex-row mx-6 mb-4">
-          <FlashPressable
+          <TouchableOpacity activeOpacity={0.8}
             onPress={() => switchTab('apps')}
             style={{ flex: 1, backgroundColor: activeTab === 'apps' ? colors.text : colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
             className={`${radius.full} ${pill} items-center justify-center flex-row`}
@@ -548,9 +537,9 @@ function EditPresetAppsScreen() {
             <Text style={{ color: activeTab === 'apps' ? colors.bg : colors.text, marginLeft: s(6) }} className={`${textSize.small} ${fontFamily.semibold}`}>
               Apps
             </Text>
-          </FlashPressable>
+          </TouchableOpacity>
           <View className="w-2" />
-          <FlashPressable
+          <TouchableOpacity activeOpacity={0.8}
             onPress={() => switchTab('websites')}
             style={{ flex: 1, backgroundColor: activeTab === 'websites' ? colors.text : colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
             className={`${radius.full} ${pill} items-center justify-center flex-row`}
@@ -559,7 +548,7 @@ function EditPresetAppsScreen() {
             <Text style={{ color: activeTab === 'websites' ? colors.bg : colors.text, marginLeft: s(6) }} className={`${textSize.small} ${fontFamily.semibold}`}>
               Websites
             </Text>
-          </FlashPressable>
+          </TouchableOpacity>
         </View>
 
         <View style={{ flex: 1 }}>
@@ -568,7 +557,7 @@ function EditPresetAppsScreen() {
             {Platform.OS === 'ios' ? (
               // iOS: Show button to open native FamilyActivityPicker
               <View className="flex-1 px-6 pt-4">
-                <FlashPressable
+                <TouchableOpacity activeOpacity={0.8}
                   onPress={openIOSAppPicker}
                   style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, paddingVertical: s(buttonPadding.standard + 4), ...shadow.card }}
                   className={`flex-row items-center px-5 ${radius.xl} mb-4`}
@@ -587,7 +576,7 @@ function EditPresetAppsScreen() {
                     </Text>
                   </View>
                   <ChevronRightIcon size={s(iconSize.chevron)} color={colors.textSecondary} />
-                </FlashPressable>
+                </TouchableOpacity>
 
                 <Text style={{ color: colors.textMuted }} className={`${textSize.small} ${fontFamily.regular} text-center px-4`}>
                   iOS uses Screen Time to block apps. Tap above to open the app picker.
@@ -617,7 +606,7 @@ function EditPresetAppsScreen() {
                 {/* Select All / Deselect All Buttons */}
                 {!loadingApps && filteredApps.length > 0 && (
                   <View className="flex-row px-6 mb-3">
-                    <FlashPressable
+                    <TouchableOpacity activeOpacity={0.8}
                       onPress={() => {
                         setSkipCheckboxAnimation(true);
                         setTimeout(() => setSkipCheckboxAnimation(false), 50);
@@ -634,8 +623,8 @@ function EditPresetAppsScreen() {
                       <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
                         Select All
                       </Text>
-                    </FlashPressable>
-                    <FlashPressable
+                    </TouchableOpacity>
+                    <TouchableOpacity activeOpacity={0.8}
                       onPress={() => {
                         setSkipCheckboxAnimation(true);
                         setTimeout(() => setSkipCheckboxAnimation(false), 50);
@@ -648,7 +637,7 @@ function EditPresetAppsScreen() {
                       <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.semibold}`}>
                         Deselect All
                       </Text>
-                    </FlashPressable>
+                    </TouchableOpacity>
                   </View>
                 )}
 

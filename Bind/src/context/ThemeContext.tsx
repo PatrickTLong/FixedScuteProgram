@@ -73,21 +73,21 @@ export const shadow = {
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 6,
-    elevation: 0,//6
+    elevation: 6,//6
   },
   modal: {
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.4,
     shadowRadius: 10,
-    elevation: 0,//10
+    elevation: 10,//10
   },
   tabBar: {
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.3,
     shadowRadius: 6,
-    elevation: 0,//8
+    elevation: 8,//8
   },
 } as const;
 
@@ -122,7 +122,7 @@ export const colors = {
   bg: '#28282B',
   card: '#363639',
   cardLight: '#424245',
-  border: "transparent",//'#3a3a3d'
+  border: "#3a3a3d",//'#3a3a3d'
   divider: '#454548',
   dividerLight: '#3a3a3d',
   text: '#ffffff',

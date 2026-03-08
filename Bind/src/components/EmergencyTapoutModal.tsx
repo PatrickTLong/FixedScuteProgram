@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useRef, useCallback } from 'react';
+import React, { memo, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -36,21 +36,6 @@ function EmergencyTapoutModal({
   const { colors } = useTheme();
   const { s } = useResponsive();
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const dismissFlash = useRef(new Animated.Value(0)).current;
-  const tapoutFlash = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    dismissFlash.stopAnimation(() => dismissFlash.setValue(0));
-    tapoutFlash.stopAnimation(() => tapoutFlash.setValue(0));
-  }, [visible]);
-
-  const triggerFlash = useCallback((anim: Animated.Value) => {
-    anim.setValue(0.3);
-  }, []);
-
-  const releaseFlash = useCallback((anim: Animated.Value) => {
-    Animated.timing(anim, { toValue: 0, duration: 300, useNativeDriver: true }).start();
-  }, []);
 
   // Heartbeat animation
   const heartBeat = useRef(new Animated.Value(1)).current;
@@ -164,35 +149,27 @@ function EmergencyTapoutModal({
           {/* Buttons */}
           <View style={{ borderTopWidth: 1, borderTopColor: colors.divider }} className="flex-row">
             <TouchableOpacity
-              onPressIn={() => triggerFlash(dismissFlash)}
-              onPressOut={() => releaseFlash(dismissFlash)}
               onPress={onClose}
-              activeOpacity={1}
+              activeOpacity={0.8}
               style={{ borderRightWidth: 1, borderRightColor: colors.divider }}
               className="flex-1 py-4 items-center justify-center"
             >
-              <Animated.View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#ffffff', opacity: dismissFlash }} />
               <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.semibold}`}>
                 Dismiss
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              onPressIn={() => triggerFlash(tapoutFlash)}
-              onPressOut={() => releaseFlash(tapoutFlash)}
               onPress={() => { if (haptics.blockNowButton.enabled) triggerHaptic(haptics.blockNowButton.unlockType); onUseTapout(); }}
               disabled={!canUseTapout || isLoading}
-              activeOpacity={1}
+              activeOpacity={0.8}
               className="flex-1 py-4 items-center justify-center"
             >
               {isLoading ? (
                 <LoadingSpinner size={s(22)} color={colors.textMuted} />
               ) : (
-                <>
-                  <Animated.View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#ffffff', opacity: tapoutFlash }} />
-                  <Text style={{ color: canUseTapout ? colors.text : colors.textMuted, opacity: canUseTapout ? 1 : 0.6 }} className={`${textSize.small} ${fontFamily.semibold}`}>
-                    Unlock
-                  </Text>
-                </>
+                <Text style={{ color: canUseTapout ? colors.text : colors.textMuted, opacity: canUseTapout ? 1 : 0.6 }} className={`${textSize.small} ${fontFamily.semibold}`}>
+                  Unlock
+                </Text>
               )}
             </TouchableOpacity>
           </View>

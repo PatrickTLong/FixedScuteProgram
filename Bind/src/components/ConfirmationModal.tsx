@@ -1,10 +1,9 @@
-import React, { memo, useRef, useCallback, useEffect } from 'react';
+import React, { memo } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   Modal,
-  Animated,
 } from 'react-native';
 
 import { useTheme , textSize, fontFamily, radius, shadow, haptics } from '../context/ThemeContext';
@@ -36,22 +35,6 @@ function ConfirmationModal({
 }: ConfirmationModalProps) {
   const { colors } = useTheme();
   const { s } = useResponsive();
-  const cancelFlash = useRef(new Animated.Value(0)).current;
-  const confirmFlash = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    cancelFlash.stopAnimation(() => cancelFlash.setValue(0));
-    confirmFlash.stopAnimation(() => confirmFlash.setValue(0));
-  }, [visible]);
-
-  const triggerFlash = useCallback((anim: Animated.Value) => {
-    if (haptics.modalButton.enabled) triggerHaptic(haptics.modalButton.type);
-    anim.setValue(0.3);
-  }, []);
-
-  const releaseFlash = useCallback((anim: Animated.Value) => {
-    Animated.timing(anim, { toValue: 0, duration: 300, useNativeDriver: true }).start();
-  }, []);
 
   return (
     <Modal
@@ -83,14 +66,12 @@ function ConfirmationModal({
               <View style={{ borderTopWidth: 1, borderTopColor: colors.divider }} className="flex-row">
                 {/* Cancel Button */}
                 <TouchableOpacity
-                  onPressIn={() => triggerFlash(cancelFlash)}
-                  onPressOut={() => releaseFlash(cancelFlash)}
+                  onPressIn={() => { if (haptics.modalButton.enabled) triggerHaptic(haptics.modalButton.type); }}
                   onPress={onCancel}
-                  activeOpacity={1}
+                  activeOpacity={0.8}
                   style={{ borderRightWidth: 1, borderRightColor: colors.divider }}
                   className="flex-1 py-4 items-center justify-center"
                 >
-                  <Animated.View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#ffffff', opacity: cancelFlash }} />
                   <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular}`}>
                     {cancelText}
                   </Text>
@@ -98,13 +79,11 @@ function ConfirmationModal({
 
                 {/* Confirm Button */}
                 <TouchableOpacity
-                  onPressIn={() => triggerFlash(confirmFlash)}
-                  onPressOut={() => releaseFlash(confirmFlash)}
+                  onPressIn={() => { if (haptics.modalButton.enabled) triggerHaptic(haptics.modalButton.type); }}
                   onPress={onConfirm}
-                  activeOpacity={1}
+                  activeOpacity={0.8}
                   className="flex-1 py-4 items-center justify-center"
                 >
-                  <Animated.View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#ffffff', opacity: confirmFlash }} />
                   {icon ? icon : (
                     <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
                       {confirmText}

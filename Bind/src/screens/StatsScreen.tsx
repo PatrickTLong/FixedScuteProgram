@@ -11,6 +11,7 @@ import {
   ScrollView,
   RefreshControl,
   Modal,
+  TouchableOpacity,
 } from 'react-native';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -20,7 +21,6 @@ import { useTheme, textSize, fontFamily, radius, shadow, buttonPadding, iconSize
 import { useResponsive } from '../utils/responsive';
 import HeaderIconButton from '../components/HeaderIconButton';
 import { useAuth } from '../context/AuthContext';
-import FlashPressable from '../components/FlashPressable';
 
 const { UsageStatsModule } = NativeModules;
 
@@ -392,7 +392,7 @@ function StatsScreen() {
             <React.Fragment key={period}>
               {index > 0 && <View className="w-2" />}
               <View style={{ flex: 1 }}>
-                <FlashPressable
+                <TouchableOpacity activeOpacity={0.8}
                   onPress={() => setActivePeriod(period)}
                   style={{
                     backgroundColor: activePeriod === period ? colors.text : colors.card,
@@ -408,7 +408,7 @@ function StatsScreen() {
                   >
                     {period === 'month' ? '30 Days' : period === 'week' ? '7 Days' : 'Today'}
                   </Text>
-                </FlashPressable>
+                </TouchableOpacity>
               </View>
             </React.Fragment>
           ))}

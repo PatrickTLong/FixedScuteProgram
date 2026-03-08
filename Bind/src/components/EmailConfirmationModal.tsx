@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useState, useRef, useEffect } from 'react';
+import React, { memo, useCallback, useState } from 'react';
 import {
   View,
   Text,
@@ -6,7 +6,6 @@ import {
   Modal,
   TextInput,
   Dimensions,
-  Animated,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
@@ -24,21 +23,6 @@ function EmailConfirmationModal({ visible, userEmail, onConfirm, onCancel }: Ema
   const { s } = useResponsive();
   const insets = useSafeAreaInsets();
   const [inputEmail, setInputEmail] = useState('');
-  const cancelFlash = useRef(new Animated.Value(0)).current;
-  const confirmFlash = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    cancelFlash.stopAnimation(() => cancelFlash.setValue(0));
-    confirmFlash.stopAnimation(() => confirmFlash.setValue(0));
-  }, [visible]);
-
-  const triggerFlash = useCallback((anim: Animated.Value) => {
-    anim.setValue(0.3);
-  }, []);
-
-  const releaseFlash = useCallback((anim: Animated.Value) => {
-    Animated.timing(anim, { toValue: 0, duration: 300, useNativeDriver: true }).start();
-  }, []);
 
   const handleConfirm = useCallback(() => {
     if (inputEmail.trim().toLowerCase() === userEmail.toLowerCase()) {
@@ -136,14 +120,11 @@ function EmailConfirmationModal({ visible, userEmail, onConfirm, onCancel }: Ema
           <View style={{ borderTopWidth: 1, borderTopColor: colors.divider }} className="flex-row">
             {/* Cancel Button */}
             <TouchableOpacity
-              onPressIn={() => triggerFlash(cancelFlash)}
-              onPressOut={() => releaseFlash(cancelFlash)}
               onPress={handleCancel}
-              activeOpacity={1}
+              activeOpacity={0.8}
               className="flex-1 py-4 items-center justify-center"
               style={{ borderRightWidth: 1, borderRightColor: colors.divider }}
             >
-              <Animated.View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#ffffff', opacity: cancelFlash }} />
               <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular}`}>
                 Cancel
               </Text>
@@ -151,15 +132,12 @@ function EmailConfirmationModal({ visible, userEmail, onConfirm, onCancel }: Ema
 
             {/* Delete Account Button */}
             <TouchableOpacity
-              onPressIn={() => triggerFlash(confirmFlash)}
-              onPressOut={() => releaseFlash(confirmFlash)}
               onPress={handleConfirm}
               disabled={!isEmailMatch}
-              activeOpacity={1}
+              activeOpacity={0.8}
               className="flex-1 py-4 items-center justify-center"
               style={{ opacity: isEmailMatch ? 1 : 0.5 }}
             >
-              <Animated.View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#ffffff', opacity: confirmFlash }} />
               <Text
                 style={{ color: colors.text }}
                 className={`${textSize.small} ${fontFamily.semibold}`}

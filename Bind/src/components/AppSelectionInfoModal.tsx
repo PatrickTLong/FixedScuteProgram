@@ -1,11 +1,10 @@
-import React, { memo, useRef, useCallback, useEffect } from 'react';
+import React, { memo } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   Modal,
   Pressable,
-  Animated,
 } from 'react-native';
 import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
@@ -18,19 +17,6 @@ interface AppSelectionInfoModalProps {
 function AppSelectionInfoModal({ visible, onClose }: AppSelectionInfoModalProps) {
   const { colors } = useTheme();
   const { s } = useResponsive();
-  const flash = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    flash.stopAnimation(() => flash.setValue(0));
-  }, [visible]);
-
-  const triggerFlash = useCallback((anim: Animated.Value) => {
-    anim.setValue(0.3);
-  }, []);
-
-  const releaseFlash = useCallback((anim: Animated.Value) => {
-    Animated.timing(anim, { toValue: 0, duration: 300, useNativeDriver: true }).start();
-  }, []);
 
   const handleConfirm = () => {
     onClose(true);
@@ -61,13 +47,10 @@ function AppSelectionInfoModal({ visible, onClose }: AppSelectionInfoModalProps)
               {/* Button */}
               <View style={{ borderTopWidth: 1, borderTopColor: colors.divider }}>
                 <TouchableOpacity
-                  onPressIn={() => triggerFlash(flash)}
-                  onPressOut={() => releaseFlash(flash)}
                   onPress={handleConfirm}
-                  activeOpacity={1}
+                  activeOpacity={0.8}
                   className="py-4 items-center justify-center"
                 >
-                  <Animated.View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#ffffff', opacity: flash }} />
                   <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
                     Dismiss
                   </Text>

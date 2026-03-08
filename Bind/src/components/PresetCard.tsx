@@ -3,14 +3,15 @@ import {
   View,
   Text,
   Pressable,
-  Animated,
+  TouchableOpacity,
 } from 'react-native';
 import { AlarmIcon, XCircleIcon } from 'phosphor-react-native';
 import Svg, { Path } from 'react-native-svg';
 import { useTheme , textSize, fontFamily, radius, shadow, buttonPadding, iconSize, haptics } from '../context/ThemeContext';
 import { triggerHaptic } from '../utils/haptics';
 import { useResponsive } from '../utils/responsive';
-import { useFlashPress } from '../utils/useFlashPress';
+
+
 import { useAuth } from '../context/AuthContext';
 import AnimatedSwitch from './AnimatedSwitch';
 
@@ -300,26 +301,16 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, onExpire
     }
   }, [disabled, isExpired, onToggle]);
 
-  const { flashOpacity, onPressIn: flashPressIn, onPressOut: flashPressOut } = useFlashPress(disabled);
-
-  const handlePressIn = useCallback(() => {
-    if (disabled) return;
-    // Skip haptics for locked active presets (press shows modal, not edit)
-    if (!isLockedActive && haptics.presetCard.enabled) triggerHaptic(haptics.presetCard.type);
-    flashPressIn();
-  }, [disabled, isLockedActive, flashPressIn]);
-
-  const handlePressOut = useCallback(() => {
-    flashPressOut();
-  }, [flashPressOut]);
-
   return (
-    <Pressable
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
+    <TouchableOpacity
+      onPressIn={() => {
+        if (disabled) return;
+        if (!isLockedActive && haptics.presetCard.enabled) triggerHaptic(haptics.presetCard.type);
+      }}
       onPress={handlePress}
       onLongPress={handleLongPress}
       delayLongPress={500}
+      activeOpacity={0.8}
     >
       <View
         style={{
@@ -328,12 +319,10 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, onExpire
           borderColor: colors.border,
           paddingVertical: s(buttonPadding.standard + 4),
           paddingHorizontal: s(buttonPadding.standard + 4),
-          overflow: 'hidden',
           ...shadow.card,
         }}
         className={`${radius['2xl']} mb-3`}
       >
-        <Animated.View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#FFFFFF', opacity: flashOpacity }} pointerEvents="none" />
       <View className="flex-row items-center">
         <View className="flex-1">
           {/* Preset Name with Badges */}
@@ -403,7 +392,7 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, onExpire
         </View>
       </View>
       </View>
-    </Pressable>
+    </TouchableOpacity>
   );
 }
 

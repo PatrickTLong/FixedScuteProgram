@@ -1,10 +1,9 @@
-import React, { memo, useRef, useCallback, useEffect } from 'react';
+import React, { memo } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   Modal,
-  Animated,
 } from 'react-native';
 import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
@@ -18,21 +17,6 @@ interface BlockSettingsWarningModalProps {
 function BlockSettingsWarningModal({ visible, onConfirm, onCancel }: BlockSettingsWarningModalProps) {
   const { colors } = useTheme();
   const { s } = useResponsive();
-  const leftFlash = useRef(new Animated.Value(0)).current;
-  const rightFlash = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    leftFlash.stopAnimation(() => leftFlash.setValue(0));
-    rightFlash.stopAnimation(() => rightFlash.setValue(0));
-  }, [visible]);
-
-  const triggerFlash = useCallback((anim: Animated.Value) => {
-    anim.setValue(0.3);
-  }, []);
-
-  const releaseFlash = useCallback((anim: Animated.Value) => {
-    Animated.timing(anim, { toValue: 0, duration: 300, useNativeDriver: true }).start();
-  }, []);
 
   const handleConfirm = () => {
     onConfirm(true);
@@ -65,26 +49,20 @@ function BlockSettingsWarningModal({ visible, onConfirm, onCancel }: BlockSettin
           {/* Buttons */}
           <View style={{ borderTopWidth: 1, borderTopColor: colors.divider }} className="flex-row">
             <TouchableOpacity
-              onPressIn={() => triggerFlash(leftFlash)}
-              onPressOut={() => releaseFlash(leftFlash)}
               onPress={handleCancel}
-              activeOpacity={1}
+              activeOpacity={0.8}
               style={{ borderRightWidth: 1, borderRightColor: colors.divider }}
               className="flex-1 py-4 items-center justify-center"
             >
-              <Animated.View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#ffffff', opacity: leftFlash }} />
               <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.semibold}`}>
                 Cancel
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              onPressIn={() => triggerFlash(rightFlash)}
-              onPressOut={() => releaseFlash(rightFlash)}
               onPress={handleConfirm}
-              activeOpacity={1}
+              activeOpacity={0.8}
               className="flex-1 py-4 items-center justify-center"
             >
-              <Animated.View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#ffffff', opacity: rightFlash }} />
               <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
                 Enable
               </Text>
