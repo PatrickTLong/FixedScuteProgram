@@ -2,7 +2,7 @@ import React, { memo } from 'react';
 import {
   View,
   Text,
-  TouchableOpacity,
+  Pressable,
   Modal,
 } from 'react-native';
 import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
@@ -44,15 +44,15 @@ function RecurrenceInfoModal({ visible, onClose }: RecurrenceInfoModalProps) {
 
               {/* Button */}
               <View style={{ borderTopWidth: 1, borderTopColor: colors.divider }}>
-                <TouchableOpacity
+                <Pressable
                   onPress={handleClose}
-                  activeOpacity={0.8}
+                  android_ripple={{ color: 'rgba(255,255,255,0.15)', borderless: false, foreground: true, radius: -1 }}
                   className="py-4 items-center justify-center"
                 >
                   <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
                     Dismiss
                   </Text>
-                </TouchableOpacity>
+                </Pressable>
               </View>
             </View>
           </View>

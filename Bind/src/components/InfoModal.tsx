@@ -2,7 +2,7 @@ import React, { memo, useEffect } from 'react';
 import {
   View,
   Text,
-  TouchableOpacity,
+  Pressable,
   Modal,
   Keyboard,
 } from 'react-native';
@@ -59,15 +59,15 @@ function InfoModal({
 
               {/* Button */}
               <View style={{ borderTopWidth: 1, borderTopColor: colors.divider }}>
-                <TouchableOpacity
+                <Pressable
                   onPress={onClose}
-                  activeOpacity={0.8}
+                  android_ripple={{ color: 'rgba(255,255,255,0.15)', borderless: false, foreground: true, radius: -1 }}
                   className="py-4 items-center justify-center"
                 >
                   <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
                     {buttonText}
                   </Text>
-                </TouchableOpacity>
+                </Pressable>
               </View>
             </View>
           </View>

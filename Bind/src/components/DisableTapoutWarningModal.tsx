@@ -2,7 +2,7 @@ import React, { memo } from 'react';
 import {
   View,
   Text,
-  TouchableOpacity,
+  Pressable,
   Modal,
 } from 'react-native';
 import { useTheme , textSize, fontFamily, radius, shadow } from '../context/ThemeContext';
@@ -48,25 +48,25 @@ function DisableTapoutWarningModal({ visible, onConfirm, onCancel }: DisableTapo
 
           {/* Buttons */}
           <View style={{ borderTopWidth: 1, borderTopColor: colors.divider }} className="flex-row">
-            <TouchableOpacity
+            <Pressable
               onPress={handleCancel}
-              activeOpacity={0.8}
+              android_ripple={{ color: 'rgba(255,255,255,0.15)', borderless: false, foreground: true, radius: -1 }}
               style={{ borderRightWidth: 1, borderRightColor: colors.divider }}
               className="flex-1 py-4 items-center justify-center"
             >
               <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.semibold}`}>
                 Keep Enabled
               </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
+            </Pressable>
+            <Pressable
               onPress={handleConfirm}
-              activeOpacity={0.8}
+              android_ripple={{ color: 'rgba(255,255,255,0.15)', borderless: false, foreground: true, radius: -1 }}
               className="flex-1 py-4 items-center justify-center"
             >
               <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
                 Disable
               </Text>
-            </TouchableOpacity>
+            </Pressable>
           </View>
         </View>
       </View>

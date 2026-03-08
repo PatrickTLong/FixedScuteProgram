@@ -73,21 +73,21 @@ export const shadow = {
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 6,
-    elevation: 0,//6
+    elevation: 6,//6
   },
   modal: {
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.4,
     shadowRadius: 10,
-    elevation: 0,//10
+    elevation: 10,//10
   },
   tabBar: {
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.3,
     shadowRadius: 6,
-    elevation: 0,//8
+    elevation: 8,//8
   },
 } as const;
 

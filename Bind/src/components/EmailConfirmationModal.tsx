@@ -2,7 +2,7 @@ import React, { memo, useCallback, useState } from 'react';
 import {
   View,
   Text,
-  TouchableOpacity,
+  Pressable,
   Modal,
   TextInput,
   Dimensions,
@@ -119,22 +119,22 @@ function EmailConfirmationModal({ visible, userEmail, onConfirm, onCancel }: Ema
           {/* Buttons - Side by Side */}
           <View style={{ borderTopWidth: 1, borderTopColor: colors.divider }} className="flex-row">
             {/* Cancel Button */}
-            <TouchableOpacity
+            <Pressable
               onPress={handleCancel}
-              activeOpacity={0.8}
+              android_ripple={{ color: 'rgba(255,255,255,0.15)', borderless: false, foreground: true, radius: -1 }}
               className="flex-1 py-4 items-center justify-center"
               style={{ borderRightWidth: 1, borderRightColor: colors.divider }}
             >
               <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular}`}>
                 Cancel
               </Text>
-            </TouchableOpacity>
+            </Pressable>
 
             {/* Delete Account Button */}
-            <TouchableOpacity
+            <Pressable
               onPress={handleConfirm}
               disabled={!isEmailMatch}
-              activeOpacity={0.8}
+              android_ripple={{ color: 'rgba(255,255,255,0.15)', borderless: false, foreground: true, radius: -1 }}
               className="flex-1 py-4 items-center justify-center"
               style={{ opacity: isEmailMatch ? 1 : 0.5 }}
             >
@@ -144,7 +144,7 @@ function EmailConfirmationModal({ visible, userEmail, onConfirm, onCancel }: Ema
               >
                 Delete Account
               </Text>
-            </TouchableOpacity>
+            </Pressable>
           </View>
         </View>
       </View>

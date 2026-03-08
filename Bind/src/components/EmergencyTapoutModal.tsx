@@ -2,7 +2,7 @@ import React, { memo, useEffect, useRef } from 'react';
 import {
   View,
   Text,
-  TouchableOpacity,
+  Pressable,
   Modal,
   Animated,
   Easing,
@@ -148,20 +148,20 @@ function EmergencyTapoutModal({
 
           {/* Buttons */}
           <View style={{ borderTopWidth: 1, borderTopColor: colors.divider }} className="flex-row">
-            <TouchableOpacity
+            <Pressable
               onPress={onClose}
-              activeOpacity={0.8}
+              android_ripple={{ color: 'rgba(255,255,255,0.15)', borderless: false, foreground: true, radius: -1 }}
               style={{ borderRightWidth: 1, borderRightColor: colors.divider }}
               className="flex-1 py-4 items-center justify-center"
             >
               <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.semibold}`}>
                 Dismiss
               </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
+            </Pressable>
+            <Pressable
               onPress={() => { if (haptics.blockNowButton.enabled) triggerHaptic(haptics.blockNowButton.unlockType); onUseTapout(); }}
               disabled={!canUseTapout || isLoading}
-              activeOpacity={0.8}
+              android_ripple={{ color: 'rgba(255,255,255,0.15)', borderless: false, foreground: true, radius: -1 }}
               className="flex-1 py-4 items-center justify-center"
             >
               {isLoading ? (
@@ -171,7 +171,7 @@ function EmergencyTapoutModal({
                   Unlock
                 </Text>
               )}
-            </TouchableOpacity>
+            </Pressable>
           </View>
         </View>
       </View>

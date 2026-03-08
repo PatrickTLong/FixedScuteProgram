@@ -11,7 +11,7 @@ import {
   ScrollView,
   RefreshControl,
   Modal,
-  TouchableOpacity,
+  Pressable,
 } from 'react-native';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -392,15 +392,18 @@ function StatsScreen() {
             <React.Fragment key={period}>
               {index > 0 && <View className="w-2" />}
               <View style={{ flex: 1 }}>
-                <TouchableOpacity activeOpacity={0.8}
+                <Pressable
                   onPress={() => setActivePeriod(period)}
+                  android_ripple={{ color: activePeriod === period ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.15)', borderless: false, foreground: true, radius: -1 }}
                   style={{
                     backgroundColor: activePeriod === period ? colors.text : colors.card,
                     borderWidth: 1,
                     borderColor: colors.border,
+                    borderRadius: 9999,
+                    overflow: 'hidden',
                     ...shadow.card,
                   }}
-                  className={`${radius.full} ${pill} items-center justify-center`}
+                  className={`${pill} items-center justify-center`}
                 >
                   <Text
                     style={{ color: activePeriod === period ? colors.bg : colors.text }}
@@ -408,7 +411,7 @@ function StatsScreen() {
                   >
                     {period === 'month' ? '30 Days' : period === 'week' ? '7 Days' : 'Today'}
                   </Text>
-                </TouchableOpacity>
+                </Pressable>
               </View>
             </React.Fragment>
           ))}

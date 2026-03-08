@@ -3,6 +3,7 @@ import {
   Text,
   View,
   TouchableOpacity,
+  Pressable,
   KeyboardAvoidingView,
   ScrollView,
   TextInput,
@@ -322,12 +323,12 @@ function SignInScreen() {
 
             {/* Action Button */}
             <View className="mt-2" />
-            <TouchableOpacity
+            <Pressable
               onPress={() => { step === 'credentials' ? handleSignIn() : handleVerifyCode(); }}
               disabled={loading}
-              activeOpacity={0.8}
-              style={{ backgroundColor: colors.text, borderWidth: 1, borderColor: colors.border, ...shadow.card, position: 'relative' }}
-              className={`${radius.full} ${pill} items-center justify-center mb-4`}
+              android_ripple={{ color: 'rgba(0,0,0,0.15)', borderless: false, foreground: true, radius: -1 }}
+              style={{ backgroundColor: colors.text, borderWidth: 1, borderColor: colors.border, borderRadius: 9999, overflow: 'hidden', ...shadow.card, position: 'relative' }}
+              className={`${pill} items-center justify-center mb-4`}
             >
               <Text style={{ color: colors.bg, opacity: loading ? 0 : 1 }} className={`${textSize.small} ${fontFamily.semibold}`}>
                 {step === 'credentials' ? 'Sign In' : 'Verify'}
@@ -337,7 +338,7 @@ function SignInScreen() {
                   <LoadingSpinner size={s(20)} color={colors.bg} />
                 </View>
               )}
-            </TouchableOpacity>
+            </Pressable>
 
             {/* Google Sign In - only show on credentials step */}
             {step === 'credentials' && (

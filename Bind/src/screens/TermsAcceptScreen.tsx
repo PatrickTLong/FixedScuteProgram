@@ -11,7 +11,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme , textSize, fontFamily, radius, shadow, pill } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import LoadingSpinner from '../components/LoadingSpinner';
-import { TouchableOpacity } from 'react-native';
+import { Pressable } from 'react-native';
 import ScreenTransition from '../components/ScreenTransition';
 import type { ScreenTransitionRef } from '../components/ScreenTransition';
 
@@ -159,12 +159,12 @@ function TermsAcceptScreen() {
 
       {/* Accept Terms Section */}
       <View style={{ borderTopWidth: 1, borderTopColor: colors.divider, backgroundColor: colors.bg }} className="px-6 py-4">
-        <TouchableOpacity
+        <Pressable
           onPress={() => handleAcceptTerms()}
           disabled={!hasScrolledToBottom || isAccepting}
-          activeOpacity={0.8}
-          style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
-          className={`${radius.full} ${pill} items-center justify-center`}
+          android_ripple={{ color: 'rgba(255,255,255,0.15)', borderless: false, foreground: true, radius: -1 }}
+          style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, borderRadius: 9999, overflow: 'hidden', ...shadow.card }}
+          className={`${pill} items-center justify-center`}
         >
           {isAccepting ? (
             <LoadingSpinner size={20} />
@@ -173,7 +173,7 @@ function TermsAcceptScreen() {
               I Accept
             </Text>
           )}
-        </TouchableOpacity>
+        </Pressable>
       </View>
     </SafeAreaView>
     </ScreenTransition>

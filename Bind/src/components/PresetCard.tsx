@@ -302,14 +302,7 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, onExpire
   }, [disabled, isExpired, onToggle]);
 
   return (
-    <View
-      style={{
-        backgroundColor: colors.card,
-        ...shadow.card,
-      }}
-      className={`${radius['2xl']} mb-3`}
-    >
-    <TouchableOpacity
+    <Pressable
       onPressIn={() => {
         if (disabled) return;
         if (!isLockedActive && haptics.presetCard.enabled) triggerHaptic(haptics.presetCard.type);
@@ -317,15 +310,18 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, onExpire
       onPress={handlePress}
       onLongPress={handleLongPress}
       delayLongPress={500}
-      activeOpacity={0.8}
+      android_ripple={{ color: 'rgba(255,255,255,0.15)', borderless: false, foreground: true, radius: -1 }}
       style={{
         backgroundColor: colors.card,
         borderWidth: 1,
         borderColor: colors.border,
+        borderRadius: 16,
+        overflow: 'hidden',
         paddingVertical: s(buttonPadding.standard + 4),
         paddingHorizontal: s(buttonPadding.standard + 4),
+        ...shadow.card,
       }}
-      className={`${radius['2xl']}`}
+      className="mb-3"
     >
       <View className="flex-row items-center">
         <View className="flex-1">
@@ -395,9 +391,7 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, onExpire
           )}
         </View>
       </View>
-      </View>
-    </TouchableOpacity>
-    </View>
+    </Pressable>
   );
 }
 

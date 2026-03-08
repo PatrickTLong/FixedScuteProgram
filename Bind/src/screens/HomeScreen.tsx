@@ -5,7 +5,7 @@ import {
   View,
   NativeModules,
   AppState,
-  TouchableOpacity,
+  Pressable,
   ScrollView,
   Modal,
   Platform,
@@ -64,12 +64,6 @@ function HomeScreen() {
 
   // Scheduled presets expandable modal
   const [scheduledPresetsModalVisible, setScheduledPresetsModalVisible] = useState(false);
-  const closeFlash = useRef(new Animated.Value(0)).current;
-
-  // Reset close flash when modal visibility changes (same pattern as InfoModal / EmergencyTapoutModal)
-  useEffect(() => {
-    closeFlash.stopAnimation(() => closeFlash.setValue(0));
-  }, [scheduledPresetsModalVisible]);
 
   // Notification permission state
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
@@ -1247,15 +1241,16 @@ function HomeScreen() {
 
             {/* Scheduled Presets Button - absolutely positioned under preset text */}
             {scheduledPresets.length > 0 && (
-              <TouchableOpacity activeOpacity={0.8}
+              <Pressable
                 onPress={() => { setScheduledPresetsModalVisible(true); }}
-                className={`px-5 py-2.5 ${radius.full} flex-row items-center`}
+                android_ripple={{ color: 'rgba(255,255,255,0.15)', borderless: false, foreground: true, radius: -1 }}
+                className="px-5 py-2.5 flex-row items-center"
                 style={{
                   backgroundColor: colors.card,
                   position: 'absolute',
                   top: '100%',
                   marginTop: s(16),
-                  borderWidth: 1, borderColor: colors.border, ...shadow.card,
+                  borderWidth: 1, borderColor: colors.border, borderRadius: 9999, overflow: 'hidden', ...shadow.card,
                 }}
               >
                 {/* Status clock icon */}
@@ -1265,7 +1260,7 @@ function HomeScreen() {
                 <Text style={{ color: colors.text }} className={`${textSize.extraSmall} ${fontFamily.semibold}`}>
                   {scheduledPresets.length} Scheduled
                 </Text>
-              </TouchableOpacity>
+              </Pressable>
             )}
           </View>
         </View>
@@ -1411,22 +1406,15 @@ function HomeScreen() {
 
             {/* Close Button */}
             <View style={{ borderTopWidth: 1, borderTopColor: colors.divider }}>
-              <TouchableOpacity
-                onPressIn={() => {
-                  closeFlash.setValue(0.3);
-                }}
-                onPressOut={() => {
-                  Animated.timing(closeFlash, { toValue: 0, duration: 300, useNativeDriver: true }).start();
-                }}
+              <Pressable
                 onPress={() => { setScheduledPresetsModalVisible(false); }}
-                activeOpacity={1}
+                android_ripple={{ color: 'rgba(255,255,255,0.15)', borderless: false, foreground: true, radius: -1 }}
                 className="py-4 items-center justify-center"
               >
-                <Animated.View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#ffffff', opacity: closeFlash }} />
                 <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
                   Close
                 </Text>
-              </TouchableOpacity>
+              </Pressable>
             </View>
           </View>
         </View>

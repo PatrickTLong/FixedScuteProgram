@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, memo, useCallback, useMemo } from '
 import {
   View,
   Text,
-  TouchableOpacity,
+  Pressable,
   TextInput,
   ScrollView,
   KeyboardAvoidingView,
@@ -207,20 +207,20 @@ const AppItemRow = memo(({ item, isSelected, onToggle, colors, s, skipCheckboxAn
   }, [item.id, onToggle, scaleAnim]);
 
   return (
-    <TouchableOpacity
-      onPress={handlePress}
-      activeOpacity={0.8}
-    >
-      <Animated.View
+    <Animated.View style={{ transform: [{ scale: scaleAnim }] }} className="mb-2">
+      <Pressable
+        onPress={handlePress}
+        android_ripple={{ color: 'rgba(255,255,255,0.15)', borderless: false, foreground: true, radius: -1 }}
         style={{
           backgroundColor: colors.card,
           borderWidth: 1,
           borderColor: colors.border,
+          borderRadius: 16,
+          overflow: 'hidden',
           paddingVertical: s(buttonPadding.standard + 4),
           ...shadow.card,
-          transform: [{ scale: scaleAnim }],
         }}
-        className={`flex-row items-center px-5 ${radius.xl} mb-2`}
+        className="flex-row items-center px-5"
       >
         {item.icon ? (
           <Image
@@ -239,8 +239,8 @@ const AppItemRow = memo(({ item, isSelected, onToggle, colors, s, skipCheckboxAn
         <View pointerEvents="none">
           <AnimatedCheckbox ref={checkboxRef} checked={isSelected} size={s(iconSize.lg)} skipAnimation={skipCheckboxAnimation} />
         </View>
-      </Animated.View>
-    </TouchableOpacity>
+      </Pressable>
+    </Animated.View>
   );
 });
 
@@ -528,27 +528,29 @@ function EditPresetAppsScreen() {
 
         {/* Tabs */}
         <View className="flex-row mx-6 mb-4">
-          <TouchableOpacity activeOpacity={0.8}
+          <Pressable
             onPress={() => switchTab('apps')}
-            style={{ flex: 1, backgroundColor: activeTab === 'apps' ? colors.text : colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
-            className={`${radius.full} ${pill} items-center justify-center flex-row`}
+            android_ripple={{ color: activeTab === 'apps' ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.15)', borderless: false, foreground: true, radius: -1 }}
+            style={{ flex: 1, backgroundColor: activeTab === 'apps' ? colors.text : colors.card, borderWidth: 1, borderColor: colors.border, borderRadius: 9999, overflow: 'hidden', ...shadow.card }}
+            className={`${pill} items-center justify-center flex-row`}
           >
             <AndroidIcon size={s(iconSize.lg)} color={activeTab === 'apps' ? colors.bg : colors.text} />
             <Text style={{ color: activeTab === 'apps' ? colors.bg : colors.text, marginLeft: s(6) }} className={`${textSize.small} ${fontFamily.semibold}`}>
               Apps
             </Text>
-          </TouchableOpacity>
+          </Pressable>
           <View className="w-2" />
-          <TouchableOpacity activeOpacity={0.8}
+          <Pressable
             onPress={() => switchTab('websites')}
-            style={{ flex: 1, backgroundColor: activeTab === 'websites' ? colors.text : colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
-            className={`${radius.full} ${pill} items-center justify-center flex-row`}
+            android_ripple={{ color: activeTab === 'websites' ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.15)', borderless: false, foreground: true, radius: -1 }}
+            style={{ flex: 1, backgroundColor: activeTab === 'websites' ? colors.text : colors.card, borderWidth: 1, borderColor: colors.border, borderRadius: 9999, overflow: 'hidden', ...shadow.card }}
+            className={`${pill} items-center justify-center flex-row`}
           >
             <GlobeIcon size={s(iconSize.lg)} color={activeTab === 'websites' ? colors.bg : colors.text} />
             <Text style={{ color: activeTab === 'websites' ? colors.bg : colors.text, marginLeft: s(6) }} className={`${textSize.small} ${fontFamily.semibold}`}>
               Websites
             </Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
 
         <View style={{ flex: 1 }}>
@@ -557,10 +559,11 @@ function EditPresetAppsScreen() {
             {Platform.OS === 'ios' ? (
               // iOS: Show button to open native FamilyActivityPicker
               <View className="flex-1 px-6 pt-4">
-                <TouchableOpacity activeOpacity={0.8}
+                <Pressable
                   onPress={openIOSAppPicker}
-                  style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, paddingVertical: s(buttonPadding.standard + 4), ...shadow.card }}
-                  className={`flex-row items-center px-5 ${radius.xl} mb-4`}
+                  android_ripple={{ color: 'rgba(255,255,255,0.15)', borderless: false, foreground: true, radius: -1 }}
+                  style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, borderRadius: 16, overflow: 'hidden', paddingVertical: s(buttonPadding.standard + 4), ...shadow.card }}
+                  className="flex-row items-center px-5 mb-4"
                 >
                   <View className={`w-12 h-12 ${radius.xl} items-center justify-center mr-4`}>
                     <AppsIcon size={s(iconSize.lg)} color={colors.text} />
@@ -576,7 +579,7 @@ function EditPresetAppsScreen() {
                     </Text>
                   </View>
                   <ChevronRightIcon size={s(iconSize.chevron)} color={colors.textSecondary} />
-                </TouchableOpacity>
+                </Pressable>
 
                 <Text style={{ color: colors.textMuted }} className={`${textSize.small} ${fontFamily.regular} text-center px-4`}>
                   iOS uses Screen Time to block apps. Tap above to open the app picker.
@@ -606,7 +609,7 @@ function EditPresetAppsScreen() {
                 {/* Select All / Deselect All Buttons */}
                 {!loadingApps && filteredApps.length > 0 && (
                   <View className="flex-row px-6 mb-3">
-                    <TouchableOpacity activeOpacity={0.8}
+                    <Pressable
                       onPress={() => {
                         setSkipCheckboxAnimation(true);
                         setTimeout(() => setSkipCheckboxAnimation(false), 50);
@@ -617,27 +620,29 @@ function EditPresetAppsScreen() {
                           return Array.from(newSet);
                         });
                       }}
-                      style={{ flex: 1, marginRight: s(8), backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, paddingVertical: s(buttonPadding.smallStandard), ...shadow.card }}
-                      className={`${radius.full} items-center justify-center`}
+                      android_ripple={{ color: 'rgba(255,255,255,0.15)', borderless: false, foreground: true, radius: -1 }}
+                      style={{ flex: 1, marginRight: s(8), backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, borderRadius: 9999, overflow: 'hidden', paddingVertical: s(buttonPadding.smallStandard), ...shadow.card }}
+                      className="items-center justify-center"
                     >
                       <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
                         Select All
                       </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity activeOpacity={0.8}
+                    </Pressable>
+                    <Pressable
                       onPress={() => {
                         setSkipCheckboxAnimation(true);
                         setTimeout(() => setSkipCheckboxAnimation(false), 50);
                         const filteredIds = new Set(filteredApps.map(app => app.id));
                         setSelectedApps(prev => prev.filter(id => !filteredIds.has(id)));
                       }}
-                      style={{ flex: 1, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, paddingVertical: s(buttonPadding.smallStandard), ...shadow.card }}
-                      className={`${radius.full} items-center justify-center`}
+                      android_ripple={{ color: 'rgba(255,255,255,0.15)', borderless: false, foreground: true, radius: -1 }}
+                      style={{ flex: 1, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, borderRadius: 9999, overflow: 'hidden', paddingVertical: s(buttonPadding.smallStandard), ...shadow.card }}
+                      className="items-center justify-center"
                     >
                       <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.semibold}`}>
                         Deselect All
                       </Text>
-                    </TouchableOpacity>
+                    </Pressable>
                   </View>
                 )}
 

@@ -3,7 +3,7 @@ import {
   Text,
   View,
   ScrollView,
-  TouchableOpacity,
+  Pressable,
   Linking,
   Animated,
   Easing,
@@ -111,10 +111,10 @@ const SettingsRow = memo(({
   s,
 }: SettingsRowProps) => (
   <View>
-    <TouchableOpacity
+    <Pressable
       onPress={() => { if (haptics.settingsRow.enabled) triggerHaptic(haptics.settingsRow.type); onPress?.(); }}
       disabled={!onPress}
-      activeOpacity={0.8}
+      android_ripple={{ color: 'rgba(255,255,255,0.15)', borderless: false, foreground: true, radius: -1 }}
     >
       <View style={{ paddingVertical: s(buttonPadding.standard + 4), paddingHorizontal: s(buttonPadding.standard + 4) }} className="flex-row items-center">
         <View className="mr-4">{icon}</View>
@@ -123,7 +123,7 @@ const SettingsRow = memo(({
           <Text style={{ color: valueColor }} className={`${textSize.small} ${fontFamily.regular} mr-2`}>{value}</Text>
         )}
       </View>
-    </TouchableOpacity>
+    </Pressable>
     {!isLast && (
       <View style={{ height: 1, backgroundColor: borderColor }} />
     )}
@@ -412,9 +412,9 @@ function SettingsScreen() {
           />
           {/* Membership Row with Trial Countdown */}
           <View>
-            <TouchableOpacity
+            <Pressable
               onPress={() => { if (haptics.settingsRow.enabled) triggerHaptic(haptics.settingsRow.type); setMembershipModalVisible(true); }}
-              activeOpacity={0.8}
+              android_ripple={{ color: 'rgba(255,255,255,0.15)', borderless: false, foreground: true, radius: -1 }}
             >
               <View style={{ paddingVertical: s(buttonPadding.standard + 4), paddingHorizontal: s(buttonPadding.standard + 4) }} className="flex-row items-center">
                 <View className="mr-4"><MembershipIcon color={colors.textSecondary} /></View>
@@ -435,7 +435,7 @@ function SettingsScreen() {
                   )}
                 </View>
               </View>
-            </TouchableOpacity>
+            </Pressable>
             <View style={{ height: 1, backgroundColor: colors.divider }} />
           </View>
           <View style={{ opacity: isDisabled ? 0.6 : 1 }}>

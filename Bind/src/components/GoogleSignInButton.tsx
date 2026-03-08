@@ -1,5 +1,5 @@
 import React, { memo, useState } from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, Pressable } from 'react-native';
 import {
   GoogleSignin,
   statusCodes,
@@ -114,17 +114,19 @@ function GoogleSignInBtn({ onSuccess, onError, disabled, light, noShadow }: Prop
   }
 
   return (
-    <TouchableOpacity
+    <Pressable
       onPress={handleGoogleSignIn}
       disabled={disabled || loading}
-      activeOpacity={0.8}
+      android_ripple={{ color: 'rgba(255,255,255,0.15)', borderless: false, foreground: true, radius: -1 }}
       style={{
         backgroundColor: bgColor,
         position: 'relative',
         borderWidth: 1, borderColor: borderColor,
+        borderRadius: 9999,
+        overflow: 'hidden',
         ...(noShadow ? {} : shadow.card),
       }}
-      className={`${radius.full} ${pill} items-center justify-center`}
+      className={`${pill} items-center justify-center`}
     >
       <View style={{ opacity: loading ? 0 : 1 }} className="flex-row items-center justify-center">
         <View className="mr-3">
@@ -139,7 +141,7 @@ function GoogleSignInBtn({ onSuccess, onError, disabled, light, noShadow }: Prop
           <LoadingSpinner size={s(20)} color={txtColor} />
         </View>
       )}
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 

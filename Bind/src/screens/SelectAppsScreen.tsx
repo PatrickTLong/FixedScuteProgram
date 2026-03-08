@@ -3,6 +3,7 @@ import {
   Text,
   View,
   TouchableOpacity,
+  Pressable,
   FlatList,
   TextInput,
   Image,
@@ -74,10 +75,11 @@ const AppItem = memo(({ item, isSelected, onToggle, cardColor, cardLightColor, t
   }, [item.id, onToggle]);
 
   return (
-    <TouchableOpacity activeOpacity={0.8}
+    <Pressable
       onPress={handlePress}
-      style={{ backgroundColor: cardColor, borderWidth: 1, borderColor: borderColor, ...shadow.card }}
-      className={`flex-row items-center py-3 px-4 ${radius.xl} mb-2`}
+      android_ripple={{ color: 'rgba(255,255,255,0.15)', borderless: false, foreground: true, radius: -1 }}
+      style={{ backgroundColor: cardColor, borderWidth: 1, borderColor: borderColor, borderRadius: 16, overflow: 'hidden', ...shadow.card }}
+      className="flex-row items-center py-3 px-4 mb-2"
     >
       {/* App Icon - native already provides squircle shape */}
       {item.icon ? (
@@ -100,7 +102,7 @@ const AppItem = memo(({ item, isSelected, onToggle, cardColor, cardLightColor, t
       <View style={isSelected ? { backgroundColor: cyanColor, borderColor: cyanColor } : { borderColor: borderColor }} className={`w-6 h-6 ${radius.full} border-2 items-center justify-center`}>
         {isSelected && <Text className={`text-white ${textSize.small} ${fontFamily.bold}`}></Text>}
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 });
 
@@ -177,25 +179,27 @@ function SelectAppsScreen({
 
       {/* Tabs */}
       <View className="flex-row mx-4 my-4">
-        <TouchableOpacity activeOpacity={0.8}
+        <Pressable
           onPress={() => setActiveTab('apps')}
-          style={{ flex: 1, backgroundColor: activeTab === 'apps' ? colors.text : colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
-          className={`${radius.full} ${pill} items-center justify-center`}
+          android_ripple={{ color: activeTab === 'apps' ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.15)', borderless: false, foreground: true, radius: -1 }}
+          style={{ flex: 1, backgroundColor: activeTab === 'apps' ? colors.text : colors.card, borderWidth: 1, borderColor: colors.border, borderRadius: 9999, overflow: 'hidden', ...shadow.card }}
+          className={`${pill} items-center justify-center`}
         >
           <Text style={{ color: activeTab === 'apps' ? colors.bg : colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>
             Apps
           </Text>
-        </TouchableOpacity>
+        </Pressable>
         <View className="w-2" />
-        <TouchableOpacity activeOpacity={0.8}
+        <Pressable
           onPress={() => setActiveTab('websites')}
-          style={{ flex: 1, backgroundColor: activeTab === 'websites' ? colors.text : colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
-          className={`${radius.full} ${pill} items-center justify-center`}
+          android_ripple={{ color: activeTab === 'websites' ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.15)', borderless: false, foreground: true, radius: -1 }}
+          style={{ flex: 1, backgroundColor: activeTab === 'websites' ? colors.text : colors.card, borderWidth: 1, borderColor: colors.border, borderRadius: 9999, overflow: 'hidden', ...shadow.card }}
+          className={`${pill} items-center justify-center`}
         >
           <Text style={{ color: activeTab === 'websites' ? colors.bg : colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>
             Websites
           </Text>
-        </TouchableOpacity>
+        </Pressable>
       </View>
 
       {activeTab === 'apps' ? (

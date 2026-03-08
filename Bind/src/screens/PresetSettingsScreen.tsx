@@ -282,6 +282,7 @@ const TimePresetCircle = memo(({ label, onPress, onLongPressAdd }: {
           onPress={handlePress}
           onPressIn={handlePressIn}
           onPressOut={handlePressOut}
+          android_ripple={{ color: 'rgba(255,255,255,0.15)', borderless: false, foreground: true, radius: -1 }}
           style={{
             width: '100%',
             height: '100%',
@@ -1133,10 +1134,11 @@ function PresetSettingsScreen() {
               <View className="px-6" style={{ paddingTop: s(8) }}>
 
             {/* Start Date */}
-            <TouchableOpacity activeOpacity={0.8}
+            <Pressable
               onPress={() => openDatePicker('scheduleStart')}
-              style={{ backgroundColor: colors.card, paddingVertical: s(buttonPadding.standard + 4), borderWidth: 1, borderColor: colors.border, ...shadow.card }}
-              className={`flex-row items-center px-5 ${radius.xl} mb-3`}
+              android_ripple={{ color: 'rgba(255,255,255,0.15)', borderless: false, foreground: true, radius: -1 }}
+              style={{ backgroundColor: colors.card, paddingVertical: s(buttonPadding.standard + 4), borderWidth: 1, borderColor: colors.border, borderRadius: 16, overflow: 'hidden', ...shadow.card }}
+              className="flex-row items-center px-5 mb-3"
             >
                 <View className="mr-4">
                   <StartDateIcon size={s(iconSize.forTabs)} color={colors.textSecondary} />
@@ -1164,15 +1166,16 @@ function PresetSettingsScreen() {
                     <XIcon size={s(iconSize.headerNav)} color={colors.text} />
                   </HeaderIconButton>
                 )}
-            </TouchableOpacity>
+            </Pressable>
 
             {/* Date picker rendered as full-screen overlay */}
 
             {/* End Date */}
-            <TouchableOpacity activeOpacity={0.8}
+            <Pressable
               onPress={() => openDatePicker('scheduleEnd')}
-                style={{ backgroundColor: colors.card, paddingVertical: s(buttonPadding.standard + 4), borderWidth: 1, borderColor: colors.border, ...shadow.card }}
-                className={`flex-row items-center px-5 ${radius.xl} mb-4`}
+              android_ripple={{ color: 'rgba(255,255,255,0.15)', borderless: false, foreground: true, radius: -1 }}
+              style={{ backgroundColor: colors.card, paddingVertical: s(buttonPadding.standard + 4), borderWidth: 1, borderColor: colors.border, borderRadius: 16, overflow: 'hidden', ...shadow.card }}
+              className="flex-row items-center px-5 mb-4"
               >
                 <View className="mr-4">
                   <EndDateIcon size={s(iconSize.forTabs)} color={colors.textSecondary} />
@@ -1200,7 +1203,7 @@ function PresetSettingsScreen() {
                     <XIcon size={s(iconSize.headerNav)} color={colors.text} />
                   </HeaderIconButton>
                 )}
-            </TouchableOpacity>
+            </Pressable>
 
             {/* Date picker rendered as full-screen overlay */}
 
@@ -1508,10 +1511,11 @@ function PresetSettingsScreen() {
             {/* Date picker button (shown when date is enabled) */}
             <ExpandableInfo expanded={dateEnabled}>
               <View className="px-6 pb-4">
-                <TouchableOpacity activeOpacity={0.8}
+                <Pressable
                   onPress={() => openDatePicker('targetDate')}
-                  style={{ backgroundColor: colors.card, paddingVertical: s(buttonPadding.standard + 4), borderWidth: 1, borderColor: colors.border, ...shadow.card }}
-                  className={`flex-row items-center px-5 ${radius.xl}`}
+                  android_ripple={{ color: 'rgba(255,255,255,0.15)', borderless: false, foreground: true, radius: -1 }}
+                  style={{ backgroundColor: colors.card, paddingVertical: s(buttonPadding.standard + 4), borderWidth: 1, borderColor: colors.border, borderRadius: 16, overflow: 'hidden', ...shadow.card }}
+                  className="flex-row items-center px-5"
                 >
                   <View className="mr-4">
                     <CalendarAddIcon size={s(iconSize.forTabs)} color={colors.textSecondary} />
@@ -1531,7 +1535,7 @@ function PresetSettingsScreen() {
                       <XIcon size={s(iconSize.headerNav)} color={colors.text} />
                     </HeaderIconButton>
                   )}
-                </TouchableOpacity>
+                </Pressable>
               </View>
             </ExpandableInfo>
   

@@ -2,7 +2,7 @@ import React, { memo } from 'react';
 import {
   View,
   Text,
-  TouchableOpacity,
+  Pressable,
   Modal,
 } from 'react-native';
 
@@ -65,23 +65,23 @@ function ConfirmationModal({
               {/* Buttons */}
               <View style={{ borderTopWidth: 1, borderTopColor: colors.divider }} className="flex-row">
                 {/* Cancel Button */}
-                <TouchableOpacity
+                <Pressable
                   onPressIn={() => { if (haptics.modalButton.enabled) triggerHaptic(haptics.modalButton.type); }}
                   onPress={onCancel}
-                  activeOpacity={0.8}
+                  android_ripple={{ color: 'rgba(255,255,255,0.15)', borderless: false, foreground: true, radius: -1 }}
                   style={{ borderRightWidth: 1, borderRightColor: colors.divider }}
                   className="flex-1 py-4 items-center justify-center"
                 >
                   <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular}`}>
                     {cancelText}
                   </Text>
-                </TouchableOpacity>
+                </Pressable>
 
                 {/* Confirm Button */}
-                <TouchableOpacity
+                <Pressable
                   onPressIn={() => { if (haptics.modalButton.enabled) triggerHaptic(haptics.modalButton.type); }}
                   onPress={onConfirm}
-                  activeOpacity={0.8}
+                  android_ripple={{ color: 'rgba(255,255,255,0.15)', borderless: false, foreground: true, radius: -1 }}
                   className="flex-1 py-4 items-center justify-center"
                 >
                   {icon ? icon : (
@@ -89,7 +89,7 @@ function ConfirmationModal({
                       {confirmText}
                     </Text>
                   )}
-                </TouchableOpacity>
+                </Pressable>
               </View>
             </View>
           </View>
