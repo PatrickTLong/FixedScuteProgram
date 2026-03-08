@@ -7,9 +7,9 @@ import {
   Linking,
   Animated,
   Easing,
-  RefreshControl,
 } from 'react-native';
 import SlideUpModal from '../components/SlideUpModal';
+import PullToRefresh from '../components/PullToRefresh';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
@@ -384,20 +384,11 @@ function SettingsScreen() {
         <View className="w-11 h-11" />
       </View>
 
-      <ScrollView
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={colors.text}
-            colors={[colors.text]}
-            progressBackgroundColor={colors.card}
-            progressViewOffset={-20}
-          />
-        }
-        contentContainerStyle={{ paddingHorizontal: s(16), paddingTop: s(16), paddingBottom: s(32) }}
-        showsVerticalScrollIndicator={false}
-      >
+      <PullToRefresh onRefresh={onRefresh} refreshing={refreshing}>
+        <ScrollView
+          contentContainerStyle={{ paddingHorizontal: s(16), paddingTop: s(16), paddingBottom: s(32) }}
+          showsVerticalScrollIndicator={false}
+        >
         {/* ACCOUNT Section */}
         <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold} tracking-wider mb-2`}>
           Account
@@ -585,7 +576,8 @@ function SettingsScreen() {
             />
           </View>
         </View>
-      </ScrollView>
+        </ScrollView>
+      </PullToRefresh>
 
       {/* Logout Modal */}
       <ConfirmationModal

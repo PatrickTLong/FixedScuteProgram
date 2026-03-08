@@ -9,11 +9,11 @@ import {
   Platform,
   Image,
   ScrollView,
-  RefreshControl,
   Modal,
   Pressable,
 } from 'react-native';
 import LoadingSpinner from '../components/LoadingSpinner';
+import PullToRefresh from '../components/PullToRefresh';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowsOutIcon, ArrowsInIcon } from 'phosphor-react-native';
 import Svg, { Path } from 'react-native-svg';
@@ -371,21 +371,12 @@ function StatsScreen() {
         <View className="w-11 h-11" />
       </View>
 
-      <ScrollView
-        className="flex-1"
-        scrollEnabled={false}
-        contentContainerStyle={{ flex: 1, paddingHorizontal: s(16) }}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={colors.text}
-            colors={[colors.text]}
-            progressBackgroundColor={colors.card}
-            progressViewOffset={-20}
-          />
-        }
-      >
+      <PullToRefresh onRefresh={onRefresh} refreshing={refreshing}>
+        <ScrollView
+          className="flex-1"
+          scrollEnabled={false}
+          contentContainerStyle={{ flex: 1, paddingHorizontal: s(16) }}
+        >
         {/* Period Tabs */}
         <View className="flex-row mb-4">
           {(['month', 'week', 'today'] as StatsPeriod[]).map((period, index) => (
@@ -482,7 +473,8 @@ function StatsScreen() {
             </Text>
           </View>
         )}
-      </ScrollView>
+        </ScrollView>
+      </PullToRefresh>
 
       {/* Expanded Top Apps Modal */}
       <Modal

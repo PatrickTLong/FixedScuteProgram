@@ -6,11 +6,11 @@ import {
   TouchableOpacity,
   NativeModules,
   Platform,
-  RefreshControl,
   Animated,
   Dimensions,
 } from 'react-native';
 import LoadingSpinner from '../components/LoadingSpinner';
+import PullToRefresh from '../components/PullToRefresh';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import { PlusIcon as PhosphorPlusIcon, PlusCircleIcon } from 'phosphor-react-native';
@@ -867,27 +867,19 @@ function PresetsScreen() {
       </View>
 
       {/* Presets List */}
-      <FlatList
-        className="flex-1"
-        data={sortedPresets}
-        renderItem={renderPresetItem}
-        keyExtractor={keyExtractor}
-        ListEmptyComponent={ListEmptyComponent}
-        contentContainerStyle={{ paddingHorizontal: s(20), paddingTop: s(12), paddingBottom: s(32) }}
-        removeClippedSubviews={true}
-        maxToRenderPerBatch={10}
-        windowSize={5}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={colors.text}
-            colors={[colors.text]}
-            progressBackgroundColor={colors.card}
-            progressViewOffset={-20}
-          />
-        }
-      />
+      <PullToRefresh onRefresh={onRefresh} refreshing={refreshing}>
+        <FlatList
+          className="flex-1"
+          data={sortedPresets}
+          renderItem={renderPresetItem}
+          keyExtractor={keyExtractor}
+          ListEmptyComponent={ListEmptyComponent}
+          contentContainerStyle={{ paddingHorizontal: s(20), paddingTop: s(12), paddingBottom: s(32) }}
+          removeClippedSubviews={true}
+          maxToRenderPerBatch={10}
+          windowSize={5}
+        />
+      </PullToRefresh>
 
       {/* Delete Confirmation Modal */}
       <ConfirmationModal

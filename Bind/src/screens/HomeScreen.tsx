@@ -9,13 +9,13 @@ import {
   ScrollView,
   Modal,
   Platform,
-  RefreshControl,
   Animated,
 } from 'react-native';
 import { AlarmIcon as PhosphorAlarmIcon, LockIcon, LockOpenIcon } from 'phosphor-react-native';
 import Svg, { Path, G } from 'react-native-svg';
 
 import HeaderIconButton from '../components/HeaderIconButton';
+import PullToRefresh from '../components/PullToRefresh';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -1205,20 +1205,11 @@ function HomeScreen() {
         </View>
       </View>
 
-      <ScrollView
-        className="flex-1 px-6"
-        contentContainerStyle={{ flexGrow: 1 }}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={colors.text}
-            colors={[colors.text]}
-            progressBackgroundColor={colors.card}
-            progressViewOffset={-20}
-          />
-        }
-      >
+      <PullToRefresh onRefresh={onRefresh} refreshing={refreshing}>
+        <ScrollView
+          className="flex-1 px-6"
+          contentContainerStyle={{ flexGrow: 1 }}
+        >
         {/* Status + Preset + Scheduled - centered in full screen */}
         <View className="flex-1 items-center justify-center" style={{ paddingTop: 40 }}>
           {/* Status section - fixed height to prevent layout shift between states */}
@@ -1271,9 +1262,10 @@ function HomeScreen() {
             )}
           </View>
         </View>
-      </ScrollView>
+        </ScrollView>
+      </PullToRefresh>
 
-      {/* Action Button - outside ScrollView so RefreshControl can't steal gestures */}
+      {/* Action Button */}
       <View
         className="mb-10 px-6"
         style={{ position: 'relative' }}

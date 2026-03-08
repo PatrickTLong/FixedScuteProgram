@@ -7,6 +7,16 @@ import {
 } from 'react-native';
 import { AlarmIcon, XCircleIcon } from 'phosphor-react-native';
 import Svg, { Path } from 'react-native-svg';
+
+const SkullIcon = ({ size = 16, color = '#FFFFFF' }: { size?: number; color?: string }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
+    <Path d="M4.11 9.8 3 9.05a1.26 1.26 0 0 1 -0.58 -0.82L1.8 4c0.7 0.64 1.56 1.42 2.51 2.26a8.62 8.62 0 0 1 0.59 -1.45c-1.69 -1.51 -3 -2.73 -3.61 -3.34a0.76 0.76 0 0 0 -0.87 -0.15 0.75 0.75 0 0 0 -0.42 0.78l0.9 6.37a2.75 2.75 0 0 0 1.25 1.84l2.69 1.76a7.85 7.85 0 0 1 -0.73 -2.27Z" />
+    <Path d="M24 20.29a2 2 0 0 0 -0.9 -1.24l-3.77 -2.3 0.85 -1.09a0.75 0.75 0 1 0 -1.18 -0.93l-0.93 1.19 -0.07 -0.06V16a3 3 0 0 1 -2.66 3l0.24 0.16 -0.7 0.88a0.77 0.77 0 0 0 0.12 1.02 0.74 0.74 0 0 0 0.46 0.16 0.76 0.76 0 0 0 0.6 -0.29l0.78 -1L21 22.47a2 2 0 0 0 1 0.29 2 2 0 0 0 2 -2.47Z" />
+    <Path d="M19.69 6.29c0.95 -0.84 1.81 -1.62 2.52 -2.27l-0.6 4.18a1.25 1.25 0 0 1 -0.6 0.86l-1.12 0.74a7.85 7.85 0 0 1 -0.74 2.27l2.66 -1.74a2.76 2.76 0 0 0 1.28 -1.89L24 2.1a0.75 0.75 0 0 0 -0.41 -0.78 0.76 0.76 0 0 0 -0.87 0.15c-0.59 0.61 -1.93 1.84 -3.62 3.34a7.65 7.65 0 0 1 0.59 1.48Z" />
+    <Path d="M6 16v-0.14l-0.07 0.06L5 14.73a0.75 0.75 0 1 0 -1.18 0.93l0.85 1.09 -3.77 2.3a2 2 0 0 0 -0.67 2.75 2 2 0 0 0 1.24 0.9 2 2 0 0 0 0.47 0.06 2 2 0 0 0 1 -0.29l4.17 -2.54 0.78 1a0.76 0.76 0 0 0 0.6 0.29 0.74 0.74 0 0 0 0.51 -0.16 0.77 0.77 0 0 0 0.12 -1.06l-0.7 -0.88 0.24 -0.12A3 3 0 0 1 6 16Z" />
+    <Path d="M13.5 16a1.5 1.5 0 0 0 3 0v-2.82a6.5 6.5 0 1 0 -9 0V16a1.5 1.5 0 0 0 3 0 1.5 1.5 0 0 0 3 0Zm1.62 -9a1.5 1.5 0 1 1 -1.5 1.5 1.5 1.5 0 0 1 1.5 -1.5Zm-6 0a1.5 1.5 0 1 1 -1.5 1.5A1.5 1.5 0 0 1 9.12 7Z" />
+  </Svg>
+);
 import { useTheme , textSize, fontFamily, radius, shadow, buttonPadding, iconSize, haptics } from '../context/ThemeContext';
 import { triggerHaptic } from '../utils/haptics';
 import { useResponsive } from '../utils/responsive';
@@ -337,6 +347,11 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, onExpire
             >
               <PinIcon size={s(iconSize.sm)} color={starred ? '#a78bfa' : colors.textMuted} />
             </Pressable>
+            {preset.strictMode && (
+              <View style={{ marginLeft: s(6) }}>
+                <SkullIcon size={s(iconSize.sm)} color={colors.textSecondary} />
+              </View>
+            )}
             {status !== null && (
               <View className="ml-2">
                 {status === 'expired' ? (

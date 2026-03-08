@@ -15,16 +15,14 @@ interface AnimatedSwitchProps {
   animate?: boolean; // Set to false to skip animation (for programmatic changes)
 }
 
-// Size dimensions lookup - avoids recreating functions on every render
+// Bubbly dimensions — thumb sits fat inside a snug track
 const SIZE_DIMENSIONS = {
-  xs:      { trackWidth: 34, trackHeight: 20, thumbSize: 14, thumbOffset: 2 },
-  small:   { trackWidth: 40, trackHeight: 22, thumbSize: 16, thumbOffset: 2 },
-  medium:  { trackWidth: 50, trackHeight: 27, thumbSize: 23, thumbOffset: 2 },
-  large:   { trackWidth: 56, trackHeight: 31, thumbSize: 27, thumbOffset: 2 },
-  default: { trackWidth: 46, trackHeight: 25, thumbSize: 21, thumbOffset: 2 },
+  xs:      { trackWidth: 36, trackHeight: 23, thumbSize: 18, thumbOffset: 2 },
+  small:   { trackWidth: 42, trackHeight: 26, thumbSize: 21, thumbOffset: 2 },
+  medium:  { trackWidth: 52, trackHeight: 31, thumbSize: 26, thumbOffset: 2 },
+  large:   { trackWidth: 58, trackHeight: 35, thumbSize: 30, thumbOffset: 2 },
+  default: { trackWidth: 48, trackHeight: 29, thumbSize: 24, thumbOffset: 2 },
 } as const;
-
-const ANIMATION_DURATION = 90;
 
 function AnimatedSwitch({
   value,
@@ -47,8 +45,10 @@ function AnimatedSwitch({
 
   const isFocused = useIsFocused();
 
-  const animatedValue = useRef(new Animated.Value(value ? 1 : 0)).current;
-  const pulseProgress = useRef(new Animated.Value(0)).current;
+  // Separate animated values so everything can use native driver
+  const thumbProgress = useRef(new Animated.Value(value ? 1 : 0)).current;
+  const trackOpacity = useRef(new Animated.Value(value ? 1 : 0)).current;
+  const pulseProgress = useRef(new Animated.Value(0)).current; // JS-driven (flash)
   const thumbScale = useRef(new Animated.Value(1)).current;
   const pressedRef = useRef(false);
 
@@ -62,15 +62,28 @@ function AnimatedSwitch({
   }, [isFocused, pulseProgress, thumbScale]);
 
   useEffect(() => {
+    const toValue = value ? 1 : 0;
+
     if (animate) {
-      Animated.spring(animatedValue, {
-        toValue: value ? 1 : 0,
-        speed: 48,
-        bounciness: 2,
-        useNativeDriver: false,
-      }).start();
+      Animated.parallel([
+        Animated.spring(thumbProgress, {
+          toValue,
+          stiffness: 600,
+          damping: 30,
+          mass: 0.4,
+          useNativeDriver: true,
+        }),
+        Animated.spring(trackOpacity, {
+          toValue,
+          stiffness: 600,
+          damping: 30,
+          mass: 0.4,
+          useNativeDriver: true,
+        }),
+      ]).start();
     } else {
-      animatedValue.setValue(value ? 1 : 0);
+      thumbProgress.setValue(toValue);
+      trackOpacity.setValue(toValue);
     }
 
     // Only flash on manual press, not programmatic changes
@@ -79,19 +92,20 @@ function AnimatedSwitch({
       pulseProgress.setValue(1);
       Animated.timing(pulseProgress, {
         toValue: 0,
-        duration: 180,
-        useNativeDriver: false,
+        duration: 160,
+        useNativeDriver: true,
       }).start();
     }
-  }, [value, animatedValue, pulseProgress, animate]);
+  }, [value, thumbProgress, trackOpacity, pulseProgress, animate]);
 
   const handlePressIn = useCallback(() => {
     if (!disabled) {
       Animated.spring(thumbScale, {
-        toValue: 0.85,
-        speed: 80,
-        bounciness: 0,
-        useNativeDriver: false,
+        toValue: 0.75,
+        stiffness: 600,
+        damping: 20,
+        mass: 0.3,
+        useNativeDriver: true,
       }).start();
     }
   }, [disabled, thumbScale]);
@@ -99,9 +113,10 @@ function AnimatedSwitch({
   const handlePressOut = useCallback(() => {
     Animated.spring(thumbScale, {
       toValue: 1,
-      speed: 40,
-      bounciness: 6,
-      useNativeDriver: false,
+      stiffness: 500,
+      damping: 18,
+      mass: 0.4,
+      useNativeDriver: true,
     }).start();
   }, [thumbScale]);
 
@@ -113,14 +128,9 @@ function AnimatedSwitch({
     }
   }, [disabled, onValueChange, value]);
 
-  const thumbTranslateX = animatedValue.interpolate({
+  const thumbTranslateX = thumbProgress.interpolate({
     inputRange: [0, 1],
     outputRange: [thumbOffset, trackWidth - thumbSize - thumbOffset],
-  });
-
-  const trackBackgroundColor = animatedValue.interpolate({
-    inputRange: [0, 1],
-    outputRange: [effectiveTrackColorFalse, trackColorTrue],
   });
 
   const flashOpacity = pulseProgress.interpolate({
@@ -136,17 +146,36 @@ function AnimatedSwitch({
       disabled={disabled}
       hitSlop={{ top: 10, bottom: 10, left: 6, right: 6 }}
     >
-      <Animated.View
+      <View
         style={{
           width: trackWidth,
           height: trackHeight,
           borderRadius: trackHeight / 2,
-          justifyContent: 'center',
-          backgroundColor: trackBackgroundColor,
           opacity: disabled ? 0.5 : 1,
           ...shadow.card,
         }}
       >
+        {/* Off-state track (bottom layer) */}
+        <View
+          style={{
+            position: 'absolute',
+            width: trackWidth,
+            height: trackHeight,
+            borderRadius: trackHeight / 2,
+            backgroundColor: effectiveTrackColorFalse,
+          }}
+        />
+        {/* On-state track (top layer, opacity animated natively) */}
+        <Animated.View
+          style={{
+            position: 'absolute',
+            width: trackWidth,
+            height: trackHeight,
+            borderRadius: trackHeight / 2,
+            backgroundColor: trackColorTrue,
+            opacity: trackOpacity,
+          }}
+        />
         {/* Thumb + pulse wrapper */}
         <Animated.View
           style={{
@@ -155,6 +184,8 @@ function AnimatedSwitch({
             transform: [{ translateX: thumbTranslateX }, { scale: thumbScale }],
             alignItems: 'center',
             justifyContent: 'center',
+            position: 'absolute',
+            top: (trackHeight - thumbSize) / 2,
           }}
         >
           {/* Flash circle */}
@@ -183,7 +214,7 @@ function AnimatedSwitch({
             }}
           />
         </Animated.View>
-      </Animated.View>
+      </View>
     </Pressable>
   );
 }
