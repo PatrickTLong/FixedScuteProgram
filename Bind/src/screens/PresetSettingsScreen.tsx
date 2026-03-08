@@ -1146,8 +1146,8 @@ function PresetSettingsScreen() {
                   )}
                 </View>
                 {scheduleStartDate && (
-                  <HeaderIconButton onPress={() => setScheduleStartDate(null)} flashSize={28}>
-                    <XIcon size={s(iconSize.sm)} color={colors.text} />
+                  <HeaderIconButton onPress={() => setScheduleStartDate(null)}>
+                    <XIcon size={s(iconSize.headerNav)} color={colors.text} />
                   </HeaderIconButton>
                 )}
             </TouchableOpacity>
@@ -1183,8 +1183,8 @@ function PresetSettingsScreen() {
                   )}
                 </View>
                 {scheduleEndDate && (
-                  <HeaderIconButton onPress={() => setScheduleEndDate(null)} flashSize={28}>
-                    <XIcon size={s(iconSize.sm)} color={colors.text} />
+                  <HeaderIconButton onPress={() => setScheduleEndDate(null)}>
+                    <XIcon size={s(iconSize.headerNav)} color={colors.text} />
                   </HeaderIconButton>
                 )}
             </TouchableOpacity>
@@ -1387,8 +1387,8 @@ function PresetSettingsScreen() {
                     </Text>
                   </View>
                   <View style={{ position: 'absolute', right: s(70), opacity: (timerDays > 0 || timerHours > 0 || timerMinutes > 0 || timerSeconds > 0) ? 1 : 0 }} pointerEvents={(timerDays > 0 || timerHours > 0 || timerMinutes > 0 || timerSeconds > 0) ? 'auto' : 'none'}>
-                    <HeaderIconButton onPress={() => { setTimerDays(0); setTimerHours(0); setTimerMinutes(0); setTimerSeconds(0); }} flashSize={28}>
-                      <XIcon size={s(iconSize.sm)} color={colors.text} />
+                    <HeaderIconButton onPress={() => { setTimerDays(0); setTimerHours(0); setTimerMinutes(0); setTimerSeconds(0); }}>
+                      <XIcon size={s(iconSize.headerNav)} color={colors.text} />
                     </HeaderIconButton>
                   </View>
                 </View>
@@ -1495,8 +1495,8 @@ function PresetSettingsScreen() {
                     )}
                   </View>
                   {targetDate && (
-                    <HeaderIconButton onPress={() => setTargetDate(null)} flashSize={28}>
-                      <XIcon size={s(iconSize.sm)} color={colors.text} />
+                    <HeaderIconButton onPress={() => setTargetDate(null)}>
+                      <XIcon size={s(iconSize.headerNav)} color={colors.text} />
                     </HeaderIconButton>
                   )}
                 </TouchableOpacity>

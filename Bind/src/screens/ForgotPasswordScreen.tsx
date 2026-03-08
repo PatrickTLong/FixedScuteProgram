@@ -32,8 +32,8 @@ const SendEmailIcon = ({ size = 24, color = '#FFFFFF' }: { size?: number; color?
 );
 
 const LoginKeyIcon = ({ size = 24, color = '#FFFFFF' }: { size?: number; color?: string }) => (
-  <Svg viewBox="0 0 24 24" width={size} height={size}>
-    <Path d="M19.5 9.5h-0.75V6.75a6.75 6.75 0 0 0 -13.5 0V9.5H4.5a2 2 0 0 0 -2 2V22a2 2 0 0 0 2 2h15a2 2 0 0 0 2 -2V11.5a2 2 0 0 0 -2 -2Zm-7.5 9a2 2 0 1 1 2 -2 2 2 0 0 1 -2 2ZM16.25 9a0.5 0.5 0 0 1 -0.5 0.5h-7.5a0.5 0.5 0 0 1 -0.5 -0.5V6.75a4.25 4.25 0 0 1 8.5 0Z" fill={color} />
+  <Svg viewBox="0 0 256 256" width={size} height={size}>
+    <Path d="M216.57,39.43A80,80,0,0,0,83.91,120.78L28.69,176A15.86,15.86,0,0,0,24,187.31V216a16,16,0,0,0,16,16H72a8,8,0,0,0,8-8V208H96a8,8,0,0,0,8-8V184h16a8,8,0,0,0,5.66-2.34l9.56-9.57A79.73,79.73,0,0,0,160,176h.1A80,80,0,0,0,216.57,39.43ZM180,92a16,16,0,1,1,16-16A16,16,0,0,1,180,92Z" fill={color} />
   </Svg>
 );
 
@@ -289,7 +289,7 @@ function ForgotPasswordScreen() {
                   <Text style={{ color: colors.text, position: 'absolute', top: s(-30), left: s(8) }} className={`${textSize.small} ${fontFamily.regular}`}>
                     New Password
                   </Text>
-                  <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }} className={`${radius.full} ${pill} flex-row items-center`}>
+                  <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, paddingRight: 0, ...shadow.card }} className={`${radius.full} ${pill} flex-row items-center`}>
                     <LoginKeyIcon size={s(iconSize.md)} color={colors.textSecondary} />
                     <TextInput
                       value={newPassword}
@@ -315,7 +315,7 @@ function ForgotPasswordScreen() {
                   <Text style={{ color: colors.text, position: 'absolute', top: s(-30), left: s(8) }} className={`${textSize.small} ${fontFamily.regular}`}>
                     Confirm New Password
                   </Text>
-                  <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }} className={`${radius.full} ${pill} flex-row items-center`}>
+                  <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, paddingRight: 0, ...shadow.card }} className={`${radius.full} ${pill} flex-row items-center`}>
                     <LoginKeyIcon size={s(iconSize.md)} color={colors.textSecondary} />
                     <TextInput
                       value={confirmPassword}

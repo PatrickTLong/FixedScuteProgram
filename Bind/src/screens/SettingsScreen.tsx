@@ -115,7 +115,7 @@ const SettingsRow = memo(({
       disabled={!onPress}
       underlayColor="rgba(255,255,255,0.08)"
     >
-      <View style={{ paddingVertical: s(buttonPadding.standard + 4) }} className="flex-row items-center px-5">
+      <View style={{ paddingVertical: s(buttonPadding.standard + 4), paddingHorizontal: s(buttonPadding.standard + 4) }} className="flex-row items-center">
         <View className="mr-4">{icon}</View>
         <Text style={{ color: labelColor }} className={`flex-1 ${textSize.small} ${fontFamily.regular}`}>{label}</Text>
         {value && (
@@ -413,7 +413,7 @@ function SettingsScreen() {
               onPressIn={() => { if (haptics.settingsRow.enabled) triggerHaptic(haptics.settingsRow.type); }}
               underlayColor="rgba(255,255,255,0.08)"
             >
-              <View style={{ paddingVertical: s(buttonPadding.standard + 4) }} className="px-5 flex-row items-center">
+              <View style={{ paddingVertical: s(buttonPadding.standard + 4), paddingHorizontal: s(buttonPadding.standard + 4) }} className="flex-row items-center">
                 <View className="mr-4"><MembershipIcon color={colors.textSecondary} /></View>
                 <View className="flex-1">
                   <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular}`}>Membership</Text>
@@ -456,8 +456,8 @@ function SettingsScreen() {
         <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, overflow: 'hidden', ...shadow.card }} className={`${radius['2xl']} mb-6`}>
           {/* Header Row */}
           <View
-            style={{ paddingVertical: s(buttonPadding.standard + 4) }}
-            className="flex-row items-center px-5"
+            style={{ paddingVertical: s(buttonPadding.standard + 4), paddingHorizontal: s(buttonPadding.standard + 4) }}
+            className="flex-row items-center"
           >
             <View className="mr-4">
               {tapoutsRemaining === 0 ? (
@@ -491,7 +491,7 @@ function SettingsScreen() {
           {tapoutStatus && getTimeUntilRefill() && (
             <>
             <View style={{ height: 1, backgroundColor: colors.divider }} />
-            <View style={{ paddingVertical: s(buttonPadding.standard + 4) }} className="flex-row items-center justify-between px-5">
+            <View style={{ paddingVertical: s(buttonPadding.standard + 4), paddingHorizontal: s(buttonPadding.standard + 4) }} className="flex-row items-center justify-between">
               <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular}`}>Next Refill</Text>
               <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
                 {getTimeUntilRefill()}
