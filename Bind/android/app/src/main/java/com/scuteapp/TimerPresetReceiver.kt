@@ -160,7 +160,7 @@ class TimerPresetReceiver : BroadcastReceiver() {
             val notification = NotificationCompat.Builder(context, ALERT_CHANNEL_ID)
                 .setContentTitle("Session Ended")
                 .setContentText("\"$presetName\" has ended.")
-                .setSmallIcon(R.drawable.ic_notification_alarm_check)
+                .setSmallIcon(R.drawable.ic_notification_unlock)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setCategory(NotificationCompat.CATEGORY_ALARM)
                 .setAutoCancel(true)

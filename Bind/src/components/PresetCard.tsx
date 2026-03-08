@@ -302,6 +302,13 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, onExpire
   }, [disabled, isExpired, onToggle]);
 
   return (
+    <View
+      style={{
+        backgroundColor: colors.card,
+        ...shadow.card,
+      }}
+      className={`${radius['2xl']} mb-3`}
+    >
     <TouchableOpacity
       onPressIn={() => {
         if (disabled) return;
@@ -311,18 +318,15 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, onExpire
       onLongPress={handleLongPress}
       delayLongPress={500}
       activeOpacity={0.8}
+      style={{
+        backgroundColor: colors.card,
+        borderWidth: 1,
+        borderColor: colors.border,
+        paddingVertical: s(buttonPadding.standard + 4),
+        paddingHorizontal: s(buttonPadding.standard + 4),
+      }}
+      className={`${radius['2xl']}`}
     >
-      <View
-        style={{
-          backgroundColor: colors.card,
-          borderWidth: 1,
-          borderColor: colors.border,
-          paddingVertical: s(buttonPadding.standard + 4),
-          paddingHorizontal: s(buttonPadding.standard + 4),
-          ...shadow.card,
-        }}
-        className={`${radius['2xl']} mb-3`}
-      >
       <View className="flex-row items-center">
         <View className="flex-1">
           {/* Preset Name with Badges */}
@@ -393,6 +397,7 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, onExpire
       </View>
       </View>
     </TouchableOpacity>
+    </View>
   );
 }
 

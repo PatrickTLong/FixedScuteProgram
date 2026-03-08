@@ -81,7 +81,7 @@ class UninstallBlockerService : Service() {
                 val notification = NotificationCompat.Builder(context, ALERT_CHANNEL_ID)
                     .setContentTitle("Session Ended")
                     .setContentText("\"$displayName\" has ended. Your apps are now unlocked.")
-                    .setSmallIcon(R.drawable.ic_notification_alarm_check)
+                    .setSmallIcon(R.drawable.ic_notification_unlock)
                     .setPriority(NotificationCompat.PRIORITY_HIGH)
                     .setCategory(NotificationCompat.CATEGORY_ALARM)
                     .setAutoCancel(true)
@@ -194,7 +194,7 @@ class UninstallBlockerService : Service() {
             // Must call startForeground before stopping to avoid Android crash,
             // but use FOREGROUND_SERVICE_DEFERRED to minimize visible flash
             val emptyNotification = NotificationCompat.Builder(this, CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_notification_alarm_exclamation)
+                .setSmallIcon(R.drawable.ic_notification_lock)
                 .setPriority(NotificationCompat.PRIORITY_MIN)
                 .setSilent(true)
                 .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_DEFERRED)
@@ -386,7 +386,7 @@ class UninstallBlockerService : Service() {
             return NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("Scute Protection Active")
                 .setContentText(contentText)
-                .setSmallIcon(R.drawable.ic_notification_alarm_exclamation)
+                .setSmallIcon(R.drawable.ic_notification_lock)
                 .setPriority(NotificationCompat.PRIORITY_MIN)
                 .setOngoing(true)
                 .setContentIntent(pendingIntent)
@@ -399,7 +399,7 @@ class UninstallBlockerService : Service() {
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("Scute Protection Active")
             .setContentText(contentText)
-            .setSmallIcon(R.drawable.ic_notification_alarm_exclamation)
+            .setSmallIcon(R.drawable.ic_notification_lock)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setOngoing(true) // Makes it non-dismissible
             .setContentIntent(pendingIntent)
