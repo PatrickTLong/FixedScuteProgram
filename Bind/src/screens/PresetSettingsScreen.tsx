@@ -15,7 +15,7 @@ import AnimatedSwitch from '../components/AnimatedSwitch';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Svg, { Path } from 'react-native-svg';
-import { XCircleIcon, CheckCircleIcon, PaperPlaneTiltIcon, ArrowsClockwiseIcon, ImageIcon, ImageSquareIcon, AndroidLogoIcon, InfoIcon as PhosphorInfoIcon, ArticleNyTimesIcon } from 'phosphor-react-native';
+import { XCircleIcon, CheckCircleIcon, PaperPlaneTiltIcon, ArrowsClockwiseIcon, ImageIcon, ImageSquareIcon, AndroidLogoIcon, InfoIcon as PhosphorInfoIcon, ArticleNyTimesIcon, HeartStraightBreakIcon } from 'phosphor-react-native';
 import SettingsCogIcon from '../components/SettingsCogIcon';
 import ReplyArrowIcon from '../components/ReplyArrowIcon';
 import { launchImageLibrary } from 'react-native-image-picker';
@@ -561,7 +561,13 @@ function PresetSettingsScreen() {
   // Emergency tapout feature
   const tapoutHeartBeat = useRef(new Animated.Value(1)).current;
 
+  const tapoutsRemaining = tapoutStatus?.remaining ?? 0;
+
   useEffect(() => {
+    if (tapoutsRemaining === 0) {
+      tapoutHeartBeat.setValue(1);
+      return;
+    }
     const beat = Animated.loop(
       Animated.sequence([
         Animated.timing(tapoutHeartBeat, { toValue: 1.15, duration: 90, easing: Easing.out(Easing.ease), useNativeDriver: true }),
@@ -574,7 +580,7 @@ function PresetSettingsScreen() {
     );
     beat.start();
     return () => beat.stop();
-  }, [tapoutHeartBeat]);
+  }, [tapoutHeartBeat, tapoutsRemaining]);
 
   const [allowEmergencyTapout, setAllowEmergencyTapout] = useState(false);
   const [noTapoutsModalVisible, setNoTapoutsModalVisible] = useState(false);
@@ -1605,11 +1611,17 @@ function PresetSettingsScreen() {
           <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight, paddingVertical: s(4) }}>
             <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
               <View style={{ maxWidth: '75%' }} className="flex-row items-center">
-                <Animated.View className="mr-4" style={{ transform: [{ scale: tapoutHeartBeat }], opacity: tapoutHeartBeat.interpolate({ inputRange: [1, 1.15], outputRange: [1, 0.85], extrapolate: 'clamp' }) }}>
+                {tapoutsRemaining === 0 ? (
+                  <View className="mr-4">
+                    <HeartStraightBreakIcon size={s(iconSize.toggleRow)} color={colors.textMuted} weight="fill" />
+                  </View>
+                ) : (
+                  <Animated.View className="mr-4" style={{ transform: [{ scale: tapoutHeartBeat }], opacity: tapoutHeartBeat.interpolate({ inputRange: [1, 1.15], outputRange: [1, 0.85], extrapolate: 'clamp' }) }}>
                     <Svg width={s(iconSize.toggleRow)} height={s(iconSize.toggleRow)} viewBox="0 -960 960 960" fill={colors.red}>
                       <Path d="M595-468h-230q0 170 115 170t115-170ZM272.5-652.5Q243-625 231-577l58 14q6-26 20-41.5t31-15.5q17 0 31 15.5t20 41.5l58-14q-12-48-41.5-75.5T340-680q-38 0-67.5 27.5Zm280 0Q523-625 511-577l58 14q6-26 20-41.5t31-15.5q17 0 31 15.5t20 41.5l58-14q-12-48-41.5-75.5T620-680q-38 0-67.5 27.5ZM480-120l-58-50q-101-88-167-152T150-437q-39-51-54.5-94T80-620q0-94 63-157t157-63q52 0 99 22t81 62q34-40 81-62t99-22q94 0 157 63t63 157q0 46-15.5 89T810-437q-39 51-105 115T538-170l-58 50Z" />
                     </Svg>
                   </Animated.View>
+                )}
                 <View className="flex-1">
                   <View className="flex-row items-center">
                     <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Emergency Tapout</Text>

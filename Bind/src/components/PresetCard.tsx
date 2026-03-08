@@ -6,11 +6,18 @@ import {
   Animated,
 } from 'react-native';
 import { AlarmIcon, XCircleIcon } from 'phosphor-react-native';
+import Svg, { Path } from 'react-native-svg';
 import { useTheme , textSize, fontFamily, radius, shadow, buttonPadding, iconSize, haptics } from '../context/ThemeContext';
 import { triggerHaptic } from '../utils/haptics';
 import { useResponsive } from '../utils/responsive';
 import { useAuth } from '../context/AuthContext';
 import AnimatedSwitch from './AnimatedSwitch';
+
+const PinIcon = ({ size = 16, color = '#FFFFFF' }: { size?: number; color?: string }) => (
+  <Svg viewBox="0 0 24 24" width={size} height={size}>
+    <Path d="M12 0a12 12 0 1 0 12 12A12 12 0 0 0 12 0Zm4.8 17.74a0.5 0.5 0 0 1 -0.2 0.48 0.51 0.51 0 0 1 -0.52 0l-3.86 -1.93a0.51 0.51 0 0 0 -0.45 0l-3.84 1.97a0.51 0.51 0 0 1 -0.52 0 0.5 0.5 0 0 1 -0.2 -0.48l0.65 -4.27a0.48 0.48 0 0 0 -0.14 -0.42L4.69 10A0.5 0.5 0 0 1 5 9.13l4.26 -0.7a0.5 0.5 0 0 0 0.37 -0.26l2 -3.83a0.5 0.5 0 0 1 0.89 0l2 3.83a0.47 0.47 0 0 0 0.36 0.26l4.25 0.7a0.5 0.5 0 0 1 0.4 0.34 0.49 0.49 0 0 1 -0.12 0.5l-3 3.08a0.51 0.51 0 0 0 -0.14 0.42Z" fill={color} />
+  </Svg>
+);
 
 // Schedule status uses Phosphor Clock variants
 
@@ -71,12 +78,14 @@ interface PresetCardProps {
   onToggle: (value: boolean) => void;
   onExpired?: (preset: Preset) => void;
   disabled?: boolean;
+  starred?: boolean;
+  onStarToggle?: () => void;
 }
 
 // Expiration status type
 type ExpirationStatus = 'expired' | 'blocking' | 'pending' | null;
 
-function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, onExpired, disabled = false }: PresetCardProps) {
+function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, onExpired, disabled = false, starred = false, onStarToggle }: PresetCardProps) {
   const { colors } = useTheme();
   const { s } = useResponsive();
   const { sharedIsLocked } = useAuth();
@@ -338,6 +347,13 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, onExpire
             <Text style={{ color: isDimmed ? colors.textMuted : colors.text, flexShrink: 1 }} className={`${textSize.large} ${fontFamily.semibold}`}>
               {preset.name}
             </Text>
+            <Pressable
+              onPress={onStarToggle}
+              hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+              style={{ marginLeft: s(6) }}
+            >
+              <PinIcon size={s(iconSize.sm)} color={starred ? '#a78bfa' : colors.textMuted} />
+            </Pressable>
             {status !== null && (
               <View className="ml-2">
                 {status === 'expired' ? (

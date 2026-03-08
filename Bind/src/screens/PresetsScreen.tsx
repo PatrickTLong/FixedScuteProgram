@@ -32,6 +32,9 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { MainStackParamList } from '../navigation/types';
 import { usePresetSave } from '../navigation/PresetsStack';
 import { useAuth } from '../context/AuthContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const STARRED_PRESETS_KEY = '@starred_presets';
 
 const { InstalledAppsModule, ScheduleModule } = NativeModules;
 
@@ -115,6 +118,31 @@ function PresetsScreen() {
 
   // Pull-to-refresh state
   const [refreshing, setRefreshing] = useState(false);
+
+  // Starred presets (pinned to top)
+  const [starredIds, setStarredIds] = useState<Set<string>>(new Set());
+
+  // Load starred IDs from AsyncStorage on mount
+  useEffect(() => {
+    AsyncStorage.getItem(STARRED_PRESETS_KEY).then(json => {
+      if (json) {
+        try { setStarredIds(new Set(JSON.parse(json))); } catch {}
+      }
+    });
+  }, []);
+
+  const handleStarToggle = useCallback((presetId: string) => {
+    setStarredIds(prev => {
+      const next = new Set(prev);
+      if (next.has(presetId)) {
+        next.delete(presetId);
+      } else {
+        next.add(presetId);
+      }
+      AsyncStorage.setItem(STARRED_PRESETS_KEY, JSON.stringify([...next]));
+      return next;
+    });
+  }, []);
 
   // "Preset Saved" toast state
   const [showSavedToast, setShowSavedToast] = useState(false);
@@ -747,6 +775,21 @@ function PresetsScreen() {
   handleExpiredPresetRef.current = handleExpiredPreset;
   const activePresetIdRef = useRef(activePresetId);
   activePresetIdRef.current = activePresetId;
+  const handleStarToggleRef = useRef(handleStarToggle);
+  handleStarToggleRef.current = handleStarToggle;
+  const starredIdsRef = useRef(starredIds);
+  starredIdsRef.current = starredIds;
+
+  // Sort presets: starred first, then original order
+  const sortedPresets = React.useMemo(() => {
+    return [...presets].sort((a, b) => {
+      const aStarred = starredIds.has(a.id);
+      const bStarred = starredIds.has(b.id);
+      if (aStarred && !bStarred) return -1;
+      if (!aStarred && bStarred) return 1;
+      return 0;
+    });
+  }, [presets, starredIds]);
 
   const renderPresetItem = useCallback(({ item: preset }: { item: Preset }) => {
     // For scheduled presets, use preset.isActive directly
@@ -762,6 +805,8 @@ function PresetsScreen() {
         onToggle={(value) => handleTogglePresetRef.current(preset, value)}
         disabled={isDisabled}
         onExpired={() => handleExpiredPresetRef.current(preset)}
+        starred={starredIdsRef.current.has(preset.id)}
+        onStarToggle={() => handleStarToggleRef.current(preset.id)}
       />
     );
   }, [isDisabled]);
@@ -824,7 +869,7 @@ function PresetsScreen() {
       {/* Presets List */}
       <FlatList
         className="flex-1"
-        data={presets}
+        data={sortedPresets}
         renderItem={renderPresetItem}
         keyExtractor={keyExtractor}
         ListEmptyComponent={ListEmptyComponent}

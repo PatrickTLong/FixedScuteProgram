@@ -32,8 +32,8 @@ const SendEmailIcon = ({ size = 24, color = '#FFFFFF' }: { size?: number; color?
 );
 
 const LoginKeyIcon = ({ size = 24, color = '#FFFFFF' }: { size?: number; color?: string }) => (
-  <Svg viewBox="0 0 256 256" width={size} height={size}>
-    <Path d="M216.57,39.43A80,80,0,0,0,83.91,120.78L28.69,176A15.86,15.86,0,0,0,24,187.31V216a16,16,0,0,0,16,16H72a8,8,0,0,0,8-8V208H96a8,8,0,0,0,8-8V184h16a8,8,0,0,0,5.66-2.34l9.56-9.57A79.73,79.73,0,0,0,160,176h.1A80,80,0,0,0,216.57,39.43ZM180,92a16,16,0,1,1,16-16A16,16,0,0,1,180,92Z" fill={color} />
+  <Svg viewBox="0 0 24 24" width={size} height={size} fill="none">
+    <Path d="M5.8 6.347v2.606h-0.55C4.036 8.953 3 9.99 3 11.203v10.5c0 1.214 1.036 2.25 2.25 2.25h13.5c1.214 0 2.25-1.036 2.25-2.25v-10.5c0-1.214-1.036-2.25-2.25-2.25h-0.55V6.347c0-3.44-2.835-6.3-6.2-6.3s-6.2 2.86-6.2 6.3Zm6.2-4.3c-2.235 0-4.2 1.94-4.2 4.3v2.606h8.4V6.347c0-2.36-1.965-4.3-4.2-4.3ZM9.5 14.453a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0Zm8 0a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0Zm-7.051 3.684a1 1 0 0 0-1.898 0.632c0.526 1.577 2.134 2.197 3.449 2.197s2.923-0.62 3.449-2.197a1 1 0 0 0-1.898-0.632c-0.146 0.44-0.702 0.829-1.551 0.829-0.85 0-1.405-0.39-1.551-0.83Z" fill={color} fillRule="evenodd" clipRule="evenodd" />
   </Svg>
 );
 
@@ -234,7 +234,7 @@ function ForgotPasswordScreen() {
                       autoCapitalize="none"
                       autoCorrect={false}
                       editable={!loading}
-                      style={{ flex: 1, color: colors.text, marginLeft: s(8) }}
+                      style={{ flex: 1, color: colors.text, marginLeft: s(8), paddingVertical: 0, includeFontPadding: false, textAlignVertical: 'center' }}
                       className={`${textSize.small} ${fontFamily.regular}`}
                     />
                   </View>
@@ -300,7 +300,7 @@ function ForgotPasswordScreen() {
                       autoCapitalize="none"
                       autoCorrect={false}
                       editable={!loading}
-                      style={{ flex: 1, color: colors.text, marginLeft: s(8) }}
+                      style={{ flex: 1, color: colors.text, marginLeft: s(8), paddingVertical: 0, includeFontPadding: false, textAlignVertical: 'center' }}
                       className={`${textSize.small} ${fontFamily.regular}`}
                     />
                     <View style={{ justifyContent: 'center', alignItems: 'center', paddingHorizontal: s(8), height: '100%' }}>
@@ -326,7 +326,7 @@ function ForgotPasswordScreen() {
                       autoCapitalize="none"
                       autoCorrect={false}
                       editable={!loading}
-                      style={{ flex: 1, color: colors.text, marginLeft: s(8) }}
+                      style={{ flex: 1, color: colors.text, marginLeft: s(8), paddingVertical: 0, includeFontPadding: false, textAlignVertical: 'center' }}
                       className={`${textSize.small} ${fontFamily.regular}`}
                     />
                     <View style={{ justifyContent: 'center', alignItems: 'center', paddingHorizontal: s(8), height: '100%' }}>

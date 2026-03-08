@@ -734,8 +734,8 @@ function EditPresetAppsScreen() {
                     <GlobeIcon size={s(iconSize.xl)} color={colors.textSecondary} />
                   </View>
                   <Text style={{ color: colors.text }} className={`flex-1 ${textSize.small} ${fontFamily.regular}`}>{site}</Text>
-                  <HeaderIconButton onPress={() => removeWebsite(site)} flashSize={28}>
-                    <XIcon size={s(iconSize.sm)} color={colors.text} />
+                  <HeaderIconButton onPress={() => removeWebsite(site)}>
+                    <XIcon size={s(iconSize.headerNav)} color={colors.text} />
                   </HeaderIconButton>
                 </View>
               ))}

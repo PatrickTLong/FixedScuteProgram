@@ -1,5 +1,5 @@
 import React, { memo, useCallback, useEffect, useRef } from 'react';
-import { Animated, Pressable, View } from 'react-native';
+import { Animated, Pressable } from 'react-native';
 import { useIsFocused } from '@react-navigation/native';
 import { useResponsive } from '../utils/responsive';
 import { shadow, colors, haptics } from '../context/ThemeContext';
@@ -24,7 +24,7 @@ const SIZE_DIMENSIONS = {
   default: { trackWidth: 52, trackHeight: 28, thumbSize: 24, thumbOffset: 2 },
 } as const;
 
-const ANIMATION_DURATION = 90;
+const FLASH_FADE_DURATION = 300;
 
 function AnimatedSwitch({
   value,
@@ -48,20 +48,19 @@ function AnimatedSwitch({
   const isFocused = useIsFocused();
 
   const animatedValue = useRef(new Animated.Value(value ? 1 : 0)).current;
-  const pulseProgress = useRef(new Animated.Value(0)).current;
-  const pressedRef = useRef(false);
+  const flashOpacity = useRef(new Animated.Value(0)).current;
+  const flashAnimRef = useRef<Animated.CompositeAnimation | null>(null);
+  const thumbScale = useRef(new Animated.Value(1)).current;
 
-  // Reset pulse when screen loses focus so it doesn't freeze mid-animation
+  // Reset flash when screen loses focus so it doesn't freeze mid-animation
   useEffect(() => {
     if (!isFocused) {
-      pulseProgress.stopAnimation();
-      pulseProgress.setValue(0);
+      if (flashAnimRef.current) flashAnimRef.current.stop();
+      flashOpacity.stopAnimation(() => flashOpacity.setValue(0));
     }
-  }, [isFocused, pulseProgress]);
+  }, [isFocused, flashOpacity]);
 
   useEffect(() => {
-    const wasPressed = pressedRef.current;
-
     if (animate) {
       Animated.spring(animatedValue, {
         toValue: value ? 1 : 0,
@@ -73,22 +72,41 @@ function AnimatedSwitch({
       animatedValue.setValue(value ? 1 : 0);
     }
 
-    // Only flash on manual press, not programmatic changes
-    if (pressedRef.current) {
-      pressedRef.current = false;
-      pulseProgress.setValue(1);
-      Animated.timing(pulseProgress, {
-        toValue: 0,
-        duration: 180,
-        useNativeDriver: false,
+  }, [value, animatedValue, animate]);
+
+  const handlePressIn = useCallback(() => {
+    if (!disabled) {
+      if (flashAnimRef.current) flashAnimRef.current.stop();
+      // Hold flash + scale while finger is down
+      flashOpacity.setValue(0.35);
+      Animated.spring(thumbScale, {
+        toValue: 0.8,
+        speed: 50,
+        bounciness: 0,
+        useNativeDriver: true,
       }).start();
     }
-  }, [value, animatedValue, pulseProgress, animate]);
+  }, [disabled, thumbScale, flashOpacity]);
+
+  const handlePressOut = useCallback(() => {
+    // Release: fade flash out + bounce scale back
+    flashAnimRef.current = Animated.timing(flashOpacity, {
+      toValue: 0,
+      duration: FLASH_FADE_DURATION,
+      useNativeDriver: false,
+    });
+    flashAnimRef.current.start();
+    Animated.spring(thumbScale, {
+      toValue: 1,
+      speed: 20,
+      bounciness: 8,
+      useNativeDriver: true,
+    }).start();
+  }, [thumbScale, flashOpacity]);
 
   const handlePress = useCallback(() => {
     if (!disabled) {
       if (haptics.toggle.enabled) triggerHaptic(haptics.toggle.type);
-      pressedRef.current = true;
       onValueChange(!value);
     }
   }, [disabled, onValueChange, value]);
@@ -103,14 +121,11 @@ function AnimatedSwitch({
     outputRange: [effectiveTrackColorFalse, trackColorTrue],
   });
 
-  const flashOpacity = pulseProgress.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, 0.35],
-  });
-
   return (
     <Pressable
       onPress={handlePress}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
       disabled={disabled}
       hitSlop={{ top: 10, bottom: 10, left: 6, right: 6 }}
     >
@@ -147,7 +162,7 @@ function AnimatedSwitch({
             }}
           />
           {/* Thumb */}
-          <View
+          <Animated.View
             style={{
               width: thumbSize,
               height: thumbSize,
@@ -158,6 +173,7 @@ function AnimatedSwitch({
               shadowOpacity: disabled ? 0 : 0.2,
               shadowRadius: disabled ? 0 : 2.5,
               elevation: disabled ? 0 : 4,
+              transform: [{ scale: thumbScale }],
             }}
           />
         </Animated.View>

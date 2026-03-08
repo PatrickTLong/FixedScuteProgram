@@ -81,6 +81,7 @@ function HomeScreen() {
   const lockIconScale = useRef(new Animated.Value(0)).current;
   const lockIconTranslateY = useRef(new Animated.Value(10)).current;
   const lockAnimRef = useRef<{ slideIn: Animated.CompositeAnimation; fadeOut: Animated.CompositeAnimation } | null>(null);
+  const lockRafRef = useRef<number | null>(null);
   const prevIsLockedRef = useRef(isLocked);
   const [lastLockAction, setLastLockAction] = useState<'lock' | 'unlock' | null>(null);
 
@@ -100,6 +101,11 @@ function HomeScreen() {
   // Reset lock icon when screen loses focus so it doesn't freeze mid-animation
   useEffect(() => {
     if (!isFocused) {
+      // Cancel any pending requestAnimationFrame so it can't restart the animation after reset
+      if (lockRafRef.current != null) {
+        cancelAnimationFrame(lockRafRef.current);
+        lockRafRef.current = null;
+      }
       if (lockAnimRef.current) {
         lockAnimRef.current.slideIn.stop();
         lockAnimRef.current.fadeOut.stop();
@@ -774,6 +780,10 @@ function HomeScreen() {
         lockAnimRef.current.slideIn.stop();
         lockAnimRef.current.fadeOut.stop();
       }
+      if (lockRafRef.current != null) {
+        cancelAnimationFrame(lockRafRef.current);
+        lockRafRef.current = null;
+      }
 
       // Reset to invisible state
       lockIconScale.setValue(0);
@@ -781,7 +791,12 @@ function HomeScreen() {
       lockIconTranslateY.setValue(10);
 
       // Show after one frame so reset values have applied
-      requestAnimationFrame(() => {
+      lockRafRef.current = requestAnimationFrame(() => {
+        lockRafRef.current = null;
+
+        // If screen lost focus while waiting, bail out
+        if (!isFocused) return;
+
         lockIconOpacity.setValue(1);
 
         // Slide up + scale in
@@ -802,7 +817,7 @@ function HomeScreen() {
       });
     }
     prevIsLockedRef.current = isLocked;
-  }, [isLocked, lockIconOpacity, lockIconScale, lockIconTranslateY]);
+  }, [isLocked, isFocused, lockIconOpacity, lockIconScale, lockIconTranslateY]);
 
   const formatScheduleDate = useCallback((dateStr: string): string => {
     const date = new Date(dateStr);
