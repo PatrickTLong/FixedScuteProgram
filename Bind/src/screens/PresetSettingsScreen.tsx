@@ -7,6 +7,7 @@ import {
   ScrollView,
   Animated,
   Easing,
+  InteractionManager,
   NativeSyntheticEvent,
   NativeScrollEvent,
   TextInput,
@@ -1042,7 +1043,7 @@ function PresetSettingsScreen() {
               animate={!skipSwitchAnimation}
               onValueChange={(value: boolean) => {
                 setNoTimeLimit(value);
-                requestAnimationFrame(() => {
+                InteractionManager.runAfterInteractions(() => {
                   if (value) {
                     setTimerDays(0);
                     setTimerHours(0);
@@ -1095,7 +1096,7 @@ function PresetSettingsScreen() {
                 animate={!skipSwitchAnimation}
                 onValueChange={(value: boolean) => {
                   setIsScheduled(value);
-                  requestAnimationFrame(() => {
+                  InteractionManager.runAfterInteractions(() => {
                     if (value) {
                       setNoTimeLimit(false);
                       setTimerDays(0);
@@ -1369,15 +1370,17 @@ function PresetSettingsScreen() {
                 animate={!skipSwitchAnimation}
                 onValueChange={(value: boolean) => {
                   setTimerEnabled(value);
-                  if (value) {
-                    setDateEnabled(false);
-                    setTargetDate(null);
-                  } else {
-                    setTimerDays(0);
-                    setTimerHours(0);
-                    setTimerMinutes(0);
-                    setTimerSeconds(0);
-                  }
+                  InteractionManager.runAfterInteractions(() => {
+                    if (value) {
+                      setDateEnabled(false);
+                      setTargetDate(null);
+                    } else {
+                      setTimerDays(0);
+                      setTimerHours(0);
+                      setTimerMinutes(0);
+                      setTimerSeconds(0);
+                    }
+                  });
                 }}
               />
             </View>
@@ -1481,15 +1484,17 @@ function PresetSettingsScreen() {
                 animate={!skipSwitchAnimation}
                 onValueChange={(value: boolean) => {
                   setDateEnabled(value);
-                  if (value) {
-                    setTimerEnabled(false);
-                    setTimerDays(0);
-                    setTimerHours(0);
-                    setTimerMinutes(0);
-                    setTimerSeconds(0);
-                  } else {
-                    setTargetDate(null);
-                  }
+                  InteractionManager.runAfterInteractions(() => {
+                    if (value) {
+                      setTimerEnabled(false);
+                      setTimerDays(0);
+                      setTimerHours(0);
+                      setTimerMinutes(0);
+                      setTimerSeconds(0);
+                    } else {
+                      setTargetDate(null);
+                    }
+                  });
                 }}
               />
             </View>

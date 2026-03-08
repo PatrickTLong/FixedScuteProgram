@@ -17,11 +17,11 @@ interface AnimatedSwitchProps {
 
 // Size dimensions lookup - avoids recreating functions on every render
 const SIZE_DIMENSIONS = {
-  xs:      { trackWidth: 38, trackHeight: 22, thumbSize: 16, thumbOffset: 2 },
-  small:   { trackWidth: 44, trackHeight: 24, thumbSize: 18, thumbOffset: 2 },
-  medium:  { trackWidth: 56, trackHeight: 30, thumbSize: 26, thumbOffset: 2 },
-  large:   { trackWidth: 62, trackHeight: 34, thumbSize: 30, thumbOffset: 2 },
-  default: { trackWidth: 52, trackHeight: 28, thumbSize: 24, thumbOffset: 2 },
+  xs:      { trackWidth: 34, trackHeight: 20, thumbSize: 14, thumbOffset: 2 },
+  small:   { trackWidth: 40, trackHeight: 22, thumbSize: 16, thumbOffset: 2 },
+  medium:  { trackWidth: 50, trackHeight: 27, thumbSize: 23, thumbOffset: 2 },
+  large:   { trackWidth: 56, trackHeight: 31, thumbSize: 27, thumbOffset: 2 },
+  default: { trackWidth: 46, trackHeight: 25, thumbSize: 21, thumbOffset: 2 },
 } as const;
 
 const ANIMATION_DURATION = 90;
@@ -49,6 +49,7 @@ function AnimatedSwitch({
 
   const animatedValue = useRef(new Animated.Value(value ? 1 : 0)).current;
   const pulseProgress = useRef(new Animated.Value(0)).current;
+  const thumbScale = useRef(new Animated.Value(1)).current;
   const pressedRef = useRef(false);
 
   // Reset pulse when screen loses focus so it doesn't freeze mid-animation
@@ -56,17 +57,16 @@ function AnimatedSwitch({
     if (!isFocused) {
       pulseProgress.stopAnimation();
       pulseProgress.setValue(0);
+      thumbScale.setValue(1);
     }
-  }, [isFocused, pulseProgress]);
+  }, [isFocused, pulseProgress, thumbScale]);
 
   useEffect(() => {
-    const wasPressed = pressedRef.current;
-
     if (animate) {
       Animated.spring(animatedValue, {
         toValue: value ? 1 : 0,
-        speed: 28,
-        bounciness: 4,
+        speed: 48,
+        bounciness: 2,
         useNativeDriver: false,
       }).start();
     } else {
@@ -84,6 +84,26 @@ function AnimatedSwitch({
       }).start();
     }
   }, [value, animatedValue, pulseProgress, animate]);
+
+  const handlePressIn = useCallback(() => {
+    if (!disabled) {
+      Animated.spring(thumbScale, {
+        toValue: 0.85,
+        speed: 80,
+        bounciness: 0,
+        useNativeDriver: false,
+      }).start();
+    }
+  }, [disabled, thumbScale]);
+
+  const handlePressOut = useCallback(() => {
+    Animated.spring(thumbScale, {
+      toValue: 1,
+      speed: 40,
+      bounciness: 6,
+      useNativeDriver: false,
+    }).start();
+  }, [thumbScale]);
 
   const handlePress = useCallback(() => {
     if (!disabled) {
@@ -111,6 +131,8 @@ function AnimatedSwitch({
   return (
     <Pressable
       onPress={handlePress}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
       disabled={disabled}
       hitSlop={{ top: 10, bottom: 10, left: 6, right: 6 }}
     >
@@ -130,7 +152,7 @@ function AnimatedSwitch({
           style={{
             width: thumbSize,
             height: thumbSize,
-            transform: [{ translateX: thumbTranslateX }],
+            transform: [{ translateX: thumbTranslateX }, { scale: thumbScale }],
             alignItems: 'center',
             justifyContent: 'center',
           }}
