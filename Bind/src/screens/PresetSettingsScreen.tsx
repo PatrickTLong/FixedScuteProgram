@@ -203,7 +203,6 @@ const TimePresetCircle = memo(({ label, onPress, onLongPressAdd }: {
   const didLongPress = useRef(false);
   const activeRef = useRef(false);
   const scaleAnim = useRef(new Animated.Value(1)).current;
-  const borderAnim = useRef(new Animated.Value(0)).current;
 
   const clearTimers = useCallback(() => {
     activeRef.current = false;
@@ -228,7 +227,6 @@ const TimePresetCircle = memo(({ label, onPress, onLongPressAdd }: {
     didLongPress.current = false;
     activeRef.current = true;
     Animated.timing(scaleAnim, { toValue: 0.9, useNativeDriver: true, duration: 30 }).start();
-    Animated.timing(borderAnim, { toValue: 1, useNativeDriver: false, duration: 30 }).start();
     timeoutRef.current = setTimeout(() => {
       didLongPress.current = true;
       if (haptics.bubbleButton.enabled) {
@@ -237,13 +235,12 @@ const TimePresetCircle = memo(({ label, onPress, onLongPressAdd }: {
       onLongPressAddRef.current();
       scheduleNext(LONG_PRESS_START_INTERVAL);
     }, LONG_PRESS_INITIAL_DELAY);
-  }, [clearTimers, scheduleNext, scaleAnim, borderAnim]);
+  }, [clearTimers, scheduleNext, scaleAnim]);
 
   const handlePressOut = useCallback(() => {
     clearTimers();
     Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true, speed: 12, bounciness: 14 }).start();
-    Animated.timing(borderAnim, { toValue: 0, useNativeDriver: false, duration: 200 }).start();
-  }, [clearTimers, scaleAnim, borderAnim]);
+  }, [clearTimers, scaleAnim]);
 
   const handlePress = useCallback(() => {
     if (!didLongPress.current) {
@@ -258,11 +255,6 @@ const TimePresetCircle = memo(({ label, onPress, onLongPressAdd }: {
 
   const circleSize = s(90);
 
-  const animatedBorderColor = borderAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [colors.border, '#FFFFFF'],
-  });
-
   return (
     <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
       <Animated.View
@@ -272,7 +264,7 @@ const TimePresetCircle = memo(({ label, onPress, onLongPressAdd }: {
           borderRadius: circleSize / 2,
           backgroundColor: colors.card,
           borderWidth: 1,
-          borderColor: animatedBorderColor,
+          borderColor: colors.border,
           alignItems: 'center',
           justifyContent: 'center',
           overflow: 'hidden',
@@ -1402,24 +1394,24 @@ function PresetSettingsScreen() {
                 {/* Current total display — fixed DD:HH:MM:SS format */}
                 <View style={{ position: 'relative' }} className="items-center justify-center mb-4 px-6">
                   <View className="flex-row items-end">
-                    <View className="items-center">
+                    <View style={{ minWidth: s(32) }} className="items-center">
                       <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>DD</Text>
-                      <Text style={{ color: colors.text }} className={`${textSize['2xLarge']} ${fontFamily.bold}`}>{pad2(timerDays)}</Text>
+                      <Text style={{ color: colors.text, fontVariant: ['tabular-nums'] }} className={`${textSize['2xLarge']} ${fontFamily.bold}`}>{pad2(timerDays)}</Text>
                     </View>
                     <Text style={{ color: colors.text }} className={`${textSize['2xLarge']} ${fontFamily.bold}`}>:</Text>
-                    <View className="items-center">
+                    <View style={{ minWidth: s(32) }} className="items-center">
                       <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>HH</Text>
-                      <Text style={{ color: colors.text }} className={`${textSize['2xLarge']} ${fontFamily.bold}`}>{pad2(timerHours)}</Text>
+                      <Text style={{ color: colors.text, fontVariant: ['tabular-nums'] }} className={`${textSize['2xLarge']} ${fontFamily.bold}`}>{pad2(timerHours)}</Text>
                     </View>
                     <Text style={{ color: colors.text }} className={`${textSize['2xLarge']} ${fontFamily.bold}`}>:</Text>
-                    <View className="items-center">
+                    <View style={{ minWidth: s(32) }} className="items-center">
                       <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>MM</Text>
-                      <Text style={{ color: colors.text }} className={`${textSize['2xLarge']} ${fontFamily.bold}`}>{pad2(timerMinutes)}</Text>
+                      <Text style={{ color: colors.text, fontVariant: ['tabular-nums'] }} className={`${textSize['2xLarge']} ${fontFamily.bold}`}>{pad2(timerMinutes)}</Text>
                     </View>
                     <Text style={{ color: colors.text }} className={`${textSize['2xLarge']} ${fontFamily.bold}`}>:</Text>
-                    <View className="items-center">
+                    <View style={{ minWidth: s(32) }} className="items-center">
                       <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>SS</Text>
-                      <Text style={{ color: colors.text }} className={`${textSize['2xLarge']} ${fontFamily.bold}`}>{pad2(timerSeconds)}</Text>
+                      <Text style={{ color: colors.text, fontVariant: ['tabular-nums'] }} className={`${textSize['2xLarge']} ${fontFamily.bold}`}>{pad2(timerSeconds)}</Text>
                     </View>
                   </View>
                   <View style={{ position: 'absolute', right: s(70), opacity: (timerDays > 0 || timerHours > 0 || timerMinutes > 0 || timerSeconds > 0) ? 1 : 0 }} pointerEvents={(timerDays > 0 || timerHours > 0 || timerMinutes > 0 || timerSeconds > 0) ? 'auto' : 'none'}>
