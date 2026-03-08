@@ -10,6 +10,7 @@ import Svg, { Path } from 'react-native-svg';
 import { useTheme , textSize, fontFamily, radius, shadow, buttonPadding, iconSize, haptics } from '../context/ThemeContext';
 import { triggerHaptic } from '../utils/haptics';
 import { useResponsive } from '../utils/responsive';
+import { useFlashPress } from '../utils/useFlashPress';
 import { useAuth } from '../context/AuthContext';
 import AnimatedSwitch from './AnimatedSwitch';
 
@@ -299,26 +300,18 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, onExpire
     }
   }, [disabled, isExpired, onToggle]);
 
-  const opacityAnim = useRef(new Animated.Value(1)).current;
+  const { flashOpacity, onPressIn: flashPressIn, onPressOut: flashPressOut } = useFlashPress(disabled);
 
   const handlePressIn = useCallback(() => {
     if (disabled) return;
     // Skip haptics for locked active presets (press shows modal, not edit)
     if (!isLockedActive && haptics.presetCard.enabled) triggerHaptic(haptics.presetCard.type);
-    Animated.timing(opacityAnim, {
-      toValue: 0.7,
-      duration: 30,
-      useNativeDriver: true,
-    }).start();
-  }, [disabled, opacityAnim, isLockedActive]);
+    flashPressIn();
+  }, [disabled, isLockedActive, flashPressIn]);
 
   const handlePressOut = useCallback(() => {
-    Animated.timing(opacityAnim, {
-      toValue: 1,
-      duration: 100,
-      useNativeDriver: true,
-    }).start();
-  }, [opacityAnim]);
+    flashPressOut();
+  }, [flashPressOut]);
 
   return (
     <Pressable
@@ -328,18 +321,19 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, onExpire
       onLongPress={handleLongPress}
       delayLongPress={500}
     >
-      <Animated.View
+      <View
         style={{
           backgroundColor: colors.card,
           borderWidth: 1,
           borderColor: colors.border,
           paddingVertical: s(buttonPadding.standard + 4),
           paddingHorizontal: s(buttonPadding.standard + 4),
-          opacity: opacityAnim,
+          overflow: 'hidden',
           ...shadow.card,
         }}
         className={`${radius['2xl']} mb-3`}
       >
+        <Animated.View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#FFFFFF', opacity: flashOpacity }} pointerEvents="none" />
       <View className="flex-row items-center">
         <View className="flex-1">
           {/* Preset Name with Badges */}
@@ -408,7 +402,7 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, onExpire
           )}
         </View>
       </View>
-      </Animated.View>
+      </View>
     </Pressable>
   );
 }

@@ -8,7 +8,6 @@ import {
   AppState,
   Platform,
   Image,
-  TouchableOpacity,
   ScrollView,
   RefreshControl,
   Modal,
@@ -21,6 +20,7 @@ import { useTheme, textSize, fontFamily, radius, shadow, buttonPadding, iconSize
 import { useResponsive } from '../utils/responsive';
 import HeaderIconButton from '../components/HeaderIconButton';
 import { useAuth } from '../context/AuthContext';
+import FlashPressable from '../components/FlashPressable';
 
 const { UsageStatsModule } = NativeModules;
 
@@ -392,9 +392,8 @@ function StatsScreen() {
             <React.Fragment key={period}>
               {index > 0 && <View className="w-2" />}
               <View style={{ flex: 1 }}>
-                <TouchableOpacity
+                <FlashPressable
                   onPress={() => setActivePeriod(period)}
-                  activeOpacity={0.7}
                   style={{
                     backgroundColor: activePeriod === period ? colors.text : colors.card,
                     borderWidth: 1,
@@ -409,7 +408,7 @@ function StatsScreen() {
                   >
                     {period === 'month' ? '30 Days' : period === 'week' ? '7 Days' : 'Today'}
                   </Text>
-                </TouchableOpacity>
+                </FlashPressable>
               </View>
             </React.Fragment>
           ))}

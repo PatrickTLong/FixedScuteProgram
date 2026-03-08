@@ -15,6 +15,7 @@ import ReplyArrowIcon from '../components/ReplyArrowIcon';
 import { useTheme , textSize, fontFamily, radius, shadow, iconSize, pill } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import HeaderIconButton from '../components/HeaderIconButton';
+import FlashPressable from '../components/FlashPressable';
 
 interface InstalledApp {
   id: string;
@@ -72,9 +73,8 @@ const AppItem = memo(({ item, isSelected, onToggle, cardColor, cardLightColor, t
   }, [item.id, onToggle]);
 
   return (
-    <TouchableOpacity
+    <FlashPressable
       onPress={handlePress}
-      activeOpacity={0.7}
       style={{ backgroundColor: cardColor, borderWidth: 1, borderColor: borderColor, ...shadow.card }}
       className={`flex-row items-center py-3 px-4 ${radius.xl} mb-2`}
     >
@@ -99,7 +99,7 @@ const AppItem = memo(({ item, isSelected, onToggle, cardColor, cardLightColor, t
       <View style={isSelected ? { backgroundColor: cyanColor, borderColor: cyanColor } : { borderColor: borderColor }} className={`w-6 h-6 ${radius.full} border-2 items-center justify-center`}>
         {isSelected && <Text className={`text-white ${textSize.small} ${fontFamily.bold}`}></Text>}
       </View>
-    </TouchableOpacity>
+    </FlashPressable>
   );
 });
 
@@ -176,25 +176,25 @@ function SelectAppsScreen({
 
       {/* Tabs */}
       <View className="flex-row mx-4 my-4">
-        <TouchableOpacity
+        <FlashPressable
           onPress={() => setActiveTab('apps')}
-          style={{ backgroundColor: activeTab === 'apps' ? colors.text : colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
-          className={`flex-1 ${radius.full} ${pill} items-center justify-center`}
+          style={{ flex: 1, backgroundColor: activeTab === 'apps' ? colors.text : colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
+          className={`${radius.full} ${pill} items-center justify-center`}
         >
           <Text style={{ color: activeTab === 'apps' ? colors.bg : colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>
             Apps
           </Text>
-        </TouchableOpacity>
+        </FlashPressable>
         <View className="w-2" />
-        <TouchableOpacity
+        <FlashPressable
           onPress={() => setActiveTab('websites')}
-          style={{ backgroundColor: activeTab === 'websites' ? colors.text : colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
-          className={`flex-1 ${radius.full} ${pill} items-center justify-center`}
+          style={{ flex: 1, backgroundColor: activeTab === 'websites' ? colors.text : colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
+          className={`${radius.full} ${pill} items-center justify-center`}
         >
           <Text style={{ color: activeTab === 'websites' ? colors.bg : colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>
             Websites
           </Text>
-        </TouchableOpacity>
+        </FlashPressable>
       </View>
 
       {activeTab === 'apps' ? (
@@ -310,16 +310,15 @@ function SelectAppsScreen({
 
       {/* Save Button */}
       <View style={{ backgroundColor: colors.bg, borderTopWidth: 1, borderTopColor: colors.divider }} className="absolute bottom-0 left-0 right-0 p-4">
-        <TouchableOpacity
+        <FlashPressable
           onPress={() => onSave()}
-          activeOpacity={0.8}
           style={{ backgroundColor: colors.text, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
           className={`${radius.full} ${pill} items-center justify-center`}
         >
           <Text style={{ color: colors.bg }} className={`${textSize.large} ${fontFamily.semibold}`}>
             Save Selection
           </Text>
-        </TouchableOpacity>
+        </FlashPressable>
       </View>
     </SafeAreaView>
   );

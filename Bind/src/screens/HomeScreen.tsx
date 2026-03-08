@@ -4,8 +4,8 @@ import {
   Text,
   View,
   NativeModules,
-  TouchableOpacity,
   AppState,
+  TouchableOpacity,
   ScrollView,
   Modal,
   Platform,
@@ -26,6 +26,7 @@ import { updateLockStatus, Preset, useEmergencyTapout, activatePreset, savePrese
 import { useTheme , textSize, fontFamily, radius, shadow, iconSize } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { useAuth } from '../context/AuthContext';
+import FlashPressable from '../components/FlashPressable';
 
 
 const { BlockingModule, PermissionsModule } = NativeModules;
@@ -1240,9 +1241,8 @@ function HomeScreen() {
 
             {/* Scheduled Presets Button - absolutely positioned under preset text */}
             {scheduledPresets.length > 0 && (
-              <TouchableOpacity
+              <FlashPressable
                 onPress={() => { setScheduledPresetsModalVisible(true); }}
-                activeOpacity={0.7}
                 className={`px-5 py-2.5 ${radius.full} flex-row items-center`}
                 style={{
                   backgroundColor: colors.card,
@@ -1259,7 +1259,7 @@ function HomeScreen() {
                 <Text style={{ color: colors.text }} className={`${textSize.extraSmall} ${fontFamily.semibold}`}>
                   {scheduledPresets.length} Scheduled
                 </Text>
-              </TouchableOpacity>
+              </FlashPressable>
             )}
           </View>
         </View>

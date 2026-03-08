@@ -24,7 +24,7 @@ const SIZE_DIMENSIONS = {
   default: { trackWidth: 52, trackHeight: 28, thumbSize: 24, thumbOffset: 2 },
 } as const;
 
-const FLASH_FADE_DURATION = 300;
+const FLASH_FADE_DURATION = 180;
 
 function AnimatedSwitch({
   value,
@@ -64,8 +64,8 @@ function AnimatedSwitch({
     if (animate) {
       Animated.spring(animatedValue, {
         toValue: value ? 1 : 0,
-        speed: 28,
-        bounciness: 4,
+        speed: 40,
+        bounciness: 8,
         useNativeDriver: false,
       }).start();
     } else {
@@ -78,7 +78,7 @@ function AnimatedSwitch({
     if (!disabled) {
       if (flashAnimRef.current) flashAnimRef.current.stop();
       // Hold flash + scale while finger is down
-      flashOpacity.setValue(0.35);
+      flashOpacity.setValue(0.3);
       Animated.spring(thumbScale, {
         toValue: 0.8,
         speed: 50,
@@ -154,9 +154,9 @@ function AnimatedSwitch({
           <Animated.View
             style={{
               position: 'absolute',
-              width: thumbSize * 1.8,
-              height: thumbSize * 1.8,
-              borderRadius: (thumbSize * 1.8) / 2,
+              width: thumbSize * 1.6,
+              height: thumbSize * 1.6,
+              borderRadius: (thumbSize * 1.6) / 2,
               backgroundColor: '#FFFFFF',
               opacity: flashOpacity,
             }}

@@ -1,6 +1,7 @@
 import React, { memo } from 'react';
-import { TouchableOpacity, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import LoadingSpinner from './LoadingSpinner';
+import FlashPressable from './FlashPressable';
 
 import { useTheme , textSize, fontFamily, radius, shadow, pill } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
@@ -60,10 +61,9 @@ function Button({
   };
 
   return (
-    <TouchableOpacity
+    <FlashPressable
       onPress={onPress}
       disabled={disabled || loading}
-      activeOpacity={0.8}
       style={[getButtonStyle(), {
         borderWidth: 1, borderColor: colors.border,
         ...shadow.card,
@@ -76,7 +76,7 @@ function Button({
           <LoadingSpinner size={s(22)} color={getTextStyle().color} />
         </View>
       )}
-    </TouchableOpacity>
+    </FlashPressable>
   );
 }
 

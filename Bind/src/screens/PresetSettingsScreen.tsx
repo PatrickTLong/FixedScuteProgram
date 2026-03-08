@@ -3,6 +3,7 @@ import {
   View,
   Text,
   TouchableOpacity,
+  Pressable,
   ScrollView,
   Animated,
   Easing,
@@ -12,10 +13,12 @@ import {
   Image,
 } from 'react-native';
 import AnimatedSwitch from '../components/AnimatedSwitch';
+import FlashPressable from '../components/FlashPressable';
+import { useFlashPress } from '../utils/useFlashPress';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Svg, { Path } from 'react-native-svg';
-import { XCircleIcon, CheckCircleIcon, PaperPlaneTiltIcon, ArrowsClockwiseIcon, ImageIcon, ImageSquareIcon, AndroidLogoIcon, InfoIcon as PhosphorInfoIcon, ArticleNyTimesIcon, HeartStraightBreakIcon } from 'phosphor-react-native';
+import { XCircleIcon, CheckCircleIcon, ImageIcon, ImageSquareIcon, AndroidLogoIcon, InfoIcon as PhosphorInfoIcon, ArticleNyTimesIcon, HeartStraightBreakIcon } from 'phosphor-react-native';
 import SettingsCogIcon from '../components/SettingsCogIcon';
 import ReplyArrowIcon from '../components/ReplyArrowIcon';
 import { launchImageLibrary } from 'react-native-image-picker';
@@ -143,11 +146,17 @@ const GlobeIcon = ({ size = iconSize.md, color = '#FFFFFF' }: { size?: number; c
 );
 
 const RotateCwIcon = ({ size = iconSize.lg, color = '#FFFFFF' }: { size?: number; color?: string }) => (
-  <ArrowsClockwiseIcon size={size} color={color} weight="fill" />
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
+    <Path d="M2.5 16.5A0.5 0.5 0 0 1 2 16V7.5a0.5 0.5 0 0 1 0.5 -0.5H16a0.5 0.5 0 0 1 0.5 0.5v2.07a7.18 7.18 0 0 1 2 0V3a1 1 0 0 0 -1 -1H15a0.25 0.25 0 0 1 -0.25 -0.25v-1a0.75 0.75 0 0 0 -1.5 0V4.5a0.75 0.75 0 0 1 -1.5 0v-2a0.5 0.5 0 0 0 -0.5 -0.5H7a0.25 0.25 0 0 1 -0.25 -0.25v-1a0.75 0.75 0 0 0 -1.5 0V4.5a0.75 0.75 0 0 1 -1.5 0v-2a0.5 0.5 0 0 0 -0.5 -0.5H1a1 1 0 0 0 -1 1v13.5a2 2 0 0 0 2 2h7.57a7.18 7.18 0 0 1 0 -2Z" />
+    <Path d="M22.77 18.6a1 1 0 0 0 -1.27 0.62 4.09 4.09 0 0 1 -7.07 1.24l1.88 -1.88a0.5 0.5 0 0 0 -0.35 -0.86H11.5a0.5 0.5 0 0 0 -0.5 0.5v4.46a0.5 0.5 0 0 0 0.31 0.46 0.47 0.47 0 0 0 0.54 -0.11L13 21.88a6.09 6.09 0 0 0 10.38 -2 1 1 0 0 0 -0.61 -1.28Z" />
+    <Path d="M23.69 11.77a0.51 0.51 0 0 0 -0.54 0.11l-1.21 1.21a6.1 6.1 0 0 0 -10.37 2 1 1 0 1 0 1.89 0.65 4.09 4.09 0 0 1 7.05 -1.27l-1.82 1.83a0.5 0.5 0 0 0 0.35 0.85h4.46a0.5 0.5 0 0 0 0.5 -0.5v-4.41a0.5 0.5 0 0 0 -0.31 -0.47Z" />
+  </Svg>
 );
 
 const SendIcon = ({ size = iconSize.forTabs, color = '#FFFFFF' }: { size?: number; color?: string }) => (
-  <PaperPlaneTiltIcon size={size} color={color} weight="fill" />
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
+    <Path d="M23.61 0.23a1.05 1.05 0 0 0 -1.14 -0.11L0.83 11.65A1.54 1.54 0 0 0 1 14.44l3.26 1.38a0.69 0.69 0 0 0 0 0.25l2.5 6.74a1.82 1.82 0 0 0 2.93 0.72l3.4 -3.76a0.26 0.26 0 0 1 0.29 -0.06l3.15 1.34a1.63 1.63 0 0 0 1.3 0 1.53 1.53 0 0 0 0.83 -1L24 1.3a1 1 0 0 0 -0.39 -1.07ZM5.84 16.05 15.53 8a0.23 0.23 0 0 1 0.34 0 0.22 0.22 0 0 1 0 0.33l-7.22 8.86a0.75 0.75 0 0 0 -0.16 0.35l-0.63 3.95Z" />
+  </Svg>
 );
 
 // ============ Time Preset Circles ============
@@ -197,6 +206,7 @@ const TimePresetCircle = memo(({ label, onPress, onLongPressAdd }: {
   const activeRef = useRef(false);
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const borderAnim = useRef(new Animated.Value(0)).current;
+  const { flashOpacity, onPressIn: flashIn, onPressOut: flashOut } = useFlashPress();
 
   const clearTimers = useCallback(() => {
     activeRef.current = false;
@@ -219,6 +229,7 @@ const TimePresetCircle = memo(({ label, onPress, onLongPressAdd }: {
   const handlePressIn = useCallback(() => {
     didLongPress.current = false;
     activeRef.current = true;
+    flashIn();
     Animated.timing(scaleAnim, { toValue: 0.9, useNativeDriver: true, duration: 30 }).start();
     Animated.timing(borderAnim, { toValue: 1, useNativeDriver: false, duration: 30 }).start();
     timeoutRef.current = setTimeout(() => {
@@ -229,13 +240,14 @@ const TimePresetCircle = memo(({ label, onPress, onLongPressAdd }: {
       onLongPressAddRef.current();
       scheduleNext(LONG_PRESS_START_INTERVAL);
     }, LONG_PRESS_INITIAL_DELAY);
-  }, [scheduleNext, scaleAnim, borderAnim]);
+  }, [scheduleNext, scaleAnim, borderAnim, flashIn]);
 
   const handlePressOut = useCallback(() => {
     clearTimers();
+    flashOut();
     Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true, speed: 12, bounciness: 14 }).start();
     Animated.timing(borderAnim, { toValue: 0, useNativeDriver: false, duration: 200 }).start();
-  }, [clearTimers, scaleAnim, borderAnim]);
+  }, [clearTimers, scaleAnim, borderAnim, flashOut]);
 
   const handlePress = useCallback(() => {
     if (!didLongPress.current) {
@@ -267,13 +279,14 @@ const TimePresetCircle = memo(({ label, onPress, onLongPressAdd }: {
           borderColor: animatedBorderColor,
           alignItems: 'center',
           justifyContent: 'center',
+          overflow: 'hidden',
         }}
       >
-        <TouchableOpacity
+        <Animated.View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#FFFFFF', opacity: flashOpacity }} pointerEvents="none" />
+        <Pressable
           onPress={handlePress}
           onPressIn={handlePressIn}
           onPressOut={handlePressOut}
-          activeOpacity={0.7}
           style={{
             width: '100%',
             height: '100%',
@@ -287,7 +300,7 @@ const TimePresetCircle = memo(({ label, onPress, onLongPressAdd }: {
           >
             {label}
           </Text>
-        </TouchableOpacity>
+        </Pressable>
       </Animated.View>
     </Animated.View>
   );
@@ -1124,9 +1137,8 @@ function PresetSettingsScreen() {
               <View className="px-6" style={{ paddingTop: s(8) }}>
 
             {/* Start Date */}
-            <TouchableOpacity
+            <FlashPressable
               onPress={() => openDatePicker('scheduleStart')}
-              activeOpacity={0.7}
               style={{ backgroundColor: colors.card, paddingVertical: s(buttonPadding.standard + 4), borderWidth: 1, borderColor: colors.border, ...shadow.card }}
               className={`flex-row items-center px-5 ${radius.xl} mb-3`}
             >
@@ -1156,14 +1168,13 @@ function PresetSettingsScreen() {
                     <XIcon size={s(iconSize.headerNav)} color={colors.text} />
                   </HeaderIconButton>
                 )}
-            </TouchableOpacity>
+            </FlashPressable>
 
             {/* Date picker rendered as full-screen overlay */}
 
             {/* End Date */}
-            <TouchableOpacity
+            <FlashPressable
               onPress={() => openDatePicker('scheduleEnd')}
-                activeOpacity={0.7}
                 style={{ backgroundColor: colors.card, paddingVertical: s(buttonPadding.standard + 4), borderWidth: 1, borderColor: colors.border, ...shadow.card }}
                 className={`flex-row items-center px-5 ${radius.xl} mb-4`}
               >
@@ -1193,7 +1204,7 @@ function PresetSettingsScreen() {
                     <XIcon size={s(iconSize.headerNav)} color={colors.text} />
                   </HeaderIconButton>
                 )}
-            </TouchableOpacity>
+            </FlashPressable>
 
             {/* Date picker rendered as full-screen overlay */}
 
@@ -1211,7 +1222,11 @@ function PresetSettingsScreen() {
                 <View>
                   <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
                     <View style={{ maxWidth: '75%' }} className="flex-row items-center">
-                      <ArrowsClockwiseIcon size={s(iconSize.toggleRow)} color={colors.textSecondary} weight="fill" style={{ marginRight: s(14) }} />
+                      <Svg width={s(iconSize.toggleRow)} height={s(iconSize.toggleRow)} viewBox="0 0 24 24" fill="none" style={{ marginRight: s(14) }}>
+                        <Path d="M2.5 16.5A0.5 0.5 0 0 1 2 16V7.5a0.5 0.5 0 0 1 0.5 -0.5H16a0.5 0.5 0 0 1 0.5 0.5v2.07a7.18 7.18 0 0 1 2 0V3a1 1 0 0 0 -1 -1H15a0.25 0.25 0 0 1 -0.25 -0.25v-1a0.75 0.75 0 0 0 -1.5 0V4.5a0.75 0.75 0 0 1 -1.5 0v-2a0.5 0.5 0 0 0 -0.5 -0.5H7a0.25 0.25 0 0 1 -0.25 -0.25v-1a0.75 0.75 0 0 0 -1.5 0V4.5a0.75 0.75 0 0 1 -1.5 0v-2a0.5 0.5 0 0 0 -0.5 -0.5H1a1 1 0 0 0 -1 1v13.5a2 2 0 0 0 2 2h7.57a7.18 7.18 0 0 1 0 -2Z" fill={colors.textSecondary} />
+                        <Path d="M22.77 18.6a1 1 0 0 0 -1.27 0.62 4.09 4.09 0 0 1 -7.07 1.24l1.88 -1.88a0.5 0.5 0 0 0 -0.35 -0.86H11.5a0.5 0.5 0 0 0 -0.5 0.5v4.46a0.5 0.5 0 0 0 0.31 0.46 0.47 0.47 0 0 0 0.54 -0.11L13 21.88a6.09 6.09 0 0 0 10.38 -2 1 1 0 0 0 -0.61 -1.28Z" fill={colors.textSecondary} />
+                        <Path d="M23.69 11.77a0.51 0.51 0 0 0 -0.54 0.11l-1.21 1.21a6.1 6.1 0 0 0 -10.37 2 1 1 0 1 0 1.89 0.65 4.09 4.09 0 0 1 7.05 -1.27l-1.82 1.83a0.5 0.5 0 0 0 0.35 0.85h4.46a0.5 0.5 0 0 0 0.5 -0.5v-4.41a0.5 0.5 0 0 0 -0.31 -0.47Z" fill={colors.textSecondary} />
+                      </Svg>
                       <View className="flex-1">
                         <View className="flex-row items-center">
                           <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Recurring Schedule</Text>
@@ -1387,10 +1402,26 @@ function PresetSettingsScreen() {
               <View className="pb-4" style={{ paddingTop: s(8) }}>
                 {/* Current total display — fixed DD:HH:MM:SS format */}
                 <View style={{ position: 'relative' }} className="items-center justify-center mb-4 px-6">
-                  <View className="flex-row items-center">
-                    <Text style={{ color: colors.text }} className={`${textSize['2xLarge']} ${fontFamily.bold}`}>
-                      {`${pad2(timerDays)}:${pad2(timerHours)}:${pad2(timerMinutes)}:${pad2(timerSeconds)}`}
-                    </Text>
+                  <View className="flex-row items-end">
+                    <View className="items-center">
+                      <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>DD</Text>
+                      <Text style={{ color: colors.text }} className={`${textSize['2xLarge']} ${fontFamily.bold}`}>{pad2(timerDays)}</Text>
+                    </View>
+                    <Text style={{ color: colors.text }} className={`${textSize['2xLarge']} ${fontFamily.bold}`}>:</Text>
+                    <View className="items-center">
+                      <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>HH</Text>
+                      <Text style={{ color: colors.text }} className={`${textSize['2xLarge']} ${fontFamily.bold}`}>{pad2(timerHours)}</Text>
+                    </View>
+                    <Text style={{ color: colors.text }} className={`${textSize['2xLarge']} ${fontFamily.bold}`}>:</Text>
+                    <View className="items-center">
+                      <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>MM</Text>
+                      <Text style={{ color: colors.text }} className={`${textSize['2xLarge']} ${fontFamily.bold}`}>{pad2(timerMinutes)}</Text>
+                    </View>
+                    <Text style={{ color: colors.text }} className={`${textSize['2xLarge']} ${fontFamily.bold}`}>:</Text>
+                    <View className="items-center">
+                      <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>SS</Text>
+                      <Text style={{ color: colors.text }} className={`${textSize['2xLarge']} ${fontFamily.bold}`}>{pad2(timerSeconds)}</Text>
+                    </View>
                   </View>
                   <View style={{ position: 'absolute', right: s(70), opacity: (timerDays > 0 || timerHours > 0 || timerMinutes > 0 || timerSeconds > 0) ? 1 : 0 }} pointerEvents={(timerDays > 0 || timerHours > 0 || timerMinutes > 0 || timerSeconds > 0) ? 'auto' : 'none'}>
                     <HeaderIconButton onPress={() => { setTimerDays(0); setTimerHours(0); setTimerMinutes(0); setTimerSeconds(0); }}>
@@ -1481,9 +1512,8 @@ function PresetSettingsScreen() {
             {/* Date picker button (shown when date is enabled) */}
             <ExpandableInfo expanded={dateEnabled}>
               <View className="px-6 pb-4">
-                <TouchableOpacity
+                <FlashPressable
                   onPress={() => openDatePicker('targetDate')}
-                  activeOpacity={0.7}
                   style={{ backgroundColor: colors.card, paddingVertical: s(buttonPadding.standard + 4), borderWidth: 1, borderColor: colors.border, ...shadow.card }}
                   className={`flex-row items-center px-5 ${radius.xl}`}
                 >
@@ -1505,7 +1535,7 @@ function PresetSettingsScreen() {
                       <XIcon size={s(iconSize.headerNav)} color={colors.text} />
                     </HeaderIconButton>
                   )}
-                </TouchableOpacity>
+                </FlashPressable>
               </View>
             </ExpandableInfo>
   
