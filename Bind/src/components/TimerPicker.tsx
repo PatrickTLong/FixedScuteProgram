@@ -102,6 +102,7 @@ const Wheel = memo(({ values, selectedValue, onValueChange, label, textColor, te
       <View style={{ height: itemHeight * VISIBLE_ITEMS, width: wheelWidth, overflow: 'hidden' }}>
         <ScrollView
           ref={scrollRef}
+          contentOffset={{ x: 0, y: selectedIndex * itemHeight }}
           showsVerticalScrollIndicator={false}
           snapToInterval={itemHeight}
           decelerationRate="fast"

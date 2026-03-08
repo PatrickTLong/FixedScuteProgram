@@ -227,6 +227,7 @@ const TimePresetCircle = memo(({ label, onPress, onLongPressAdd }: {
   }, []);
 
   const handlePressIn = useCallback(() => {
+    clearTimers();
     didLongPress.current = false;
     activeRef.current = true;
     flashIn();
@@ -240,7 +241,7 @@ const TimePresetCircle = memo(({ label, onPress, onLongPressAdd }: {
       onLongPressAddRef.current();
       scheduleNext(LONG_PRESS_START_INTERVAL);
     }, LONG_PRESS_INITIAL_DELAY);
-  }, [scheduleNext, scaleAnim, borderAnim, flashIn]);
+  }, [clearTimers, scheduleNext, scaleAnim, borderAnim, flashIn]);
 
   const handlePressOut = useCallback(() => {
     clearTimers();
@@ -399,6 +400,7 @@ const RecurrenceWheel = memo(({ values, selectedValue, onValueChange, textColor,
       <View style={{ height: itemHeight * RECURRENCE_VISIBLE_ITEMS, width: wheelWidth, overflow: 'hidden' }}>
         <ScrollView
           ref={scrollRef}
+          contentOffset={{ x: 0, y: selectedIndex * itemHeight }}
           showsVerticalScrollIndicator={false}
           snapToInterval={itemHeight}
           decelerationRate="fast"
@@ -1316,7 +1318,7 @@ function PresetSettingsScreen() {
                       return (
                         <View style={{ backgroundColor: colors.card, paddingVertical: s(buttonPadding.standard), borderWidth: 1, borderColor: colors.border, ...shadow.card }} className={`flex-row items-center px-4 ${radius.xl}`}>
                           <View className={`w-10 h-10 ${radius.lg} items-center justify-center mr-3`}>
-                            <SendIcon size={s(iconSize.lg)} />
+                            <SendIcon size={s(iconSize.lg)} color={colors.textSecondary} />
                           </View>
                           <View className="flex-1">
                             <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>

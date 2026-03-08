@@ -1182,10 +1182,18 @@ function HomeScreen() {
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: s(8) }}>
           {/* Notification Permission Toggle */}
           <HeaderIconButton onPress={openNotificationSettings}>
-            <Svg width={s(iconSize.headerNav)} height={s(iconSize.headerNav)} viewBox="0 0 24 24" fill={notificationsEnabled ? '#FFFFFF' : colors.textMuted}>
-              <Path d="M5.85 3.5a.75.75 0 0 0-1.117-1 9.719 9.719 0 0 0-2.348 4.876.75.75 0 0 0 1.479.248A8.219 8.219 0 0 1 5.85 3.5ZM19.267 2.5a.75.75 0 1 0-1.118 1 8.22 8.22 0 0 1 1.987 4.124.75.75 0 0 0 1.48-.248A9.72 9.72 0 0 0 19.266 2.5Z" />
-              <Path fillRule="evenodd" clipRule="evenodd" d="M12 2.25A6.75 6.75 0 0 0 5.25 9v.75a8.217 8.217 0 0 1-2.119 5.52.75.75 0 0 0 .298 1.206c1.544.57 3.16.99 4.831 1.243a3.75 3.75 0 1 0 7.48 0 24.583 24.583 0 0 0 4.83-1.244.75.75 0 0 0 .298-1.205 8.217 8.217 0 0 1-2.118-5.52V9A6.75 6.75 0 0 0 12 2.25ZM9.75 18c0-.034 0-.067.002-.1a25.05 25.05 0 0 0 4.496 0l.002.1a2.25 2.25 0 1 1-4.5 0Z" />
-            </Svg>
+            {notificationsEnabled ? (
+              <Svg width={s(iconSize.headerNav)} height={s(iconSize.headerNav)} viewBox="0 0 24 24" fill="#FFFFFF">
+                <Path d="M14.24 21H9.76a0.25 0.25 0 0 0-0.24 0.22 2.64 2.64 0 0 0 0 0.28 2.5 2.5 0 0 0 5 0 2.64 2.64 0 0 0 0-0.28 0.25 0.25 0 0 0-0.28-0.22Z" />
+                <Path d="M21.45 19.28a16.29 16.29 0 0 1-1.75-7.34v-0.76a9.11 9.11 0 0 0-3.87-7.63 6.31 6.31 0 0 0-2.33-0.91V1.5a1.5 1.5 0 0 0-3 0v1.15a6.68 6.68 0 0 0-2.85 1.28 9.18 9.18 0 0 0-3.35 7.25v0.76a16.29 16.29 0 0 1-1.75 7.34 0.51 0.51 0 0 0 0 0.48A0.52 0.52 0 0 0 3 20h18a0.52 0.52 0 0 0 0.43-0.24 0.51 0.51 0 0 0 0.02-0.48Z" />
+              </Svg>
+            ) : (
+              <Svg width={s(iconSize.headerNav)} height={s(iconSize.headerNav)} viewBox="0 0 24 24" fill={colors.textMuted}>
+                <Path d="M21 19.5a1 1 0 0 0 0-2 1.5 1.5 0 0 1-1.5-1.5v-4.86a8.65 8.65 0 0 0-0.4-2.62l-11 11Z" />
+                <Path d="M14.24 21H9.76a0.25 0.25 0 0 0-0.24 0.22 2.64 2.64 0 0 0 0 0.28 2.5 2.5 0 0 0 5 0 2.64 2.64 0 0 0 0-0.28 0.25 0.25 0 0 0-0.28-0.22Z" />
+                <Path d="M1 24a1 1 0 0 0 0.71-0.28l22-22a1 1 0 0 0 0-1.42 1 1 0 0 0-1.42 0l-5 5A7.31 7.31 0 0 0 13 3.07V1a1 1 0 0 0-2 0v2.07a8 8 0 0 0-6.5 8.07V16A1.5 1.5 0 0 1 3 17.5a1 1 0 0 0 0 2h0.09l-2.8 2.79a1 1 0 0 0 0 1.42A1 1 0 0 0 1 24Z" />
+              </Svg>
+            )}
           </HeaderIconButton>
 
           {/* Widget Bubble Toggle */}

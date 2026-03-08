@@ -147,6 +147,7 @@ const TimeWheel = memo(({ values, selectedValue, onValueChange, padZero = true, 
     <View style={{ height: itemHeight * TIME_VISIBLE_ITEMS, width: wheelWidth, overflow: 'hidden' }}>
       <ScrollView
         ref={scrollRef}
+        contentOffset={{ x: 0, y: selectedIndex * itemHeight }}
         showsVerticalScrollIndicator={false}
         snapToInterval={itemHeight}
         decelerationRate="fast"
