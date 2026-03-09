@@ -165,11 +165,19 @@ class WebsiteMonitorService(private val context: Context) {
         val strictMode = prefs.getBoolean("strict_mode", true)
         val customBlockedText = prefs.getString("custom_blocked_text", "") ?: ""
         val customOverlayImage = prefs.getString("custom_overlay_image", "") ?: ""
+        val skipOverlay = prefs.getBoolean("skip_overlay", false)
 
-        Log.d(TAG, "showBlockedOverlay: site=$blockedSite, customBlockedText='$customBlockedText', customOverlayImage='$customOverlayImage'")
+        Log.d(TAG, "showBlockedOverlay: site=$blockedSite, skipOverlay=$skipOverlay, customBlockedText='$customBlockedText', customOverlayImage='$customOverlayImage'")
 
         // Redirect to safe URL BEFORE showing overlay (so it appears underneath)
         redirectToSafeUrl()
+
+        // Skip overlay — just redirect, no overlay shown
+        if (skipOverlay) {
+            Log.d(TAG, "Skip overlay enabled — no overlay shown for $blockedSite")
+            onRedirectToSafeUrl?.invoke()
+            return
+        }
 
         // Show overlay instantly with website name (use the blocked site as the display name)
         val shown = overlayManager?.show(

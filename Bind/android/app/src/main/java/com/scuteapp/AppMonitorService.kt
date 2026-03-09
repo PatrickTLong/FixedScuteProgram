@@ -283,8 +283,19 @@ class AppMonitorService(private val context: Context) {
         val strictMode = prefs.getBoolean("strict_mode", true)
         val customBlockedText = prefs.getString("custom_blocked_text", "") ?: ""
         val customOverlayImage = prefs.getString("custom_overlay_image", "") ?: ""
+        val skipOverlay = prefs.getBoolean("skip_overlay", false)
 
-        Log.d(TAG, "showBlockedOverlay: pkg=$packageName, customBlockedText='$customBlockedText', customOverlayImage='$customOverlayImage'")
+        Log.d(TAG, "showBlockedOverlay: pkg=$packageName, skipOverlay=$skipOverlay, customBlockedText='$customBlockedText', customOverlayImage='$customOverlayImage'")
+
+        // Pause media
+        pauseMedia()
+
+        // Skip overlay — just kicked home, resume polling after brief delay
+        if (skipOverlay) {
+            Log.d(TAG, "Skip overlay enabled — no overlay shown for $packageName")
+            handler.postDelayed({ resumePolling() }, 500)
+            return
+        }
 
         val blockedType = if (isSettingsApp(packageName)) {
             Log.d(TAG, "Detected settings app blocked: $packageName")
@@ -301,9 +312,6 @@ class AppMonitorService(private val context: Context) {
         } catch (e: Exception) {
             null
         }
-
-        // Pause media
-        pauseMedia()
 
         // Show overlay instantly with app name
         val shown = overlayManager?.show(

@@ -124,8 +124,9 @@ class BlockingModule(reactContext: ReactApplicationContext) :
             val customBlockedText = if (config.hasKey("customBlockedText")) config.getString("customBlockedText") else ""
             val customOverlayImage = if (config.hasKey("customOverlayImage")) config.getString("customOverlayImage") else ""
             val customRedirectUrl = if (config.hasKey("customRedirectUrl")) config.getString("customRedirectUrl") else ""
+            val skipOverlay = if (config.hasKey("skipOverlay")) config.getBoolean("skipOverlay") else false
 
-            Log.d(TAG, "[START-BLOCKING] Config: presetName=\"$presetName\", presetId=$presetId, noTimeLimit=$noTimeLimit, strictMode=$strictMode")
+            Log.d(TAG, "[START-BLOCKING] Config: presetName=\"$presetName\", presetId=$presetId, noTimeLimit=$noTimeLimit, strictMode=$strictMode, skipOverlay=$skipOverlay")
             Log.d(TAG, "[START-BLOCKING] Timing: endTime=$endTime (${java.util.Date(endTime)}), hasTimeLimit=$hasTimeLimit")
             Log.d(TAG, "[START-BLOCKING] Blocking: apps=${appSet.size}, websites=${websiteSet.size}, customText='$customBlockedText', customImage='$customOverlayImage'")
             Log.d(TAG, "[START-BLOCKING] Redirect: customRedirectUrl='$customRedirectUrl'")
@@ -163,6 +164,7 @@ class BlockingModule(reactContext: ReactApplicationContext) :
                 .putString("custom_blocked_text", customBlockedText)
                 .putString("custom_overlay_image", customOverlayImage)
                 .putString("custom_redirect_url", customRedirectUrl)
+                .putBoolean("skip_overlay", skipOverlay)
                 .apply()
 
             Log.d(TAG, "[START-BLOCKING] SharedPreferences saved — noTimeLimit=$noTimeLimit, isScheduled=$isScheduled, presetName=\"$presetName\", presetId=$presetId, customRedirectUrl='$customRedirectUrl'")
@@ -403,6 +405,7 @@ class BlockingModule(reactContext: ReactApplicationContext) :
                 .remove("custom_blocked_text")
                 .remove("custom_overlay_image")
                 .remove("custom_redirect_url")
+                .remove("skip_overlay")
                 .apply()
             Log.d(TAG, "[FORCE-UNLOCK] SharedPreferences cleared")
 

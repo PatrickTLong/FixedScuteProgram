@@ -700,6 +700,9 @@ function PresetSettingsScreen() {
   const [svgKey, setSvgKey] = useState(0);
   const [skipSwitchAnimation, setSkipSwitchAnimation] = useState(false);
 
+  // Skip overlay — just kick out without showing overlay
+  const [skipOverlay, setSkipOverlay] = useState(false);
+
   // Section collapse state
   const [timeBlocksExpanded, setTimeBlocksExpanded] = useState(true);
   const [advancedExpanded, setAdvancedExpanded] = useState(true);
@@ -731,6 +734,7 @@ function PresetSettingsScreen() {
   const customOverlayImageRef = useRef(customOverlayImage);
   const customRedirectEnabledRef = useRef(customRedirectEnabled);
   const customRedirectUrlRef = useRef(customRedirectUrl);
+  const skipOverlayRef = useRef(skipOverlay);
   const timeBlocksExpandedRef = useRef(timeBlocksExpanded);
   const advancedExpandedRef = useRef(advancedExpanded);
   const strictnessExpandedRef = useRef(strictnessExpanded);
@@ -758,6 +762,7 @@ function PresetSettingsScreen() {
   customRedirectUrlRef.current = customRedirectUrl;
   customBlockedTextRef.current = customBlockedText;
   customOverlayImageRef.current = customOverlayImage;
+  skipOverlayRef.current = skipOverlay;
   timeBlocksExpandedRef.current = timeBlocksExpanded;
   advancedExpandedRef.current = advancedExpanded;
   strictnessExpandedRef.current = strictnessExpanded;
@@ -793,6 +798,7 @@ function PresetSettingsScreen() {
         setCustomOverlayEnabled(!!(savedState.customBlockedText || savedState.customOverlayImage));
         setCustomRedirectUrl(savedState.customRedirectUrl ?? '');
         setCustomRedirectEnabled(!!savedState.customRedirectUrl);
+        setSkipOverlay(savedState.skipOverlay ?? false);
         setTimeBlocksExpanded(savedState.timeBlocksExpanded ?? true);
         setAdvancedExpanded(savedState.advancedExpanded ?? true);
         setStrictnessExpanded(savedState.strictnessExpanded ?? true);
@@ -822,6 +828,7 @@ function PresetSettingsScreen() {
           setCustomOverlayEnabled(!!(editingPreset.customBlockedText || editingPreset.customOverlayImage));
           setCustomRedirectUrl(editingPreset.customRedirectUrl ?? '');
           setCustomRedirectEnabled(!!editingPreset.customRedirectUrl);
+          setSkipOverlay(editingPreset.skipOverlay ?? false);
           setTimeBlocksExpanded(editingPreset.timeBlocksExpanded ?? true);
           setAdvancedExpanded(editingPreset.advancedExpanded ?? true);
           setStrictnessExpanded(editingPreset.strictnessExpanded ?? true);
@@ -850,6 +857,7 @@ function PresetSettingsScreen() {
           setCustomOverlayEnabled(false);
           setCustomRedirectUrl('');
           setCustomRedirectEnabled(false);
+          setSkipOverlay(false);
           setTimeBlocksExpanded(true);
           setAdvancedExpanded(true);
           setStrictnessExpanded(true);
@@ -911,6 +919,7 @@ function PresetSettingsScreen() {
           customBlockedText: customBlockedTextRef.current,
           customOverlayImage: customOverlayImageRef.current,
           customRedirectUrl: customRedirectUrlRef.current,
+          skipOverlay: skipOverlayRef.current,
           timeBlocksExpanded: timeBlocksExpandedRef.current,
           advancedExpanded: advancedExpandedRef.current,
           strictnessExpanded: strictnessExpandedRef.current,
@@ -1083,6 +1092,7 @@ function PresetSettingsScreen() {
       customBlockedText: customOverlayEnabled && customBlockedText ? customBlockedText.trim() : undefined,
       customOverlayImage: customOverlayEnabled && customOverlayImage ? customOverlayImage : undefined,
       customRedirectUrl: customRedirectEnabled && customRedirectUrl && customRedirectUrl.trim().includes('.') ? customRedirectUrl.trim() : undefined,
+      skipOverlay,
       timeBlocksExpanded,
       advancedExpanded,
       strictnessExpanded,
@@ -1788,7 +1798,50 @@ function PresetSettingsScreen() {
         <SectionHeader title="Advanced" expanded={advancedExpanded} onToggle={() => setAdvancedExpanded(v => !v)} colors={colors} s={s} />
         {advancedExpanded && <>
 
-        {/* Custom Overlay Toggle */}
+        {/* Skip Overlay Toggle — hidden when Custom Overlay is on */}
+        {!customOverlayEnabled && (
+          <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight, paddingVertical: s(4) }}>
+            <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
+              <View style={{ maxWidth: '75%' }} className="flex-row items-center">
+                <Svg width={s(iconSize.toggleRow)} height={s(iconSize.toggleRow)} viewBox="0 0 256 256" fill={colors.textSecondary} style={{ marginRight: s(14) }}>
+                  <Path d="M208,40V216a8,8,0,0,1-16,0V146.77L72.43,221.55A15.95,15.95,0,0,1,48,208.12V47.88A15.95,15.95,0,0,1,72.43,34.45L192,109.23V40a8,8,0,0,1,16,0Z" />
+                </Svg>
+                <View className="flex-1">
+                  <View className="flex-row items-center">
+                    <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Skip Overlay</Text>
+                    <TouchableOpacity onPress={() => toggleInfo('skipOverlay')} activeOpacity={0.7} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} style={{ marginLeft: s(6) }}>
+                      <InfoIcon expanded={!!expandedInfo.skipOverlay} color={colors.textSecondary} size={s(16)} />
+                    </TouchableOpacity>
+                  </View>
+                  <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-1`}>No overlay, just kick out or redirect</Text>
+                </View>
+              </View>
+              <AnimatedSwitch
+                size="small"
+                value={skipOverlay}
+                animate={!skipSwitchAnimation}
+                onValueChange={(value: boolean) => {
+                  setSkipOverlay(value);
+                  if (value) {
+                    setCustomOverlayEnabled(false);
+                    setCustomBlockedText('');
+                    setCustomOverlayImage('');
+                  }
+                }}
+              />
+            </View>
+            <AnimatedInfoExpand expanded={!!expandedInfo.skipOverlay}>
+              <View className="px-6 pb-4">
+                <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular} leading-5`}>
+                  When enabled, blocked apps will just kick you back to the home screen without showing an overlay. Blocked websites will immediately redirect without an overlay.
+                </Text>
+              </View>
+            </AnimatedInfoExpand>
+          </View>
+        )}
+
+        {/* Custom Overlay Toggle — hidden when Skip Overlay is on */}
+        {!skipOverlay && (
         <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight, paddingVertical: s(4) }}>
           <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
             <View style={{ maxWidth: '75%' }} className="flex-row items-center">
@@ -1810,7 +1863,9 @@ function PresetSettingsScreen() {
               onValueChange={(value: boolean) => {
                 console.log('[OVERLAY] Toggle changed:', value);
                 setCustomOverlayEnabled(value);
-                if (!value) {
+                if (value) {
+                  setSkipOverlay(false);
+                } else {
                   setCustomBlockedText('');
                   setCustomOverlayImage('');
                 }
@@ -1956,6 +2011,7 @@ function PresetSettingsScreen() {
           </ExpandableInfo>
 
         </View>
+        )}
 
         {/* Custom Redirect URL Toggle */}
         <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight, paddingVertical: s(4) }}>

@@ -271,6 +271,8 @@ export interface Preset {
   customOverlayImage?: string;
   // Custom redirect URL - where browser goes when a blocked website is detected (default: google.com)
   customRedirectUrl?: string;
+  // Skip overlay — just kick out of app / redirect website without showing blocked overlay
+  skipOverlay?: boolean;
 }
 
 /**

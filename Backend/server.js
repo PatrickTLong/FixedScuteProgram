@@ -1031,6 +1031,8 @@ app.get('/api/presets', authenticateToken, async (req, res) => {
       customOverlayImage: p.custom_overlay_image || '',
       // Custom redirect URL for blocked websites
       customRedirectUrl: p.custom_redirect_url || '',
+      // Skip overlay
+      skipOverlay: p.skip_overlay || false,
     }));
 
     console.log('[presets:get] Returning', presets.length, 'presets for user:', normalizedEmail);
@@ -1098,6 +1100,8 @@ app.post('/api/presets', authenticateToken, async (req, res) => {
       custom_overlay_image: preset.customOverlayImage || '',
       // Custom redirect URL for blocked websites
       custom_redirect_url: preset.customRedirectUrl || '',
+      // Skip overlay — just kick out without showing overlay
+      skip_overlay: preset.skipOverlay || false,
     };
 
     console.log('[presets:save] Preset data:', {

@@ -244,6 +244,7 @@ function HomeScreen() {
             customBlockedText: preset.customBlockedText ?? '',
             customOverlayImage: preset.customOverlayImage ?? '',
             customRedirectUrl: preset.customRedirectUrl ?? '',
+            skipOverlay: preset.skipOverlay ?? false,
           };
           console.log('[OVERLAY] Scheduled startBlocking — customBlockedText:', blockingConfig.customBlockedText || '(none)', 'customOverlayImage:', blockingConfig.customOverlayImage || '(none)');
           console.log('[SCHED-DEBUG] Calling BlockingModule.startBlocking:', JSON.stringify(blockingConfig));
@@ -1074,6 +1075,7 @@ function HomeScreen() {
               customBlockedText: activePreset.customBlockedText ?? '',
               customOverlayImage: activePreset.customOverlayImage ?? '',
               customRedirectUrl: activePreset.customRedirectUrl ?? '',
+              skipOverlay: activePreset.skipOverlay ?? false,
             });
             console.log('[OVERLAY] Manual startBlocking — customBlockedText:', activePreset.customBlockedText || '(none)', 'customOverlayImage:', activePreset.customOverlayImage || '(none)');
             console.log('[REDIRECT] startBlocking — customRedirectUrl:', activePreset.customRedirectUrl || '(none)');

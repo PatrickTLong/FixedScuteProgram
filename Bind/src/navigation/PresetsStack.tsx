@@ -37,6 +37,7 @@ export interface FinalSettingsState {
   recurringUnit: 'minutes' | 'hours' | 'days' | 'weeks' | 'months';
   customBlockedText: string;
   customOverlayImage: string;
+  skipOverlay: boolean;
   timeBlocksExpanded: boolean;
   advancedExpanded: boolean;
   strictnessExpanded: boolean;
