@@ -51,8 +51,13 @@ function PullToRefresh({ onRefresh, refreshing, children }: PullToRefreshProps) 
 
   const panGesture = Gesture.Pan()
     .onUpdate((event) => {
-      if (!isAtTop.value || isRefreshing.value) return;
+      if (!isAtTop.value) return;
       if (event.translationY < 0) return;
+
+      // Cancel current refresh if pulling again
+      if (isRefreshing.value) {
+        isRefreshing.value = false;
+      }
 
       const pull = Math.min(event.translationY, MAX_PULL);
       pullDistance.value = pull;
@@ -61,8 +66,6 @@ function PullToRefresh({ onRefresh, refreshing, children }: PullToRefreshProps) 
       dotTranslateY.value = interpolate(pull, [0, MAX_PULL], [0, MAX_DOT_TRAVEL], Extrapolation.CLAMP);
     })
     .onEnd(() => {
-      if (isRefreshing.value) return;
-
       if (pullDistance.value >= PULL_THRESHOLD) {
         isRefreshing.value = true;
         dotOpacity.value = withRepeat(
