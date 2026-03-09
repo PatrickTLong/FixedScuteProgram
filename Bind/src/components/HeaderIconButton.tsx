@@ -1,5 +1,5 @@
 import React, { memo, useCallback, useRef, useEffect } from 'react';
-import { Animated, TouchableOpacity, StyleSheet, AppState } from 'react-native';
+import { Animated, Easing, TouchableOpacity, StyleSheet, AppState } from 'react-native';
 import { useResponsive } from '../utils/responsive';
 import { haptics } from '../context/ThemeContext';
 import { triggerHaptic } from '../utils/haptics';
@@ -21,6 +21,7 @@ export interface HeaderIconButtonProps {
 function HeaderIconButton({ onPress, onPressIn: onPressInProp, onPressOut, disabled = false, children, style, className, flashSize = DEFAULT_FLASH_SIZE }: HeaderIconButtonProps) {
   const { s } = useResponsive();
   const flashOpacity = useRef(new Animated.Value(0)).current;
+  const iconScale = useRef(new Animated.Value(1)).current;
 
   const flashAnimRef = useRef<Animated.CompositeAnimation | null>(null);
 
@@ -34,10 +35,13 @@ function HeaderIconButton({ onPress, onPressIn: onPressInProp, onPressOut, disab
         flashOpacity.stopAnimation(() => {
           flashOpacity.setValue(0);
         });
+        iconScale.stopAnimation(() => {
+          iconScale.setValue(1);
+        });
       }
     });
     return () => sub.remove();
-  }, [flashOpacity]);
+  }, [flashOpacity, iconScale]);
 
   const triggerFlash = useCallback(() => {
     if (disabled) return;
@@ -45,21 +49,30 @@ function HeaderIconButton({ onPress, onPressIn: onPressInProp, onPressOut, disab
       triggerHaptic(haptics.headerButton.type);
     }
     if (flashAnimRef.current) flashAnimRef.current.stop();
-    // Show flash while finger is held down
+    // Show flash + scale while finger is held down
     flashOpacity.setValue(0.3);
+    iconScale.setValue(1.2);
     onPressInProp?.();
-  }, [disabled, flashOpacity, onPressInProp]);
+  }, [disabled, flashOpacity, iconScale, onPressInProp]);
 
   const handlePressOut = useCallback(() => {
-    // Release: animate flash back
-    flashAnimRef.current = Animated.timing(flashOpacity, {
-      toValue: 0,
-      duration: FLASH_DURATION,
-      useNativeDriver: true,
-    });
+    // Release: animate flash + scale back
+    flashAnimRef.current = Animated.parallel([
+      Animated.timing(flashOpacity, {
+        toValue: 0,
+        duration: FLASH_DURATION,
+        useNativeDriver: true,
+      }),
+      Animated.timing(iconScale, {
+        toValue: 1,
+        duration: 150,
+        easing: Easing.out(Easing.ease),
+        useNativeDriver: true,
+      }),
+    ]);
     flashAnimRef.current.start();
     onPressOut?.();
-  }, [flashOpacity, onPressOut]);
+  }, [flashOpacity, iconScale, onPressOut]);
 
   const scaledSize = s(flashSize);
 
@@ -74,7 +87,7 @@ function HeaderIconButton({ onPress, onPressIn: onPressInProp, onPressOut, disab
       style={style}
       className={className || 'px-2'}
     >
-      <Animated.View style={styles.container}>
+      <Animated.View style={[styles.container, { transform: [{ scale: iconScale }] }]}>
         <Animated.View
           style={{
             position: 'absolute',
