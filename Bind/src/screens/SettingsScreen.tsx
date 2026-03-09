@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, memo, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, memo, useRef } from 'react';
 import {
   Text,
   View,
@@ -9,7 +9,6 @@ import {
   Easing,
 } from 'react-native';
 import SlideUpModal from '../components/SlideUpModal';
-import PullToRefresh from '../components/PullToRefresh';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
@@ -156,7 +155,6 @@ function SettingsScreen() {
   const insets = useSafeAreaInsets();
 
   const [loading, setLoading] = useState(!hasCache);
-  const [refreshing, setRefreshing] = useState(false);
 
 
 
@@ -331,18 +329,6 @@ function SettingsScreen() {
   // Don't allow any actions until lock status is checked, or if locked
   const isDisabled = !lockChecked || sharedIsLocked === true;
 
-  // Pull-to-refresh handler
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    const [, , membership] = await Promise.all([
-      refreshLockStatus(true),
-      refreshTapoutStatus(true),
-      getMembershipStatus(email, true),
-    ]);
-    setMembershipStatus(membership);
-    setRefreshing(false);
-  }, [email, refreshLockStatus, refreshTapoutStatus]);
-
   // Memoize icon JSX so SettingsRow memo isn't defeated by new element references
   const mailIcon = useMemo(() => <MailIcon color={colors.textSecondary} />, [colors.textSecondary]);
   const membershipIcon = useMemo(() => <MembershipIcon color={colors.textSecondary} />, [colors.textSecondary]);
@@ -384,11 +370,11 @@ function SettingsScreen() {
         <View className="w-11 h-11" />
       </View>
 
-      <PullToRefresh onRefresh={onRefresh} refreshing={refreshing}>
-        <ScrollView
-          contentContainerStyle={{ paddingHorizontal: s(16), paddingTop: s(16), paddingBottom: s(32) }}
-          showsVerticalScrollIndicator={false}
-        >
+      <ScrollView
+        className="flex-1"
+        contentContainerStyle={{ flexGrow: 1, paddingHorizontal: s(16), paddingTop: s(16), paddingBottom: s(32) }}
+        showsVerticalScrollIndicator={false}
+      >
         {/* ACCOUNT Section */}
         <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold} tracking-wider mb-2`}>
           Account
@@ -576,8 +562,7 @@ function SettingsScreen() {
             />
           </View>
         </View>
-        </ScrollView>
-      </PullToRefresh>
+      </ScrollView>
 
       {/* Logout Modal */}
       <ConfirmationModal

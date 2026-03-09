@@ -495,26 +495,54 @@ const ExpandableInfo = ({ expanded, children, lazy = false }: { expanded: boolea
 
 // ============ AnimatedInfoExpand Component ============
 const AnimatedInfoExpand = ({ expanded, children }: { expanded: boolean; children: React.ReactNode }) => {
-  const anim = useRef(new Animated.Value(expanded ? 1 : 0)).current;
+  const heightAnim = useRef(new Animated.Value(expanded ? 1 : 0)).current;
+  const opacityAnim = useRef(new Animated.Value(expanded ? 1 : 0)).current;
   const [contentHeight, setContentHeight] = useState(0);
   const measured = useRef(false);
 
   useEffect(() => {
-    Animated.timing(anim, {
-      toValue: expanded ? 1 : 0,
-      duration: 200,
-      easing: Easing.out(Easing.ease),
-      useNativeDriver: false,
-    }).start();
-  }, [expanded, anim]);
+    if (expanded) {
+      // Expand: height first, then fade in
+      Animated.sequence([
+        Animated.timing(heightAnim, {
+          toValue: 1,
+          duration: 150,
+          easing: Easing.out(Easing.ease),
+          useNativeDriver: false,
+        }),
+        Animated.timing(opacityAnim, {
+          toValue: 1,
+          duration: 100,
+          easing: Easing.out(Easing.ease),
+          useNativeDriver: false,
+        }),
+      ]).start();
+    } else {
+      // Collapse: fade out first, then shrink height
+      Animated.sequence([
+        Animated.timing(opacityAnim, {
+          toValue: 0,
+          duration: 100,
+          easing: Easing.in(Easing.ease),
+          useNativeDriver: false,
+        }),
+        Animated.timing(heightAnim, {
+          toValue: 0,
+          duration: 150,
+          easing: Easing.in(Easing.ease),
+          useNativeDriver: false,
+        }),
+      ]).start();
+    }
+  }, [expanded, heightAnim, opacityAnim]);
 
   return (
     <Animated.View
       style={{
         height: contentHeight > 0
-          ? anim.interpolate({ inputRange: [0, 1], outputRange: [0, contentHeight] })
+          ? heightAnim.interpolate({ inputRange: [0, 1], outputRange: [0, contentHeight] })
           : expanded ? undefined : 0,
-        opacity: anim,
+        opacity: opacityAnim,
         overflow: 'hidden',
       }}
     >

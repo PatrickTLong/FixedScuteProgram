@@ -14,10 +14,10 @@ import Animated, {
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { useTheme } from '../context/ThemeContext';
 
-const PULL_THRESHOLD = 60;
-const MAX_PULL = 80;
-const DOT_SIZE = 7;
-const MAX_DOT_TRAVEL = 30;
+const PULL_THRESHOLD = 50;
+const MAX_PULL = 90;
+const DOT_SIZE = 14;
+const MAX_DOT_TRAVEL = 40;
 
 interface PullToRefreshProps {
   onRefresh: () => void;
@@ -56,8 +56,8 @@ function PullToRefresh({ onRefresh, refreshing, children }: PullToRefreshProps) 
 
       const pull = Math.min(event.translationY, MAX_PULL);
       pullDistance.value = pull;
-      dotOpacity.value = interpolate(pull, [0, PULL_THRESHOLD * 0.5, PULL_THRESHOLD], [0, 0.4, 1], Extrapolation.CLAMP);
-      dotScale.value = interpolate(pull, [0, PULL_THRESHOLD], [0.3, 1], Extrapolation.CLAMP);
+      dotOpacity.value = interpolate(pull, [0, PULL_THRESHOLD * 0.3, PULL_THRESHOLD], [0, 0.5, 1], Extrapolation.CLAMP);
+      dotScale.value = interpolate(pull, [0, PULL_THRESHOLD, MAX_PULL], [0.2, 0.8, 1], Extrapolation.CLAMP);
       dotTranslateY.value = interpolate(pull, [0, MAX_PULL], [0, MAX_DOT_TRAVEL], Extrapolation.CLAMP);
     })
     .onEnd(() => {
@@ -65,11 +65,18 @@ function PullToRefresh({ onRefresh, refreshing, children }: PullToRefreshProps) 
 
       if (pullDistance.value >= PULL_THRESHOLD) {
         isRefreshing.value = true;
-        dotOpacity.value = 1;
+        dotOpacity.value = withRepeat(
+          withSequence(
+            withTiming(0.3, { duration: 500, easing: Easing.inOut(Easing.ease) }),
+            withTiming(1, { duration: 500, easing: Easing.inOut(Easing.ease) }),
+          ),
+          -1,
+          true,
+        );
         dotScale.value = withRepeat(
           withSequence(
-            withTiming(0.6, { duration: 600, easing: Easing.inOut(Easing.ease) }),
-            withTiming(1, { duration: 600, easing: Easing.inOut(Easing.ease) }),
+            withTiming(0.4, { duration: 500, easing: Easing.inOut(Easing.ease) }),
+            withTiming(1, { duration: 500, easing: Easing.inOut(Easing.ease) }),
           ),
           -1,
           true,
@@ -82,7 +89,7 @@ function PullToRefresh({ onRefresh, refreshing, children }: PullToRefreshProps) 
       }
       pullDistance.value = 0;
     })
-    .activeOffsetY(15)
+    .activeOffsetY(8)
     .failOffsetY(-5)
     .failOffsetX([-15, 15]);
 

@@ -346,10 +346,12 @@ function StatsScreen() {
   const displayTotal = totalScreenTime;
 
   // Pull-to-refresh handler
-  const onRefresh = useCallback(async () => {
+  const onRefresh = useCallback(() => {
     setRefreshing(true);
-    await loadStats();
-    setRefreshing(false);
+    setTimeout(() => {
+      setRefreshing(false);
+      loadStats();
+    }, 500);
   }, [loadStats]);
 
   if (loading) {
@@ -375,7 +377,8 @@ function StatsScreen() {
         <ScrollView
           className="flex-1"
           scrollEnabled={false}
-          contentContainerStyle={{ flex: 1, paddingHorizontal: s(16) }}
+          contentContainerStyle={{ flexGrow: 1, paddingHorizontal: s(16) }}
+          overScrollMode="never"
         >
         {/* Period Tabs */}
         <View className="flex-row mb-4">

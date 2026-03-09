@@ -832,11 +832,14 @@ function PresetsScreen() {
   ), [loading, colors.textSecondary, colors.textMuted, s]);
 
   // Pull-to-refresh handler
-  const onRefresh = useCallback(async () => {
+  const onRefresh = useCallback(() => {
     setRefreshing(true);
-    invalidateUserCaches(userEmail_safe);
-    await Promise.all([refreshLockStatus(true), refreshPresets(true)]);
-    setRefreshing(false);
+    setTimeout(() => {
+      setRefreshing(false);
+      invalidateUserCaches(userEmail_safe);
+      refreshLockStatus(true);
+      refreshPresets(true);
+    }, 500);
   }, [userEmail_safe, refreshLockStatus, refreshPresets]);
 
   // Show loading state until initial data is loaded - prevents flash of incomplete content
@@ -874,10 +877,11 @@ function PresetsScreen() {
           renderItem={renderPresetItem}
           keyExtractor={keyExtractor}
           ListEmptyComponent={ListEmptyComponent}
-          contentContainerStyle={{ paddingHorizontal: s(20), paddingTop: s(12), paddingBottom: s(32) }}
+          contentContainerStyle={{ flexGrow: 1, paddingHorizontal: s(20), paddingTop: s(12), paddingBottom: s(32) }}
           removeClippedSubviews={true}
           maxToRenderPerBatch={10}
           windowSize={5}
+          overScrollMode="never"
         />
       </PullToRefresh>
 

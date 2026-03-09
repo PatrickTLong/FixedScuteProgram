@@ -1149,11 +1149,13 @@ function HomeScreen() {
   }, [getPresetTimingSubtext, colors.textMuted]);
 
   // Pull-to-refresh handler
-  const onRefresh = useCallback(async () => {
+  const onRefresh = useCallback(() => {
     setRefreshing(true);
-    invalidateUserCaches(email);
-    await loadStats(true, false);
-    setRefreshing(false);
+    setTimeout(() => {
+      setRefreshing(false);
+      invalidateUserCaches(email);
+      loadStats(true, false);
+    }, 500);
   }, [email, loadStats]);
 
   if (loading) {
@@ -1209,6 +1211,7 @@ function HomeScreen() {
         <ScrollView
           className="flex-1 px-6"
           contentContainerStyle={{ flexGrow: 1 }}
+          overScrollMode="never"
         >
         {/* Status + Preset + Scheduled - centered in full screen */}
         <View className="flex-1 items-center justify-center" style={{ paddingTop: 40 }}>
