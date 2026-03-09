@@ -565,6 +565,41 @@ const InfoIcon = ({ expanded, color, size }: { expanded: boolean; color: string;
   <PhosphorInfoIcon size={size} color={color} weight={expanded ? 'fill' : 'regular'} />
 );
 
+// ============ SectionHeader Component ============
+const SectionHeader = ({ title, expanded, onToggle, colors, s }: { title: string; expanded: boolean; onToggle: () => void; colors: any; s: (v: number) => number }) => {
+  const rotateAnim = useRef(new Animated.Value(expanded ? 0 : 1)).current;
+
+  useEffect(() => {
+    Animated.timing(rotateAnim, {
+      toValue: expanded ? 0 : 1,
+      duration: 200,
+      easing: Easing.out(Easing.ease),
+      useNativeDriver: true,
+    }).start();
+  }, [expanded, rotateAnim]);
+
+  const rotation = rotateAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '180deg'],
+  });
+
+  return (
+    <Pressable
+      onPress={onToggle}
+      android_ripple={{ color: 'rgba(255,255,255,0.15)', borderless: true, foreground: true }}
+      style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight, overflow: 'hidden' }}
+      className="flex-row items-center justify-between px-6 py-4"
+    >
+      <Text style={{ color: '#FFFFFF' }} className={`${textSize.xLarge} ${fontFamily.bold}`}>{title}</Text>
+      <Animated.View style={{ transform: [{ rotate: rotation }] }}>
+        <Svg width={s(20)} height={s(20)} viewBox="0 0 256 256" fill="#FFFFFF">
+          <Path d="M215.39,163.06A8,8,0,0,1,208,168H48a8,8,0,0,1-5.66-13.66l80-80a8,8,0,0,1,11.32,0l80,80A8,8,0,0,1,215.39,163.06Z" />
+        </Svg>
+      </Animated.View>
+    </Pressable>
+  );
+};
+
 // ============ Navigation Types ============
 type PresetSettingsNavigationProp = BottomTabNavigationProp<MainTabParamList, 'PresetSettings'>;
 
@@ -665,6 +700,11 @@ function PresetSettingsScreen() {
   const [svgKey, setSvgKey] = useState(0);
   const [skipSwitchAnimation, setSkipSwitchAnimation] = useState(false);
 
+  // Section collapse state
+  const [timeBlocksExpanded, setTimeBlocksExpanded] = useState(true);
+  const [advancedExpanded, setAdvancedExpanded] = useState(true);
+  const [strictnessExpanded, setStrictnessExpanded] = useState(true);
+
   // Refs
   const mainScrollRef = useRef<ScrollView>(null);
 
@@ -691,6 +731,9 @@ function PresetSettingsScreen() {
   const customOverlayImageRef = useRef(customOverlayImage);
   const customRedirectEnabledRef = useRef(customRedirectEnabled);
   const customRedirectUrlRef = useRef(customRedirectUrl);
+  const timeBlocksExpandedRef = useRef(timeBlocksExpanded);
+  const advancedExpandedRef = useRef(advancedExpanded);
+  const strictnessExpandedRef = useRef(strictnessExpanded);
 
   // Keep refs in sync with state
   blockSettingsRef.current = blockSettings;
@@ -715,6 +758,9 @@ function PresetSettingsScreen() {
   customRedirectUrlRef.current = customRedirectUrl;
   customBlockedTextRef.current = customBlockedText;
   customOverlayImageRef.current = customOverlayImage;
+  timeBlocksExpandedRef.current = timeBlocksExpanded;
+  advancedExpandedRef.current = advancedExpanded;
+  strictnessExpandedRef.current = strictnessExpanded;
 
   // ============ Reinitialize from editingPreset each time screen gains focus ============
   // Restores from saved finalSettingsState if returning from EditPresetApps (back-and-forward),
@@ -747,6 +793,9 @@ function PresetSettingsScreen() {
         setCustomOverlayEnabled(!!(savedState.customBlockedText || savedState.customOverlayImage));
         setCustomRedirectUrl(savedState.customRedirectUrl ?? '');
         setCustomRedirectEnabled(!!savedState.customRedirectUrl);
+        setTimeBlocksExpanded(savedState.timeBlocksExpanded ?? true);
+        setAdvancedExpanded(savedState.advancedExpanded ?? true);
+        setStrictnessExpanded(savedState.strictnessExpanded ?? true);
         console.log('[OVERLAY] Restored from savedState — text:', savedState.customBlockedText, 'image:', savedState.customOverlayImage);
       } else {
         const editingPreset = getEditingPreset();
@@ -773,6 +822,9 @@ function PresetSettingsScreen() {
           setCustomOverlayEnabled(!!(editingPreset.customBlockedText || editingPreset.customOverlayImage));
           setCustomRedirectUrl(editingPreset.customRedirectUrl ?? '');
           setCustomRedirectEnabled(!!editingPreset.customRedirectUrl);
+          setTimeBlocksExpanded(editingPreset.timeBlocksExpanded ?? true);
+          setAdvancedExpanded(editingPreset.advancedExpanded ?? true);
+          setStrictnessExpanded(editingPreset.strictnessExpanded ?? true);
           console.log('[OVERLAY] Restored from editingPreset — text:', editingPreset.customBlockedText, 'image:', editingPreset.customOverlayImage);
         } else {
           // New preset defaults
@@ -798,6 +850,9 @@ function PresetSettingsScreen() {
           setCustomOverlayEnabled(false);
           setCustomRedirectUrl('');
           setCustomRedirectEnabled(false);
+          setTimeBlocksExpanded(true);
+          setAdvancedExpanded(true);
+          setStrictnessExpanded(true);
           console.log('[OVERLAY] New preset — defaults cleared');
         }
       }
@@ -856,6 +911,9 @@ function PresetSettingsScreen() {
           customBlockedText: customBlockedTextRef.current,
           customOverlayImage: customOverlayImageRef.current,
           customRedirectUrl: customRedirectUrlRef.current,
+          timeBlocksExpanded: timeBlocksExpandedRef.current,
+          advancedExpanded: advancedExpandedRef.current,
+          strictnessExpanded: strictnessExpandedRef.current,
         });
       };
     }, [getEditingPreset, getFinalSettingsState, setFinalSettingsState, getDatePickerResult, setDatePickerResult])
@@ -1025,6 +1083,9 @@ function PresetSettingsScreen() {
       customBlockedText: customOverlayEnabled && customBlockedText ? customBlockedText.trim() : undefined,
       customOverlayImage: customOverlayEnabled && customOverlayImage ? customOverlayImage : undefined,
       customRedirectUrl: customRedirectEnabled && customRedirectUrl && customRedirectUrl.trim().includes('.') ? customRedirectUrl.trim() : undefined,
+      timeBlocksExpanded,
+      advancedExpanded,
+      strictnessExpanded,
     };
 
     console.log('[OVERLAY] Saving preset — overlayEnabled:', customOverlayEnabled, 'text:', newPreset.customBlockedText, 'image:', newPreset.customOverlayImage);
@@ -1053,6 +1114,10 @@ function PresetSettingsScreen() {
       </View>
 
       <ScrollView ref={mainScrollRef} className="flex-1" contentContainerStyle={{ paddingBottom: s(100) }}>
+
+        {/* ============ Time Blocks Section ============ */}
+        <SectionHeader title="Time Blocks" expanded={timeBlocksExpanded} onToggle={() => setTimeBlocksExpanded(v => !v)} colors={colors} s={s} />
+        {timeBlocksExpanded && <>
 
         {/* No Time Limit Toggle */}
         <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight, paddingVertical: s(4) }}>
@@ -1573,6 +1638,12 @@ function PresetSettingsScreen() {
           </View>
         </ExpandableInfo>
 
+        </>}
+
+        {/* ============ Strictness Section ============ */}
+        <SectionHeader title="Strictness" expanded={strictnessExpanded} onToggle={() => setStrictnessExpanded(v => !v)} colors={colors} s={s} />
+        {strictnessExpanded && <>
+
         {/* Block Settings Toggle */}
         <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight, paddingVertical: s(4) }}>
           <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
@@ -1710,6 +1781,12 @@ function PresetSettingsScreen() {
   
           </View>
         </ExpandableInfo>
+
+        </>}
+
+        {/* ============ Advanced Section ============ */}
+        <SectionHeader title="Advanced" expanded={advancedExpanded} onToggle={() => setAdvancedExpanded(v => !v)} colors={colors} s={s} />
+        {advancedExpanded && <>
 
         {/* Custom Overlay Toggle */}
         <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight, paddingVertical: s(4) }}>
@@ -1939,6 +2016,8 @@ function PresetSettingsScreen() {
             </View>
           </ExpandableInfo>
         </View>
+
+        </>}
 
         {/* Extra bottom padding */}
         <View style={{ height: s(40) }} />

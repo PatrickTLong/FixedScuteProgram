@@ -80,6 +80,10 @@ export interface Preset {
   customOverlayImage?: string;
   // Custom redirect URL - where browser goes when a blocked website is detected (default: google.com)
   customRedirectUrl?: string;
+  // Section collapse state
+  timeBlocksExpanded?: boolean;
+  advancedExpanded?: boolean;
+  strictnessExpanded?: boolean;
 }
 
 interface PresetCardProps {

@@ -37,6 +37,9 @@ export interface FinalSettingsState {
   recurringUnit: 'minutes' | 'hours' | 'days' | 'weeks' | 'months';
   customBlockedText: string;
   customOverlayImage: string;
+  timeBlocksExpanded: boolean;
+  advancedExpanded: boolean;
+  strictnessExpanded: boolean;
 }
 
 // Params passed to the DatePicker screen
