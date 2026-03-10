@@ -16,7 +16,7 @@ import Svg, { Path, G } from 'react-native-svg';
 
 import HeaderIconButton from '../components/HeaderIconButton';
 import PullToRefresh from '../components/PullToRefresh';
-import LoadingSpinner from '../components/LoadingSpinner';
+import LottieView from 'lottie-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import BlockNowButton from '../components/BlockNowButton';
@@ -1164,8 +1164,14 @@ function HomeScreen() {
 
   if (loading) {
     return (
-      <View style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center', paddingTop: insets.top }}>
-        <LoadingSpinner size={s(48)} />
+      <View style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }}>
+        <LottieView
+          source={require('../frontassets/Orange colour loading.json')}
+          autoPlay
+          loop
+          resizeMode="contain"
+          style={{ width: s(120), height: s(120) }}
+        />
       </View>
     );
   }

@@ -8,7 +8,7 @@ import {
   ScrollView,
   TextInput,
 } from 'react-native';
-import LoadingSpinner from '../components/LoadingSpinner';
+import LottieView from 'lottie-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { EyeIcon, EyeClosedIcon } from 'phosphor-react-native';
 import Svg, { Path } from 'react-native-svg';
@@ -193,6 +193,20 @@ function SignInScreen() {
     }
   }
 
+  if (loading) {
+    return (
+      <View style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }}>
+        <LottieView
+          source={require('../frontassets/Orange colour loading.json')}
+          autoPlay
+          loop
+          resizeMode="contain"
+          style={{ width: s(120), height: s(120) }}
+        />
+      </View>
+    );
+  }
+
   return (
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
       {/* Back Button */}
@@ -330,14 +344,9 @@ function SignInScreen() {
               style={{ backgroundColor: colors.text, borderWidth: 1, borderColor: colors.border, borderRadius: 9999, overflow: 'hidden', ...shadow.card, position: 'relative' }}
               className={`${pill} items-center justify-center mb-4`}
             >
-              <Text style={{ color: colors.bg, opacity: loading ? 0 : 1 }} className={`${textSize.small} ${fontFamily.semibold}`}>
+              <Text style={{ color: colors.bg }} className={`${textSize.small} ${fontFamily.semibold}`}>
                 {step === 'credentials' ? 'Sign In' : 'Verify'}
               </Text>
-              {loading && (
-                <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center' }}>
-                  <LoadingSpinner size={s(20)} color={colors.bg} />
-                </View>
-              )}
             </Pressable>
 
             {/* Google Sign In - only show on credentials step */}

@@ -1,5 +1,7 @@
 import React from 'react';
 import { View } from 'react-native';
+import LottieView from 'lottie-react-native';
+import { useResponsive } from '../utils/responsive';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -31,8 +33,19 @@ function MainNavigator() {
 export default function RootNavigator() {
   const { authState, isInitializing } = useAuth();
   const { colors } = useTheme();
+  const { s } = useResponsive();
   if (isInitializing) {
-    return <View style={{ flex: 1, backgroundColor: colors.bg }} />;
+    return (
+      <View style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }}>
+        <LottieView
+          source={require('../frontassets/Orange colour loading.json')}
+          autoPlay
+          loop
+          resizeMode="contain"
+          style={{ width: s(120), height: s(120) }}
+        />
+      </View>
+    );
   }
 
   switch (authState) {
