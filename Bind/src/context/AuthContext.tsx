@@ -43,7 +43,7 @@ type StatsPeriod = 'today' | 'week' | 'month';
 // Track which scheduled preset we've already navigated for
 let lastNavigatedScheduledPresetId: string | null = null;
 
-export type AuthState = 'auth' | 'terms' | 'permissions' | 'membership' | 'main';
+export type AuthState = 'auth' | 'terms' | 'permissions' | 'onboarding' | 'membership' | 'main';
 
 interface ModalState {
   visible: boolean;
@@ -60,6 +60,7 @@ interface AuthContextValue {
   handleLogin: (email: string) => Promise<void>;
   handleTermsAccepted: () => Promise<void>;
   handlePermissionsComplete: () => Promise<void>;
+  handleOnboardingComplete: (choice: 'social_media' | 'xxx' | 'none') => void;
   handleMembershipComplete: () => void;
   handleLogout: () => Promise<void>;
   handleResetAccount: () => Promise<{ success: boolean; error?: string }>;
@@ -95,6 +96,8 @@ interface AuthContextValue {
   refreshTapoutStatus: (skipCache?: boolean) => Promise<EmergencyTapoutStatus>;
   refreshAll: (skipCache?: boolean) => Promise<{ presets: Preset[]; lockStatus: LockStatus; tapoutStatus: EmergencyTapoutStatus }>;
   handleReconnect: () => Promise<void>;
+  // Onboarding
+  onboardingChoice: 'social_media' | 'xxx' | 'none' | null;
   // Shared usage stats (prefetched during HomeScreen load)
   sharedStats: Record<StatsPeriod, StatsCache | null>;
   setSharedStats: React.Dispatch<React.SetStateAction<Record<StatsPeriod, StatsCache | null>>>;
@@ -321,6 +324,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const allGranted = requiredPermissions.every((perm: string) => states[perm]);
 
           if (allGranted) {
+            // Check onboarding
+            const onboardingDone = await AsyncStorage.getItem('onboarding_complete');
+            if (onboardingDone !== 'true') {
+              setAuthState('onboarding');
+              setIsInitializing(false);
+              return;
+            }
+
             try {
               const membership = await getMembershipStatus(email, true);
               if (membership.trialExpired && !membership.isMember) {
@@ -364,6 +375,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const allGranted = requiredPermissions.every((perm: string) => states[perm]);
 
         if (allGranted) {
+          // Check onboarding
+          const onboardingDone = await AsyncStorage.getItem('onboarding_complete');
+          if (onboardingDone !== 'true') {
+            setAuthState('onboarding');
+            return;
+          }
+
           try {
             const membership = await getMembershipStatus(email, true);
             if (membership.trialExpired && !membership.isMember) {
@@ -394,6 +412,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const allGranted = requiredPermissions.every((perm: string) => states[perm]);
 
         if (allGranted) {
+          // Check onboarding
+          const onboardingDone = await AsyncStorage.getItem('onboarding_complete');
+          if (onboardingDone !== 'true') {
+            setAuthState('onboarding');
+            return;
+          }
+
           try {
             const membership = await getMembershipStatus(userEmail, true);
             if (membership.trialExpired && !membership.isMember) {
@@ -417,6 +442,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [userEmail]);
 
   const handlePermissionsComplete = useCallback(async () => {
+    // Check if onboarding is complete before going to main
+    const onboardingDone = await AsyncStorage.getItem('onboarding_complete');
+    if (onboardingDone !== 'true') {
+      setAuthState('onboarding');
+      return;
+    }
+
     setAuthState('main');
     // Check membership in background — redirect if trial expired
     try {
@@ -429,6 +461,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       // Error checking membership, already on main
     }
+  }, [userEmail]);
+
+  // Track which preset category was chosen during onboarding (used by HomeScreen to navigate)
+  const [onboardingChoice, setOnboardingChoice] = useState<'social_media' | 'xxx' | 'none' | null>(null);
+
+  const handleOnboardingComplete = useCallback((choice: 'social_media' | 'xxx' | 'none') => {
+    setOnboardingChoice(choice);
+    setAuthState('main');
+    // Check membership in background
+    (async () => {
+      try {
+        const membership = await getMembershipStatus(userEmail, true);
+        if (membership.trialExpired && !membership.isMember) {
+          await deactivateAllPresets(userEmail);
+          await ScheduleModule?.saveScheduledPresets('[]');
+          setAuthState('membership');
+        }
+      } catch (error) {
+        // Error checking membership, already on main
+      }
+    })();
   }, [userEmail]);
 
   const handleMembershipComplete = useCallback(() => {
@@ -855,6 +908,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     handleLogin,
     handleTermsAccepted,
     handlePermissionsComplete,
+    handleOnboardingComplete,
     handleMembershipComplete,
     handleLogout,
     handleResetAccount,
@@ -884,6 +938,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     refreshTapoutStatus,
     refreshAll,
     handleReconnect,
+    onboardingChoice,
     sharedStats,
     setSharedStats,
     prefetchStats,

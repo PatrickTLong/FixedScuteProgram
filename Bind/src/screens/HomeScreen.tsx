@@ -19,6 +19,7 @@ import HeaderIconButton from '../components/HeaderIconButton';
 import LottieView from 'lottie-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import BlockNowButton from '../components/BlockNowButton';
 import InfoModal from '../components/InfoModal';
 import EmergencyTapoutModal from '../components/EmergencyTapoutModal';
@@ -39,7 +40,7 @@ const AlarmIcon = ({ size = 12, color = '#FFFFFF' }: { size?: number; color?: st
 
 
 function HomeScreen() {
-  const { userEmail: email, refreshTrigger, sharedPresets, setSharedPresets, sharedPresetsLoaded, sharedLockStatus, setSharedLockStatus, tapoutStatus, setTapoutStatus, refreshAll, prefetchStats } = useAuth();
+  const { userEmail: email, refreshTrigger, sharedPresets, setSharedPresets, sharedPresetsLoaded, sharedLockStatus, setSharedLockStatus, tapoutStatus, setTapoutStatus, refreshAll, prefetchStats, onboardingChoice, navigationRef } = useAuth();
   const { colors } = useTheme();
   const { s } = useResponsive();
   const insets = useSafeAreaInsets();
@@ -70,6 +71,12 @@ function HomeScreen() {
 
   // Widget bubble disabled toggle
   const [widgetBubbleDisabled, setWidgetBubbleDisabled] = useState(false);
+
+  // Onboarding block hint overlay
+  const [showBlockHint, setShowBlockHint] = useState(false);
+  const blockHintOpacity = useRef(new Animated.Value(0)).current;
+  const blockHintScale = useRef(new Animated.Value(0.8)).current;
+  const onboardingHandledRef = useRef(false);
 
 
   // Lock icon animation (slides up, holds, fades out)
@@ -915,6 +922,72 @@ function HomeScreen() {
     }
   }, [email, showModal, activePreset]);
 
+  // Onboarding: handle preset choice and show block hint
+  useEffect(() => {
+    if (!onboardingChoice || onboardingHandledRef.current) return;
+    onboardingHandledRef.current = true;
+
+    if (onboardingChoice === 'none') {
+      // Navigate to new preset creation
+      if (navigationRef.isReady()) {
+        (navigationRef as any).navigate('MainTabs', { screen: 'EditPresetApps' });
+      }
+      return;
+    }
+
+    // For social_media or xxx choice — show the block hint overlay
+    // The default presets are already created by the backend on registration
+    const showHint = async () => {
+      const hint = await AsyncStorage.getItem('show_block_hint');
+      if (hint === 'true') {
+        // Find the matching default preset, activate it, and select it
+        const presetName = onboardingChoice === 'social_media' ? 'Social Media' : 'XXX Sites';
+        const matchingPreset = sharedPresets.find(p => p.name === presetName);
+        if (matchingPreset) {
+          // Activate the preset so it's toggled on
+          try {
+            await activatePreset(email, matchingPreset.id);
+            const activated = { ...matchingPreset, isActive: true };
+            setSharedPresets(prev => prev.map(p => p.id === matchingPreset.id ? activated : p));
+            setCurrentPreset(activated.name);
+            setActivePreset(activated);
+          } catch {
+            // Still show hint even if activation fails
+            setCurrentPreset(matchingPreset.name);
+            setActivePreset(matchingPreset);
+          }
+        }
+
+        setShowBlockHint(true);
+        Animated.parallel([
+          Animated.timing(blockHintOpacity, {
+            toValue: 1,
+            duration: 400,
+            useNativeDriver: true,
+          }),
+          Animated.spring(blockHintScale, {
+            toValue: 1,
+            speed: 10,
+            bounciness: 12,
+            useNativeDriver: true,
+          }),
+        ]).start();
+
+        await AsyncStorage.removeItem('show_block_hint');
+      }
+    };
+    showHint();
+  }, [onboardingChoice, sharedPresetsLoaded, sharedPresets]);
+
+  // Dismiss block hint on tap
+  const dismissBlockHint = useCallback(() => {
+    Animated.timing(blockHintOpacity, {
+      toValue: 0,
+      duration: 200,
+      useNativeDriver: true,
+    }).start(() => setShowBlockHint(false));
+  }, []);
+
   const handleBlockNow = useCallback(() => {
 
     console.log('[BLOCKING] handleBlockNow called', { preset: activePreset?.name, presetId: activePreset?.id, strictMode: activePreset?.strictMode, noTimeLimit: activePreset?.noTimeLimit });
@@ -1427,6 +1500,43 @@ function HomeScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* Onboarding block hint overlay */}
+      {showBlockHint && (
+        <Pressable
+          onPress={dismissBlockHint}
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0,0,0,0.7)',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <Animated.View
+            style={{
+              opacity: blockHintOpacity,
+              transform: [{ scale: blockHintScale }],
+              alignItems: 'center',
+              paddingHorizontal: s(32),
+            }}
+          >
+            <Text style={{ color: '#FFFFFF', marginBottom: s(16) }} className={`${textSize['2xLarge']} ${fontFamily.bold} text-center`}>
+              Double Tap{'\n'}to begin blocking!
+            </Text>
+            {/* Down arrow */}
+            <Svg width={s(32)} height={s(32)} viewBox="0 0 256 256" fill="#FFFFFF">
+              <Path d="M205.66,149.66l-72,72a8,8,0,0,1-11.32,0l-72-72a8,8,0,0,1,11.32-11.32L120,196.69V40a8,8,0,0,1,16,0V196.69l58.34-58.35a8,8,0,0,1,11.32,11.32Z" />
+            </Svg>
+            <Text style={{ color: 'rgba(255,255,255,0.6)', marginTop: s(24) }} className={`${textSize.small} ${fontFamily.regular} text-center`}>
+              Tap anywhere to dismiss
+            </Text>
+          </Animated.View>
+        </Pressable>
+      )}
 
     </View>
   );

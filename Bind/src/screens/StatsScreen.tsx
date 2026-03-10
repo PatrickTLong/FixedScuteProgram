@@ -407,7 +407,7 @@ function StatsScreen() {
               <View style={{ flex: 1 }}>
                 <Pressable
                   onPress={() => setActivePeriod(period)}
-                  android_ripple={null}
+                  android_ripple={{ color: activePeriod === period ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.15)', borderless: false, foreground: true, radius: -1 }}
                   style={{
                     backgroundColor: activePeriod === period ? colors.text : colors.card,
                     borderWidth: 1,
