@@ -89,7 +89,7 @@ function PresetsScreen() {
   const { s } = useResponsive();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NativeStackNavigationProp<MainStackParamList>>();
-  const { userEmail, sharedPresets, setSharedPresets, sharedIsLocked, refreshPresets, refreshLockStatus, showModal } = useAuth();
+  const { userEmail, sharedPresets, setSharedPresets, sharedPresetsLoaded, sharedIsLocked, refreshPresets, refreshLockStatus, showModal } = useAuth();
   const userEmail_safe = userEmail || '';
   const { setOnSave, setEditingPreset: setContextEditingPreset, setExistingPresets, setEmail, setFinalSettingsState } = usePresetSave();
 
@@ -100,9 +100,9 @@ function PresetsScreen() {
   const [activePresetId, setActivePresetId] = useState<string | null>(null);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [presetToDelete, setPresetToDelete] = useState<Preset | null>(null);
-  const [loading, setLoading] = useState(true); // Start true to prevent flash of content
-  const [showSpinner, setShowSpinner] = useState(false); // Only show spinner after delay
-  const [lockChecked, setLockChecked] = useState(false);
+  const hasCache = sharedPresetsLoaded && sharedIsLocked !== undefined;
+  const [loading, setLoading] = useState(!hasCache);
+  const [lockChecked, setLockChecked] = useState(hasCache);
   const [overlapModalVisible, setOverlapModalVisible] = useState(false);
   const [overlapPresetName, setOverlapPresetName] = useState<string>('');
   const [overlapIsTimedVsScheduled, setOverlapIsTimedVsScheduled] = useState(false);
@@ -215,12 +215,22 @@ function PresetsScreen() {
 
   // Check lock status and load presets in parallel on initial mount
   useEffect(() => {
-    let spinnerTimeout: NodeJS.Timeout;
+    if (hasCache) {
+      // Data already loaded by HomeScreen — just sync derived state
+      const activeNonScheduled = sharedPresets.find(p => p.isActive && !p.isScheduled);
+      setActivePresetId(activeNonScheduled?.id || null);
+
+      const scheduledPresets = sharedPresets.filter(p => p.isScheduled && p.isActive);
+      if (scheduledPresets.length > 0) {
+        ScheduleModule?.saveScheduledPresets(JSON.stringify(scheduledPresets))
+          .catch(() => {});
+      }
+      runOrphanCleanup(sharedPresets);
+      return;
+    }
 
     async function init() {
       setLoading(true);
-      // Only show spinner if loading takes more than 50ms (avoids flash)
-      spinnerTimeout = setTimeout(() => setShowSpinner(true), 50);
 
       // Fetch via AuthContext (single source of truth)
       const [, fetchedPresets] = await Promise.all([refreshLockStatus(), refreshPresets()]);
@@ -240,15 +250,9 @@ function PresetsScreen() {
       runOrphanCleanup(fetchedPresets);
 
       setLockChecked(true);
-      clearTimeout(spinnerTimeout);
-      setShowSpinner(false);
       setLoading(false);
     }
     init();
-
-    return () => {
-      clearTimeout(spinnerTimeout);
-    };
   }, [refreshLockStatus, refreshPresets, userEmail_safe, runOrphanCleanup]);
 
   // Note: Expiration checking is handled globally in AuthContext
@@ -845,12 +849,8 @@ function PresetsScreen() {
   // Show loading state until initial data is loaded - prevents flash of incomplete content
   if (loading) {
     return (
-      <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
-        {showSpinner && (
-          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-            <LoadingSpinner size={s(48)} />
-          </View>
-        )}
+      <View style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center', paddingTop: insets.top }}>
+        <LoadingSpinner size={s(48)} />
       </View>
     );
   }

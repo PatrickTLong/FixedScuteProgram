@@ -68,16 +68,16 @@ function AnimatedSwitch({
       Animated.parallel([
         Animated.spring(thumbProgress, {
           toValue,
-          stiffness: 600,
-          damping: 30,
-          mass: 0.4,
+          stiffness: 1200,
+          damping: 40,
+          mass: 0.3,
           useNativeDriver: true,
         }),
         Animated.spring(trackOpacity, {
           toValue,
-          stiffness: 600,
-          damping: 30,
-          mass: 0.4,
+          stiffness: 1200,
+          damping: 40,
+          mass: 0.3,
           useNativeDriver: true,
         }),
       ]).start();

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
-import { NativeModules, AppState, DeviceEventEmitter } from 'react-native';
+import { NativeModules, AppState, DeviceEventEmitter, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createNavigationContainerRef } from '@react-navigation/native';
 import {
@@ -24,7 +24,21 @@ import {
 } from '../services/cardApi';
 import type { RootStackParamList } from '../navigation/types';
 
-const { BlockingModule, PermissionsModule, ScheduleModule } = NativeModules;
+const { BlockingModule, PermissionsModule, ScheduleModule, UsageStatsModule } = NativeModules;
+
+interface AppUsage {
+  packageName: string;
+  appName: string;
+  timeInForeground: number;
+  icon?: string;
+}
+
+interface StatsCache {
+  screenTime: number;
+  appUsages: AppUsage[];
+}
+
+type StatsPeriod = 'today' | 'week' | 'month';
 
 // Track which scheduled preset we've already navigated for
 let lastNavigatedScheduledPresetId: string | null = null;
@@ -81,6 +95,10 @@ interface AuthContextValue {
   refreshTapoutStatus: (skipCache?: boolean) => Promise<EmergencyTapoutStatus>;
   refreshAll: (skipCache?: boolean) => Promise<{ presets: Preset[]; lockStatus: LockStatus; tapoutStatus: EmergencyTapoutStatus }>;
   handleReconnect: () => Promise<void>;
+  // Shared usage stats (prefetched during HomeScreen load)
+  sharedStats: Record<StatsPeriod, StatsCache | null>;
+  setSharedStats: React.Dispatch<React.SetStateAction<Record<StatsPeriod, StatsCache | null>>>;
+  prefetchStats: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -129,6 +147,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [activePresetForTapout, setActivePresetForTapout] = useState<Preset | null>(null);
   const [tapoutLoading, setTapoutLoading] = useState(false);
   const [lockEndsAtForTapout, setLockEndsAtForTapout] = useState<string | null>(null);
+
+  // Shared usage stats - prefetched during HomeScreen load so StatsScreen is instant
+  const [sharedStats, setSharedStats] = useState<Record<StatsPeriod, StatsCache | null>>({
+    today: null,
+    week: null,
+    month: null,
+  });
+
+  const prefetchStats = useCallback(async () => {
+    if (Platform.OS !== 'android' || !UsageStatsModule) return;
+    try {
+      const [screenTime, apps] = await Promise.all([
+        UsageStatsModule.getScreenTime('month'),
+        UsageStatsModule.getAllAppsUsage('month'),
+      ]);
+      setSharedStats(prev => ({
+        ...prev,
+        month: { screenTime, appUsages: apps || [] },
+      }));
+    } catch {
+      // Usage stats unavailable
+    }
+  }, []);
 
   const showModal = useCallback((title: string, message: string) => {
     setModalState({ visible: true, title, message });
@@ -843,6 +884,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     refreshTapoutStatus,
     refreshAll,
     handleReconnect,
+    sharedStats,
+    setSharedStats,
+    prefetchStats,
   };
 
   return (

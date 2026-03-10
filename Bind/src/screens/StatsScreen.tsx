@@ -281,12 +281,14 @@ function StatsScreen() {
   const { colors } = useTheme();
   const { s } = useResponsive();
   const insets = useSafeAreaInsets();
-  const { sharedIsLocked } = useAuth();
+  const { sharedIsLocked, sharedStats, setSharedStats } = useAuth();
 
   const [activePeriod, setActivePeriod] = useState<StatsPeriod>('month');
-  const [loading, setLoading] = useState(true);
-  const [totalScreenTime, setTotalScreenTime] = useState(0);
-  const [appUsages, setAppUsages] = useState<AppUsage[]>([]);
+  // If HomeScreen already prefetched month stats, skip spinner
+  const hasCache = sharedStats.month !== null;
+  const [loading, setLoading] = useState(!hasCache);
+  const [totalScreenTime, setTotalScreenTime] = useState(sharedStats.month?.screenTime ?? 0);
+  const [appUsages, setAppUsages] = useState<AppUsage[]>(sharedStats.month?.appUsages ?? []);
   const [animationKey, setAnimationKey] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const [expandedVisible, setExpandedVisible] = useState(false);
@@ -302,10 +304,26 @@ function StatsScreen() {
   }, []);
 
 
-  const loadStats = useCallback(async () => {
+  // Use a ref to avoid re-creating loadStats when sharedStats changes
+  const sharedStatsRef = useRef(sharedStats);
+  sharedStatsRef.current = sharedStats;
+
+  const loadStats = useCallback(async (useCache = false) => {
     if (Platform.OS !== 'android' || !UsageStatsModule) {
       setLoading(false);
       return;
+    }
+
+    // Use cached data if available for this period (only on initial mount)
+    if (useCache) {
+      const cached = sharedStatsRef.current[activePeriod];
+      if (cached) {
+        setTotalScreenTime(cached.screenTime);
+        setAppUsages(cached.appUsages);
+        setAnimationKey(prev => prev + 1);
+        setLoading(false);
+        return;
+      }
     }
 
     try {
@@ -317,16 +335,21 @@ function StatsScreen() {
       setTotalScreenTime(screenTime);
       setAppUsages(apps || []);
       setAnimationKey(prev => prev + 1);
+      // Write back to shared cache
+      setSharedStats(prev => ({
+        ...prev,
+        [activePeriod]: { screenTime, appUsages: apps || [] },
+      }));
     } catch {
       // Usage stats unavailable
     } finally {
       setLoading(false);
     }
-  }, [activePeriod]);
+  }, [activePeriod, setSharedStats]);
 
-  // Load on mount
+  // Load on mount — use cache if available
   useEffect(() => {
-    loadStats();
+    loadStats(true);
   }, [loadStats]);
 
   // Refresh data and replay animation when app comes to foreground

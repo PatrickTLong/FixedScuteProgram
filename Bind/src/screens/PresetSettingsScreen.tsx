@@ -16,7 +16,7 @@ import {
 import AnimatedSwitch from '../components/AnimatedSwitch';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Svg, { Path } from 'react-native-svg';
+import Svg, { Path, G } from 'react-native-svg';
 import { XCircleIcon, CheckCircleIcon, ImageIcon, ImageSquareIcon, AndroidLogoIcon, InfoIcon as PhosphorInfoIcon, ArticleNyTimesIcon, HeartStraightBreakIcon } from 'phosphor-react-native';
 import SettingsCogIcon from '../components/SettingsCogIcon';
 import ReplyArrowIcon from '../components/ReplyArrowIcon';
@@ -495,67 +495,25 @@ const ExpandableInfo = ({ expanded, children, lazy = false }: { expanded: boolea
 
 // ============ AnimatedInfoExpand Component ============
 const AnimatedInfoExpand = ({ expanded, children }: { expanded: boolean; children: React.ReactNode }) => {
-  const heightAnim = useRef(new Animated.Value(expanded ? 1 : 0)).current;
-  const opacityAnim = useRef(new Animated.Value(expanded ? 1 : 0)).current;
-  const [contentHeight, setContentHeight] = useState(0);
-  const measured = useRef(false);
+  const opacityAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (expanded) {
-      // Expand: height first, then fade in
-      Animated.sequence([
-        Animated.timing(heightAnim, {
-          toValue: 1,
-          duration: 150,
-          easing: Easing.out(Easing.ease),
-          useNativeDriver: false,
-        }),
-        Animated.timing(opacityAnim, {
-          toValue: 1,
-          duration: 100,
-          easing: Easing.out(Easing.ease),
-          useNativeDriver: false,
-        }),
-      ]).start();
-    } else {
-      // Collapse: fade out first, then shrink height
-      Animated.sequence([
-        Animated.timing(opacityAnim, {
-          toValue: 0,
-          duration: 100,
-          easing: Easing.in(Easing.ease),
-          useNativeDriver: false,
-        }),
-        Animated.timing(heightAnim, {
-          toValue: 0,
-          duration: 150,
-          easing: Easing.in(Easing.ease),
-          useNativeDriver: false,
-        }),
-      ]).start();
+      opacityAnim.setValue(0);
+      Animated.timing(opacityAnim, {
+        toValue: 1,
+        duration: 200,
+        easing: Easing.out(Easing.ease),
+        useNativeDriver: true,
+      }).start();
     }
-  }, [expanded, heightAnim, opacityAnim]);
+  }, [expanded, opacityAnim]);
+
+  if (!expanded) return null;
 
   return (
-    <Animated.View
-      style={{
-        height: contentHeight > 0
-          ? heightAnim.interpolate({ inputRange: [0, 1], outputRange: [0, contentHeight] })
-          : expanded ? undefined : 0,
-        opacity: opacityAnim,
-        overflow: 'hidden',
-      }}
-    >
-      <View
-        onLayout={(e) => {
-          if (!measured.current) {
-            measured.current = true;
-            setContentHeight(e.nativeEvent.layout.height);
-          }
-        }}
-      >
-        {children}
-      </View>
+    <Animated.View style={{ opacity: opacityAnim }}>
+      {children}
     </Animated.View>
   );
 };
@@ -566,7 +524,7 @@ const InfoIcon = ({ expanded, color, size }: { expanded: boolean; color: string;
 );
 
 // ============ SectionHeader Component ============
-const SectionHeader = ({ title, expanded, onToggle, colors, s }: { title: string; expanded: boolean; onToggle: () => void; colors: any; s: (v: number) => number }) => {
+const SectionHeader = ({ title, icon, expanded, onToggle, colors, s }: { title: string; icon?: React.ReactNode; expanded: boolean; onToggle: () => void; colors: any; s: (v: number) => number }) => {
   const rotateAnim = useRef(new Animated.Value(expanded ? 0 : 1)).current;
 
   useEffect(() => {
@@ -590,7 +548,10 @@ const SectionHeader = ({ title, expanded, onToggle, colors, s }: { title: string
       style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight, overflow: 'hidden' }}
       className="flex-row items-center justify-between px-6 py-4"
     >
-      <Text style={{ color: '#FFFFFF' }} className={`${textSize.xLarge} ${fontFamily.bold}`}>{title}</Text>
+      <View className="flex-row items-center">
+        {icon && <View style={{ marginRight: s(14) }}>{icon}</View>}
+        <Text style={{ color: '#FFFFFF' }} className={`${textSize.xLarge} ${fontFamily.bold}`}>{title}</Text>
+      </View>
       <Animated.View style={{ transform: [{ rotate: rotation }] }}>
         <Svg width={s(20)} height={s(20)} viewBox="0 0 256 256" fill="#FFFFFF">
           <Path d="M215.39,163.06A8,8,0,0,1,208,168H48a8,8,0,0,1-5.66-13.66l80-80a8,8,0,0,1,11.32,0l80,80A8,8,0,0,1,215.39,163.06Z" />
@@ -1126,7 +1087,7 @@ function PresetSettingsScreen() {
       <ScrollView ref={mainScrollRef} className="flex-1" contentContainerStyle={{ paddingBottom: s(100) }}>
 
         {/* ============ Time Blocks Section ============ */}
-        <SectionHeader title="Time Blocks" expanded={timeBlocksExpanded} onToggle={() => setTimeBlocksExpanded(v => !v)} colors={colors} s={s} />
+        <SectionHeader title="Time Blocks" icon={<Svg width={s(iconSize.toggleRow)} height={s(iconSize.toggleRow)} viewBox="0 0 24 24" fill="#FFFFFF"><G><Path d="M14.05 6.36a6 6 0 1 0 3.59 7.69 6 6 0 0 0 -3.59 -7.69Zm-4.9 3.43a0.5 0.5 0 0 1 0.64 -0.3l0.87 0.32 -0.27 -0.89a0.5 0.5 0 0 1 0.33 -0.62 0.51 0.51 0 0 1 0.63 0.33l0.56 1.84a0.51 0.51 0 0 1 -0.14 0.51 0.49 0.49 0 0 1 -0.34 0.14 0.47 0.47 0 0 1 -0.17 0l-1.81 -0.66a0.5 0.5 0 0 1 -0.3 -0.67Zm4.69 4.47a2.47 2.47 0 0 1 -1.3 1.41 2.41 2.41 0 0 1 -1 0.24 2.55 2.55 0 0 1 -0.86 -0.15 2.51 2.51 0 0 1 -1.49 -3.21 0.5 0.5 0 0 1 0.64 -0.3 0.52 0.52 0 0 1 0.3 0.65 1.46 1.46 0 0 0 0 1.1 1.49 1.49 0 0 0 2 0.73 1.52 1.52 0 0 0 0.78 -0.85 0.5 0.5 0 0 1 0.94 0.34Zm1.88 -2.09a0.51 0.51 0 0 1 -0.47 0.33 0.47 0.47 0 0 1 -0.17 0l-1.64 -0.6a0.49 0.49 0 0 1 -0.33 -0.41 0.53 0.53 0 0 1 0.22 -0.48l1.47 -1a0.5 0.5 0 0 1 0.69 0.14 0.51 0.51 0 0 1 -0.15 0.7l-0.62 0.4 0.7 0.26a0.5 0.5 0 0 1 0.3 0.66Z" /><Path d="M12 0a12 12 0 1 0 12 12A12 12 0 0 0 12 0Zm8.68 12.75H22a9.88 9.88 0 0 1 -2.39 5.76l-0.9 -0.9a0.75 0.75 0 0 0 -1.06 1.06l0.9 0.9a9.88 9.88 0 0 1 -5.8 2.43v-1.32a0.75 0.75 0 0 0 -1.5 0V22a9.88 9.88 0 0 1 -5.76 -2.39l0.9 -0.9a0.75 0.75 0 0 0 -1.06 -1.06l-0.9 0.9A9.88 9.88 0 0 1 2 12.75h1.32a0.75 0.75 0 1 0 0 -1.5H2a9.88 9.88 0 0 1 2.43 -5.76l0.9 0.9a0.75 0.75 0 0 0 1.06 0 0.75 0.75 0 0 0 0 -1.06l-0.9 -0.9A9.88 9.88 0 0 1 11.25 2v1.32a0.75 0.75 0 0 0 1.5 0V2a9.88 9.88 0 0 1 5.76 2.39l-0.9 0.9a0.75 0.75 0 0 0 0 1.06 0.75 0.75 0 0 0 1.06 0l0.9 -0.9a9.88 9.88 0 0 1 2.43 5.8h-1.32a0.75 0.75 0 0 0 0 1.5Z" /></G></Svg>} expanded={timeBlocksExpanded} onToggle={() => setTimeBlocksExpanded(v => !v)} colors={colors} s={s} />
         {timeBlocksExpanded && <>
 
         {/* No Time Limit Toggle */}
@@ -1651,7 +1612,7 @@ function PresetSettingsScreen() {
         </>}
 
         {/* ============ Strictness Section ============ */}
-        <SectionHeader title="Strictness" expanded={strictnessExpanded} onToggle={() => setStrictnessExpanded(v => !v)} colors={colors} s={s} />
+        <SectionHeader title="Strictness" icon={<Svg width={s(iconSize.toggleRow)} height={s(iconSize.toggleRow)} viewBox="0 0 24 24" fill="#FFFFFF"><Path d="M23.83 21.71 13.33 0.84a1.47 1.47 0 0 0 -2.66 0L0.17 21.71a1.62 1.62 0 0 0 0 1.54A1.47 1.47 0 0 0 1.5 24h21a1.46 1.46 0 0 0 1.28 -0.76 1.6 1.6 0 0 0 0.05 -1.53ZM13.76 8a1.5 1.5 0 1 1 -1.16 1.74A1.5 1.5 0 0 1 13.76 8ZM8.34 20.77a1 1 0 0 1 -1 1h-2a1 1 0 0 1 -1 -1v-1a1 1 0 0 1 1 -1h2a1 1 0 0 1 1 1Zm9.08 -5.7a0.8 0.8 0 0 1 -0.33 0.08 0.74 0.74 0 0 1 -0.67 -0.43 2.24 2.24 0 0 0 -1.19 -1.1 7.45 7.45 0 0 0 -0.89 -0.31 0.25 0.25 0 0 0 -0.32 0.21 4.54 4.54 0 0 1 -0.75 2.58L11 19.54a0.77 0.77 0 0 1 -0.63 0.34 0.78 0.78 0 0 1 -0.41 -0.12 0.75 0.75 0 0 1 -0.22 -1l1.63 -2.49a0.12 0.12 0 0 0 0 -0.13 0.11 0.11 0 0 0 -0.11 -0.06 3.24 3.24 0 0 0 -1.66 0.62l-1.09 0.8a0.75 0.75 0 0 1 -0.45 0.14 0.71 0.71 0 0 1 -0.6 -0.31 0.74 0.74 0 0 1 0.16 -1l1.1 -0.8a4.74 4.74 0 0 1 2.42 -0.9l1 -0.08a0.26 0.26 0 0 0 0.23 -0.23c0 -0.16 0.05 -0.5 0.13 -1.22a0.25 0.25 0 0 0 -0.16 -0.26 9.54 9.54 0 0 1 -3.06 -2 0.75 0.75 0 0 1 0 -1.06 0.75 0.75 0 0 1 1.06 0 7.35 7.35 0 0 0 2.79 1.8l1.28 0.34a13.39 13.39 0 0 1 1.31 0.43 3.77 3.77 0 0 1 2 1.85 0.75 0.75 0 0 1 -0.3 0.87Z" /></Svg>} expanded={strictnessExpanded} onToggle={() => setStrictnessExpanded(v => !v)} colors={colors} s={s} />
         {strictnessExpanded && <>
 
         {/* Block Settings Toggle */}
@@ -1795,7 +1756,7 @@ function PresetSettingsScreen() {
         </>}
 
         {/* ============ Advanced Section ============ */}
-        <SectionHeader title="Advanced" expanded={advancedExpanded} onToggle={() => setAdvancedExpanded(v => !v)} colors={colors} s={s} />
+        <SectionHeader title="Advanced" icon={<Svg width={s(iconSize.toggleRow)} height={s(iconSize.toggleRow)} viewBox="0 0 24 24" fill="#FFFFFF"><G><Path d="M12.75 11.78a2.5 2.5 0 0 0 -2.5 -2.5h-0.32l0.49 -2.54a1.56 1.56 0 1 0 -2 -1.49A1.53 1.53 0 0 0 9 6.43l-0.6 2.85H4.25L3.7 6.43a1.53 1.53 0 0 0 0.55 -1.18 1.57 1.57 0 1 0 -2 1.49l0.49 2.54H2.5a2.5 2.5 0 0 0 -2.5 2.5v4h12.75ZM4 14a1 1 0 1 1 1 -1 1 1 0 0 1 -1 1Zm4.5 0a1 1 0 1 1 1 -1 1 1 0 0 1 -1 1Z" /><Path d="M21.42 9.35a5.14 5.14 0 0 0 -1 -9.35v4.26a1.62 1.62 0 0 1 -3.23 0V0a5.15 5.15 0 0 0 -1 9.35 5.6 5.6 0 0 0 1.36 0.5l-0.07 6.88a3.14 3.14 0 0 0 -1.61 1.54l-3.19 -0.9v-0.59H0v6.72a0.5 0.5 0 0 0 0.5 0.5h3v-1.75h5.79V24h3a0.5 0.5 0 0 0 0.5 -0.5v-3.45l3.12 0.81a3.17 3.17 0 1 0 4.18 -4.12l0.07 -6.9a6.49 6.49 0 0 0 1.26 -0.49ZM9.29 20.75H3.46V19h5.83Zm9.5 0.06A1.17 1.17 0 1 1 20 19.64a1.16 1.16 0 0 1 -1.21 1.17Z" /></G></Svg>} expanded={advancedExpanded} onToggle={() => setAdvancedExpanded(v => !v)} colors={colors} s={s} />
         {advancedExpanded && <>
 
         {/* Skip Overlay Toggle — hidden when Custom Overlay is on */}

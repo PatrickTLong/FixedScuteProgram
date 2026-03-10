@@ -39,7 +39,7 @@ const AlarmIcon = ({ size = 12, color = '#FFFFFF' }: { size?: number; color?: st
 
 
 function HomeScreen() {
-  const { userEmail: email, refreshTrigger, sharedPresets, setSharedPresets, sharedPresetsLoaded, sharedLockStatus, setSharedLockStatus, tapoutStatus, setTapoutStatus, refreshAll } = useAuth();
+  const { userEmail: email, refreshTrigger, sharedPresets, setSharedPresets, sharedPresetsLoaded, sharedLockStatus, setSharedLockStatus, tapoutStatus, setTapoutStatus, refreshAll, prefetchStats } = useAuth();
   const { colors } = useTheme();
   const { s } = useResponsive();
   const insets = useSafeAreaInsets();
@@ -538,6 +538,8 @@ function HomeScreen() {
     async function init() {
       // First-load cache clearing is now handled in AuthContext
       invalidateUserCaches(email);
+      // Prefetch usage stats for StatsScreen in parallel with home data
+      prefetchStats();
       await loadStats(true, true); // skipCache=true, showLoading=true
     }
     init();
@@ -554,7 +556,7 @@ function HomeScreen() {
     return () => {
       subscription.remove();
     };
-  }, [loadStats, email]);
+  }, [loadStats, email, prefetchStats]);
 
   // Check notification permission on mount and when app returns to foreground
   useEffect(() => {
