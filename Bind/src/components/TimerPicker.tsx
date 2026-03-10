@@ -171,7 +171,7 @@ function TimerPicker({
   const { colors } = useTheme();
   const { s } = useResponsive();
   const itemHeight = s(BASE_ITEM_HEIGHT);
-  const wheelWidth = s(50);
+  const wheelWidth = Math.max(s(50), 46);
   const textMutedColor = colors.text === '#ffffff' ? 'rgba(255,255,255,0.3)' : 'rgba(26,26,26,0.3)';
   const selectedFontSize = s(24);
   const unselectedFontSize = s(18);

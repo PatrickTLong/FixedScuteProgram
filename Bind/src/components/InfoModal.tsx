@@ -38,7 +38,7 @@ function InfoModal({
       animationType="fade"
       onRequestClose={onClose}
     >
-      <View className="flex-1 bg-black/70 justify-center items-center px-8">
+      <View className="flex-1 bg-black/70 justify-center items-center" style={{ paddingHorizontal: s(32) }}>
           <View>
             <View
               style={{

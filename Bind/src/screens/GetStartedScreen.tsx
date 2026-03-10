@@ -31,14 +31,14 @@ import type { StackNavigationProp } from '@react-navigation/stack';
 import type { AuthStackParamList } from '../navigation/types';
 
 const SendEmailIcon = ({ size = 24, color = '#FFFFFF' }: { size?: number; color?: string }) => (
-  <Svg viewBox="0 0 24 24" width={size} height={size}>
-    <Path d="M23.82 1.12a0.5 0.5 0 0 0 -0.51 -0.12l-23 9.5A0.5 0.5 0 0 0 0 11a0.51 0.51 0 0 0 0.32 0.46l6.33 2.45a0.52 0.52 0 0 0 0.47 -0.05l8.4 -6a0.5 0.5 0 0 1 0.64 0.77l-7 6.75a0.51 0.51 0 0 0 -0.15 0.36v6.76a0.49 0.49 0 0 0 0.37 0.48 0.49 0.49 0 0 0 0.56 -0.23l3.17 -5.42a0.25 0.25 0 0 1 0.33 -0.1l5.83 3.21a0.5 0.5 0 0 0 0.73 -0.33l4 -18.5a0.5 0.5 0 0 0 -0.18 -0.49Z" fill={color} />
+  <Svg viewBox="0 0 256 256" width={size} height={size}>
+    <Path d="M253.66,133.66l-32,32a8,8,0,0,1-11.32,0l-16-16a8,8,0,0,1,11.32-11.32L216,148.69l26.34-26.35a8,8,0,0,1,11.32,11.32ZM144,157.68a68,68,0,1,0-71.9,0c-20.65,6.76-39.23,19.39-54.17,37.17A8,8,0,0,0,24,208H192a8,8,0,0,0,6.13-13.15C183.18,177.07,164.6,164.44,144,157.68Z" fill={color} />
   </Svg>
 );
 
 const LoginKeyIcon = ({ size = 24, color = '#FFFFFF' }: { size?: number; color?: string }) => (
-  <Svg viewBox="0 0 24 24" width={size} height={size} fill="none">
-    <Path d="M5.8 6.347v2.606h-0.55C4.036 8.953 3 9.99 3 11.203v10.5c0 1.214 1.036 2.25 2.25 2.25h13.5c1.214 0 2.25-1.036 2.25-2.25v-10.5c0-1.214-1.036-2.25-2.25-2.25h-0.55V6.347c0-3.44-2.835-6.3-6.2-6.3s-6.2 2.86-6.2 6.3Zm6.2-4.3c-2.235 0-4.2 1.94-4.2 4.3v2.606h8.4V6.347c0-2.36-1.965-4.3-4.2-4.3ZM9.5 14.453a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0Zm8 0a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0Zm-7.051 3.684a1 1 0 0 0-1.898 0.632c0.526 1.577 2.134 2.197 3.449 2.197s2.923-0.62 3.449-2.197a1 1 0 0 0-1.898-0.632c-0.146 0.44-0.702 0.829-1.551 0.829-0.85 0-1.405-0.39-1.551-0.83Z" fill={color} fillRule="evenodd" clipRule="evenodd" />
+  <Svg viewBox="0 0 256 256" width={size} height={size}>
+    <Path d="M198.13,194.85A8,8,0,0,1,192,208H24a8,8,0,0,1-6.12-13.15c14.94-17.78,33.52-30.41,54.17-37.17a68,68,0,1,1,71.9,0C164.6,164.44,183.18,177.07,198.13,194.85ZM255.18,154a8,8,0,0,1-6.94,4,7.92,7.92,0,0,1-4-1.07l-4.67-2.7a23.92,23.92,0,0,1-7.58,4.39V164a8,8,0,0,1-16,0v-5.38a23.92,23.92,0,0,1-7.58-4.39l-4.67,2.7a7.92,7.92,0,0,1-4,1.07,8,8,0,0,1-4-14.93l4.66-2.69a23.6,23.6,0,0,1,0-8.76l-4.66-2.69a8,8,0,1,1,8-13.86l4.67,2.7a23.92,23.92,0,0,1,7.58-4.39V108a8,8,0,0,1,16,0v5.38a23.92,23.92,0,0,1,7.58,4.39l4.67-2.7a8,8,0,1,1,8,13.86l-4.66,2.69a23.6,23.6,0,0,1,0,8.76l4.66,2.69A8,8,0,0,1,255.18,154ZM224,144a8,8,0,1,0-8-8A8,8,0,0,0,224,144Z" fill={color} />
   </Svg>
 );
 
@@ -267,7 +267,7 @@ function GetStartedScreen() {
                     />
                     <View style={{ justifyContent: 'center', alignItems: 'center', paddingHorizontal: s(8), height: '100%' }}>
                       <HeaderIconButton onPress={() => setShowPassword(!showPassword)}>
-                        {showPassword ? <EyeIcon size={s(iconSize.headerNav)} color={colors.textSecondary} weight="fill" /> : <EyeClosedIcon size={s(iconSize.headerNav)} color={colors.textSecondary} weight="fill" />}
+                        {showPassword ? <EyeIcon size={s(iconSize.headerNav)} color="#FFFFFF" weight="fill" /> : <EyeClosedIcon size={s(iconSize.headerNav)} color={colors.textSecondary} weight="fill" />}
                       </HeaderIconButton>
                     </View>
                   </View>

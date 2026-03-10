@@ -565,7 +565,7 @@ function EditPresetAppsScreen() {
                   style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, borderRadius: 16, overflow: 'hidden', paddingVertical: s(buttonPadding.standard + 4), ...shadow.card }}
                   className="flex-row items-center px-5 mb-4"
                 >
-                  <View className={`w-12 h-12 ${radius.xl} items-center justify-center mr-4`}>
+                  <View style={{ width: s(48), height: s(48), marginRight: s(16) }} className={`${radius.xl} items-center justify-center`}>
                     <AppsIcon size={s(iconSize.lg)} color={colors.text} />
                   </View>
                   <View className="flex-1">
