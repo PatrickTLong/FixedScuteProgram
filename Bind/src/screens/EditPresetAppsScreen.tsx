@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef, memo, useCallback, useMemo } from 'react';
+import { Freeze } from 'react-freeze';
 import {
   View,
   Text,
   Pressable,
   TextInput,
-  ScrollView,
   KeyboardAvoidingView,
   Platform,
   NativeModules,
@@ -244,6 +244,30 @@ const AppItemRow = memo(({ item, isSelected, onToggle, colors, s, skipCheckboxAn
   );
 });
 
+// ============ WebsiteItemRow ============
+
+const WebsiteItemRow = memo(({ site, onRemove, colors, s }: {
+  site: string;
+  onRemove: (site: string) => void;
+  colors: any;
+  s: (v: number) => number;
+}) => {
+  return (
+    <View
+      style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, paddingVertical: s(buttonPadding.standard + 4), ...shadow.card }}
+      className={`flex-row items-center px-5 ${radius.xl} mb-2`}
+    >
+      <View className="w-10 h-10 items-center justify-center mr-3">
+        <GlobeIcon size={s(iconSize.xl)} color={colors.textSecondary} />
+      </View>
+      <Text style={{ color: colors.text }} className={`flex-1 ${textSize.small} ${fontFamily.regular}`}>{site}</Text>
+      <HeaderIconButton onPress={() => onRemove(site)}>
+        <XIcon size={s(iconSize.headerNav)} color={colors.text} />
+      </HeaderIconButton>
+    </View>
+  );
+});
+
 // ============ Screen Component ============
 
 function EditPresetAppsScreen() {
@@ -479,6 +503,12 @@ function EditPresetAppsScreen() {
 
   const keyExtractor = useCallback((item: InstalledApp) => item.id, []);
 
+  const renderWebsiteItem = useCallback(({ item }: { item: string }) => (
+    <WebsiteItemRow site={item} onRemove={removeWebsite} colors={colors} s={s} />
+  ), [removeWebsite, colors, s]);
+
+  const websiteKeyExtractor = useCallback((item: string) => item, []);
+
   const ListHeaderComponent = useMemo(() => (
     <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular} mb-5`}>
       {installedSelectedApps.length} app{installedSelectedApps.length !== 1 ? 's' : ''} selected
@@ -555,6 +585,7 @@ function EditPresetAppsScreen() {
 
         <View style={{ flex: 1 }}>
           {/* Apps tab - stays mounted, hidden via opacity to avoid layout recomputation */}
+          <Freeze freeze={activeTab !== 'apps'}>
           <View style={{ ...StyleSheet.absoluteFillObject, opacity: activeTab === 'apps' ? 1 : 0, zIndex: activeTab === 'apps' ? 1 : 0 }} pointerEvents={activeTab === 'apps' ? 'auto' : 'none'}>
             {Platform.OS === 'ios' ? (
               // iOS: Show button to open native FamilyActivityPicker
@@ -674,10 +705,12 @@ function EditPresetAppsScreen() {
               </>
             )}
           </View>
+          </Freeze>
 
           {/* Websites tab - stays mounted, hidden via opacity to avoid layout recomputation */}
+          <Freeze freeze={activeTab !== 'websites'}>
           <View style={{ ...StyleSheet.absoluteFillObject, opacity: activeTab === 'websites' ? 1 : 0, zIndex: activeTab === 'websites' ? 1 : 0 }} pointerEvents={activeTab === 'websites' ? 'auto' : 'none'}>
-            <ScrollView className="flex-1 px-6" contentContainerStyle={{ paddingBottom: s(24) + insets.bottom }}>
+            <View className="flex-1 px-6">
               {/* Website Input */}
               <View className="flex-row items-center mb-4">
                 <View
@@ -706,29 +739,26 @@ function EditPresetAppsScreen() {
               </Text>
 
               {/* Website List */}
-              {blockedWebsites.map((site) => (
-                <View
-                  key={site}
-                  style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, paddingVertical: s(buttonPadding.standard + 4), ...shadow.card }}
-                  className={`flex-row items-center px-5 ${radius.xl} mb-2`}
-                >
-                  <View className="w-10 h-10 items-center justify-center mr-3">
-                    <GlobeIcon size={s(iconSize.xl)} color={colors.textSecondary} />
-                  </View>
-                  <Text style={{ color: colors.text }} className={`flex-1 ${textSize.small} ${fontFamily.regular}`}>{site}</Text>
-                  <HeaderIconButton onPress={() => removeWebsite(site)}>
-                    <XIcon size={s(iconSize.headerNav)} color={colors.text} />
-                  </HeaderIconButton>
-                </View>
-              ))}
-
-              {blockedWebsites.length === 0 && (
-                <Text style={{ color: colors.textSecondary }} className={`text-center ${textSize.small} ${fontFamily.regular} py-8`}>
-                  No websites blocked yet
-                </Text>
-              )}
-            </ScrollView>
+              <FlatList
+                data={blockedWebsites}
+                renderItem={renderWebsiteItem}
+                keyExtractor={websiteKeyExtractor}
+                contentContainerStyle={{ paddingBottom: s(24) + insets.bottom }}
+                removeClippedSubviews={true}
+                initialNumToRender={10}
+                maxToRenderPerBatch={6}
+                windowSize={3}
+                updateCellsBatchingPeriod={30}
+                keyboardShouldPersistTaps="handled"
+                ListEmptyComponent={
+                  <Text style={{ color: colors.textSecondary }} className={`text-center ${textSize.small} ${fontFamily.regular} py-8`}>
+                    No websites blocked yet
+                  </Text>
+                }
+              />
+            </View>
           </View>
+          </Freeze>
         </View>
       </KeyboardAvoidingView>
 
