@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, memo, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, memo, useRef } from 'react';
 import {
   Text,
   View,
@@ -7,6 +7,7 @@ import {
   Linking,
   Animated,
   Easing,
+  RefreshControl,
 } from 'react-native';
 import SlideUpModal from '../components/SlideUpModal';
 import LottieView from 'lottie-react-native';
@@ -155,9 +156,18 @@ function SettingsScreen() {
   const insets = useSafeAreaInsets();
 
   const [loading, setLoading] = useState(!hasCache);
+  const [refreshing, setRefreshing] = useState(false);
 
-
-
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    const [, , membership] = await Promise.all([
+      refreshLockStatus(true),
+      refreshTapoutStatus(true),
+      getMembershipStatus(email, false),
+    ]);
+    setMembershipStatus(membership);
+    setRefreshing(false);
+  }, [email, refreshLockStatus, refreshTapoutStatus]);
 
   // Heartbeat animation for tapout icon
   const heartBeat = useRef(new Animated.Value(1)).current;
@@ -386,6 +396,7 @@ function SettingsScreen() {
         className="flex-1"
         contentContainerStyle={{ flexGrow: 1, paddingHorizontal: s(16), paddingTop: s(16), paddingBottom: s(32) }}
         showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.text]} progressBackgroundColor={colors.card} />}
       >
         {/* ACCOUNT Section */}
         <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold} tracking-wider mb-2`}>

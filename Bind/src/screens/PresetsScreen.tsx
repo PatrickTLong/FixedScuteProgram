@@ -8,9 +8,9 @@ import {
   Platform,
   Animated,
   Dimensions,
+  RefreshControl,
 } from 'react-native';
 import LoadingSpinner from '../components/LoadingSpinner';
-import PullToRefresh from '../components/PullToRefresh';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import { PlusIcon as PhosphorPlusIcon, PlusCircleIcon } from 'phosphor-react-native';
@@ -836,14 +836,11 @@ function PresetsScreen() {
   ), [loading, colors.textSecondary, colors.textMuted, s]);
 
   // Pull-to-refresh handler
-  const onRefresh = useCallback(() => {
+  const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    setTimeout(() => {
-      setRefreshing(false);
-      invalidateUserCaches(userEmail_safe);
-      refreshLockStatus(true);
-      refreshPresets(true);
-    }, 500);
+    invalidateUserCaches(userEmail_safe);
+    await Promise.all([refreshLockStatus(true), refreshPresets(true)]);
+    setRefreshing(false);
   }, [userEmail_safe, refreshLockStatus, refreshPresets]);
 
   // Show loading state until initial data is loaded - prevents flash of incomplete content
@@ -870,20 +867,18 @@ function PresetsScreen() {
       </View>
 
       {/* Presets List */}
-      <PullToRefresh onRefresh={onRefresh} refreshing={refreshing}>
-        <FlatList
-          className="flex-1"
-          data={sortedPresets}
-          renderItem={renderPresetItem}
-          keyExtractor={keyExtractor}
-          ListEmptyComponent={ListEmptyComponent}
-          contentContainerStyle={{ flexGrow: 1, paddingHorizontal: s(20), paddingTop: s(12), paddingBottom: s(32) }}
-          removeClippedSubviews={true}
-          maxToRenderPerBatch={10}
-          windowSize={5}
-          overScrollMode="never"
-        />
-      </PullToRefresh>
+      <FlatList
+        className="flex-1"
+        data={sortedPresets}
+        renderItem={renderPresetItem}
+        keyExtractor={keyExtractor}
+        ListEmptyComponent={ListEmptyComponent}
+        contentContainerStyle={{ flexGrow: 1, paddingHorizontal: s(20), paddingTop: s(12), paddingBottom: s(32) }}
+        removeClippedSubviews={true}
+        maxToRenderPerBatch={10}
+        windowSize={5}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.text]} progressBackgroundColor={colors.card} />}
+      />
 
       {/* Delete Confirmation Modal */}
       <ConfirmationModal

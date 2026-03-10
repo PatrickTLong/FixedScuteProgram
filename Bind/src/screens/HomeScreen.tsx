@@ -10,12 +10,12 @@ import {
   Modal,
   Platform,
   Animated,
+  RefreshControl,
 } from 'react-native';
 import { AlarmIcon as PhosphorAlarmIcon, LockIcon, LockOpenIcon } from 'phosphor-react-native';
 import Svg, { Path, G } from 'react-native-svg';
 
 import HeaderIconButton from '../components/HeaderIconButton';
-import PullToRefresh from '../components/PullToRefresh';
 import LottieView from 'lottie-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -1153,13 +1153,11 @@ function HomeScreen() {
   }, [getPresetTimingSubtext, colors.textMuted]);
 
   // Pull-to-refresh handler
-  const onRefresh = useCallback(() => {
+  const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    setTimeout(() => {
-      setRefreshing(false);
-      invalidateUserCaches(email);
-      loadStats(true, false);
-    }, 500);
+    invalidateUserCaches(email);
+    await loadStats(true, false);
+    setRefreshing(false);
   }, [email, loadStats]);
 
   if (loading) {
@@ -1217,12 +1215,11 @@ function HomeScreen() {
         </View>
       </View>
 
-      <PullToRefresh onRefresh={onRefresh} refreshing={refreshing}>
-        <ScrollView
-          className="flex-1 px-6"
-          contentContainerStyle={{ flexGrow: 1 }}
-          overScrollMode="never"
-        >
+      <ScrollView
+        className="flex-1 px-6"
+        contentContainerStyle={{ flexGrow: 1 }}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.text]} progressBackgroundColor={colors.card} />}
+      >
         {/* Status + Preset + Scheduled - centered in full screen */}
         <View className="flex-1 items-center justify-center" style={{ paddingTop: 40 }}>
           {/* Status section - fixed height to prevent layout shift between states */}
@@ -1275,8 +1272,7 @@ function HomeScreen() {
             )}
           </View>
         </View>
-        </ScrollView>
-      </PullToRefresh>
+      </ScrollView>
 
       {/* Action Button */}
       <View

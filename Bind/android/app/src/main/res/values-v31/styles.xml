@@ -9,6 +9,15 @@
         <item name="android:windowSplashScreenBackground">#28282B</item>
     </style>
 
+    <!-- BootSplash theme for Android 12+ (keeps heart_face as system splash icon) -->
+    <style name="BootTheme" parent="Theme.BootSplash">
+        <item name="bootSplashBackground">@color/bootsplash_background</item>
+        <item name="bootSplashLogo">@drawable/bootsplash_heart</item>
+        <item name="postBootSplashTheme">@style/AppTheme</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/heart_face</item>
+        <item name="android:windowSplashScreenBackground">#28282B</item>
+    </style>
+
     <!-- Fullscreen overlay theme for BlockedActivity -->
     <style name="BlockedOverlayTheme" parent="Theme.AppCompat.NoActionBar">
         <item name="android:windowIsTranslucent">true</item>

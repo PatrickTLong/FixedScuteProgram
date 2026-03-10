@@ -11,9 +11,9 @@ import {
   ScrollView,
   Modal,
   Pressable,
+  RefreshControl,
 } from 'react-native';
 import LoadingSpinner from '../components/LoadingSpinner';
-import PullToRefresh from '../components/PullToRefresh';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowsOutIcon, ArrowsInIcon } from 'phosphor-react-native';
 import Svg, { Path } from 'react-native-svg';
@@ -369,12 +369,10 @@ function StatsScreen() {
   const displayTotal = totalScreenTime;
 
   // Pull-to-refresh handler
-  const onRefresh = useCallback(() => {
+  const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    setTimeout(() => {
-      setRefreshing(false);
-      loadStats();
-    }, 500);
+    await loadStats();
+    setRefreshing(false);
   }, [loadStats]);
 
   if (loading) {
@@ -396,12 +394,10 @@ function StatsScreen() {
         <View className="w-11 h-11" />
       </View>
 
-      <PullToRefresh onRefresh={onRefresh} refreshing={refreshing}>
         <ScrollView
           className="flex-1"
-          scrollEnabled={false}
           contentContainerStyle={{ flexGrow: 1, paddingHorizontal: s(16) }}
-          overScrollMode="never"
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.text]} progressBackgroundColor={colors.card} />}
         >
         {/* Period Tabs */}
         <View className="flex-row mb-4">
@@ -411,7 +407,7 @@ function StatsScreen() {
               <View style={{ flex: 1 }}>
                 <Pressable
                   onPress={() => setActivePeriod(period)}
-                  android_ripple={{ color: activePeriod === period ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.15)', borderless: false, foreground: true, radius: -1 }}
+                  android_ripple={null}
                   style={{
                     backgroundColor: activePeriod === period ? colors.text : colors.card,
                     borderWidth: 1,
@@ -500,7 +496,6 @@ function StatsScreen() {
           </View>
         )}
         </ScrollView>
-      </PullToRefresh>
 
       {/* Expanded Top Apps Modal */}
       <Modal
