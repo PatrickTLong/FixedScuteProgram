@@ -2187,7 +2187,7 @@ async function createDefaultPresetsForUser(email, choice = 'social_media') {
     };
 
     // Only insert the preset matching the user's onboarding choice
-    const presetMap: Record<string, any> = {
+    const presetMap = {
       social_media: socialMediaPreset,
       xxx: xxxSitesPreset,
       both: bothPreset,
