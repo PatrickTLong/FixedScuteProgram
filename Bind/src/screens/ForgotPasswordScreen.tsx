@@ -8,7 +8,7 @@ import {
   ScrollView,
   TextInput,
 } from 'react-native';
-import LoadingSpinner from '../components/LoadingSpinner';
+import LottieView from 'lottie-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { EyeIcon, EyeClosedIcon } from 'phosphor-react-native';
 import Svg, { Path } from 'react-native-svg';
@@ -363,7 +363,18 @@ function ForgotPasswordScreen() {
               </Text>
               {loading && (
                 <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center' }}>
-                  <LoadingSpinner size={s(20)} color={colors.bg} />
+                  <LottieView
+                    source={require('../frontassets/loading dots - Three Gray..json')}
+                    autoPlay
+                    loop
+                    speed={1.75}
+                    style={{ width: s(42), height: s(18) }}
+                    colorFilters={[
+                      { keypath: 'Left.Elipse 1.Preenchimento 1', color: colors.bg },
+                      { keypath: 'Mid.Elipse 1.Preenchimento 1', color: colors.bg },
+                      { keypath: 'Right.Elipse 1.Preenchimento 1', color: colors.bg },
+                    ]}
+                  />
                 </View>
               )}
             </Pressable>

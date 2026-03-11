@@ -13,7 +13,6 @@ import { useTheme, textSize, fontFamily, radius, pill, haptics } from '../contex
 import { useResponsive } from '../utils/responsive';
 import { triggerHaptic } from '../utils/haptics';
 import { useAuth } from '../context/AuthContext';
-import { initDefaultPresets } from '../services/cardApi';
 import ScreenTransition from '../components/ScreenTransition';
 import type { ScreenTransitionRef } from '../components/ScreenTransition';
 
@@ -40,7 +39,7 @@ const XXX_ICON = 'M18.45 0.276a4.015 4.015 0 0 0 -4.015 4.015v0.084a0.623 0.623 
 export default function OnboardingScreen() {
   const { colors } = useTheme();
   const { s } = useResponsive();
-  const { handleOnboardingComplete, userEmail, triggerRefresh } = useAuth();
+  const { handleStartOnboardingLoading } = useAuth();
   const transitionRef = useRef<ScreenTransitionRef>(null);
 
   // Icon triangle animations
@@ -125,16 +124,12 @@ export default function OnboardingScreen() {
 
     if (choice === 'none') {
       await transitionRef.current?.animateOut('left');
-      handleOnboardingComplete('none');
     } else {
       await AsyncStorage.setItem('show_block_hint', 'true');
-      // Run preset init and exit animation in parallel, then trigger refresh so HomeScreen has the presets
-      await Promise.all([
-        userEmail ? initDefaultPresets(userEmail).then(() => triggerRefresh()).catch(() => {}) : Promise.resolve(),
-        transitionRef.current?.animateOut('up'),
-      ]);
-      handleOnboardingComplete(choice);
+      await transitionRef.current?.animateOut('up');
     }
+
+    handleStartOnboardingLoading(choice);
   };
 
   const ICON_SIZE = s(62);

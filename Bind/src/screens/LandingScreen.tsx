@@ -255,7 +255,11 @@ function LandingScreen() {
                       loop
                       speed={1.75}
                       style={{ width: s(42), height: s(18) }}
-                      colorFilters={[{ keypath: '**.Color', color: '#000000' }]}
+                      colorFilters={[
+                        { keypath: 'Left.Elipse 1.Preenchimento 1', color: '#000000' },
+                        { keypath: 'Mid.Elipse 1.Preenchimento 1', color: '#000000' },
+                        { keypath: 'Right.Elipse 1.Preenchimento 1', color: '#000000' },
+                      ]}
                     />
                   </View>
                 )}

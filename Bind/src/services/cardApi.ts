@@ -433,7 +433,7 @@ export async function activatePreset(email: string, presetId: string | null): Pr
  * Initialize default presets for a new user
  * Uses session-level deduplication to prevent repeated API calls
  */
-export async function initDefaultPresets(email: string): Promise<{ success: boolean; created: boolean; error?: string }> {
+export async function initDefaultPresets(email: string, choice: string): Promise<{ success: boolean; created: boolean; error?: string }> {
   const normalizedEmail = email.toLowerCase();
 
   // Check if already initialized this session
@@ -449,7 +449,7 @@ export async function initDefaultPresets(email: string): Promise<{ success: bool
       const response = await fetch(`${API_URL}/api/presets/init-defaults`, {
         method: 'POST',
         headers,
-        body: JSON.stringify({}),
+        body: JSON.stringify({ choice }),
       });
 
       const data = await response.json();

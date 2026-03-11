@@ -194,20 +194,6 @@ function SignInScreen() {
     }
   }
 
-  if (loading) {
-    return (
-      <View style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }}>
-        <LottieView
-          source={require('../frontassets/Orange colour loading.json')}
-          autoPlay
-          loop
-          resizeMode="contain"
-          style={{ width: s(120), height: s(120) }}
-        />
-      </View>
-    );
-  }
-
   return (
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
       {/* Back Button */}
@@ -345,16 +331,31 @@ function SignInScreen() {
               style={{ backgroundColor: colors.text, borderWidth: 1, borderColor: colors.border, borderRadius: 9999, overflow: 'hidden', ...shadow.card, position: 'relative' }}
               className={`${pill} items-center justify-center mb-4`}
             >
-              <Text style={{ color: colors.bg }} className={`${textSize.small} ${fontFamily.semibold}`}>
+              <Text style={{ color: colors.bg, opacity: loading ? 0 : 1 }} className={`${textSize.small} ${fontFamily.semibold}`}>
                 {step === 'credentials' ? 'Sign In' : 'Verify'}
               </Text>
+              {loading && (
+                <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center' }}>
+                  <LottieView
+                    source={require('../frontassets/loading dots - Three Gray..json')}
+                    autoPlay
+                    loop
+                    speed={1.75}
+                    style={{ width: s(42), height: s(18) }}
+                    colorFilters={[
+                      { keypath: 'Left.Elipse 1.Preenchimento 1', color: colors.bg },
+                      { keypath: 'Mid.Elipse 1.Preenchimento 1', color: colors.bg },
+                      { keypath: 'Right.Elipse 1.Preenchimento 1', color: colors.bg },
+                    ]}
+                  />
+                </View>
+              )}
             </Pressable>
 
             {/* Google Sign In - only show on credentials step */}
             {step === 'credentials' && (
               <View className="mt-2">
                 <GoogleSignInBtn
-                  light
                   onSuccess={onSuccess}
                   onError={(error) => showModal('Google Sign-In Error', error)}
                   disabled={loading}

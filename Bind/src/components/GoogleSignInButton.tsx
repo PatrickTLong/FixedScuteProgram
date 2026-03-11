@@ -144,7 +144,11 @@ function GoogleSignInBtn({ onSuccess, onError, disabled, light, noShadow }: Prop
             loop
             speed={1.75}
             style={{ width: s(42), height: s(18) }}
-            colorFilters={[{ keypath: '**.Color', color: txtColor }]}
+            colorFilters={[
+              { keypath: 'Left.Elipse 1.Preenchimento 1', color: txtColor },
+              { keypath: 'Mid.Elipse 1.Preenchimento 1', color: txtColor },
+              { keypath: 'Right.Elipse 1.Preenchimento 1', color: txtColor },
+            ]}
           />
         </View>
       )}

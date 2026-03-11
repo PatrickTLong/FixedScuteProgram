@@ -1482,8 +1482,11 @@ app.post('/api/presets/activate', authenticateToken, async (req, res) => {
 app.post('/api/presets/init-defaults', authenticateToken, async (req, res) => {
   const normalizedEmail = req.userEmail; // Get email from verified token
 
+  const { choice } = req.body;
   try {
-    await createDefaultPresetsForUser(normalizedEmail);
+    console.log(`[ONBOARDING] /api/presets/init-defaults called for ${normalizedEmail} — choice: ${choice}`);
+    await createDefaultPresetsForUser(normalizedEmail, choice);
+    console.log(`[ONBOARDING] /api/presets/init-defaults complete for ${normalizedEmail}`);
     res.json({ success: true, created: true });
   } catch (error) {
     console.error('Init defaults error:', error);
@@ -2012,7 +2015,7 @@ app.post('/api/user-theme', authenticateToken, async (req, res) => {
 // ============ DEFAULT PRESETS HELPER ============
 
 // Create default presets for new users
-async function createDefaultPresetsForUser(email) {
+async function createDefaultPresetsForUser(email, choice = 'social_media') {
   const normalizedEmail = email.toLowerCase();
 
   try {
@@ -2024,10 +2027,11 @@ async function createDefaultPresetsForUser(email) {
       .limit(1);
 
     if (existing && existing.length > 0) {
-      console.log(`User ${normalizedEmail} already has presets, skipping default creation`);
+      console.log(`[ONBOARDING] ${normalizedEmail} already has presets — skipping default creation`);
       return;
     }
 
+    console.log(`[ONBOARDING] creating 3 default presets for ${normalizedEmail}...`);
     // Default preset 1: XXX Sites
     const xxxSitesPreset = {
       email: normalizedEmail,
@@ -2182,15 +2186,23 @@ async function createDefaultPresetsForUser(email) {
       strict_mode: false,
     };
 
-    // Insert all three presets
+    // Only insert the preset matching the user's onboarding choice
+    const presetMap: Record<string, any> = {
+      social_media: socialMediaPreset,
+      xxx: xxxSitesPreset,
+      both: bothPreset,
+    };
+    const presetToInsert = presetMap[choice] ?? socialMediaPreset;
+
+    console.log(`[ONBOARDING] creating preset "${presetToInsert.name}" for ${normalizedEmail} (choice: ${choice})`);
     const { error: insertError } = await supabase
       .from('user_presets')
-      .insert([xxxSitesPreset, socialMediaPreset, bothPreset]);
+      .insert([presetToInsert]);
 
     if (insertError) {
-      console.error('Error creating default presets:', insertError);
+      console.error('[ONBOARDING] Error creating preset:', insertError);
     } else {
-      console.log(`Default presets created for ${normalizedEmail}`);
+      console.log(`[ONBOARDING] preset "${presetToInsert.name}" created for ${normalizedEmail}`);
     }
   } catch (error) {
     console.error('Error in createDefaultPresetsForUser:', error);

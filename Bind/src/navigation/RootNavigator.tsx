@@ -9,6 +9,7 @@ import TermsAcceptScreen from '../screens/TermsAcceptScreen';
 import PermissionsChecklistScreen from '../screens/PermissionsChecklistScreen';
 import MembershipScreen from '../screens/MembershipScreen';
 import OnboardingScreen from '../screens/OnboardingScreen';
+import OnboardingLoadingScreen from '../screens/OnboardingLoadingScreen';
 import MainTabNavigator from './MainTabNavigator';
 import { PresetSaveProvider } from './PresetsStack';
 import type { MainStackParamList } from './types';
@@ -53,6 +54,8 @@ export default function RootNavigator() {
       return <PermissionsChecklistScreen />;
     case 'onboarding':
       return <OnboardingScreen />;
+    case 'onboarding_loading':
+      return <OnboardingLoadingScreen />;
     case 'membership':
       return <MembershipScreen />;
     case 'main':

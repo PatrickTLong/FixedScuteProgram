@@ -58,7 +58,8 @@ function HomeScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalTitle, setModalTitle] = useState('');
   const [modalMessage, setModalMessage] = useState('');
-  const [loading, setLoading] = useState(true);
+  // If coming from OnboardingLoadingScreen, presets are already loaded — skip spinner
+  const [loading, setLoading] = useState(!sharedPresetsLoaded);
 
   // Emergency tapout state
   const [emergencyTapoutModalVisible, setEmergencyTapoutModalVisible] = useState(false);
@@ -74,9 +75,6 @@ function HomeScreen() {
   const [widgetBubbleDisabled, setWidgetBubbleDisabled] = useState(false);
 
   // Onboarding block hint overlay
-  const [showBlockHint, setShowBlockHint] = useState(false);
-  const blockHintOpacity = useRef(new Animated.Value(0)).current;
-  const blockHintScale = useRef(new Animated.Value(0.8)).current;
   const onboardingHandledRef = useRef(false);
 
 
@@ -554,7 +552,10 @@ function HomeScreen() {
       invalidateUserCaches(email);
       // Prefetch usage stats for StatsScreen in parallel with home data
       prefetchStats();
-      await loadStats(true, true); // skipCache=true, showLoading=true
+      // If coming from OnboardingLoadingScreen, data is already loaded — skip spinner
+      const needsInitialLoad = !sharedPresetsLoaded;
+      console.log('[HOME] mount — sharedPresetsLoaded:', sharedPresetsLoaded, '| showLoading:', needsInitialLoad);
+      await loadStats(true, needsInitialLoad); // skipCache=true, showLoading only if no data yet
     }
     init();
 
@@ -930,67 +931,23 @@ function HomeScreen() {
   }, [email, showModal, activePreset]);
 
   // Onboarding: handle preset choice and show block hint
+  // Onboarding: navigate to EditPresetApps for 'none' choice
   useEffect(() => {
     if (!onboardingChoice || onboardingHandledRef.current) return;
 
     if (onboardingChoice === 'none') {
+      if (!navigationRef.isReady()) return;
       onboardingHandledRef.current = true;
-      if (navigationRef.isReady()) {
-        (navigationRef as any).navigate('MainTabs', { screen: 'EditPresetApps' });
-      }
+      console.log('[ONBOARDING] choice=none — navigating to EditPresetApps');
+      (navigationRef as any).navigate('MainTabs', { screen: 'EditPresetApps' });
       return;
     }
 
-    const showHint = async () => {
-      const hint = await AsyncStorage.getItem('show_block_hint');
-      if (hint !== 'true') {
-        onboardingHandledRef.current = true;
-        return;
-      }
-
-      const presetName = onboardingChoice === 'social_media' ? 'Social Media' : onboardingChoice === 'xxx' ? 'XXX Sites' : 'Social Media & XXX Sites';
-      const matchingPreset = sharedPresets.find(p => p.name === presetName);
-
-      // Preset not in cache yet (initDefaultPresets still in flight) — wait for next sharedPresets update
-      if (!matchingPreset) return;
-
-      onboardingHandledRef.current = true;
-
-      // Optimistic update — flip state immediately, fire API in background
-      const activated = { ...matchingPreset, isActive: true };
-      setSharedPresets(prev => prev.map(p => p.id === matchingPreset.id ? activated : p));
-      setCurrentPreset(activated.name);
-      setActivePreset(activated);
-      activatePreset(email, matchingPreset.id).catch(() => {});
-
-      setShowBlockHint(true);
-      Animated.parallel([
-        Animated.timing(blockHintOpacity, {
-          toValue: 1,
-          duration: 400,
-          useNativeDriver: true,
-        }),
-        Animated.spring(blockHintScale, {
-          toValue: 1,
-          speed: 10,
-          bounciness: 12,
-          useNativeDriver: true,
-        }),
-      ]).start();
-
-      await AsyncStorage.removeItem('show_block_hint');
-    };
-    showHint();
-  }, [onboardingChoice, sharedPresetsLoaded, sharedPresets]);
-
-  // Dismiss block hint on tap
-  const dismissBlockHint = useCallback(() => {
-    Animated.timing(blockHintOpacity, {
-      toValue: 0,
-      duration: 200,
-      useNativeDriver: true,
-    }).start(() => setShowBlockHint(false));
-  }, []);
+    // For preset choices, activation was done in OnboardingLoadingScreen — nothing more to do
+    if (!sharedPresetsLoaded || loading) return;
+    onboardingHandledRef.current = true;
+    AsyncStorage.removeItem('show_block_hint');
+  }, [onboardingChoice, sharedPresetsLoaded, loading, sharedPresets]);
 
   const handleBlockNow = useCallback(() => {
 
@@ -1506,42 +1463,6 @@ function HomeScreen() {
         </View>
       </Modal>
 
-      {/* Onboarding block hint overlay */}
-      {showBlockHint && (
-        <Pressable
-          onPress={dismissBlockHint}
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0,0,0,0.7)',
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-        >
-          <Animated.View
-            style={{
-              opacity: blockHintOpacity,
-              transform: [{ scale: blockHintScale }],
-              alignItems: 'center',
-              paddingHorizontal: s(32),
-            }}
-          >
-            <Text style={{ color: '#FFFFFF', marginBottom: s(16) }} className={`${textSize['2xLarge']} ${fontFamily.bold} text-center`}>
-              Double Tap{'\n'}to begin blocking!
-            </Text>
-            {/* Down arrow */}
-            <Svg width={s(32)} height={s(32)} viewBox="0 0 256 256" fill="#FFFFFF">
-              <Path d="M205.66,149.66l-72,72a8,8,0,0,1-11.32,0l-72-72a8,8,0,0,1,11.32-11.32L120,196.69V40a8,8,0,0,1,16,0V196.69l58.34-58.35a8,8,0,0,1,11.32,11.32Z" />
-            </Svg>
-            <Text style={{ color: 'rgba(255,255,255,0.6)', marginTop: s(24) }} className={`${textSize.small} ${fontFamily.regular} text-center`}>
-              Tap anywhere to dismiss
-            </Text>
-          </Animated.View>
-        </Pressable>
-      )}
 
     </View>
   );

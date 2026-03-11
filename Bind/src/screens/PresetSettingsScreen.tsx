@@ -2037,7 +2037,11 @@ function PresetSettingsScreen() {
                           loop
                           speed={1.75}
                           style={{ width: s(42), height: s(18) }}
-                          colorFilters={[{ keypath: '**.Color', color: colors.bg }]}
+                          colorFilters={[
+                            { keypath: 'Left.Elipse 1.Preenchimento 1', color: colors.bg },
+                            { keypath: 'Mid.Elipse 1.Preenchimento 1', color: colors.bg },
+                            { keypath: 'Right.Elipse 1.Preenchimento 1', color: colors.bg },
+                          ]}
                         />
                       </View>
                     )}
@@ -2065,7 +2069,11 @@ function PresetSettingsScreen() {
                         loop
                         speed={1.75}
                         style={{ width: s(42), height: s(18) }}
-                        colorFilters={[{ keypath: '**.Color', color: colors.bg }]}
+                        colorFilters={[
+                          { keypath: 'Left.Elipse 1.Preenchimento 1', color: colors.bg },
+                          { keypath: 'Mid.Elipse 1.Preenchimento 1', color: colors.bg },
+                          { keypath: 'Right.Elipse 1.Preenchimento 1', color: colors.bg },
+                        ]}
                       />
                     </View>
                   )}
