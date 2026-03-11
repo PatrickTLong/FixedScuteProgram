@@ -10,7 +10,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme , textSize, fontFamily, radius, shadow, pill } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
-import LoadingSpinner from '../components/LoadingSpinner';
 import { Pressable } from 'react-native';
 import ScreenTransition from '../components/ScreenTransition';
 import type { ScreenTransitionRef } from '../components/ScreenTransition';
@@ -166,13 +165,9 @@ function TermsAcceptScreen() {
           style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, borderRadius: 9999, overflow: 'hidden', ...shadow.card }}
           className={`${pill} items-center justify-center`}
         >
-          {isAccepting ? (
-            <LoadingSpinner size={20} />
-          ) : (
-            <Text style={{ color: hasScrolledToBottom ? colors.text : colors.textMuted }} className={`${textSize.small} ${fontFamily.semibold}`}>
-              I Accept
-            </Text>
-          )}
+          <Text style={{ color: hasScrolledToBottom ? colors.text : colors.textMuted }} className={`${textSize.small} ${fontFamily.semibold}`}>
+            I Accept
+          </Text>
         </Pressable>
       </View>
     </SafeAreaView>

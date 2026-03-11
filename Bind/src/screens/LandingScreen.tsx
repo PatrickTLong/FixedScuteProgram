@@ -18,7 +18,7 @@ import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-si
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '../context/AuthContext';
 import InfoModal from '../components/InfoModal';
-import LoadingSpinner from '../components/LoadingSpinner';
+import LottieView from 'lottie-react-native';
 import { setAuthToken } from '../services/cardApi';
 import { API_URL } from '../config/api';
 import ScreenTransition from '../components/ScreenTransition';
@@ -249,7 +249,14 @@ function LandingScreen() {
                 </View>
                 {googleLoading && (
                   <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center' }}>
-                    <LoadingSpinner size={s(20)} color="#000000" />
+                    <LottieView
+                      source={require('../frontassets/loading dots - Three Gray..json')}
+                      autoPlay
+                      loop
+                      speed={1.75}
+                      style={{ width: s(42), height: s(18) }}
+                      colorFilters={[{ keypath: '**.Color', color: '#000000' }]}
+                    />
                   </View>
                 )}
               </TouchableOpacity>

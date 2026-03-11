@@ -131,8 +131,8 @@ const AnimatedCheckbox = forwardRef<AnimatedCheckboxRef, AnimatedCheckboxProps>(
           transform: [{ scale: checkmarkScale }],
         }}
       >
-        <Svg width={size * 0.55} height={size * 0.55} viewBox="0 0 24 24" fill="none">
-          <Path d="M20 6L9 17l-5-5" stroke="#FFFFFF" strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round" />
+        <Svg width={size * 0.55} height={size * 0.55} viewBox="0 0 256 256">
+          <Path d="M243.31,90.91l-128.4,128.4a16,16,0,0,1-22.62,0l-71.62-72a16,16,0,0,1,0-22.61l20-20a16,16,0,0,1,22.58,0L104,144.22l96.76-95.57a16,16,0,0,1,22.59,0l19.95,19.54A16,16,0,0,1,243.31,90.91Z" fill="#ffffff" />
         </Svg>
       </Animated.View>
     </Animated.View>

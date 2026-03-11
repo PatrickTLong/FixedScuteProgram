@@ -8,7 +8,7 @@ import Svg, { Path } from 'react-native-svg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { setAuthToken } from '../services/cardApi';
 import { API_URL } from '../config/api';
-import LoadingSpinner from './LoadingSpinner';
+import LottieView from 'lottie-react-native';
 import { useTheme , textSize, fontFamily, radius, shadow, buttonPadding, iconSize, haptics, pill } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { triggerHaptic } from '../utils/haptics';
@@ -138,7 +138,14 @@ function GoogleSignInBtn({ onSuccess, onError, disabled, light, noShadow }: Prop
       </View>
       {loading && (
         <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center' }}>
-          <LoadingSpinner size={s(20)} color={txtColor} />
+          <LottieView
+            source={require('../frontassets/loading dots - Three Gray..json')}
+            autoPlay
+            loop
+            speed={1.75}
+            style={{ width: s(42), height: s(18) }}
+            colorFilters={[{ keypath: '**.Color', color: txtColor }]}
+          />
         </View>
       )}
     </Pressable>
