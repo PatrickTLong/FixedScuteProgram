@@ -23,7 +23,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import BlockNowButton from '../components/BlockNowButton';
 import InfoModal from '../components/InfoModal';
 import EmergencyTapoutModal from '../components/EmergencyTapoutModal';
-import { updateLockStatus, Preset, useEmergencyTapout, activatePreset, savePreset, invalidateUserCaches } from '../services/cardApi';
+import { updateLockStatus, Preset, useEmergencyTapout, activatePreset, savePreset, invalidateUserCaches, getAuthToken } from '../services/cardApi';
+import { API_URL } from '../config/api';
 import { useTheme , textSize, fontFamily, radius, shadow, iconSize } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { useAuth } from '../context/AuthContext';
@@ -234,6 +235,7 @@ function HomeScreen() {
         } else {
           // Calculate lockEndTimeMs from scheduleEndDate so native side gets the correct end time
           const lockEndTimeMs = lockEndsAtDate ? new Date(lockEndsAtDate).getTime() : 0;
+          const authToken = await getAuthToken() ?? '';
           const blockingConfig = {
             mode: preset.mode,
             selectedApps: preset.selectedApps,
@@ -252,6 +254,11 @@ function HomeScreen() {
             customOverlayImage: preset.customOverlayImage ?? '',
             customRedirectUrl: preset.customRedirectUrl ?? '',
             skipOverlay: preset.skipOverlay ?? false,
+            alertNotifyEnabled: preset.alertNotifyEnabled ?? false,
+            alertEmail: preset.alertEmail ?? '',
+            alertPhone: preset.alertPhone ?? '',
+            authToken,
+            apiUrl: API_URL,
           };
           console.log('[OVERLAY] Scheduled startBlocking — customBlockedText:', blockingConfig.customBlockedText || '(none)', 'customOverlayImage:', blockingConfig.customOverlayImage || '(none)');
           console.log('[SCHED-DEBUG] Calling BlockingModule.startBlocking:', JSON.stringify(blockingConfig));
@@ -1133,6 +1140,7 @@ function HomeScreen() {
               console.log(`[PRESETS] HomeScreen startBlocking — NOTE: preset has noTimeLimit=true BUT isScheduled=true, so noTimeLimit is OVERRIDDEN to false for native module`);
             }
 
+            const authToken = await getAuthToken() ?? '';
             await BlockingModule.startBlocking({
               mode: activePreset.mode,
               selectedApps: activePreset.selectedApps,
@@ -1151,6 +1159,11 @@ function HomeScreen() {
               customOverlayImage: activePreset.customOverlayImage ?? '',
               customRedirectUrl: activePreset.customRedirectUrl ?? '',
               skipOverlay: activePreset.skipOverlay ?? false,
+              alertNotifyEnabled: activePreset.alertNotifyEnabled ?? false,
+              alertEmail: activePreset.alertEmail ?? '',
+              alertPhone: activePreset.alertPhone ?? '',
+              authToken,
+              apiUrl: API_URL,
             });
             console.log('[OVERLAY] Manual startBlocking — customBlockedText:', activePreset.customBlockedText || '(none)', 'customOverlayImage:', activePreset.customOverlayImage || '(none)');
             console.log('[REDIRECT] startBlocking — customRedirectUrl:', activePreset.customRedirectUrl || '(none)');

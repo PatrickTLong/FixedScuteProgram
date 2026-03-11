@@ -22,6 +22,7 @@ import { XCircleIcon, CheckCircleIcon, ImageIcon, ImageSquareIcon, AndroidLogoIc
 import SettingsCogIcon from '../components/SettingsCogIcon';
 import ReplyArrowIcon from '../components/ReplyArrowIcon';
 import { launchImageLibrary } from 'react-native-image-picker';
+import LottieView from 'lottie-react-native';
 import { API_URL } from '../config/api';
 import { getAuthToken } from '../services/cardApi';
 import InfoModal from '../components/InfoModal';
@@ -649,6 +650,11 @@ function PresetSettingsScreen() {
   const [customRedirectEnabled, setCustomRedirectEnabled] = useState(false);
   const [customRedirectUrl, setCustomRedirectUrl] = useState('');
 
+  // Alert notifications — email/SMS every time a blocked app is opened
+  const [alertNotifyEnabled, setAlertNotifyEnabled] = useState(false);
+  const [alertEmail, setAlertEmail] = useState('');
+  const [alertPhone, setAlertPhone] = useState('');
+
   // Section collapse state (all expanded by default)
 
   // Expandable info dropdowns
@@ -703,6 +709,9 @@ function PresetSettingsScreen() {
   const customOverlayImageRef = useRef(customOverlayImage);
   const customRedirectEnabledRef = useRef(customRedirectEnabled);
   const customRedirectUrlRef = useRef(customRedirectUrl);
+  const alertNotifyEnabledRef = useRef(alertNotifyEnabled);
+  const alertEmailRef = useRef(alertEmail);
+  const alertPhoneRef = useRef(alertPhone);
   const skipOverlayRef = useRef(skipOverlay);
   const timeBlocksExpandedRef = useRef(timeBlocksExpanded);
   const advancedExpandedRef = useRef(advancedExpanded);
@@ -729,6 +738,9 @@ function PresetSettingsScreen() {
   customOverlayEnabledRef.current = customOverlayEnabled;
   customRedirectEnabledRef.current = customRedirectEnabled;
   customRedirectUrlRef.current = customRedirectUrl;
+  alertNotifyEnabledRef.current = alertNotifyEnabled;
+  alertEmailRef.current = alertEmail;
+  alertPhoneRef.current = alertPhone;
   customBlockedTextRef.current = customBlockedText;
   customOverlayImageRef.current = customOverlayImage;
   skipOverlayRef.current = skipOverlay;
@@ -767,6 +779,9 @@ function PresetSettingsScreen() {
         setCustomOverlayEnabled(!!(savedState.customBlockedText || savedState.customOverlayImage));
         setCustomRedirectUrl(savedState.customRedirectUrl ?? '');
         setCustomRedirectEnabled(!!savedState.customRedirectUrl);
+        setAlertNotifyEnabled(savedState.alertNotifyEnabled ?? false);
+        setAlertEmail(savedState.alertEmail ?? '');
+        setAlertPhone(savedState.alertPhone ?? '');
         setSkipOverlay(savedState.skipOverlay ?? false);
         setTimeBlocksExpanded(savedState.timeBlocksExpanded ?? true);
         setAdvancedExpanded(savedState.advancedExpanded ?? true);
@@ -797,6 +812,9 @@ function PresetSettingsScreen() {
           setCustomOverlayEnabled(!!(editingPreset.customBlockedText || editingPreset.customOverlayImage));
           setCustomRedirectUrl(editingPreset.customRedirectUrl ?? '');
           setCustomRedirectEnabled(!!editingPreset.customRedirectUrl);
+          setAlertNotifyEnabled(editingPreset.alertNotifyEnabled ?? false);
+          setAlertEmail(editingPreset.alertEmail ?? '');
+          setAlertPhone(editingPreset.alertPhone ?? '');
           setSkipOverlay(editingPreset.skipOverlay ?? false);
           setTimeBlocksExpanded(editingPreset.timeBlocksExpanded ?? true);
           setAdvancedExpanded(editingPreset.advancedExpanded ?? true);
@@ -826,6 +844,9 @@ function PresetSettingsScreen() {
           setCustomOverlayEnabled(false);
           setCustomRedirectUrl('');
           setCustomRedirectEnabled(false);
+          setAlertNotifyEnabled(false);
+          setAlertEmail('');
+          setAlertPhone('');
           setSkipOverlay(false);
           setTimeBlocksExpanded(true);
           setAdvancedExpanded(false);
@@ -888,6 +909,9 @@ function PresetSettingsScreen() {
           customBlockedText: customBlockedTextRef.current,
           customOverlayImage: customOverlayImageRef.current,
           customRedirectUrl: customRedirectUrlRef.current,
+          alertNotifyEnabled: alertNotifyEnabledRef.current,
+          alertEmail: alertEmailRef.current,
+          alertPhone: alertPhoneRef.current,
           skipOverlay: skipOverlayRef.current,
           timeBlocksExpanded: timeBlocksExpandedRef.current,
           advancedExpanded: advancedExpandedRef.current,
@@ -1061,6 +1085,9 @@ function PresetSettingsScreen() {
       customBlockedText: customOverlayEnabled && customBlockedText ? customBlockedText.trim() : undefined,
       customOverlayImage: customOverlayEnabled && customOverlayImage ? customOverlayImage : undefined,
       customRedirectUrl: customRedirectEnabled && customRedirectUrl && customRedirectUrl.trim().includes('.') ? customRedirectUrl.trim() : undefined,
+      alertNotifyEnabled,
+      alertEmail: alertNotifyEnabled && alertEmail.trim() ? alertEmail.trim() : undefined,
+      alertPhone: alertNotifyEnabled && alertPhone.trim() ? alertPhone.trim() : undefined,
       skipOverlay,
       timeBlocksExpanded,
       advancedExpanded,
@@ -1075,7 +1102,7 @@ function PresetSettingsScreen() {
     setPresetSettingsParams(null);
     navigation.navigate({ name: 'Presets' } as any);
     onSave(newPreset);
-  }, [name, canSave, getEditingPreset, getExistingPresets, installedSelectedApps, blockedWebsites, blockSettings, noTimeLimit, timerDays, timerHours, timerMinutes, timerSeconds, targetDate, onSave, allowEmergencyTapout, strictMode, isScheduled, scheduleStartDate, scheduleEndDate, isRecurring, recurringValue, recurringUnit, navigation, setFinalSettingsState, customBlockedText, customOverlayImage, customOverlayEnabled, customRedirectEnabled, customRedirectUrl]);
+  }, [name, canSave, getEditingPreset, getExistingPresets, installedSelectedApps, blockedWebsites, blockSettings, noTimeLimit, timerDays, timerHours, timerMinutes, timerSeconds, targetDate, onSave, allowEmergencyTapout, strictMode, isScheduled, scheduleStartDate, scheduleEndDate, isRecurring, recurringValue, recurringUnit, navigation, setFinalSettingsState, customBlockedText, customOverlayImage, customOverlayEnabled, customRedirectEnabled, customRedirectUrl, alertNotifyEnabled, alertEmail, alertPhone]);
 
 
   // ============ Render ============
@@ -1761,6 +1788,87 @@ function PresetSettingsScreen() {
           </View>
         </ExpandableInfo>
 
+        {/* Alert Notifications Toggle */}
+        <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight, paddingVertical: s(4) }}>
+          <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
+            <View style={{ maxWidth: '75%' }} className="flex-row items-center">
+              <Svg width={s(iconSize.toggleRow)} height={s(iconSize.toggleRow)} viewBox="0 0 24 24" style={{ marginRight: s(14) }}>
+                <G>
+                  <Path d="m11.46 21 -2.6 -2a0.47 0.47 0 0 0 -0.52 -0.05 0.49 0.49 0 0 0 -0.28 0.45v0.9a7.79 7.79 0 0 1 -4.75 -3.44 1 1 0 0 0 -1.69 1.07 9.83 9.83 0 0 0 6.44 4.42v1.05a0.49 0.49 0 0 0 0.28 0.44 0.47 0.47 0 0 0 0.52 -0.05l2.6 -2a0.47 0.47 0 0 0 0.2 -0.39 0.49 0.49 0 0 0 -0.2 -0.4Z" fill={colors.textSecondary} />
+                  <Path d="M21.8 12s-0.45 -0.61 -0.64 -0.62h-2.29a0.39 0.39 0 0 0 -0.16 0c-0.05 0 -0.09 0.1 -0.05 0.15a1.09 1.09 0 0 1 0.23 0.53 1 1 0 0 1 -0.25 0.73l-4.41 4.41a1 1 0 0 1 -1.42 0l-7 -7a1 1 0 0 1 0 -1.41l4.41 -4.41a1 1 0 0 1 1.41 0l1.13 1.13a0.25 0.25 0 0 0 0.42 -0.18 5.09 5.09 0 0 1 0.2 -1.65 0.23 0.23 0 0 0 -0.06 -0.25l-0.95 -1a2.5 2.5 0 0 0 -3.54 0L3.87 7.47a2.51 2.51 0 0 0 0 3.54l9.46 9.46a2.49 2.49 0 0 0 3.54 0l4.93 -4.93a2.51 2.51 0 0 0 0 -3.54Z" fill={colors.textSecondary} />
+                  <Path d="M21.41 3.58v-0.7a2.75 2.75 0 1 0 -5.5 0v0.7a1.49 1.49 0 0 0 -0.75 1.3v3a1.5 1.5 0 0 0 1.5 1.5h4a1.5 1.5 0 0 0 1.5 -1.5v-3a1.49 1.49 0 0 0 -0.75 -1.3Zm-3.75 2.81a1 1 0 1 1 1 1 1 1 0 0 1 -1 -1Zm1 -4.76a1.25 1.25 0 0 1 1.25 1.25v0.25h-2.5v-0.25a1.25 1.25 0 0 1 1.25 -1.25Z" fill={colors.textSecondary} />
+                </G>
+              </Svg>
+              <View className="flex-1">
+                <View className="flex-row items-center">
+                  <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Alert Notifications</Text>
+                  <TouchableOpacity onPress={() => toggleInfo('alertNotify')} activeOpacity={0.7} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} style={{ marginLeft: s(6) }}>
+                    <InfoIcon expanded={!!expandedInfo.alertNotify} color={colors.textSecondary} size={s(16)} />
+                  </TouchableOpacity>
+                </View>
+                <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-1`}>Email or text when a blocked app opens</Text>
+              </View>
+            </View>
+            <AnimatedSwitch
+              size="small"
+              value={alertNotifyEnabled}
+              animate={!skipSwitchAnimation}
+              onValueChange={(value: boolean) => setAlertNotifyEnabled(value)}
+            />
+          </View>
+          <AnimatedInfoExpand expanded={!!expandedInfo.alertNotify}>
+            <View className="px-6 pb-4">
+              <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular} leading-5`}>
+                Every time someone opens a blocked app or site during this preset, an email and/or text message will be sent to the addresses below. Useful for accountability or parental oversight.
+              </Text>
+            </View>
+          </AnimatedInfoExpand>
+          <ExpandableInfo expanded={alertNotifyEnabled}>
+            <View className="px-6 pb-4" style={{ gap: s(10) }}>
+              <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.semibold} mb-1`}>
+                Alert Email
+              </Text>
+              <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card, marginBottom: s(10) }} className={`${radius.full} ${pill} flex-row items-center`}>
+                <Svg width={s(iconSize.md)} height={s(iconSize.md)} viewBox="0 0 256 256" fill={colors.textSecondary}>
+                  <Path d="M224,48H32a8,8,0,0,0-8,8V192a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A8,8,0,0,0,224,48Zm-96,85.15L52.57,64H203.43ZM98.71,128,40,181.81V74.19Zm11.84,10.85,12,11.05a8,8,0,0,0,10.82,0l12-11.05,58,53.15H52.57ZM157.29,128,216,74.18V181.82Z" />
+                </Svg>
+                <TextInput
+                  value={alertEmail}
+                  onChangeText={setAlertEmail}
+                  placeholder="e.g. parent@email.com"
+                  placeholderTextColor={colors.textSecondary}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  keyboardType="email-address"
+                  maxLength={254}
+                  style={{ flex: 1, color: colors.text, marginLeft: s(8) }}
+                  className={`${textSize.small} ${fontFamily.regular}`}
+                />
+              </View>
+              <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.semibold} mb-1`}>
+                Alert Phone (SMS)
+              </Text>
+              <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }} className={`${radius.full} ${pill} flex-row items-center`}>
+                <Svg width={s(iconSize.md)} height={s(iconSize.md)} viewBox="0 0 256 256" fill={colors.textSecondary}>
+                  <Path d="M222.37,158.46l-47.11-21.11-.13-.06a16,16,0,0,0-15.17,1.4,8.12,8.12,0,0,0-.75.56L134.87,160c-15.42-7.49-31.34-23.29-38.83-38.51l20.78-24.71c.2-.25.39-.5.57-.77a16,16,0,0,0,1.32-15.06l0-.12L97.54,33.64a16,16,0,0,0-16.62-9.52A56.26,56.26,0,0,0,32,80c0,79.4,64.6,144,144,144a56.26,56.26,0,0,0,55.88-48.92A16,16,0,0,0,222.37,158.46Z" />
+                </Svg>
+                <TextInput
+                  value={alertPhone}
+                  onChangeText={setAlertPhone}
+                  placeholder="e.g. +12125551234"
+                  placeholderTextColor={colors.textSecondary}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  keyboardType="phone-pad"
+                  maxLength={20}
+                  style={{ flex: 1, color: colors.text, marginLeft: s(8) }}
+                  className={`${textSize.small} ${fontFamily.regular}`}
+                />
+              </View>
+            </View>
+          </ExpandableInfo>
+        </View>
+
         </Freeze>
 
         {/* ============ Advanced Section ============ */}
@@ -1912,25 +2020,55 @@ function PresetSettingsScreen() {
                   <TouchableOpacity
                     onPress={handleImageUpload}
                     activeOpacity={0.7}
+                    disabled={imageUploading}
                     style={{ backgroundColor: colors.text, borderWidth: 1, borderColor: colors.border, ...shadow.card, marginTop: s(10), paddingHorizontal: s(14), paddingVertical: s(8) }}
                     className={radius.full}
                   >
-                    <Text style={{ color: colors.bg }} className={`${textSize.extraSmall} ${fontFamily.semibold}`}>
-                      {imageUploading ? 'Uploading...' : 'Change'}
-                    </Text>
+                    <View style={{ opacity: imageUploading ? 0 : 1 }}>
+                      <Text style={{ color: colors.bg }} className={`${textSize.extraSmall} ${fontFamily.semibold}`}>
+                        Change
+                      </Text>
+                    </View>
+                    {imageUploading && (
+                      <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center' }}>
+                        <LottieView
+                          source={require('../frontassets/loading dots - Three Gray..json')}
+                          autoPlay
+                          loop
+                          speed={1.75}
+                          style={{ width: s(42), height: s(18) }}
+                          colorFilters={[{ keypath: '**.Color', color: colors.bg }]}
+                        />
+                      </View>
+                    )}
                   </TouchableOpacity>
                 </View>
               ) : (
                 <TouchableOpacity
                   onPress={handleImageUpload}
                   activeOpacity={0.7}
+                  disabled={imageUploading}
                   style={{ backgroundColor: colors.text, borderWidth: 1, borderColor: colors.border, ...shadow.card, marginBottom: s(8) }}
                   className={`${radius.full} ${pill} items-center justify-center flex-row`}
                 >
-                  <ImageSquareIcon size={s(iconSize.sm)} color={colors.bg} weight="fill" style={{ marginRight: s(6) }} />
-                  <Text style={{ color: colors.bg }} className={`${textSize.small} ${fontFamily.semibold}`}>
-                    {imageUploading ? 'Uploading...' : 'Upload Image'}
-                  </Text>
+                  <View style={{ opacity: imageUploading ? 0 : 1 }} className="flex-row items-center justify-center">
+                    <ImageSquareIcon size={s(iconSize.sm)} color={colors.bg} weight="fill" style={{ marginRight: s(6) }} />
+                    <Text style={{ color: colors.bg }} className={`${textSize.small} ${fontFamily.semibold}`}>
+                      Upload Image
+                    </Text>
+                  </View>
+                  {imageUploading && (
+                    <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center' }}>
+                      <LottieView
+                        source={require('../frontassets/loading dots - Three Gray..json')}
+                        autoPlay
+                        loop
+                        speed={1.75}
+                        style={{ width: s(42), height: s(18) }}
+                        colorFilters={[{ keypath: '**.Color', color: colors.bg }]}
+                      />
+                    </View>
+                  )}
                 </TouchableOpacity>
               )}
 

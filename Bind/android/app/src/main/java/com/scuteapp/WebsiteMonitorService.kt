@@ -4,6 +4,12 @@ import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONObject
+import java.util.concurrent.TimeUnit
 
 /**
  * Simple website monitor using fast polling.
@@ -179,6 +185,19 @@ class WebsiteMonitorService(private val context: Context) {
             return
         }
 
+        // Fire alert notification if enabled
+        val alertNotifyEnabled = prefs.getBoolean("alert_notify_enabled", false)
+        if (alertNotifyEnabled) {
+            val alertEmail = prefs.getString("alert_email", "") ?: ""
+            val alertPhone = prefs.getString("alert_phone", "") ?: ""
+            val authToken = prefs.getString("auth_token", "") ?: ""
+            val apiUrl = prefs.getString("api_url", "") ?: ""
+            val presetName = prefs.getString("active_preset_name", "Preset") ?: "Preset"
+            if ((alertEmail.isNotEmpty() || alertPhone.isNotEmpty()) && authToken.isNotEmpty() && apiUrl.isNotEmpty()) {
+                sendBlockAlert(blockedSite, presetName, alertEmail, alertPhone, authToken, apiUrl)
+            }
+        }
+
         // Show overlay instantly with website name (use the blocked site as the display name)
         val shown = overlayManager?.show(
             BlockedOverlayManager.TYPE_WEBSITE, blockedSite, blockedSite, strictMode,
@@ -200,6 +219,33 @@ class WebsiteMonitorService(private val context: Context) {
 
         // Redirect to safe URL while overlay is showing (happens underneath the overlay)
         onRedirectToSafeUrl?.invoke()
+    }
+
+    private fun sendBlockAlert(appLabel: String, presetName: String, alertEmail: String, alertPhone: String, authToken: String, apiUrl: String) {
+        Thread {
+            try {
+                val client = OkHttpClient.Builder()
+                    .connectTimeout(5, TimeUnit.SECONDS)
+                    .readTimeout(5, TimeUnit.SECONDS)
+                    .build()
+                val json = JSONObject().apply {
+                    put("blockedApp", appLabel)
+                    put("presetName", presetName)
+                    if (alertEmail.isNotEmpty()) put("alertEmail", alertEmail)
+                    if (alertPhone.isNotEmpty()) put("alertPhone", alertPhone)
+                }
+                val body = json.toString().toRequestBody("application/json".toMediaType())
+                val request = Request.Builder()
+                    .url("$apiUrl/api/preset-alert")
+                    .header("Authorization", "Bearer $authToken")
+                    .post(body)
+                    .build()
+                client.newCall(request).execute().close()
+                Log.d(TAG, "[ALERT] Preset alert sent for $appLabel")
+            } catch (e: Exception) {
+                Log.w(TAG, "[ALERT] Failed to send preset alert: ${e.message}")
+            }
+        }.start()
     }
 
     /**

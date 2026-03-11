@@ -125,6 +125,11 @@ class BlockingModule(reactContext: ReactApplicationContext) :
             val customOverlayImage = if (config.hasKey("customOverlayImage")) config.getString("customOverlayImage") else ""
             val customRedirectUrl = if (config.hasKey("customRedirectUrl")) config.getString("customRedirectUrl") else ""
             val skipOverlay = if (config.hasKey("skipOverlay")) config.getBoolean("skipOverlay") else false
+            val alertNotifyEnabled = if (config.hasKey("alertNotifyEnabled")) config.getBoolean("alertNotifyEnabled") else false
+            val alertEmail = if (config.hasKey("alertEmail")) config.getString("alertEmail") ?: "" else ""
+            val alertPhone = if (config.hasKey("alertPhone")) config.getString("alertPhone") ?: "" else ""
+            val authToken = if (config.hasKey("authToken")) config.getString("authToken") ?: "" else ""
+            val apiUrl = if (config.hasKey("apiUrl")) config.getString("apiUrl") ?: "" else ""
 
             Log.d(TAG, "[START-BLOCKING] Config: presetName=\"$presetName\", presetId=$presetId, noTimeLimit=$noTimeLimit, strictMode=$strictMode, skipOverlay=$skipOverlay")
             Log.d(TAG, "[START-BLOCKING] Timing: endTime=$endTime (${java.util.Date(endTime)}), hasTimeLimit=$hasTimeLimit")
@@ -165,6 +170,11 @@ class BlockingModule(reactContext: ReactApplicationContext) :
                 .putString("custom_overlay_image", customOverlayImage)
                 .putString("custom_redirect_url", customRedirectUrl)
                 .putBoolean("skip_overlay", skipOverlay)
+                .putBoolean("alert_notify_enabled", alertNotifyEnabled)
+                .putString("alert_email", alertEmail)
+                .putString("alert_phone", alertPhone)
+                .putString("auth_token", authToken)
+                .putString("api_url", apiUrl)
                 .apply()
 
             Log.d(TAG, "[START-BLOCKING] SharedPreferences saved — noTimeLimit=$noTimeLimit, isScheduled=$isScheduled, presetName=\"$presetName\", presetId=$presetId, customRedirectUrl='$customRedirectUrl'")

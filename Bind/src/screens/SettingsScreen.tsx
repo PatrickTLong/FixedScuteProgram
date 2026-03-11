@@ -680,6 +680,8 @@ function SettingsScreen() {
               We use the following third-party services:{'\n'}
               • Google Sign-In: For optional account authentication using your Google account. We receive your email address and display name from Google.{'\n'}
               • Google Play: For processing subscription and one-time payments. We do not store your payment information (credit card details, billing address, etc.). All payment processing is handled securely by Google Play. We only receive confirmation of your subscription status.{'\n'}
+              • SendGrid: For sending transactional emails, including account verification, sign-in codes, and Alert Notification emails when the feature is enabled.{'\n'}
+              • Twilio: For sending SMS text messages when the Alert Notifications feature is enabled and a phone number is provided. Standard message and data rates may apply.{'\n'}
               These services have their own privacy policies, and we encourage you to review them.
             </Text>
 
@@ -705,9 +707,10 @@ function SettingsScreen() {
               • To protect the rights, safety, or property of Scute or its users.
             </Text>
 
-            <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.bold} mb-2`}>7. Email Marketing</Text>
+            <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.bold} mb-2`}>7. Communications</Text>
             <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular} leading-5 mb-4`}>
-              By providing your email address and creating an account, you consent to receive promotional emails, product updates, feature announcements, and other marketing communications from Scute. You may opt out of marketing emails at any time by using the unsubscribe link included in each email. Please note that even if you opt out of marketing emails, we may still send you transactional or account-related communications (such as account verification, security alerts, and service updates).
+              By providing your email address and creating an account, you consent to receive promotional emails, product updates, feature announcements, and other marketing communications from Scute. You may opt out of marketing emails at any time by using the unsubscribe link included in each email. Please note that even if you opt out of marketing emails, we may still send you transactional or account-related communications (such as account verification, security alerts, and service updates).{'\n\n'}
+              Alert Notifications: If you enable the Alert Notifications feature on a preset and provide an email address or phone number, you expressly consent to receive automated alert emails and/or SMS text messages sent to those addresses each time a blocked app or website is opened during that preset. You may withdraw consent at any time by disabling the Alert Notifications toggle in your preset settings. Message and data rates may apply for SMS alerts. We do not share your alert email or phone number with any third party except SendGrid (email delivery) and Twilio (SMS delivery) solely for the purpose of sending these alerts.
             </Text>
 
             <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.bold} mb-2`}>8. Your Rights</Text>
@@ -841,9 +844,10 @@ function SettingsScreen() {
               Subscriptions are processed through Google Play. By subscribing, you agree to Google Play's terms of service. Subscriptions automatically renew unless cancelled at least 24 hours before the end of the current billing period. You can manage or cancel your subscription through Google Play Store settings. Refunds are handled according to Google Play's refund policy.
             </Text>
 
-            <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.bold} mb-2`}>11. Email Marketing</Text>
+            <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.bold} mb-2`}>11. Communications & Alert Notifications</Text>
             <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular} leading-5 mb-4`}>
-              By creating an account and providing your email address, you agree to receive promotional emails, product updates, feature announcements, and other marketing communications from Scute. You may opt out of marketing emails at any time by using the unsubscribe link included in each email. Opting out of marketing emails will not affect transactional or account-related communications (such as account verification, security alerts, and service updates).
+              By creating an account and providing your email address, you agree to receive promotional emails, product updates, feature announcements, and other marketing communications from Scute. You may opt out of marketing emails at any time by using the unsubscribe link included in each email. Opting out of marketing emails will not affect transactional or account-related communications (such as account verification, security alerts, and service updates).{'\n\n'}
+              Alert Notifications: By enabling the Alert Notifications feature on a preset and providing an email address and/or phone number, you expressly consent to receive automated alert messages each time a blocked app or website is opened during that preset. You may revoke this consent at any time by disabling the Alert Notifications toggle in your preset settings. Standard message and data rates may apply for SMS.
             </Text>
 
             <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.bold} mb-2`}>12. Modifications to Terms</Text>

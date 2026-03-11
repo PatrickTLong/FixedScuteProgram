@@ -125,9 +125,10 @@ function TermsAcceptScreen() {
           Subscriptions are processed through Google Play. By subscribing, you agree to Google Play's terms of service. Subscriptions automatically renew unless cancelled at least 24 hours before the end of the current billing period. You can manage or cancel your subscription through Google Play Store settings. Refunds are handled according to Google Play's refund policy.
         </Text>
 
-        <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.bold} mb-2`}>11. Email Marketing</Text>
+        <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.bold} mb-2`}>11. Communications & Alert Notifications</Text>
         <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular} leading-5 mb-4`}>
-          By creating an account and providing your email address, you agree to receive promotional emails, product updates, feature announcements, and other marketing communications from Scute. You may opt out of marketing emails at any time by using the unsubscribe link included in each email. Opting out of marketing emails will not affect transactional or account-related communications (such as account verification, security alerts, and service updates).
+          By creating an account and providing your email address, you agree to receive promotional emails, product updates, feature announcements, and other marketing communications from Scute. You may opt out of marketing emails at any time by using the unsubscribe link included in each email. Opting out of marketing emails will not affect transactional or account-related communications (such as account verification, security alerts, and service updates).{'\n\n'}
+          Alert Notifications: By enabling the Alert Notifications feature on a preset and providing an email address and/or phone number, you expressly consent to receive automated alert messages each time a blocked app or website is opened during that preset. You may revoke this consent at any time by disabling the Alert Notifications toggle in your preset settings. Standard message and data rates may apply for SMS.
         </Text>
 
         <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.bold} mb-2`}>12. Modifications to Terms</Text>

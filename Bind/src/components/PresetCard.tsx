@@ -82,6 +82,10 @@ export interface Preset {
   customRedirectUrl?: string;
   // Skip overlay — just kick out of app / redirect website without showing blocked overlay
   skipOverlay?: boolean;
+  // Alert notifications — send email/SMS when a blocked app is opened
+  alertNotifyEnabled?: boolean;
+  alertEmail?: string;
+  alertPhone?: string;
   // Section collapse state
   timeBlocksExpanded?: boolean;
   advancedExpanded?: boolean;

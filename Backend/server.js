@@ -179,6 +179,7 @@ app.get('/privacy-policy', (req, res) => {
         ul { padding-left: 20px; color: #555; }
         li { margin: 8px 0; }
         a { color: #007AFF; }
+        .footer { color: #aaa; font-size: 0.85em; text-align: center; margin-top: 40px; }
       </style>
     </head>
     <body>
@@ -191,7 +192,9 @@ app.get('/privacy-policy', (req, res) => {
         <h2>1. Information We Collect</h2>
         <p>We collect the following types of information:</p>
         <ul>
-          <li><strong>Email Address:</strong> Collected during account registration to identify your account.</li>
+          <li><strong>Email Address:</strong> Collected during account registration or Google Sign-In to identify your account.</li>
+          <li><strong>Preset Configurations:</strong> Your blocking presets, including selected apps, blocked websites, timer settings, overlay customization, and schedule data are stored on our servers to sync across sessions. This data is not tampered with and is stored solely to provide and maintain your user experience.</li>
+          <li><strong>Custom Overlay Images:</strong> If you upload a custom image for your blocking overlay, the image is stored on our servers.</li>
           <li><strong>App Usage Data:</strong> We access app usage statistics on your device to track screen time and enforce app-blocking features. This data is processed locally on your device and is not transmitted to our servers.</li>
         </ul>
 
@@ -200,20 +203,24 @@ app.get('/privacy-policy', (req, res) => {
         <ul>
           <li>To create and manage your account.</li>
           <li>To enable core app functionality, such as app blocking and screen time tracking.</li>
+          <li>To store and sync your preset configurations and overlay customizations across sessions.</li>
         </ul>
 
         <h2>3. Data Storage and Security</h2>
         <ul>
-          <li>Your email address is stored securely in our cloud database (powered by Supabase).</li>
+          <li>Your email address and preset configurations are stored securely in our cloud database.</li>
           <li>App usage data is stored locally on your device and is not uploaded to our servers.</li>
+          <li>Custom overlay images are stored on our servers and associated with your account.</li>
           <li>We use industry-standard encryption to protect data in transit and at rest.</li>
         </ul>
 
         <h2>4. Third-Party Services</h2>
         <p>We use the following third-party services:</p>
         <ul>
-          <li><strong>Supabase:</strong> For secure cloud storage and authentication.</li>
+          <li><strong>Google Sign-In:</strong> For optional account authentication using your Google account. We receive your email address and display name from Google.</li>
           <li><strong>Google Play:</strong> For processing subscription and one-time payments. We do not store your payment information (credit card details, billing address, etc.). All payment processing is handled securely by Google Play. We only receive confirmation of your subscription status.</li>
+          <li><strong>SendGrid:</strong> For sending transactional emails, including account verification, sign-in codes, and Alert Notification emails when the feature is enabled.</li>
+          <li><strong>Twilio:</strong> For sending SMS text messages when the Alert Notifications feature is enabled and a phone number is provided. Standard message and data rates may apply.</li>
         </ul>
         <p>These services have their own privacy policies, and we encourage you to review them.</p>
 
@@ -223,6 +230,12 @@ app.get('/privacy-policy', (req, res) => {
           <li><strong>Usage Access:</strong> To monitor and block apps on your device.</li>
           <li><strong>Display Over Other Apps:</strong> To show blocking overlays.</li>
           <li><strong>Accessibility Services:</strong> To enforce app-blocking functionality.</li>
+          <li><strong>Notification Access:</strong> To block notifications from restricted apps.</li>
+          <li><strong>VPN Service:</strong> To block restricted websites. This VPN operates locally on your device and does not route your internet traffic through external servers.</li>
+          <li><strong>Device Administrator:</strong> To prevent unauthorized uninstallation of the app during active blocking sessions.</li>
+          <li><strong>Exact Alarms:</strong> To schedule blocking sessions at precise times.</li>
+          <li><strong>Boot Receiver:</strong> To restore active sessions after device restarts.</li>
+          <li><strong>Foreground Service:</strong> To maintain blocking functionality while the app runs in the background.</li>
         </ul>
         <p>These permissions are used solely for the app's intended functionality.</p>
 
@@ -233,8 +246,9 @@ app.get('/privacy-policy', (req, res) => {
           <li>To protect the rights, safety, or property of Scute or its users.</li>
         </ul>
 
-        <h2>7. Email Marketing</h2>
+        <h2>7. Communications</h2>
         <p>By providing your email address and creating an account, you consent to receive promotional emails, product updates, feature announcements, and other marketing communications from Scute. You may opt out of marketing emails at any time by using the unsubscribe link included in each email. Please note that even if you opt out of marketing emails, we may still send you transactional or account-related communications (such as account verification, security alerts, and service updates).</p>
+        <p><strong>Alert Notifications:</strong> If you enable the Alert Notifications feature on a preset and provide an email address or phone number, you expressly consent to receive automated alert emails and/or SMS text messages sent to those addresses each time a blocked app or website is opened during that preset. You may withdraw consent at any time by disabling the Alert Notifications toggle in your preset settings. Message and data rates may apply for SMS alerts. We do not share your alert email or phone number with any third party except SendGrid (email delivery) and Twilio (SMS delivery) solely for the purpose of sending these alerts.</p>
 
         <h2>8. Your Rights</h2>
         <p>You have the right to:</p>
@@ -247,12 +261,144 @@ app.get('/privacy-policy', (req, res) => {
         <h2>9. Children's Privacy</h2>
         <p>Scute is not intended for children under the age of 13. We do not knowingly collect personal information from children.</p>
 
-        <h2>10. Changes to This Policy</h2>
+        <h2>10. Data Retention</h2>
+        <p>We retain your email address for as long as your account is active. App usage data is stored locally on your device and is deleted when you uninstall the App. Upon account deletion, all associated data is permanently removed from our servers.</p>
+
+        <h2>11. Changes to This Policy</h2>
         <p>We may update this Privacy Policy from time to time. Any changes will be posted in the app, and the "Effective Date" will be updated accordingly.</p>
 
-        <h2>11. Contact Us</h2>
+        <h2>12. Contact Us</h2>
         <p>If you have any questions or concerns about this Privacy Policy, please contact us at:</p>
         <p>Email: <a href="mailto:info@scuteapp.com">info@scuteapp.com</a></p>
+
+        <p class="footer">&copy; 2026 Scute LLC</p>
+      </div>
+    </body>
+    </html>
+  `);
+});
+
+// GET /terms-of-service - Public terms of service page
+app.get('/terms-of-service', (req, res) => {
+  res.send(`
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Terms of Service - Scute</title>
+      <style>
+        body {
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          max-width: 700px;
+          margin: 0 auto;
+          padding: 40px 20px;
+          background: #f5f5f5;
+          color: #333;
+          line-height: 1.6;
+        }
+        .container {
+          background: white;
+          padding: 40px;
+          border-radius: 12px;
+          box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #1a1a1a; margin-bottom: 8px; }
+        h2 { color: #333; margin-top: 28px; margin-bottom: 12px; font-size: 1.1em; }
+        p { color: #555; margin-bottom: 16px; }
+        .effective-date { color: #888; font-size: 0.9em; margin-bottom: 24px; }
+        ul { padding-left: 20px; color: #555; }
+        li { margin: 8px 0; }
+        a { color: #007AFF; }
+        .footer { color: #aaa; font-size: 0.85em; text-align: center; margin-top: 40px; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <h1>Terms of Service</h1>
+        <p class="effective-date">Effective Date: January 6, 2026</p>
+
+        <p>Welcome to Scute. By downloading, installing, or using the Scute mobile application ("App"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, do not use the App.</p>
+
+        <h2>1. Acceptance of Terms</h2>
+        <p>By accessing or using Scute, you confirm that you are at least 13 years of age and have the legal capacity to enter into these Terms. If you are using the App on behalf of an organization, you represent that you have the authority to bind that organization to these Terms.</p>
+
+        <h2>2. Description of Service</h2>
+        <p>Scute is a digital wellness application designed to help users manage screen time by blocking access to selected applications, websites, and the Settings app on their device. The App uses accessibility services, usage access permissions, and notification access to enforce blocking functionality, including blocking notifications from restricted apps.</p>
+        <p>Website blocking is achieved through a local VPN service that operates entirely on your device. No internet traffic is routed through external servers.</p>
+        <p>The App supports scheduled sessions that can activate automatically at preset times without requiring user interaction at the time of activation. Blocking sessions persist across device restarts — if your device reboots during an active session, blocking will automatically resume when the device starts up.</p>
+        <p>The App may use Device Administrator privileges to prevent its own uninstallation during active blocking sessions, ensuring the integrity of the blocking functionality.</p>
+
+        <h2>3. User Responsibilities</h2>
+        <p>You are solely responsible for:</p>
+        <ul>
+          <li>Configuring the App according to your preferences and needs.</li>
+          <li>Understanding that enabling blocking features will restrict access to selected apps and device settings.</li>
+          <li>Ensuring you have alternative means to access essential functions (such as emergency calls) during blocking sessions.</li>
+          <li>Any consequences resulting from your use of the App's blocking features.</li>
+        </ul>
+
+        <h2>4. Assumption of Risk</h2>
+        <p>You acknowledge and agree that:</p>
+        <ul>
+          <li>The App is designed to intentionally restrict access to your device's applications and settings.</li>
+          <li>Blocking sessions cannot be easily bypassed once activated, which is a core feature of the App.</li>
+          <li>Enabling Strict Mode will prevent you from ending a blocking session unless you use the Emergency Tapout feature.</li>
+          <li>The App may prevent its own uninstallation during active blocking sessions using Device Administrator privileges.</li>
+          <li>You use the App at your own risk and discretion.</li>
+          <li>You are responsible for ensuring blocking sessions do not interfere with essential device functions you may need.</li>
+        </ul>
+
+        <h2>5. Disclaimer of Warranties</h2>
+        <p>THE APP IS PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. WE DO NOT WARRANT THAT THE APP WILL BE UNINTERRUPTED, ERROR-FREE, OR COMPLETELY SECURE.</p>
+
+        <h2>6. Limitation of Liability</h2>
+        <p>If you experience any issues such as prolonged blocking due to bugs, unexpected behavior, or accidental activation, please contact our support team at <a href="mailto:support@scuteapp.com">support@scuteapp.com</a> for assistance. We are committed to helping resolve any problems you may encounter.</p>
+        <p>TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, SCUTE AND ITS DEVELOPERS, OFFICERS, EMPLOYEES, AND AGENTS SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING BUT NOT LIMITED TO:</p>
+        <ul>
+          <li>Temporary inability to access blocked applications during a blocking session.</li>
+          <li>Missed notifications, messages, or communications during blocking sessions.</li>
+          <li>Any inconvenience or frustration caused by blocking features working as intended.</li>
+          <li>Any other damages arising from your use of the App.</li>
+        </ul>
+
+        <h2>7. Indemnification</h2>
+        <p>You agree to indemnify, defend, and hold harmless Scute and its developers, officers, employees, and agents from and against any claims, liabilities, damages, losses, and expenses (including reasonable attorney's fees) arising out of or in any way connected with your use of the App or violation of these Terms.</p>
+
+        <h2>8. Emergency Tapout Feature</h2>
+        <p>The App provides an optional "Emergency Tapout" feature that allows users to end blocking sessions early. This feature is limited and subject to usage restrictions. We do not guarantee that the Emergency Tapout feature will always be available or functional. Users who disable this feature accept full responsibility for completing their blocking sessions.</p>
+
+        <h2>9. Account Termination</h2>
+        <p>We reserve the right to suspend or terminate your account at any time for any reason, including but not limited to violation of these Terms. You may delete your account at any time through the App's settings if unblocked. Upon account deletion, your email address and all associated account data will be permanently removed from our servers.</p>
+
+        <h2>10. Subscriptions and Payments</h2>
+        <p>Scute offers subscription plans and a lifetime purchase option:</p>
+        <ul>
+          <li><strong>Free Trial:</strong> New users receive a 7-day free trial with full access to all features.</li>
+          <li><strong>Monthly Subscription:</strong> $6.95/month, billed monthly.</li>
+          <li><strong>Yearly Subscription:</strong> $4.95/month ($59.40/year), billed annually.</li>
+          <li><strong>Lifetime Purchase:</strong> $49.95 one-time payment for permanent access.</li>
+        </ul>
+        <p>Subscriptions are processed through Google Play. By subscribing, you agree to Google Play's terms of service. Subscriptions automatically renew unless cancelled at least 24 hours before the end of the current billing period. You can manage or cancel your subscription through Google Play Store settings. Refunds are handled according to Google Play's refund policy.</p>
+
+        <h2>11. Communications &amp; Alert Notifications</h2>
+        <p>By creating an account and providing your email address, you agree to receive promotional emails, product updates, feature announcements, and other marketing communications from Scute. You may opt out of marketing emails at any time by using the unsubscribe link included in each email. Opting out of marketing emails will not affect transactional or account-related communications (such as account verification, security alerts, and service updates).</p>
+        <p><strong>Alert Notifications:</strong> By enabling the Alert Notifications feature on a preset and providing an email address and/or phone number, you expressly consent to receive automated alert messages each time a blocked app or website is opened during that preset. You may revoke this consent at any time by disabling the Alert Notifications toggle in your preset settings. Standard message and data rates may apply for SMS.</p>
+
+        <h2>12. Modifications to Terms</h2>
+        <p>We reserve the right to modify these Terms at any time. Changes will be effective upon posting within the App. Your continued use of the App after any modifications constitutes acceptance of the updated Terms.</p>
+
+        <h2>13. Governing Law</h2>
+        <p>These Terms shall be governed by and construed in accordance with the laws of the jurisdiction in which Scute operates, without regard to conflict of law principles.</p>
+
+        <h2>14. Severability</h2>
+        <p>If any provision of these Terms is found to be unenforceable or invalid, that provision shall be limited or eliminated to the minimum extent necessary, and the remaining provisions shall remain in full force and effect.</p>
+
+        <h2>15. Contact Us</h2>
+        <p>If you have any questions about these Terms of Service, please contact us at:</p>
+        <p>Email: <a href="mailto:info@scuteapp.com">info@scuteapp.com</a></p>
+
+        <p class="footer">&copy; 2026 Scute LLC</p>
       </div>
     </body>
     </html>
@@ -1033,6 +1179,10 @@ app.get('/api/presets', authenticateToken, async (req, res) => {
       customRedirectUrl: p.custom_redirect_url || '',
       // Skip overlay
       skipOverlay: p.skip_overlay || false,
+      // Alert notifications
+      alertNotifyEnabled: p.alert_notify_enabled || false,
+      alertEmail: p.alert_email || '',
+      alertPhone: p.alert_phone || '',
     }));
 
     console.log('[presets:get] Returning', presets.length, 'presets for user:', normalizedEmail);
@@ -1102,6 +1252,10 @@ app.post('/api/presets', authenticateToken, async (req, res) => {
       custom_redirect_url: preset.customRedirectUrl || '',
       // Skip overlay — just kick out without showing overlay
       skip_overlay: preset.skipOverlay || false,
+      // Alert notifications
+      alert_notify_enabled: preset.alertNotifyEnabled || false,
+      alert_email: preset.alertEmail || '',
+      alert_phone: preset.alertPhone || '',
     };
 
     console.log('[presets:save] Preset data:', {
@@ -2010,6 +2164,97 @@ async function createDefaultPresetsForUser(email) {
     console.error('Error in createDefaultPresetsForUser:', error);
   }
 }
+
+// POST /api/preset-alert — called by the Android service when a blocked app/site is opened
+// Sends an email via SendGrid and/or an SMS via Twilio to the configured alert contacts
+app.post('/api/preset-alert', authenticateToken, async (req, res) => {
+  const { presetName, blockedApp, alertEmail, alertPhone } = req.body;
+
+  if (!alertEmail && !alertPhone) {
+    return res.status(400).json({ error: 'At least one of alertEmail or alertPhone is required' });
+  }
+
+  const appLabel = blockedApp || 'a blocked app';
+  const presetLabel = presetName || 'your preset';
+  const timestamp = new Date().toLocaleString('en-US', { timeZone: 'UTC', dateStyle: 'medium', timeStyle: 'short' });
+
+  const errors = [];
+
+  // ── Email via SendGrid ──────────────────────────────────────────────────────
+  if (alertEmail) {
+    try {
+      const msg = {
+        to: alertEmail,
+        from: { email: process.env.FROM_EMAIL, name: 'Scute' },
+        subject: `Scute Alert: ${appLabel} was opened`,
+        text: `${appLabel} was opened while the "${presetLabel}" block was active.\n\nTime: ${timestamp} UTC`,
+        html: `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          </head>
+          <body style="margin: 0; padding: 0; font-family: Verdana, Geneva, sans-serif; background-color: #28282B; border-radius: 16px;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 400px; margin: 0 auto;">
+              <tr>
+                <td align="center" style="padding: 30px 20px 20px 20px;">
+                  <p style="margin: 0 0 10px 0; font-size: 8px; color: #cccccc;">
+                    ${appLabel} was opened during the "${presetLabel}" block:
+                  </p>
+                  <div style="font-size: 26px; font-weight: 700; letter-spacing: 8px; color: #ffffff; margin-bottom: 10px;">
+                    Alert!
+                  </div>
+                  <p style="margin: 0 0 14px 0; font-size: 8px; color: #888888;">
+                    ${timestamp} UTC
+                  </p>
+                  <p style="margin: 0 0 14px 0; font-size: 7px; color: #666666;">
+                    If this wasn't you, your block preset is working as intended.
+                  </p>
+                  <p style="margin: 0; font-size: 7px; color: #555555;">
+                    © 2026 Scute LLC
+                  </p>
+                </td>
+              </tr>
+            </table>
+          </body>
+          </html>
+        `,
+      };
+      await sgMail.send(msg);
+      console.log(`[preset-alert] Email sent to ${alertEmail} — app: ${appLabel}`);
+    } catch (err) {
+      console.error('[preset-alert] SendGrid error:', err.response?.body || err.message);
+      errors.push('email');
+    }
+  }
+
+  // ── SMS via Twilio ──────────────────────────────────────────────────────────
+  // Requires TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE_NUMBER in .env
+  if (alertPhone) {
+    try {
+      if (!process.env.TWILIO_ACCOUNT_SID || !process.env.TWILIO_AUTH_TOKEN || !process.env.TWILIO_PHONE_NUMBER) {
+        throw new Error('Twilio credentials not configured in .env');
+      }
+      const twilio = require('twilio')(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+      await twilio.messages.create({
+        body: `Scute Alert — ${appLabel} was opened during your "${presetLabel}" block on ${timestamp} UTC.`,
+        from: process.env.TWILIO_PHONE_NUMBER,
+        to: alertPhone,
+      });
+      console.log(`[preset-alert] SMS sent to ${alertPhone} — app: ${appLabel}`);
+    } catch (err) {
+      console.error('[preset-alert] Twilio error:', err.message);
+      errors.push('sms');
+    }
+  }
+
+  if (errors.length > 0 && errors.length === [alertEmail, alertPhone].filter(Boolean).length) {
+    return res.status(500).json({ error: 'Failed to send alerts', failed: errors });
+  }
+
+  res.json({ success: true, sent: { email: !!alertEmail && !errors.includes('email'), sms: !!alertPhone && !errors.includes('sms') } });
+});
 
 // Health check
 app.get('/', (req, res) => {

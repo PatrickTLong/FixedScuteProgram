@@ -805,6 +805,12 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
             val strictMode = targetPreset.optBoolean("strictMode", false)
             val customBlockedText = targetPreset.optString("customBlockedText", "")
             val customOverlayImage = targetPreset.optString("customOverlayImage", "")
+            val customRedirectUrl = targetPreset.optString("customRedirectUrl", "")
+            val skipOverlay = targetPreset.optBoolean("skipOverlay", false)
+            val alertNotifyEnabled = targetPreset.optBoolean("alertNotifyEnabled", false)
+            val alertEmail = targetPreset.optString("alertEmail", "")
+            val alertPhone = targetPreset.optString("alertPhone", "")
+            val authToken = getAuthTokenFromAsyncStorage(context) ?: ""
             val endTime = if (endDate != null && !noTimeLimit) {
                 parseIsoDate(endDate)
             } else {
@@ -812,7 +818,7 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
             }
 
             Log.d(TAG, "[ACTIVATE] Preset config: mode=$mode, apps=${selectedApps.size}, websites=${blockedWebsites.size}")
-            Log.d(TAG, "[ACTIVATE] Preset settings: noTimeLimit=$noTimeLimit, strictMode=$strictMode, customBlockedText='$customBlockedText', customOverlayImage='$customOverlayImage'")
+            Log.d(TAG, "[ACTIVATE] Preset settings: noTimeLimit=$noTimeLimit, strictMode=$strictMode, customBlockedText='$customBlockedText', customOverlayImage='$customOverlayImage', skipOverlay=$skipOverlay, alertNotifyEnabled=$alertNotifyEnabled")
             Log.d(TAG, "[ACTIVATE] End time: $endTime (${java.util.Date(endTime)})")
 
             // Save to session prefs (reusing sessionPrefs from earlier check)
@@ -831,9 +837,16 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
                 .putBoolean("is_scheduled_preset", true)
                 .putString("custom_blocked_text", customBlockedText)
                 .putString("custom_overlay_image", customOverlayImage)
+                .putString("custom_redirect_url", customRedirectUrl)
+                .putBoolean("skip_overlay", skipOverlay)
+                .putBoolean("alert_notify_enabled", alertNotifyEnabled)
+                .putString("alert_email", alertEmail)
+                .putString("alert_phone", alertPhone)
+                .putString("auth_token", authToken)
+                .putString("api_url", BuildConfig.API_URL)
                 .commit()
 
-            Log.d(TAG, "[ACTIVATE] SharedPreferences committed — noTimeLimit=$noTimeLimit, presetName=\"${targetPreset.optString("name")}\"")
+            Log.d(TAG, "[ACTIVATE] SharedPreferences committed — noTimeLimit=$noTimeLimit, presetName=\"${targetPreset.optString("name")}\", alertNotifyEnabled=$alertNotifyEnabled")
 
             // Start the foreground service (bubble will be shown by onStartCommand)
             Log.d(TAG, "[ACTIVATE] Starting foreground service...")
