@@ -527,14 +527,21 @@ const InfoIcon = ({ expanded, color, size }: { expanded: boolean; color: string;
 // ============ SectionHeader Component ============
 const SectionHeader = ({ title, icon, expanded, onToggle, colors, s }: { title: string; icon?: React.ReactNode; expanded: boolean; onToggle: () => void; colors: any; s: (v: number) => number }) => {
   const rotateAnim = useRef(new Animated.Value(expanded ? 0 : 1)).current;
+  const pressedRef = useRef(false);
 
   useEffect(() => {
-    Animated.timing(rotateAnim, {
-      toValue: expanded ? 0 : 1,
-      duration: 200,
-      easing: Easing.out(Easing.ease),
-      useNativeDriver: true,
-    }).start();
+    const toValue = expanded ? 0 : 1;
+    if (pressedRef.current) {
+      pressedRef.current = false;
+      Animated.timing(rotateAnim, {
+        toValue,
+        duration: 200,
+        easing: Easing.out(Easing.ease),
+        useNativeDriver: true,
+      }).start();
+    } else {
+      rotateAnim.setValue(toValue);
+    }
   }, [expanded, rotateAnim]);
 
   const rotation = rotateAnim.interpolate({
@@ -544,7 +551,7 @@ const SectionHeader = ({ title, icon, expanded, onToggle, colors, s }: { title: 
 
   return (
     <Pressable
-      onPress={onToggle}
+      onPress={() => { pressedRef.current = true; onToggle(); }}
       android_ripple={{ color: 'rgba(255,255,255,0.15)', borderless: true, foreground: true }}
       style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight, overflow: 'hidden' }}
       className="flex-row items-center justify-between px-6 py-4"
@@ -821,8 +828,8 @@ function PresetSettingsScreen() {
           setCustomRedirectEnabled(false);
           setSkipOverlay(false);
           setTimeBlocksExpanded(true);
-          setAdvancedExpanded(true);
-          setStrictnessExpanded(true);
+          setAdvancedExpanded(false);
+          setStrictnessExpanded(false);
           console.log('[OVERLAY] New preset — defaults cleared');
         }
       }

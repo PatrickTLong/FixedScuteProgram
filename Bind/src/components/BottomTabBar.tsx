@@ -12,7 +12,7 @@ import type { BottomTabBarProps as RNBottomTabBarProps } from '@react-navigation
 
 type TabName = 'home' | 'presets' | 'stats' | 'settings';
 
-const TAB_ICON_SIZE = iconSize.xl;
+const TAB_ICON_SIZE = iconSize.md;
 const FLASH_SIZE = 80;
 
 interface TabItemProps {
@@ -161,7 +161,7 @@ function BottomTabBar({ state, navigation }: RNBottomTabBarProps) {
     <PresetsIcon size={TAB_ICON_SIZE} color={color} />, []);
 
   const renderStatsIcon = useCallback((color: string, active: boolean) =>
-    <TrendUpIcon size={TAB_ICON_SIZE + 6} color={color} weight="fill" />, []);
+    <TrendUpIcon size={TAB_ICON_SIZE + 2} color={color} weight="fill" />, []);
 
   const renderSettingsIcon = useCallback((color: string, active: boolean) =>
     <SettingsCogIcon size={TAB_ICON_SIZE} color={color} weight="fill" />, []);
