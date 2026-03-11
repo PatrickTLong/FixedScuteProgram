@@ -409,106 +409,130 @@ function generateCode() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
+// Detect if a string looks like a phone number rather than an email
+function isPhone(str) {
+  if (!str) return false;
+  const digits = str.replace(/\D/g, '');
+  return !str.includes('@') && digits.length >= 10 && digits.length <= 11;
+}
+
+// Normalize to a consistent identifier: E.164 for phone, lowercase for email
+function normalizeIdentifier(str) {
+  if (isPhone(str)) {
+    const digits = str.replace(/\D/g, '');
+    return digits.length === 11 ? `+${digits}` : `+1${digits}`;
+  }
+  return str.toLowerCase();
+}
+
+// Send a verification code via SMS (Twilio)
+async function sendSmsCode(to, code) {
+  if (!process.env.TWILIO_ACCOUNT_SID || !process.env.TWILIO_AUTH_TOKEN || !process.env.TWILIO_MESSAGING_SERVICE_SID) {
+    throw new Error('Twilio credentials not configured');
+  }
+  const twilio = require('twilio')(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+  await twilio.messages.create({
+    body: `Your Scute verification code is: ${code}. This code expires in 10 minutes.`,
+    messagingServiceSid: process.env.TWILIO_MESSAGING_SERVICE_SID,
+    to,
+  });
+}
+
 // POST /api/send-code - Send verification code (signup only)
 app.post('/api/send-code', async (req, res) => {
   const { email } = req.body;
   console.log('[send-code] Request received');
 
-  if (!email || !email.includes('@')) {
-    console.log('[send-code] Validation failed: Invalid email format');
-    return res.status(400).json({ error: 'Invalid email address' });
+  const phoneInput = isPhone(email);
+  if (!email || (!email.includes('@') && !phoneInput)) {
+    console.log('[send-code] Validation failed: Invalid email or phone format');
+    return res.status(400).json({ error: 'Invalid email or phone number' });
   }
 
-  const normalizedEmail = email.toLowerCase();
+  const normalizedIdentifier = normalizeIdentifier(email);
 
   try {
     // Check if user already exists
     const { data: existingUser } = await supabase
       .from('users')
       .select('email')
-      .eq('email', normalizedEmail)
+      .eq('email', normalizedIdentifier)
       .single();
 
     if (existingUser) {
-      return res.status(400).json({ error: 'Email already registered' });
+      return res.status(400).json({ error: phoneInput ? 'Phone number already registered' : 'Email already registered' });
     }
 
     // Generate verification code
     const code = generateCode();
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-    // Delete any existing codes for this email
-    await supabase
-      .from('verification_codes')
-      .delete()
-      .eq('email', normalizedEmail);
+    // Delete any existing codes for this identifier
+    await supabase.from('verification_codes').delete().eq('email', normalizedIdentifier);
 
     // Store new code
     const { error: codeError } = await supabase
       .from('verification_codes')
-      .insert({
-        email: normalizedEmail,
-        code,
-        expires_at: expiresAt.toISOString(),
-      });
+      .insert({ email: normalizedIdentifier, code, expires_at: expiresAt.toISOString() });
 
     if (codeError) {
       console.error('Error storing verification code:', codeError);
       return res.status(500).json({ error: 'Failed to generate verification code' });
     }
 
-    // Send email via SendGrid
-    const msg = {
-      to: email,
-      from: {
-        email: process.env.FROM_EMAIL,
-        name: 'Scute'
-      },
-      subject: 'Your Scute Verification Code',
-      text: `Your verification code is: ${code}. This code expires in 10 minutes.`,
-      html: `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        </head>
-        <body style="margin: 0; padding: 0; font-family: Verdana, Geneva, sans-serif; background-color: #28282B; border-radius: 16px;">
-          <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 400px; margin: 0 auto;">
-            <tr>
-              <td align="center" style="padding: 30px 20px 20px 20px;">
-                <p style="margin: 0 0 10px 0; font-size: 8px; color: #cccccc;">
-                  Enter this code to verify your email:
-                </p>
-                <div style="font-size: 26px; font-weight: 700; letter-spacing: 8px; color: #ffffff; margin-bottom: 10px;">
-                  ${code}
-                </div>
-                <p style="margin: 0 0 14px 0; font-size: 8px; color: #888888;">
-                  This code expires in 10 minutes.
-                </p>
-                <p style="margin: 0 0 14px 0; font-size: 7px; color: #666666;">
-                  If you didn't request this code, you can safely ignore this email.
-                </p>
-                <p style="margin: 0; font-size: 7px; color: #555555;">
-                  © 2026 Scute LLC
-                </p>
-              </td>
-            </tr>
-          </table>
-        </body>
-        </html>
-      `,
-    };
+    if (phoneInput) {
+      // Send SMS via Twilio
+      await sendSmsCode(normalizedIdentifier, code);
+      console.log(`SMS code sent to ${normalizedIdentifier}: ${code}`);
+    } else {
+      // Send email via SendGrid
+      const msg = {
+        to: email,
+        from: { email: process.env.FROM_EMAIL, name: 'Scute' },
+        subject: 'Your Scute Verification Code',
+        text: `Your verification code is: ${code}. This code expires in 10 minutes.`,
+        html: `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          </head>
+          <body style="margin: 0; padding: 0; font-family: Verdana, Geneva, sans-serif; background-color: #28282B; border-radius: 16px;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 400px; margin: 0 auto;">
+              <tr>
+                <td align="center" style="padding: 30px 20px 20px 20px;">
+                  <p style="margin: 0 0 10px 0; font-size: 8px; color: #cccccc;">
+                    Enter this code to verify your email:
+                  </p>
+                  <div style="font-size: 26px; font-weight: 700; letter-spacing: 8px; color: #ffffff; margin-bottom: 10px;">
+                    ${code}
+                  </div>
+                  <p style="margin: 0 0 14px 0; font-size: 8px; color: #888888;">
+                    This code expires in 10 minutes.
+                  </p>
+                  <p style="margin: 0 0 14px 0; font-size: 7px; color: #666666;">
+                    If you didn't request this code, you can safely ignore this email.
+                  </p>
+                  <p style="margin: 0; font-size: 7px; color: #555555;">
+                    © 2026 Scute LLC
+                  </p>
+                </td>
+              </tr>
+            </table>
+          </body>
+          </html>
+        `,
+      };
+      await sgMail.send(msg);
+      console.log(`Code sent to ${email}: ${code}`);
+    }
 
-    await sgMail.send(msg);
-    console.log(`Code sent to ${email}: ${code}`);
     res.json({ success: true, message: 'Verification code sent' });
   } catch (error) {
-    console.error('SendGrid error:', error);
-    if (error.response) {
-      console.error('Error body:', error.response.body);
-    }
-    res.status(500).json({ error: 'Failed to send email' });
+    console.error('[send-code] Error:', error);
+    if (error.response) console.error('Error body:', error.response.body);
+    res.status(500).json({ error: phoneInput ? 'Failed to send SMS' : 'Failed to send email' });
   }
 });
 
@@ -527,7 +551,7 @@ app.post('/api/verify-and-register', async (req, res) => {
     return res.status(400).json({ error: 'Password must be at least 6 characters' });
   }
 
-  const normalizedEmail = email.toLowerCase();
+  const normalizedEmail = normalizeIdentifier(email);
 
   try {
     // Get stored verification code
@@ -585,9 +609,6 @@ app.post('/api/verify-and-register', async (req, res) => {
     if (cardError && !cardError.message.includes('duplicate')) {
       console.error('Error creating user_cards entry:', cardError);
     }
-
-    // Create default presets for the new user
-    await createDefaultPresetsForUser(normalizedEmail);
 
     // Delete verification code
     await supabase.from('verification_codes').delete().eq('email', normalizedEmail);
@@ -670,9 +691,6 @@ app.post('/api/google-auth', async (req, res) => {
           trial_end: trialEnd.toISOString(),
         });
       console.log(`Created user_cards entry for Google user: ${normalizedEmail}`);
-
-      // Create default presets for the new Google user
-      await createDefaultPresetsForUser(normalizedEmail);
     }
 
     // Generate JWT token for authenticated session
@@ -686,17 +704,18 @@ app.post('/api/google-auth', async (req, res) => {
   }
 });
 
-// POST /api/signin - Sign in with email and password
+// POST /api/signin - Sign in with email/phone and password
 app.post('/api/signin', async (req, res) => {
   const { email, password } = req.body;
   console.log('[signin] Request received');
 
   if (!email || !password) {
     console.log('[signin] Validation failed: Missing email or password');
-    return res.status(400).json({ error: 'Email and password required' });
+    return res.status(400).json({ error: 'Email/phone and password required' });
   }
 
-  const normalizedEmail = email.toLowerCase();
+  const phoneInput = isPhone(email);
+  const normalizedEmail = normalizeIdentifier(email);
 
   try {
     // Get user
@@ -717,7 +736,6 @@ app.post('/api/signin', async (req, res) => {
 
     // Verify password
     const passwordMatch = await bcrypt.compare(password, user.password_hash);
-
     if (!passwordMatch) {
       return res.status(401).json({ error: 'Incorrect password' });
     }
@@ -726,71 +744,66 @@ app.post('/api/signin', async (req, res) => {
     const code = generateCode();
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
-    // Delete any existing codes
     await supabase.from('verification_codes').delete().eq('email', normalizedEmail);
-
-    // Store new code
     const { error: codeError } = await supabase
       .from('verification_codes')
-      .insert({
-        email: normalizedEmail,
-        code,
-        expires_at: expiresAt.toISOString(),
-      });
+      .insert({ email: normalizedEmail, code, expires_at: expiresAt.toISOString() });
 
     if (codeError) {
       console.error('Error storing verification code:', codeError);
       return res.status(500).json({ error: 'Failed to generate verification code' });
     }
 
-    const msg = {
-      to: email,
-      from: {
-        email: process.env.FROM_EMAIL,
-        name: 'Scute'
-      },
-      subject: 'Your Scute Sign In Code',
-      text: `Your sign in code is: ${code}. This code expires in 10 minutes.`,
-      html: `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        </head>
-        <body style="margin: 0; padding: 0; font-family: Verdana, Geneva, sans-serif; background-color: #28282B; border-radius: 16px;">
-          <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 400px; margin: 0 auto;">
-            <tr>
-              <td align="center" style="padding: 30px 20px 20px 20px;">
-                <p style="margin: 0 0 10px 0; font-size: 8px; color: #cccccc;">
-                  Enter this code to sign in:
-                </p>
-                <div style="font-size: 26px; font-weight: 700; letter-spacing: 8px; color: #ffffff; margin-bottom: 10px;">
-                  ${code}
-                </div>
-                <p style="margin: 0 0 14px 0; font-size: 8px; color: #888888;">
-                  This code expires in 10 minutes.
-                </p>
-                <p style="margin: 0 0 14px 0; font-size: 7px; color: #666666;">
-                  If you didn't request this code, you can safely ignore this email.
-                </p>
-                <p style="margin: 0; font-size: 7px; color: #555555;">
-                  © 2026 Scute LLC
-                </p>
-              </td>
-            </tr>
-          </table>
-        </body>
-        </html>
-      `,
-    };
+    if (phoneInput) {
+      await sendSmsCode(normalizedEmail, code);
+      console.log(`Sign-in SMS sent to ${normalizedEmail}: ${code}`);
+    } else {
+      const msg = {
+        to: email,
+        from: { email: process.env.FROM_EMAIL, name: 'Scute' },
+        subject: 'Your Scute Sign In Code',
+        text: `Your sign in code is: ${code}. This code expires in 10 minutes.`,
+        html: `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          </head>
+          <body style="margin: 0; padding: 0; font-family: Verdana, Geneva, sans-serif; background-color: #28282B; border-radius: 16px;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 400px; margin: 0 auto;">
+              <tr>
+                <td align="center" style="padding: 30px 20px 20px 20px;">
+                  <p style="margin: 0 0 10px 0; font-size: 8px; color: #cccccc;">
+                    Enter this code to sign in:
+                  </p>
+                  <div style="font-size: 26px; font-weight: 700; letter-spacing: 8px; color: #ffffff; margin-bottom: 10px;">
+                    ${code}
+                  </div>
+                  <p style="margin: 0 0 14px 0; font-size: 8px; color: #888888;">
+                    This code expires in 10 minutes.
+                  </p>
+                  <p style="margin: 0 0 14px 0; font-size: 7px; color: #666666;">
+                    If you didn't request this code, you can safely ignore this email.
+                  </p>
+                  <p style="margin: 0; font-size: 7px; color: #555555;">
+                    © 2026 Scute LLC
+                  </p>
+                </td>
+              </tr>
+            </table>
+          </body>
+          </html>
+        `,
+      };
+      await sgMail.send(msg);
+      console.log(`Sign-in code sent to ${email}: ${code}`);
+    }
 
-    await sgMail.send(msg);
-    console.log(`Sign-in code sent to ${email}: ${code}`);
     res.json({ success: true, message: 'Verification code sent' });
   } catch (error) {
     console.error('Sign-in error:', error);
-    res.status(500).json({ error: 'Failed to send email' });
+    res.status(500).json({ error: phoneInput ? 'Failed to send SMS' : 'Failed to send email' });
   }
 });
 
@@ -804,7 +817,7 @@ app.post('/api/verify-signin', async (req, res) => {
     return res.status(400).json({ error: 'Email and code required' });
   }
 
-  const normalizedEmail = email.toLowerCase();
+  const normalizedEmail = normalizeIdentifier(email);
 
   try {
     // Get stored code
@@ -1470,16 +1483,8 @@ app.post('/api/presets/init-defaults', authenticateToken, async (req, res) => {
   const normalizedEmail = req.userEmail; // Get email from verified token
 
   try {
-    // Check if user already has presets
-    const { data: existing } = await supabase
-      .from('user_presets')
-      .select('id')
-      .eq('email', normalizedEmail)
-      .limit(1);
-
-    // No default presets - users start with empty preset list
-    console.log(`User ${normalizedEmail} checked for presets (no defaults created)`);
-    res.json({ success: true, message: 'No default presets created' });
+    await createDefaultPresetsForUser(normalizedEmail);
+    res.json({ success: true, created: true });
   } catch (error) {
     console.error('Init defaults error:', error);
     res.status(500).json({ error: 'Failed to initialize presets' });
@@ -2150,10 +2155,37 @@ async function createDefaultPresetsForUser(email) {
       strict_mode: false,
     };
 
-    // Insert both presets
+    // Default preset 3: Social Media & XXX Sites (combined)
+    const bothPreset = {
+      email: normalizedEmail,
+      preset_id: `both-${Date.now() + 2}`,
+      name: 'Social Media & XXX Sites',
+      mode: 'specific',
+      selected_apps: [...socialMediaPreset.selected_apps],
+      blocked_websites: [...socialMediaPreset.blocked_websites, ...xxxSitesPreset.blocked_websites],
+      timer_days: 0,
+      timer_hours: 0,
+      timer_minutes: 0,
+      timer_seconds: 0,
+      no_time_limit: true,
+      block_settings: false,
+      is_active: false,
+      is_default: false,
+      target_date: null,
+      allow_emergency_tapout: true,
+      is_scheduled: false,
+      schedule_start_date: null,
+      schedule_end_date: null,
+      repeat_enabled: false,
+      repeat_unit: null,
+      repeat_interval: null,
+      strict_mode: false,
+    };
+
+    // Insert all three presets
     const { error: insertError } = await supabase
       .from('user_presets')
-      .insert([xxxSitesPreset, socialMediaPreset]);
+      .insert([xxxSitesPreset, socialMediaPreset, bothPreset]);
 
     if (insertError) {
       console.error('Error creating default presets:', insertError);
@@ -2230,17 +2262,17 @@ app.post('/api/preset-alert', authenticateToken, async (req, res) => {
   }
 
   // ── SMS via Twilio ──────────────────────────────────────────────────────────
-  // Requires TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE_NUMBER in .env
+  // Requires TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_MESSAGING_SERVICE_SID in .env
   if (alertPhone) {
     try {
-      if (!process.env.TWILIO_ACCOUNT_SID || !process.env.TWILIO_AUTH_TOKEN || !process.env.TWILIO_PHONE_NUMBER) {
+      if (!process.env.TWILIO_ACCOUNT_SID || !process.env.TWILIO_AUTH_TOKEN || !process.env.TWILIO_MESSAGING_SERVICE_SID) {
         throw new Error('Twilio credentials not configured in .env');
       }
       const twilio = require('twilio')(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
       await twilio.messages.create({
         body: `Scute Alert — ${appLabel} was opened during your "${presetLabel}" block on ${timestamp} UTC.`,
-        from: process.env.TWILIO_PHONE_NUMBER,
-        to: alertPhone,
+        messagingServiceSid: process.env.TWILIO_MESSAGING_SERVICE_SID,
+        to: alertPhone.startsWith('+') ? alertPhone : `+1${alertPhone.replace(/\D/g, '')}`,
       });
       console.log(`[preset-alert] SMS sent to ${alertPhone} — app: ${appLabel}`);
     } catch (err) {

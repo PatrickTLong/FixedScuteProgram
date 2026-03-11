@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, memo } from 'react';
+import { useState, useRef, useCallback, memo } from 'react';
 import {
   Text,
   View,
@@ -67,6 +67,7 @@ function SignInScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [code, setCode] = useState('');
   const [step, setStep] = useState<'credentials' | 'code'>('credentials');
+  const isPhoneInput = !email.includes('@') && /^\+?[\d\s\-()]{10,}$/.test(email.replace(/\s/g, ''));
   const [loading, setLoading] = useState(false);
   const [showBackButton, setShowBackButton] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
@@ -101,8 +102,8 @@ function SignInScreen() {
   }
 
   async function handleSignIn() {
-    if (!email.includes('@')) {
-      showModal('Invalid Email', 'Please enter a valid email address');
+    if (!email.includes('@') && !isPhoneInput) {
+      showModal('Invalid Email or Phone', 'Please enter a valid email address or phone number');
       return;
     }
 
@@ -240,19 +241,19 @@ function SignInScreen() {
                   Welcome Back
                 </Text>
 
-                {/* Email Input */}
+                {/* Email or Phone Input */}
                 <View className="mb-4 mt-8">
                   <Text style={{ color: colors.text, position: 'absolute', top: s(-30), left: s(8) }} className={`${textSize.small} ${fontFamily.regular}`}>
-                    Email
+                    Email or Phone
                   </Text>
                   <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }} className={`${radius.full} ${pill} flex-row items-center`}>
                     <SendEmailIcon size={s(iconSize.md)} color={colors.textSecondary} />
                     <TextInput
                       value={email}
                       onChangeText={setEmail}
-                      placeholder="Enter your email"
+                      placeholder="Enter your email or phone"
                       placeholderTextColor={colors.textSecondary}
-                      keyboardType="email-address"
+                      keyboardType="default"
                       autoCapitalize="none"
                       autoCorrect={false}
                       editable={!loading}
@@ -307,7 +308,7 @@ function SignInScreen() {
                 </Text>
 
                 <Text style={{ color: colors.textSecondary }} className={`text-center ${textSize.small} ${fontFamily.regular} mb-8`}>
-                  Enter the 6-digit code sent to{'\n'}
+                  {isPhoneInput ? 'Enter the 6-digit code sent via SMS to' : 'Enter the 6-digit code sent to'}{'\n'}
                   <Text style={{ color: colors.text }}>{email}</Text>
                 </Text>
 
@@ -353,6 +354,7 @@ function SignInScreen() {
             {step === 'credentials' && (
               <View className="mt-2">
                 <GoogleSignInBtn
+                  light
                   onSuccess={onSuccess}
                   onError={(error) => showModal('Google Sign-In Error', error)}
                   disabled={loading}

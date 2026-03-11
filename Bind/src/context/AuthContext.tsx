@@ -60,7 +60,7 @@ interface AuthContextValue {
   handleLogin: (email: string) => Promise<void>;
   handleTermsAccepted: () => Promise<void>;
   handlePermissionsComplete: () => Promise<void>;
-  handleOnboardingComplete: (choice: 'social_media' | 'xxx' | 'none') => void;
+  handleOnboardingComplete: (choice: 'social_media' | 'xxx' | 'both' | 'none') => void;
   handleMembershipComplete: () => void;
   handleLogout: () => Promise<void>;
   handleResetAccount: () => Promise<{ success: boolean; error?: string }>;
@@ -97,7 +97,7 @@ interface AuthContextValue {
   refreshAll: (skipCache?: boolean) => Promise<{ presets: Preset[]; lockStatus: LockStatus; tapoutStatus: EmergencyTapoutStatus }>;
   handleReconnect: () => Promise<void>;
   // Onboarding
-  onboardingChoice: 'social_media' | 'xxx' | 'none' | null;
+  onboardingChoice: 'social_media' | 'xxx' | 'both' | 'none' | null;
   // Shared usage stats (prefetched during HomeScreen load)
   sharedStats: Record<StatsPeriod, StatsCache | null>;
   setSharedStats: React.Dispatch<React.SetStateAction<Record<StatsPeriod, StatsCache | null>>>;
@@ -464,9 +464,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [userEmail]);
 
   // Track which preset category was chosen during onboarding (used by HomeScreen to navigate)
-  const [onboardingChoice, setOnboardingChoice] = useState<'social_media' | 'xxx' | 'none' | null>(null);
+  const [onboardingChoice, setOnboardingChoice] = useState<'social_media' | 'xxx' | 'both' | 'none' | null>(null);
 
-  const handleOnboardingComplete = useCallback((choice: 'social_media' | 'xxx' | 'none') => {
+  const handleOnboardingComplete = useCallback((choice: 'social_media' | 'xxx' | 'both' | 'none') => {
     setOnboardingChoice(choice);
     setAuthState('main');
     // Check membership in background

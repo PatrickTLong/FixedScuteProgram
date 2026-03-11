@@ -304,7 +304,7 @@ function LandingScreen() {
                     </Svg>
                   </View>
                   <Text style={{ color: '#000000' }} className={`${textSize.small} ${fontFamily.semibold}`}>
-                    Continue with Email
+                    Continue with Email / SMS
                   </Text>
                 </View>
               </TouchableOpacity>

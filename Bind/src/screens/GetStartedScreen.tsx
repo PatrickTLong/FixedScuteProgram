@@ -63,6 +63,7 @@ function GetStartedScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [code, setCode] = useState('');
   const [step, setStep] = useState<'form' | 'code'>('form');
+  const isPhoneInput = !email.includes('@') && /^\+?[\d\s\-()]{10,}$/.test(email.replace(/\s/g, ''));
   const [loading, setLoading] = useState(false);
   const [showBackButton, setShowBackButton] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
@@ -103,8 +104,8 @@ function GetStartedScreen() {
   }
 
   async function handleSignUp() {
-    if (!email.includes('@')) {
-      showModal('Invalid Email', 'Please enter a valid email address');
+    if (!email.includes('@') && !isPhoneInput) {
+      showModal('Invalid Email or Phone', 'Please enter a valid email address or phone number');
       return;
     }
 
@@ -224,19 +225,19 @@ function GetStartedScreen() {
                   Create Your Account
                 </Text>
 
-                {/* Email Input */}
+                {/* Email or Phone Input */}
                 <View className="mb-4 mt-8">
                   <Text style={{ color: colors.text, position: 'absolute', top: s(-30), left: s(8) }} className={`${textSize.small} ${fontFamily.regular}`}>
-                    Email
+                    Email or Phone
                   </Text>
                   <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }} className={`${radius.full} ${pill} flex-row items-center`}>
                     <SendEmailIcon size={s(iconSize.md)} color={colors.textSecondary} />
                     <TextInput
                       value={email}
                       onChangeText={setEmail}
-                      placeholder="Enter your email"
+                      placeholder="Enter your email or phone"
                       placeholderTextColor={colors.textSecondary}
-                      keyboardType="email-address"
+                      keyboardType="default"
                       autoCapitalize="none"
                       autoCorrect={false}
                       editable={!loading}
@@ -286,11 +287,11 @@ function GetStartedScreen() {
               <>
                 {/* Verification Code Step */}
                 <Text style={{ color: colors.text }} className={`${textSize['2xLarge']} ${fontFamily.bold} text-center mb-4`}>
-                  Verify Your Email
+                  {isPhoneInput ? 'Verify Your Number' : 'Verify Your Email'}
                 </Text>
 
                 <Text style={{ color: colors.textSecondary }} className={`text-center ${textSize.small} ${fontFamily.regular} mb-8`}>
-                  Enter the 6-digit code sent to{'\n'}
+                  {isPhoneInput ? 'Enter the 6-digit code sent via SMS to' : 'Enter the 6-digit code sent to'}{'\n'}
                   <Text style={{ color: colors.text }}>{email}</Text>
                 </Text>
 
@@ -341,6 +342,7 @@ function GetStartedScreen() {
             {step === 'form' && (
               <View className="mt-2">
                 <GoogleSignInBtn
+                  light
                   onSuccess={onSuccess}
                   onError={(error) => showModal('Google Sign-In Error', error)}
                   disabled={loading}
