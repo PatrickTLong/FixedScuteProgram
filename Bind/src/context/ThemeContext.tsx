@@ -64,7 +64,7 @@ export const radius = {
 } as const;
 
 // Shared pill sizing for inputs and rounded-full buttons
-export const pill = 'px-5 h-14' as const;
+export const pill = 'px-5 h-12' as const;
 
 // Shadow style objects
 export const shadow = {
@@ -133,7 +133,7 @@ export const colors = {
   cyanDark: '#0891b2',
   green: '#22c55e',
   yellow: '#fbbf24',
-  red: '#FF5C5C',
+  red: '#F85353',
   // Loading spinner
   spinner: '#7B9AB8',
   // Logo tint
