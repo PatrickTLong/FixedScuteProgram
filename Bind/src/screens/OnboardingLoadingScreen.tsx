@@ -1,14 +1,13 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Animated, Easing } from 'react-native';
 import LottieView from 'lottie-react-native';
+import { useNavigation, CommonActions } from '@react-navigation/native';
 
 const AnimatedLottieView = Animated.createAnimatedComponent(LottieView);
 import { useTheme, textSize, fontFamily } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { useAuth } from '../context/AuthContext';
 import { initDefaultPresets, activatePreset, invalidateUserCaches } from '../services/cardApi';
-import ScreenTransition from '../components/ScreenTransition';
-import type { ScreenTransitionRef } from '../components/ScreenTransition';
 
 const CYCLE_DURATION = 2000; // One hourglass fill (matches 48 frames @ 24fps)
 const FADE_DURATION = 80;    // Quick fade between cycles
@@ -23,14 +22,12 @@ const PRESET_NAME_MAP: Record<string, string> = {
 export default function OnboardingLoadingScreen() {
   const { colors } = useTheme();
   const { s } = useResponsive();
+  const navigation = useNavigation();
   const {
     onboardingChoice,
     userEmail,
-    handleOnboardingComplete,
     refreshAll,
   } = useAuth();
-
-  const transitionRef = useRef<ScreenTransitionRef>(null);
   const buildOpacity = useRef(new Animated.Value(1)).current;
   const loadOpacity = useRef(new Animated.Value(0)).current;
   const animProgress = useRef(new Animated.Value(0)).current;
@@ -41,11 +38,11 @@ export default function OnboardingLoadingScreen() {
     const startTime = Date.now();
     let workDone = false;
 
-    const onReady = async () => {
-      console.log('[ONBOARDING-LOADING] animating out before transitioning');
-      await transitionRef.current?.animateOut('left');
-      console.log('[ONBOARDING-LOADING] calling handleOnboardingComplete:', onboardingChoice);
-      handleOnboardingComplete(onboardingChoice ?? 'none');
+    const onReady = () => {
+      console.log('[ONBOARDING-LOADING] navigating to MainTabs');
+      navigation.dispatch(
+        CommonActions.reset({ index: 0, routes: [{ name: 'MainTabs' }] })
+      );
     };
 
     // Loop: play hourglass → fade out → reset → fade in → repeat
@@ -137,31 +134,29 @@ export default function OnboardingLoadingScreen() {
   }, []);
 
   return (
-    <ScreenTransition ref={transitionRef} from="right">
-      <View style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }}>
-        <Animated.View style={{ opacity: hourglassOpacity }}>
-          <AnimatedLottieView
-            source={require('../frontassets/Orange colour loading.json')}
-            progress={animProgress as any}
-            resizeMode="contain"
-            style={{ width: s(120), height: s(120) }}
-          />
-        </Animated.View>
-        <View style={{ marginTop: s(20), height: s(24), alignItems: 'center' }}>
-          <Animated.Text
-            style={{ position: 'absolute', opacity: buildOpacity, color: colors.textSecondary }}
-            className={`${textSize.small} ${fontFamily.regular}`}
-          >
-            Building Preset...
-          </Animated.Text>
-          <Animated.Text
-            style={{ position: 'absolute', opacity: loadOpacity, color: colors.textSecondary }}
-            className={`${textSize.small} ${fontFamily.regular}`}
-          >
-            Loading App...
-          </Animated.Text>
-        </View>
+    <View style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }}>
+      <Animated.View style={{ opacity: hourglassOpacity }}>
+        <AnimatedLottieView
+          source={require('../frontassets/Orange colour loading.json')}
+          progress={animProgress as any}
+          resizeMode="contain"
+          style={{ width: s(120), height: s(120) }}
+        />
+      </Animated.View>
+      <View style={{ marginTop: s(20), height: s(24), alignItems: 'center' }}>
+        <Animated.Text
+          style={{ position: 'absolute', opacity: buildOpacity, color: colors.textSecondary }}
+          className={`${textSize.small} ${fontFamily.regular}`}
+        >
+          Building Preset...
+        </Animated.Text>
+        <Animated.Text
+          style={{ position: 'absolute', opacity: loadOpacity, color: colors.textSecondary }}
+          className={`${textSize.small} ${fontFamily.regular}`}
+        >
+          Loading App...
+        </Animated.Text>
       </View>
-    </ScreenTransition>
+    </View>
   );
 }

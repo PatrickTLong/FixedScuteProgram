@@ -16,15 +16,17 @@ import type { MainStackParamList } from './types';
 
 const MainStack = createNativeStackNavigator<MainStackParamList>();
 
-function MainNavigator() {
+function MainNavigator({ fromOnboarding }: { fromOnboarding?: boolean }) {
   return (
     <PresetSaveProvider>
       <MainStack.Navigator
+        initialRouteName={fromOnboarding ? 'OnboardingLoading' : 'MainTabs'}
         screenOptions={{
           headerShown: false,
           animation: 'none',
         }}
       >
+        <MainStack.Screen name="OnboardingLoading" component={OnboardingLoadingScreen} />
         <MainStack.Screen name="MainTabs" component={MainTabNavigator} />
       </MainStack.Navigator>
     </PresetSaveProvider>
@@ -32,7 +34,7 @@ function MainNavigator() {
 }
 
 export default function RootNavigator() {
-  const { authState, isInitializing } = useAuth();
+  const { authState, isInitializing, onboardingChoice } = useAuth();
   const { colors } = useTheme();
 
   useEffect(() => {
@@ -54,12 +56,10 @@ export default function RootNavigator() {
       return <PermissionsChecklistScreen />;
     case 'onboarding':
       return <OnboardingScreen />;
-    case 'onboarding_loading':
-      return <OnboardingLoadingScreen />;
     case 'membership':
       return <MembershipScreen />;
     case 'main':
-      return <MainNavigator />;
+      return <MainNavigator fromOnboarding={onboardingChoice != null} />;
     default:
       return <AuthStack />;
   }

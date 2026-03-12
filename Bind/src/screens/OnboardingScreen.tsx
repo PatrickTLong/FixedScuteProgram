@@ -21,7 +21,7 @@ import type { ScreenTransitionRef } from '../components/ScreenTransition';
 export default function OnboardingScreen() {
   const { colors } = useTheme();
   const { s } = useResponsive();
-  const { handleStartOnboardingLoading } = useAuth();
+  const { handleOnboardingComplete } = useAuth();
   const transitionRef = useRef<ScreenTransitionRef>(null);
 
   // Icon entry animations
@@ -133,7 +133,7 @@ export default function OnboardingScreen() {
       await transitionRef.current?.animateOut('up');
     }
 
-    handleStartOnboardingLoading(choice);
+    handleOnboardingComplete(choice);
   };
 
   const floatY1 = float1.interpolate({ inputRange: [0, 1], outputRange: [s(4), -s(4)] });

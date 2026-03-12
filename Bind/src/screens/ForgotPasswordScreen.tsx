@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import LottieView from 'lottie-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { EyeIcon, EyeClosedIcon } from 'phosphor-react-native';
+import { EyeIcon } from 'phosphor-react-native';
 import Svg, { Path } from 'react-native-svg';
 import BackButton from '../components/BackButton';
 import ProgressBar from '../components/ProgressBar';
@@ -25,6 +25,12 @@ import type { ScreenTransitionRef, TransitionDirection } from '../components/Scr
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { AuthStackParamList } from '../navigation/types';
+
+const CloseEyesIcon = ({ size = 24, color = '#FFFFFF' }: { size?: number; color?: string }) => (
+  <Svg viewBox="0 0 24 24" width={size} height={size} fill="none">
+    <Path d="m2.11546 6.99524 0.00026 0.00051c0.00016 0.00033 0.00033 0.00068 -0.89373 0.44771l0.89406 -0.44703 -0.00033 -0.00068 0.00417 0.00811c0.00456 0.00882 0.0124 0.02382 0.02352 0.04459 0.02226 0.04155 0.05765 0.10613 0.10626 0.19044 0.09729 0.16876 0.24709 0.41577 0.45011 0.71496 0.40708 0.59991 1.02224 1.40085 1.84979 2.19985C6.20479 11.7519 8.66351 13.3026 12 13.3026c3.3365 0 5.7952 -1.5507 7.4504 -3.1489 0.8276 -0.799 1.4427 -1.59994 1.8498 -2.19985 0.2031 -0.29919 0.3528 -0.5462 0.4501 -0.71496 0.0487 -0.08431 0.084 -0.14889 0.1063 -0.19044 0.0111 -0.02077 0.019 -0.03577 0.0235 -0.04459l0.0039 -0.00743 0.0003 -0.00068c0.2472 -0.49348 0.8475 -0.69342 1.3413 -0.44654 0.494 0.24699 0.6942 0.84766 0.4472 1.34164l-0.8944 -0.44721c0.8944 0.44721 0.8942 0.44761 0.894 0.44804l-0.0005 0.00099 -0.0012 0.00244 -0.0035 0.00677 -0.0107 0.02089c-0.0088 0.01714 -0.0212 0.04066 -0.0369 0.07012 -0.0316 0.05892 -0.0771 0.1417 -0.1366 0.24494 -0.119 0.20634 -0.2945 0.49519 -0.5278 0.83902 -0.2785 0.41045 -0.6415 0.90235 -1.0912 1.42735l1.6215 1.6215c0.3905 0.3905 0.3905 1.0237 0 1.4142 -0.3905 0.3905 -1.0237 0.3905 -1.4142 0l-1.6018 -1.6018c-1.0032 0.9056 -2.2604 1.7931 -3.7774 2.4291l0.8984 1.7277c0.2548 0.49 0.0642 1.0938 -0.4258 1.3486 -0.49 0.2548 -1.0938 0.0641 -1.3486 -0.4259l-1.0539 -2.0266c-0.8559 0.1982 -1.7764 0.3116 -2.7622 0.3116 -0.9798 0 -1.895 -0.112 -2.74646 -0.308l-0.95733 1.9944c-0.23899 0.4979 -0.83636 0.7078 -1.33425 0.4688 -0.4979 -0.239 -0.70779 -0.8363 -0.4688 -1.3342l0.83835 -1.7466c-1.52756 -0.6366 -2.79258 -1.5286 -3.80099 -2.4389l-1.60179 1.6018c-0.39053 0.3905 -1.023694 0.3905 -1.414218 0 -0.390524 -0.3905 -0.390524 -1.0237 0 -1.4142l1.621468 -1.6215c-0.4497 -0.525 -0.81263 -1.0169 -1.09115 -1.42735 -0.233317 -0.34383 -0.408861 -0.63268 -0.527825 -0.83902 -0.059519 -0.10324 -0.104989 -0.18602 -0.136552 -0.24494 -0.015785 -0.02946 -0.028102 -0.05298 -0.03697 -0.07012l-0.01072 -0.02089 -0.003426 -0.00677 -0.001231 -0.00244 -0.000495 -0.00099c-0.000214 -0.00043 -0.000414 -0.00083 0.894009 -0.44804l-0.894423 0.44721C0.0802076 7.39687 0.280432 6.7962 0.774411 6.54921c0.493579 -0.24679 1.093689 -0.04708 1.341049 0.44603Zm0 0 -0.00029 -0.00058c-0.00009 -0.00017 0.00002 0.00006 0.00034 0.00068l-0.00005 -0.0001Z" fill={color} fillRule="evenodd" clipRule="evenodd" />
+  </Svg>
+);
 
 const SendEmailIcon = ({ size = 24, color = '#FFFFFF' }: { size?: number; color?: string }) => (
   <Svg viewBox="0 0 256 256" width={size} height={size}>
@@ -306,7 +312,7 @@ function ForgotPasswordScreen() {
                     />
                     <View style={{ justifyContent: 'center', alignItems: 'center', paddingHorizontal: s(8), height: '100%' }}>
                       <HeaderIconButton onPress={() => setShowNewPassword(!showNewPassword)}>
-                        {showNewPassword ? <EyeIcon size={s(iconSize.headerNav)} color="#FFFFFF" weight="fill" /> : <EyeClosedIcon size={s(iconSize.headerNav)} color={colors.textSecondary} weight="fill" />}
+                        {showNewPassword ? <EyeIcon size={s(iconSize.headerNav)} color="#FFFFFF" weight="fill" /> : <CloseEyesIcon size={s(iconSize.headerNav)} color={colors.textSecondary} />}
                       </HeaderIconButton>
                     </View>
                   </View>
@@ -332,7 +338,7 @@ function ForgotPasswordScreen() {
                     />
                     <View style={{ justifyContent: 'center', alignItems: 'center', paddingHorizontal: s(8), height: '100%' }}>
                       <HeaderIconButton onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
-                        {showConfirmPassword ? <EyeIcon size={s(iconSize.headerNav)} color="#FFFFFF" weight="fill" /> : <EyeClosedIcon size={s(iconSize.headerNav)} color={colors.textSecondary} weight="fill" />}
+                        {showConfirmPassword ? <EyeIcon size={s(iconSize.headerNav)} color="#FFFFFF" weight="fill" /> : <CloseEyesIcon size={s(iconSize.headerNav)} color={colors.textSecondary} />}
                       </HeaderIconButton>
                     </View>
                   </View>

@@ -45,7 +45,7 @@ type StatsPeriod = 'today' | 'week' | 'month';
 // Track which scheduled preset we've already navigated for
 let lastNavigatedScheduledPresetId: string | null = null;
 
-export type AuthState = 'auth' | 'terms' | 'permissions' | 'onboarding' | 'onboarding_loading' | 'membership' | 'main';
+export type AuthState = 'auth' | 'terms' | 'permissions' | 'onboarding' | 'membership' | 'main';
 
 interface ModalState {
   visible: boolean;
@@ -62,7 +62,6 @@ interface AuthContextValue {
   handleLogin: (email: string) => Promise<void>;
   handleTermsAccepted: () => Promise<void>;
   handlePermissionsComplete: () => Promise<void>;
-  handleStartOnboardingLoading: (choice: 'social_media' | 'xxx' | 'both' | 'none') => void;
   handleOnboardingComplete: (choice: 'social_media' | 'xxx' | 'both' | 'none') => void;
   handleMembershipComplete: () => void;
   handleLogout: () => Promise<void>;
@@ -485,11 +484,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Track which preset category was chosen during onboarding (used by HomeScreen to navigate)
   const [onboardingChoice, setOnboardingChoice] = useState<'social_media' | 'xxx' | 'both' | 'none' | null>(null);
-
-  const handleStartOnboardingLoading = useCallback((choice: 'social_media' | 'xxx' | 'both' | 'none') => {
-    setOnboardingChoice(choice);
-    setAuthState('onboarding_loading');
-  }, []);
 
   const handleOnboardingComplete = useCallback((choice: 'social_media' | 'xxx' | 'both' | 'none') => {
     setOnboardingChoice(choice);
@@ -933,7 +927,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     handleLogin,
     handleTermsAccepted,
     handlePermissionsComplete,
-    handleStartOnboardingLoading,
     handleOnboardingComplete,
     handleMembershipComplete,
     handleLogout,

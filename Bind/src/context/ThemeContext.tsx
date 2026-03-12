@@ -64,7 +64,7 @@ export const radius = {
 } as const;
 
 // Shared pill sizing for inputs and rounded-full buttons
-export const pill = 'px-5 h-12' as const;
+export const pill = 'px-5 h-14' as const;
 
 // Shadow style objects
 export const shadow = {

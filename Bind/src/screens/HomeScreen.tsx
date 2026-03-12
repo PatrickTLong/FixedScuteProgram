@@ -58,7 +58,6 @@ function HomeScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalTitle, setModalTitle] = useState('');
   const [modalMessage, setModalMessage] = useState('');
-  // If coming from OnboardingLoadingScreen, presets are already loaded — skip spinner
   const [loading, setLoading] = useState(!sharedPresetsLoaded);
 
   // Emergency tapout state
@@ -545,16 +544,14 @@ function HomeScreen() {
     }
   }, [email, tapoutStatus, activePreset, showModal]);
 
-  // Load data on mount
+  // Load data on mount (and handle onboarding preset creation if needed)
   useEffect(() => {
     async function init() {
       prefetchStats();
       if (sharedPresetsLoaded) {
-        // Data already loaded (e.g. from onboarding) — use cache, no spinner, no refetch
         console.log('[HOME] mount — sharedPresetsLoaded: true, using cached data');
         await loadStats(false, false);
       } else {
-        // First mount with no data — invalidate stale cache, fetch fresh, show spinner
         console.log('[HOME] mount — sharedPresetsLoaded: false, fetching fresh data');
         invalidateUserCaches(email);
         await loadStats(true, true);
