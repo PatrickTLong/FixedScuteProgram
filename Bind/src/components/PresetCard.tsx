@@ -407,6 +407,7 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, onExpire
             onValueChange={handleToggle}
             disabled={disabled || isExpired || sharedIsLocked}
             animate={!isExpired}
+            hideIcons={sharedIsLocked && !disabled && !isExpired}
           />
           {/* Invisible overlay catches taps on disabled toggle when locked to show modal */}
           {sharedIsLocked && !disabled && !isExpired && (

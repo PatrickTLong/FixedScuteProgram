@@ -23,13 +23,18 @@ export default function OnboardingScreen() {
   const { handleStartOnboardingLoading } = useAuth();
   const transitionRef = useRef<ScreenTransitionRef>(null);
 
-  // Icon triangle animations
+  // Icon entry animations
   const icon1Opacity = useRef(new Animated.Value(0)).current;
   const icon1TranslateY = useRef(new Animated.Value(s(30))).current;
   const icon2Opacity = useRef(new Animated.Value(0)).current;
   const icon2TranslateY = useRef(new Animated.Value(s(30))).current;
   const icon3Opacity = useRef(new Animated.Value(0)).current;
   const icon3TranslateY = useRef(new Animated.Value(s(30))).current;
+
+  // Floating animation (staggered per icon)
+  const float1 = useRef(new Animated.Value(0)).current;
+  const float2 = useRef(new Animated.Value(0)).current;
+  const float3 = useRef(new Animated.Value(0)).current;
 
   // Title fade
   const textOpacity = useRef(new Animated.Value(0)).current;
@@ -56,6 +61,21 @@ export default function OnboardingScreen() {
     setTimeout(() => animateIcon(icon1Opacity, icon1TranslateY).start(), 0);
     setTimeout(() => animateIcon(icon2Opacity, icon2TranslateY).start(), 120);
     setTimeout(() => animateIcon(icon3Opacity, icon3TranslateY).start(), 240);
+
+    // Start floating after icons land (staggered)
+    const startFloat = (val: Animated.Value, delay: number) => {
+      setTimeout(() => {
+        Animated.loop(
+          Animated.sequence([
+            Animated.timing(val, { toValue: 1, duration: 1500, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+            Animated.timing(val, { toValue: 0, duration: 1500, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+          ]),
+        ).start();
+      }, delay);
+    };
+    startFloat(float1, 400);
+    startFloat(float2, 600);
+    startFloat(float3, 800);
 
     // Text fades in after icons
     setTimeout(() => {
@@ -113,6 +133,10 @@ export default function OnboardingScreen() {
     handleStartOnboardingLoading(choice);
   };
 
+  const floatY1 = float1.interpolate({ inputRange: [0, 1], outputRange: [s(4), -s(4)] });
+  const floatY2 = float2.interpolate({ inputRange: [0, 1], outputRange: [s(4), -s(4)] });
+  const floatY3 = float3.interpolate({ inputRange: [0, 1], outputRange: [s(4), -s(4)] });
+
   const ICON_SIZE = s(62);
 
   return (
@@ -121,21 +145,21 @@ export default function OnboardingScreen() {
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: s(32) }}>
           <Animated.View style={{ alignItems: 'center', width: '100%', transform: [{ translateY: contentTranslateY }] }}>
 
-            {/* Icon triangle */}
+            {/* Icon triangle — floating */}
             <View style={{ alignItems: 'center', marginBottom: s(32) }}>
               {/* Top icon — YouTube */}
-              <Animated.View style={{ opacity: icon1Opacity, transform: [{ translateY: icon1TranslateY }], marginBottom: s(12) }}>
-                <FontAwesome5 name="youtube-square" brand size={ICON_SIZE} color="#ff0000" />
+              <Animated.View style={{ opacity: icon1Opacity, transform: [{ translateY: icon1TranslateY }, { translateY: floatY1 }], marginBottom: s(12) }}>
+                <FontAwesome5 name="youtube" brand size={ICON_SIZE} color="#ffffff" />
               </Animated.View>
 
-              {/* Bottom row — Instagram + Reddit */}
+              {/* Bottom row — Facebook + Reddit */}
               <View style={{ flexDirection: 'row', gap: s(20) }}>
-                <Animated.View style={{ opacity: icon2Opacity, transform: [{ translateY: icon2TranslateY }] }}>
-                  <FontAwesome5 name="instagram-square" brand size={ICON_SIZE} color="#E1306C" />
+                <Animated.View style={{ opacity: icon2Opacity, transform: [{ translateY: icon2TranslateY }, { translateY: floatY2 }] }}>
+                  <FontAwesome5 name="facebook-square" brand size={ICON_SIZE} color="#ffffff" />
                 </Animated.View>
 
-                <Animated.View style={{ opacity: icon3Opacity, transform: [{ translateY: icon3TranslateY }] }}>
-                  <FontAwesome5 name="reddit-square" brand size={ICON_SIZE} color="#FF4500" />
+                <Animated.View style={{ opacity: icon3Opacity, transform: [{ translateY: icon3TranslateY }, { translateY: floatY3 }] }}>
+                  <FontAwesome5 name="reddit-alien" brand size={ICON_SIZE} color="#ffffff" />
                 </Animated.View>
               </View>
             </View>
@@ -161,9 +185,6 @@ export default function OnboardingScreen() {
                   className={`${radius.full} ${pill} items-center justify-center`}
                 >
                   <View className="flex-row items-center justify-center">
-                    <View className="mr-3">
-                      <FontAwesome5 name="users" solid size={18} color="#000000" />
-                    </View>
                     <Text style={{ color: '#000000' }} className={`${textSize.small} ${fontFamily.semibold}`}>
                       Social Media Apps/Sites
                     </Text>
@@ -180,9 +201,6 @@ export default function OnboardingScreen() {
                   className={`${radius.full} ${pill} items-center justify-center`}
                 >
                   <View className="flex-row items-center justify-center">
-                    <View className="mr-3">
-                      <FontAwesome5 name="ban" solid size={18} color="#000000" />
-                    </View>
                     <Text style={{ color: '#000000' }} className={`${textSize.small} ${fontFamily.semibold}`}>
                       XXX Sites
                     </Text>

@@ -27,7 +27,7 @@ export default function OnboardingLoadingScreen() {
     onboardingChoice,
     userEmail,
     handleOnboardingComplete,
-    refreshPresets,
+    refreshAll,
     setSharedPresets,
   } = useAuth();
 
@@ -50,11 +50,10 @@ export default function OnboardingLoadingScreen() {
     };
 
     // Animate hourglass from 0→1 over MIN_DURATION
-    // Uses easeInOut so sand starts/stops smoothly
     Animated.timing(animProgress, {
       toValue: 1,
       duration: MIN_DURATION,
-      easing: Easing.inOut(Easing.quad),
+      easing: Easing.linear,
       useNativeDriver: false,
     }).start(() => {
       animDone = true;
@@ -77,8 +76,8 @@ export default function OnboardingLoadingScreen() {
           await initDefaultPresets(userEmail, onboardingChoice!);
           console.log('[ONBOARDING-LOADING] initDefaultPresets complete');
 
-          console.log('[ONBOARDING-LOADING] refreshing presets...');
-          const freshPresets = await refreshPresets(true);
+          console.log('[ONBOARDING-LOADING] refreshing all shared state...');
+          const { presets: freshPresets } = await refreshAll(true);
           console.log('[ONBOARDING-LOADING] got', freshPresets.length, 'presets:', freshPresets.map(p => p.name));
 
           const targetName = PRESET_NAME_MAP[onboardingChoice!];
@@ -98,7 +97,8 @@ export default function OnboardingLoadingScreen() {
           console.error('[ONBOARDING-LOADING] error during preset setup:', err);
         }
       } else {
-        console.log('[ONBOARDING-LOADING] choice=none — skipping preset creation');
+        console.log('[ONBOARDING-LOADING] choice=none — fetching app state...');
+        await refreshAll(true);
       }
 
       const elapsed = Date.now() - startTime;

@@ -12,7 +12,7 @@ import {
   Animated,
   RefreshControl,
 } from 'react-native';
-import { AlarmIcon as PhosphorAlarmIcon, LockIcon, LockOpenIcon } from 'phosphor-react-native';
+import { AlarmIcon as PhosphorAlarmIcon } from 'phosphor-react-native';
 import Svg, { Path } from 'react-native-svg';
 
 import HeaderIconButton from '../components/HeaderIconButton';
@@ -1329,9 +1329,13 @@ function HomeScreen() {
           }}
         >
           {lastLockAction === 'lock' ? (
-            <LockIcon size={s(28)} color={colors.text} weight="fill" />
+            <Svg width={s(28)} height={s(28)} viewBox="0 0 256 256" fill={colors.text}>
+              <Path d="M208,80H176V56a48,48,0,0,0-96,0V80H48A16,16,0,0,0,32,96V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V96A16,16,0,0,0,208,80Zm-72,78.63V184a8,8,0,0,1-16,0V158.63a24,24,0,1,1,16,0ZM160,80H96V56a32,32,0,0,1,64,0Z" />
+            </Svg>
           ) : (
-            <LockOpenIcon size={s(28)} color={colors.text} weight="fill" />
+            <Svg width={s(28)} height={s(28)} viewBox="0 0 256 256" fill={colors.text}>
+              <Path d="M208,80H96V56a32,32,0,0,1,32-32c15.37,0,29.2,11,32.16,25.59a8,8,0,0,0,15.68-3.18C171.32,24.15,151.2,8,128,8A48.05,48.05,0,0,0,80,56V80H48A16,16,0,0,0,32,96V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V96A16,16,0,0,0,208,80Zm-72,78.63V184a8,8,0,0,1-16,0V158.63a24,24,0,1,1,16,0Z" />
+            </Svg>
           )}
         </Animated.View>
         <BlockNowButton
