@@ -10,6 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme , textSize, fontFamily, radius, shadow, pill } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
+import { setUserFlag } from '../services/cardApi';
 import { Pressable } from 'react-native';
 import ScreenTransition from '../components/ScreenTransition';
 import type { ScreenTransitionRef } from '../components/ScreenTransition';
@@ -31,6 +32,8 @@ function TermsAcceptScreen() {
   async function handleAcceptTerms() {
     if (!hasScrolledToBottom || isAccepting) return;
     setIsAccepting(true);
+    // Save to backend (per-user, fire-and-forget) + local cache
+    setUserFlag('tos_accepted', true);
     await AsyncStorage.setItem('tos_accepted', 'true');
     await transitionRef.current?.animateOut('left');
     handleTermsAccepted();

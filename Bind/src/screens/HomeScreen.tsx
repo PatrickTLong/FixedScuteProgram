@@ -16,7 +16,7 @@ import { AlarmIcon as PhosphorAlarmIcon } from 'phosphor-react-native';
 import Svg, { Path } from 'react-native-svg';
 
 import HeaderIconButton from '../components/HeaderIconButton';
-import LottieView from 'lottie-react-native';
+import HourglassLoader from '../components/HourglassLoader';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -548,14 +548,17 @@ function HomeScreen() {
   // Load data on mount
   useEffect(() => {
     async function init() {
-      // First-load cache clearing is now handled in AuthContext
-      invalidateUserCaches(email);
-      // Prefetch usage stats for StatsScreen in parallel with home data
       prefetchStats();
-      // If coming from OnboardingLoadingScreen, data is already loaded — skip spinner
-      const needsInitialLoad = !sharedPresetsLoaded;
-      console.log('[HOME] mount — sharedPresetsLoaded:', sharedPresetsLoaded, '| showLoading:', needsInitialLoad);
-      await loadStats(true, needsInitialLoad); // skipCache=true, showLoading only if no data yet
+      if (sharedPresetsLoaded) {
+        // Data already loaded (e.g. from onboarding) — use cache, no spinner, no refetch
+        console.log('[HOME] mount — sharedPresetsLoaded: true, using cached data');
+        await loadStats(false, false);
+      } else {
+        // First mount with no data — invalidate stale cache, fetch fresh, show spinner
+        console.log('[HOME] mount — sharedPresetsLoaded: false, fetching fresh data');
+        invalidateUserCaches(email);
+        await loadStats(true, true);
+      }
     }
     init();
 
@@ -1201,17 +1204,7 @@ function HomeScreen() {
   }, [email, loadStats]);
 
   if (loading) {
-    return (
-      <View style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }}>
-        <LottieView
-          source={require('../frontassets/Orange colour loading.json')}
-          autoPlay
-          loop
-          resizeMode="contain"
-          style={{ width: s(120), height: s(120) }}
-        />
-      </View>
-    );
+    return <HourglassLoader />;
   }
 
   return (

@@ -13,6 +13,7 @@ import { useTheme, textSize, fontFamily, radius, pill, haptics } from '../contex
 import { useResponsive } from '../utils/responsive';
 import { triggerHaptic } from '../utils/haptics';
 import { useAuth } from '../context/AuthContext';
+import { setUserFlag } from '../services/cardApi';
 import ScreenTransition from '../components/ScreenTransition';
 import type { ScreenTransitionRef } from '../components/ScreenTransition';
 
@@ -121,6 +122,8 @@ export default function OnboardingScreen() {
       triggerHaptic(haptics.landingTap.type);
     }
 
+    // Save to backend (per-user, fire-and-forget) + local cache
+    setUserFlag('onboarding_complete', true);
     await AsyncStorage.setItem('onboarding_complete', 'true');
 
     if (choice === 'none') {

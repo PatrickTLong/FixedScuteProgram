@@ -807,6 +807,30 @@ export async function saveUserTheme(email: string, theme: ThemeType): Promise<{ 
   }
 }
 
+// ============ Per-User Flags (TOS, Onboarding) ============
+
+export interface UserFlags {
+  tosAccepted: boolean;
+  onboardingComplete: boolean;
+}
+
+export async function getUserFlags(): Promise<UserFlags> {
+  const headers = await getAuthHeaders();
+  const response = await fetch(`${API_URL}/api/user-flags`, { headers });
+  if (!response.ok) return { tosAccepted: false, onboardingComplete: false };
+  return response.json();
+}
+
+export async function setUserFlag(flag: 'tos_accepted' | 'onboarding_complete', value: boolean): Promise<boolean> {
+  const headers = await getAuthHeaders();
+  const response = await fetch(`${API_URL}/api/user-flags`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ flag, value }),
+  });
+  return response.ok;
+}
+
 export default {
   // Auth token functions
   setAuthToken,

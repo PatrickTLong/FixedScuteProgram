@@ -871,6 +871,59 @@ app.post('/api/verify-signin', async (req, res) => {
   }
 });
 
+// GET /api/user-flags - Get per-user flags (tos_accepted, onboarding_complete)
+app.get('/api/user-flags', authenticateToken, async (req, res) => {
+  const normalizedEmail = req.userEmail;
+  try {
+    const { data, error } = await supabase
+      .from('user_cards')
+      .select('tos_accepted, onboarding_complete')
+      .eq('email', normalizedEmail)
+      .single();
+
+    if (error || !data) {
+      // Row might not exist yet — return defaults
+      return res.json({ tosAccepted: false, onboardingComplete: false });
+    }
+
+    res.json({
+      tosAccepted: data.tos_accepted ?? false,
+      onboardingComplete: data.onboarding_complete ?? false,
+    });
+  } catch (error) {
+    console.error('[user-flags] GET error:', error);
+    res.status(500).json({ error: 'Failed to get user flags' });
+  }
+});
+
+// POST /api/user-flags - Set a per-user flag (tos_accepted, onboarding_complete)
+app.post('/api/user-flags', authenticateToken, async (req, res) => {
+  const normalizedEmail = req.userEmail;
+  const { flag, value } = req.body;
+
+  const allowedFlags = ['tos_accepted', 'onboarding_complete'];
+  if (!allowedFlags.includes(flag)) {
+    return res.status(400).json({ error: `Invalid flag: ${flag}` });
+  }
+
+  try {
+    const { error } = await supabase
+      .from('user_cards')
+      .update({ [flag]: value === true })
+      .eq('email', normalizedEmail);
+
+    if (error) {
+      console.error('[user-flags] POST error:', error);
+      return res.status(500).json({ error: 'Failed to update flag' });
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('[user-flags] POST error:', error);
+    res.status(500).json({ error: 'Failed to update flag' });
+  }
+});
+
 // POST /api/save-settings - Save user settings (PROTECTED)
 app.post('/api/save-settings', authenticateToken, async (req, res) => {
   const { settings } = req.body;

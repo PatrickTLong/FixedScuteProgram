@@ -10,7 +10,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import SlideUpModal from '../components/SlideUpModal';
-import LottieView from 'lottie-react-native';
+import HourglassLoader from '../components/HourglassLoader';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import { IdentificationCardIcon, FolderOpenIcon, CheckCircleIcon, HeartStraightBreakIcon } from 'phosphor-react-native';
@@ -353,32 +353,12 @@ function SettingsScreen() {
   // Show full-screen loading only for destructive actions (reset/delete/logout)
   // Initial load uses cache so it's instant - no spinner needed
   if (isResetting || isDeleting || isLoggingOut) {
-    return (
-      <View style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }}>
-        <LottieView
-          source={require('../frontassets/Orange colour loading.json')}
-          autoPlay
-          loop
-          resizeMode="contain"
-          style={{ width: s(120), height: s(120) }}
-        />
-      </View>
-    );
+    return <HourglassLoader />;
   }
 
   // Show loading spinner only if cache miss (rare - HomeScreen pre-populates)
   if (loading) {
-    return (
-      <View style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }}>
-        <LottieView
-          source={require('../frontassets/Orange colour loading.json')}
-          autoPlay
-          loop
-          resizeMode="contain"
-          style={{ width: s(120), height: s(120) }}
-        />
-      </View>
-    );
+    return <HourglassLoader />;
   }
 
   return (

@@ -21,6 +21,8 @@ import {
   isFirstLoad,
   clearAllCaches,
   markInitialLoadComplete,
+  getUserFlags,
+  setUserFlag,
 } from '../services/cardApi';
 import type { RootStackParamList } from '../navigation/types';
 
@@ -311,8 +313,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (email) {
       setUserEmail(email);
 
-      const tosAccepted = await AsyncStorage.getItem('tos_accepted');
-      if (tosAccepted !== 'true') {
+      // Fetch per-user flags from backend (source of truth)
+      let flags = { tosAccepted: false, onboardingComplete: false };
+      try {
+        flags = await getUserFlags();
+        // Cache locally for fast checks within the session
+        await AsyncStorage.setItem('tos_accepted', flags.tosAccepted ? 'true' : 'false');
+        await AsyncStorage.setItem('onboarding_complete', flags.onboardingComplete ? 'true' : 'false');
+      } catch {
+        // Fallback to local cache if backend unreachable
+        flags.tosAccepted = (await AsyncStorage.getItem('tos_accepted')) === 'true';
+        flags.onboardingComplete = (await AsyncStorage.getItem('onboarding_complete')) === 'true';
+      }
+
+      if (!flags.tosAccepted) {
         setAuthState('terms');
         setIsInitializing(false);
         return;
@@ -325,9 +339,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const allGranted = requiredPermissions.every((perm: string) => states[perm]);
 
           if (allGranted) {
-            // Check onboarding
-            const onboardingDone = await AsyncStorage.getItem('onboarding_complete');
-            if (onboardingDone !== 'true') {
+            if (!flags.onboardingComplete) {
               setAuthState('onboarding');
               setIsInitializing(false);
               return;
@@ -363,8 +375,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUserEmail(email);
     await AsyncStorage.setItem('user_email', email);
 
-    const tosAccepted = await AsyncStorage.getItem('tos_accepted');
-    if (tosAccepted !== 'true') {
+    // Fetch per-user flags from backend
+    let flags = { tosAccepted: false, onboardingComplete: false };
+    try {
+      flags = await getUserFlags();
+      await AsyncStorage.setItem('tos_accepted', flags.tosAccepted ? 'true' : 'false');
+      await AsyncStorage.setItem('onboarding_complete', flags.onboardingComplete ? 'true' : 'false');
+    } catch {
+      // New user — defaults are fine (both false)
+    }
+
+    if (!flags.tosAccepted) {
       setAuthState('terms');
       return;
     }
@@ -376,9 +397,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const allGranted = requiredPermissions.every((perm: string) => states[perm]);
 
         if (allGranted) {
-          // Check onboarding
-          const onboardingDone = await AsyncStorage.getItem('onboarding_complete');
-          if (onboardingDone !== 'true') {
+          if (!flags.onboardingComplete) {
             setAuthState('onboarding');
             return;
           }
