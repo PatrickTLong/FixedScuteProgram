@@ -1,6 +1,7 @@
 import React, { memo, useCallback, useEffect, useRef } from 'react';
 import { Animated, Pressable, View } from 'react-native';
 import { useIsFocused } from '@react-navigation/native';
+import Svg, { Path } from 'react-native-svg';
 import { useResponsive } from '../utils/responsive';
 import { shadow, colors, haptics } from '../context/ThemeContext';
 import { triggerHaptic } from '../utils/haptics';
@@ -138,6 +139,8 @@ function AnimatedSwitch({
     outputRange: [0, 0.35],
   });
 
+  const iconSize = thumbSize * 0.48;
+
   return (
     <Pressable
       onPress={handlePress}
@@ -211,8 +214,26 @@ function AnimatedSwitch({
               shadowOpacity: disabled ? 0 : 0.2,
               shadowRadius: disabled ? 0 : 2.5,
               elevation: disabled ? 0 : 4,
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
-          />
+          >
+            {value ? (
+              <Svg width={iconSize} height={iconSize} viewBox="0 0 256 256" fill="none">
+                <Path
+                  d="M243.31,90.91l-128.4,128.4a16,16,0,0,1-22.62,0l-71.62-72a16,16,0,0,1,0-22.61l20-20a16,16,0,0,1,22.58,0L104,144.22l96.76-95.57a16,16,0,0,1,22.59,0l19.95,19.54A16,16,0,0,1,243.31,90.91Z"
+                  fill={colors.green}
+                />
+              </Svg>
+            ) : (
+              <Svg width={iconSize * 1.8} height={iconSize * 1.8} viewBox="0 -960 960 960" fill="none">
+                <Path
+                  d="m336-280-56-56 144-144-144-143 56-56 144 144 143-144 56 56-144 143 144 144-56 56-143-144-144 144Z"
+                  fill="#9ca3af"
+                />
+              </Svg>
+            )}
+          </View>
         </Animated.View>
       </View>
     </Pressable>

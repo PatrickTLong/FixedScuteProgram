@@ -778,7 +778,7 @@ function PresetSettingsScreen() {
         setAlertPhone(savedState.alertPhone ?? '');
         setSkipOverlay(savedState.skipOverlay ?? false);
         setTimeBlocksExpanded(true);
-        setStrictnessExpanded(!!(savedState.strictMode || savedState.allowEmergencyTapout));
+        setStrictnessExpanded(!!savedState.strictMode);
         setAdvancedExpanded(!!(savedState.alertNotifyEnabled || savedState.skipOverlay || savedState.customBlockedText || savedState.customOverlayImage));
         console.log('[OVERLAY] Restored from savedState — text:', savedState.customBlockedText, 'image:', savedState.customOverlayImage);
       } else {
@@ -811,7 +811,7 @@ function PresetSettingsScreen() {
           setAlertPhone(editingPreset.alertPhone ?? '');
           setSkipOverlay(editingPreset.skipOverlay ?? false);
           setTimeBlocksExpanded(true);
-          setStrictnessExpanded(!!(editingPreset.strictMode || editingPreset.allowEmergencyTapout));
+          setStrictnessExpanded(!!editingPreset.strictMode);
           setAdvancedExpanded(!!(editingPreset.alertNotifyEnabled || editingPreset.skipOverlay || editingPreset.customBlockedText || editingPreset.customOverlayImage || editingPreset.customRedirectUrl));
           console.log('[OVERLAY] Restored from editingPreset — text:', editingPreset.customBlockedText, 'image:', editingPreset.customOverlayImage);
         } else {
