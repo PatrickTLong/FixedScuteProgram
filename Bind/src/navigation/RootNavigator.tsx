@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 import { View } from 'react-native';
 import BootSplash from 'react-native-bootsplash';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import AuthStack from './AuthStack';
@@ -12,29 +11,17 @@ import OnboardingScreen from '../screens/OnboardingScreen';
 import OnboardingLoadingScreen from '../screens/OnboardingLoadingScreen';
 import MainTabNavigator from './MainTabNavigator';
 import { PresetSaveProvider } from './PresetsStack';
-import type { MainStackParamList } from './types';
 
-const MainStack = createNativeStackNavigator<MainStackParamList>();
-
-function MainNavigator({ fromOnboarding }: { fromOnboarding?: boolean }) {
+function MainNavigator() {
   return (
     <PresetSaveProvider>
-      <MainStack.Navigator
-        initialRouteName={fromOnboarding ? 'OnboardingLoading' : 'MainTabs'}
-        screenOptions={{
-          headerShown: false,
-          animation: 'none',
-        }}
-      >
-        <MainStack.Screen name="OnboardingLoading" component={OnboardingLoadingScreen} />
-        <MainStack.Screen name="MainTabs" component={MainTabNavigator} />
-      </MainStack.Navigator>
+      <MainTabNavigator />
     </PresetSaveProvider>
   );
 }
 
 export default function RootNavigator() {
-  const { authState, isInitializing, onboardingChoice } = useAuth();
+  const { authState, isInitializing } = useAuth();
   const { colors } = useTheme();
 
   useEffect(() => {
@@ -56,10 +43,12 @@ export default function RootNavigator() {
       return <PermissionsChecklistScreen />;
     case 'onboarding':
       return <OnboardingScreen />;
+    case 'onboarding_loading':
+      return <OnboardingLoadingScreen />;
     case 'membership':
       return <MembershipScreen />;
     case 'main':
-      return <MainNavigator fromOnboarding={onboardingChoice != null} />;
+      return <MainNavigator />;
     default:
       return <AuthStack />;
   }

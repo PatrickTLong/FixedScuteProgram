@@ -34,7 +34,6 @@ export type MainTabParamList = {
 
 // Main stack wraps tabs
 export type MainStackParamList = {
-  OnboardingLoading: undefined;
   MainTabs: NavigatorScreenParams<MainTabParamList>;
 };
 

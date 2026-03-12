@@ -250,15 +250,13 @@ function LandingScreen() {
                 {googleLoading && (
                   <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center' }}>
                     <LottieView
-                      source={require('../frontassets/loading dots - Three Gray..json')}
+                      source={require('../frontassets/Loading.json')}
                       autoPlay
                       loop
                       speed={1.75}
-                      style={{ width: s(42), height: s(18) }}
+                      style={{ width: s(100), height: s(44) }}
                       colorFilters={[
-                        { keypath: 'Left.Elipse 1.Preenchimento 1', color: '#000000' },
-                        { keypath: 'Mid.Elipse 1.Preenchimento 1', color: '#000000' },
-                        { keypath: 'Right.Elipse 1.Preenchimento 1', color: '#000000' },
+                        { keypath: '**.Fill 1', color: '#000000' },
                       ]}
                     />
                   </View>

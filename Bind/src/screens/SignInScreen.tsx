@@ -43,13 +43,13 @@ const CloseEyesIcon = ({ size = 24, color = '#FFFFFF' }: { size?: number; color?
 
 const SendEmailIcon = ({ size = 24, color = '#FFFFFF' }: { size?: number; color?: string }) => (
   <Svg viewBox="0 0 24 24" width={size} height={size}>
-    <Path d="M18.41 22h.37c.31-.01.6-.17.78-.43l2.27-3.27c.15-.22.21-.49.16-.76a1 1 0 0 0-.43-.65l-4.91-3.27c-.41-.27-.96-.21-1.29.15l-1.88 2.03c-.76-.45-2.03-1.26-3.03-2.26s-1.81-2.27-2.26-3.02l2.03-1.88c.36-.33.43-.88.15-1.29L7.1 2.44c-.15-.22-.38-.38-.64-.43-.27-.05-.54 0-.76.16L2.43 4.43c-.26.18-.42.47-.43.78-.03.71-.16 7.04 4.79 11.98 4.46 4.46 10.04 4.8 11.62 4.8Z" fill={color} />
+    <Path d="M12 2a5 5 0 1 0 0 10 5 5 0 1 0 0-10M4 22h16c.55 0 1-.45 1-1v-1c0-3.86-3.14-7-7-7h-4c-3.86 0-7 3.14-7 7v1c0 .55.45 1 1 1" fill={color} />
   </Svg>
 );
 
 const LoginKeyIcon = ({ size = 24, color = '#FFFFFF' }: { size?: number; color?: string }) => (
   <Svg viewBox="0 0 256 256" width={size} height={size}>
-    <Path d="M208,80H96V56a32,32,0,0,1,32-32c15.37,0,29.2,11,32.16,25.59a8,8,0,0,0,15.68-3.18C171.32,24.15,151.2,8,128,8A48.05,48.05,0,0,0,80,56V80H48A16,16,0,0,0,32,96V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V96A16,16,0,0,0,208,80Zm-72,78.63V184a8,8,0,0,1-16,0V158.63a24,24,0,1,1,16,0Z" fill={color} />
+    <Path d="M208,80H176V56a48,48,0,0,0-96,0V80H48A16,16,0,0,0,32,96V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V96A16,16,0,0,0,208,80Zm-72,78.63V184a8,8,0,0,1-16,0V158.63a24,24,0,1,1,16,0ZM160,80H96V56a32,32,0,0,1,64,0Z" fill={color} />
   </Svg>
 );
 
@@ -357,15 +357,13 @@ function SignInScreen() {
               {loading && (
                 <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center' }}>
                   <LottieView
-                    source={require('../frontassets/loading dots - Three Gray..json')}
+                    source={require('../frontassets/Loading.json')}
                     autoPlay
                     loop
                     speed={1.75}
-                    style={{ width: s(42), height: s(18) }}
+                    style={{ width: s(100), height: s(44) }}
                     colorFilters={[
-                      { keypath: 'Left.Elipse 1.Preenchimento 1', color: colors.bg },
-                      { keypath: 'Mid.Elipse 1.Preenchimento 1', color: colors.bg },
-                      { keypath: 'Right.Elipse 1.Preenchimento 1', color: colors.bg },
+                      { keypath: '**.Fill 1', color: colors.bg },
                     ]}
                   />
                 </View>

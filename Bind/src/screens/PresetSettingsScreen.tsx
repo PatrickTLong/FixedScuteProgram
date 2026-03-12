@@ -2020,15 +2020,13 @@ function PresetSettingsScreen() {
                     {imageUploading && (
                       <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center' }}>
                         <LottieView
-                          source={require('../frontassets/loading dots - Three Gray..json')}
+                          source={require('../frontassets/Loading.json')}
                           autoPlay
                           loop
                           speed={1.75}
-                          style={{ width: s(42), height: s(18) }}
+                          style={{ width: s(100), height: s(44) }}
                           colorFilters={[
-                            { keypath: 'Left.Elipse 1.Preenchimento 1', color: colors.bg },
-                            { keypath: 'Mid.Elipse 1.Preenchimento 1', color: colors.bg },
-                            { keypath: 'Right.Elipse 1.Preenchimento 1', color: colors.bg },
+                            { keypath: '**.Fill 1', color: colors.bg },
                           ]}
                         />
                       </View>
@@ -2044,7 +2042,9 @@ function PresetSettingsScreen() {
                   className={`${radius.full} ${pill} items-center justify-center flex-row`}
                 >
                   <View style={{ opacity: imageUploading ? 0 : 1 }} className="flex-row items-center justify-center">
-                    <ImageSquareIcon size={s(iconSize.sm)} color={colors.bg} weight="fill" style={{ marginRight: s(6) }} />
+                    <Svg width={s(iconSize.sm)} height={s(iconSize.sm)} viewBox="0 0 256 256" fill={colors.bg} style={{ marginRight: s(6) }}>
+                      <Path d="M158.66,219.56A8,8,0,0,1,152,232H24a8,8,0,0,1-6.73-12.33l36-56a8,8,0,0,1,13.46,0l9.76,15.18,20.85-31.29a8,8,0,0,1,13.32,0ZM216,88V216a16,16,0,0,1-16,16h-8a8,8,0,0,1,0-16h8V96H152a8,8,0,0,1-8-8V40H56v88a8,8,0,0,1-16,0V40A16,16,0,0,1,56,24h96a8,8,0,0,1,5.66,2.34l56,56A8,8,0,0,1,216,88Zm-56-8h28.69L160,51.31Z" />
+                    </Svg>
                     <Text style={{ color: colors.bg }} className={`${textSize.small} ${fontFamily.semibold}`}>
                       Upload Image
                     </Text>
@@ -2052,15 +2052,13 @@ function PresetSettingsScreen() {
                   {imageUploading && (
                     <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center' }}>
                       <LottieView
-                        source={require('../frontassets/loading dots - Three Gray..json')}
+                        source={require('../frontassets/Loading.json')}
                         autoPlay
                         loop
                         speed={1.75}
-                        style={{ width: s(42), height: s(18) }}
+                        style={{ width: s(100), height: s(44) }}
                         colorFilters={[
-                          { keypath: 'Left.Elipse 1.Preenchimento 1', color: colors.bg },
-                          { keypath: 'Mid.Elipse 1.Preenchimento 1', color: colors.bg },
-                          { keypath: 'Right.Elipse 1.Preenchimento 1', color: colors.bg },
+                          { keypath: '**.Fill 1', color: colors.bg },
                         ]}
                       />
                     </View>

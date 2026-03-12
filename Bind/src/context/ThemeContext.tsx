@@ -133,7 +133,7 @@ export const colors = {
   cyanDark: '#0891b2',
   green: '#22c55e',
   yellow: '#fbbf24',
-  red: '#F85353',
+  red: '#FF5C5C',
   // Loading spinner
   spinner: '#7B9AB8',
   // Logo tint

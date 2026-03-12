@@ -13,7 +13,7 @@ import {
   Pressable,
   RefreshControl,
 } from 'react-native';
-import LoadingSpinner from '../components/LoadingSpinner';
+import LottieView from 'lottie-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowsOutIcon, ArrowsInIcon } from 'phosphor-react-native';
 import Svg, { Path } from 'react-native-svg';
@@ -378,7 +378,13 @@ function StatsScreen() {
   if (loading) {
     return (
       <View style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center', paddingTop: insets.top }}>
-        <LoadingSpinner size={s(48)} />
+        <LottieView
+          source={require('../frontassets/blue loading.json')}
+          autoPlay
+          loop
+          resizeMode="contain"
+          style={{ width: s(120), height: s(120) }}
+        />
       </View>
     );
   }

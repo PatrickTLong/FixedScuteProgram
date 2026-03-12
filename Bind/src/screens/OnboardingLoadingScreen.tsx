@@ -1,17 +1,14 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Animated, Easing } from 'react-native';
+import { View, Animated } from 'react-native';
 import LottieView from 'lottie-react-native';
-import { useNavigation, CommonActions } from '@react-navigation/native';
-
-const AnimatedLottieView = Animated.createAnimatedComponent(LottieView);
+import ScreenTransition from '../components/ScreenTransition';
+import type { ScreenTransitionRef } from '../components/ScreenTransition';
 import { useTheme, textSize, fontFamily } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { useAuth } from '../context/AuthContext';
 import { initDefaultPresets, activatePreset, invalidateUserCaches } from '../services/cardApi';
 
-const CYCLE_DURATION = 2000; // One hourglass fill (matches 48 frames @ 24fps)
-const FADE_DURATION = 80;    // Quick fade between cycles
-const TEXT_SWITCH_AT = 2000;  // Switch text after first cycle
+const TEXT_SWITCH_AT = 2000;
 
 const PRESET_NAME_MAP: Record<string, string> = {
   social_media: 'Social Media',
@@ -22,62 +19,25 @@ const PRESET_NAME_MAP: Record<string, string> = {
 export default function OnboardingLoadingScreen() {
   const { colors } = useTheme();
   const { s } = useResponsive();
-  const navigation = useNavigation();
   const {
     onboardingChoice,
     userEmail,
     refreshAll,
+    handleOnboardingLoadingComplete,
   } = useAuth();
   const buildOpacity = useRef(new Animated.Value(1)).current;
   const loadOpacity = useRef(new Animated.Value(0)).current;
-  const animProgress = useRef(new Animated.Value(0)).current;
-  const hourglassOpacity = useRef(new Animated.Value(1)).current;
+  const transitionRef = useRef<ScreenTransitionRef>(null);
 
   useEffect(() => {
     console.log('[ONBOARDING-LOADING] mounted — choice:', onboardingChoice, '| email:', userEmail);
     const startTime = Date.now();
-    let workDone = false;
 
-    const onReady = () => {
-      console.log('[ONBOARDING-LOADING] navigating to MainTabs');
-      navigation.dispatch(
-        CommonActions.reset({ index: 0, routes: [{ name: 'MainTabs' }] })
-      );
+    const onReady = async () => {
+      console.log('[ONBOARDING-LOADING] transitioning to main');
+      await transitionRef.current?.animateOut('left');
+      handleOnboardingLoadingComplete();
     };
-
-    // Loop: play hourglass → fade out → reset → fade in → repeat
-    const runCycle = () => {
-      animProgress.setValue(0);
-      hourglassOpacity.setValue(1);
-      Animated.timing(animProgress, {
-        toValue: 1,
-        duration: CYCLE_DURATION,
-        easing: Easing.linear,
-        useNativeDriver: false,
-      }).start(() => {
-        if (workDone) {
-          onReady();
-          return;
-        }
-        // Fade out, reset, fade back in
-        Animated.timing(hourglassOpacity, {
-          toValue: 0,
-          duration: FADE_DURATION,
-          useNativeDriver: true,
-        }).start(() => {
-          animProgress.setValue(0);
-          Animated.timing(hourglassOpacity, {
-            toValue: 1,
-            duration: FADE_DURATION,
-            useNativeDriver: true,
-          }).start(() => {
-            runCycle();
-          });
-        });
-      });
-    };
-
-    runCycle();
 
     // Switch text label after first cycle
     const textTimer = setTimeout(() => {
@@ -105,8 +65,6 @@ export default function OnboardingLoadingScreen() {
             console.log('[ONBOARDING-LOADING] activating preset:', matchingPreset.name, '| id:', matchingPreset.id);
             await activatePreset(userEmail, matchingPreset.id);
             console.log('[ONBOARDING-LOADING] activatePreset confirmed by backend');
-            // Invalidate stale cache (has isActive=false) and re-fetch so
-            // HomeScreen mounts with correct cached data — no visible flicker
             invalidateUserCaches(userEmail);
             await refreshAll(true);
             console.log('[ONBOARDING-LOADING] final refreshAll complete — cache up-to-date');
@@ -123,7 +81,7 @@ export default function OnboardingLoadingScreen() {
 
       const elapsed = Date.now() - startTime;
       console.log('[ONBOARDING-LOADING] work done in', elapsed, 'ms');
-      workDone = true;
+      onReady();
     };
 
     doWork();
@@ -134,29 +92,30 @@ export default function OnboardingLoadingScreen() {
   }, []);
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }}>
-      <Animated.View style={{ opacity: hourglassOpacity }}>
-        <AnimatedLottieView
-          source={require('../frontassets/Orange colour loading.json')}
-          progress={animProgress as any}
+    <ScreenTransition ref={transitionRef}>
+      <View style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }}>
+        <LottieView
+          source={require('../frontassets/blue loading.json')}
+          autoPlay
+          loop
           resizeMode="contain"
           style={{ width: s(120), height: s(120) }}
         />
-      </Animated.View>
-      <View style={{ marginTop: s(20), height: s(24), alignItems: 'center' }}>
-        <Animated.Text
-          style={{ position: 'absolute', opacity: buildOpacity, color: colors.textSecondary }}
-          className={`${textSize.small} ${fontFamily.regular}`}
-        >
-          Building Preset...
-        </Animated.Text>
-        <Animated.Text
-          style={{ position: 'absolute', opacity: loadOpacity, color: colors.textSecondary }}
-          className={`${textSize.small} ${fontFamily.regular}`}
-        >
-          Loading App...
-        </Animated.Text>
+        <View style={{ marginTop: s(-10), height: s(24), alignItems: 'center' }}>
+          <Animated.Text
+            style={{ position: 'absolute', opacity: buildOpacity, color: colors.textSecondary }}
+            className={`${textSize.small} ${fontFamily.regular}`}
+          >
+            Building Preset...
+          </Animated.Text>
+          <Animated.Text
+            style={{ position: 'absolute', opacity: loadOpacity, color: colors.textSecondary }}
+            className={`${textSize.small} ${fontFamily.regular}`}
+          >
+            Loading App...
+          </Animated.Text>
+        </View>
       </View>
-    </View>
+    </ScreenTransition>
   );
 }
