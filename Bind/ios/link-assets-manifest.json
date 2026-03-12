@@ -1,4 +1,237 @@
 {
   "migIndex": 1,
-  "data": []
+  "data": [
+    {
+      "path": "android/app/src/main/assets/fonts/Nunito-Black.ttf",
+      "sha1": "bede9c89e905ae0b91404768e1167e3e5d3c9c8e"
+    },
+    {
+      "path": "android/app/src/main/assets/fonts/Nunito-BlackItalic.ttf",
+      "sha1": "5b27538c43c1afcd5b4a8547854522a805f4c302"
+    },
+    {
+      "path": "android/app/src/main/assets/fonts/Nunito-Bold.ttf",
+      "sha1": "e50cf9134308e37008cbd39da1dc637aef022641"
+    },
+    {
+      "path": "android/app/src/main/assets/fonts/Nunito-BoldItalic.ttf",
+      "sha1": "5ab6843366253b2e8009cf3384e6d275004ad5f3"
+    },
+    {
+      "path": "android/app/src/main/assets/fonts/Nunito-ExtraBold.ttf",
+      "sha1": "37ba2b2e9e7dd74a67b8b994a1aebe333af7fc39"
+    },
+    {
+      "path": "android/app/src/main/assets/fonts/Nunito-ExtraBoldItalic.ttf",
+      "sha1": "fab683da6e0b9ff687a6ca683f96127e84919b24"
+    },
+    {
+      "path": "android/app/src/main/assets/fonts/Nunito-ExtraLight.ttf",
+      "sha1": "5473261207bdc8a16cf78d26e598becddeb8155e"
+    },
+    {
+      "path": "android/app/src/main/assets/fonts/Nunito-ExtraLightItalic.ttf",
+      "sha1": "fd4b64a944d4353f216df49c028cde717161dd24"
+    },
+    {
+      "path": "android/app/src/main/assets/fonts/Nunito-Italic.ttf",
+      "sha1": "0c994f04c2bb328d87069d32e7422b559c05d5a7"
+    },
+    {
+      "path": "android/app/src/main/assets/fonts/Nunito-Light.ttf",
+      "sha1": "e69e3dfdaf5baaa6fc6db1dd031ed18e1dca38f3"
+    },
+    {
+      "path": "android/app/src/main/assets/fonts/Nunito-LightItalic.ttf",
+      "sha1": "6855c33fb876932b819dc445eeb4ae3267c4ef7d"
+    },
+    {
+      "path": "android/app/src/main/assets/fonts/Nunito-Medium.ttf",
+      "sha1": "75324fedc01df018cdf436bb5beba504bd82af0d"
+    },
+    {
+      "path": "android/app/src/main/assets/fonts/Nunito-MediumItalic.ttf",
+      "sha1": "e582f36e0b5d13c9e3ac827bd879593dec1a06d0"
+    },
+    {
+      "path": "android/app/src/main/assets/fonts/Nunito-Regular.ttf",
+      "sha1": "929ddc840610489715952aaa10af50e9c1a6a4a6"
+    },
+    {
+      "path": "android/app/src/main/assets/fonts/Nunito-SemiBold.ttf",
+      "sha1": "c4a5281a3e088e1d2604635d4d09a1583d036db6"
+    },
+    {
+      "path": "android/app/src/main/assets/fonts/Nunito-SemiBoldItalic.ttf",
+      "sha1": "96d4f551a905d9dd509fec0ae085f35666d8f797"
+    },
+    {
+      "path": "android/app/src/main/assets/fonts/PlusJakartaSans-Bold.ttf",
+      "sha1": "9ea84454ec3da3a53230f846f2f21f284540ab3c"
+    },
+    {
+      "path": "android/app/src/main/assets/fonts/PlusJakartaSans-ExtraBold.ttf",
+      "sha1": "55ab8682a5ee2599e7114efe10bb77b66f90d872"
+    },
+    {
+      "path": "android/app/src/main/assets/fonts/PlusJakartaSans-ExtraLight.ttf",
+      "sha1": "3d74aef59ee196c34809ec1e5753430da45c1020"
+    },
+    {
+      "path": "android/app/src/main/assets/fonts/PlusJakartaSans-Light.ttf",
+      "sha1": "6b41d0ff05f06cf651e9b757d1ee2c59093a5832"
+    },
+    {
+      "path": "android/app/src/main/assets/fonts/PlusJakartaSans-Medium.ttf",
+      "sha1": "843e59b5822ccae0b80e5e881b9d0e69e9b1cdfa"
+    },
+    {
+      "path": "android/app/src/main/assets/fonts/PlusJakartaSans-Regular.ttf",
+      "sha1": "c0ba4d6c0f708c739f5b69be136e7306ccc4f61c"
+    },
+    {
+      "path": "android/app/src/main/assets/fonts/PlusJakartaSans-SemiBold.ttf",
+      "sha1": "0e0454a943671b35d44c7c704299c6a09c9e0607"
+    },
+    {
+      "path": "android/app/src/main/assets/fonts/SourceSans3-Black.ttf",
+      "sha1": "d6777ff17691642ff4c255e5e06443e27d453204"
+    },
+    {
+      "path": "android/app/src/main/assets/fonts/SourceSans3-BlackItalic.ttf",
+      "sha1": "2184485d3ab87b7cba93b2ac5d60de7144ae7b2b"
+    },
+    {
+      "path": "android/app/src/main/assets/fonts/SourceSans3-Bold.ttf",
+      "sha1": "3929894d6093792ffa827a26738340fffebdc36d"
+    },
+    {
+      "path": "android/app/src/main/assets/fonts/SourceSans3-BoldItalic.ttf",
+      "sha1": "ad3d8f845158fa36b5b52b6160a9f493a1bcf602"
+    },
+    {
+      "path": "android/app/src/main/assets/fonts/SourceSans3-ExtraBold.ttf",
+      "sha1": "9878167aa7bc2338262806eb04736f7ccc8f730a"
+    },
+    {
+      "path": "android/app/src/main/assets/fonts/SourceSans3-ExtraBoldItalic.ttf",
+      "sha1": "a7ed32a1b80e26198be41f8a26ad3cabadf55c5c"
+    },
+    {
+      "path": "android/app/src/main/assets/fonts/SourceSans3-ExtraLight.ttf",
+      "sha1": "9d238629fa0488b21ba9138576ca0cc9bf390ff5"
+    },
+    {
+      "path": "android/app/src/main/assets/fonts/SourceSans3-ExtraLightItalic.ttf",
+      "sha1": "e857ae45a81d788c12cdb7e9e0b37be33086d181"
+    },
+    {
+      "path": "android/app/src/main/assets/fonts/SourceSans3-Italic.ttf",
+      "sha1": "6d877395d3e596ed6cb6f497095eb29ea7fbd385"
+    },
+    {
+      "path": "android/app/src/main/assets/fonts/SourceSans3-Light.ttf",
+      "sha1": "d3e3789622ef9a2e837cf2be81b27bc4108fe49c"
+    },
+    {
+      "path": "android/app/src/main/assets/fonts/SourceSans3-LightItalic.ttf",
+      "sha1": "0269f974a382bc906cbe16d2c0ebcee1275213d1"
+    },
+    {
+      "path": "android/app/src/main/assets/fonts/SourceSans3-Medium.ttf",
+      "sha1": "47a5f982433475630fe9ee100a6b8311eb774228"
+    },
+    {
+      "path": "android/app/src/main/assets/fonts/SourceSans3-MediumItalic.ttf",
+      "sha1": "e4ac9223c819bab76106a3cb82e7479aac83f646"
+    },
+    {
+      "path": "android/app/src/main/assets/fonts/SourceSans3-Regular.ttf",
+      "sha1": "1adfe09cc152037c2dcd2562b8d16dbe24ae759f"
+    },
+    {
+      "path": "android/app/src/main/assets/fonts/SourceSans3-SemiBold.ttf",
+      "sha1": "52c29f5455878c1421edb7ebc0af61f5ddc7a2b4"
+    },
+    {
+      "path": "android/app/src/main/assets/fonts/SourceSans3-SemiBoldItalic.ttf",
+      "sha1": "4b5ef9255371d286471110bf8cf9de5f9c9497f3"
+    },
+    {
+      "path": "node_modules/react-native-vector-icons/Fonts/AntDesign.ttf",
+      "sha1": "4e77868439280fb434d4697c7b911271406c81f3"
+    },
+    {
+      "path": "node_modules/react-native-vector-icons/Fonts/Entypo.ttf",
+      "sha1": "12b5670eb178138f77285d5f2c246d3cc5fa67d6"
+    },
+    {
+      "path": "node_modules/react-native-vector-icons/Fonts/EvilIcons.ttf",
+      "sha1": "91d377ea3cf47490b256c2ed081704a7dabdae0c"
+    },
+    {
+      "path": "node_modules/react-native-vector-icons/Fonts/Feather.ttf",
+      "sha1": "e6604258b1ced5efd51360875d782fca65381d47"
+    },
+    {
+      "path": "node_modules/react-native-vector-icons/Fonts/FontAwesome.ttf",
+      "sha1": "13b1eab65a983c7a73bc7997c479d66943f7c6cb"
+    },
+    {
+      "path": "node_modules/react-native-vector-icons/Fonts/FontAwesome5_Brands.ttf",
+      "sha1": "3fa2d67cef22da5c3f3eb5730c6afbd6fecf0372"
+    },
+    {
+      "path": "node_modules/react-native-vector-icons/Fonts/FontAwesome5_Regular.ttf",
+      "sha1": "7d849a3981a716e2ba4a84634bc57d0b8054a6a3"
+    },
+    {
+      "path": "node_modules/react-native-vector-icons/Fonts/FontAwesome5_Solid.ttf",
+      "sha1": "c1b9fae262f42868c075ac865a8ab34920e20a2c"
+    },
+    {
+      "path": "node_modules/react-native-vector-icons/Fonts/FontAwesome6_Brands.ttf",
+      "sha1": "7ce89c71d5a51ac65b159c71422783dd86529c66"
+    },
+    {
+      "path": "node_modules/react-native-vector-icons/Fonts/FontAwesome6_Regular.ttf",
+      "sha1": "775e2ecfc18d22b177274453d4c014ca6be63208"
+    },
+    {
+      "path": "node_modules/react-native-vector-icons/Fonts/FontAwesome6_Solid.ttf",
+      "sha1": "2b8e11389d98122399667cf64941eb58497dc128"
+    },
+    {
+      "path": "node_modules/react-native-vector-icons/Fonts/Fontisto.ttf",
+      "sha1": "c090a3ec96a3f1bb9b615c2f3f204ce0dcdcdbc3"
+    },
+    {
+      "path": "node_modules/react-native-vector-icons/Fonts/Foundation.ttf",
+      "sha1": "4b2bce6c792493a4a5716b6fec2dbefe89492c3f"
+    },
+    {
+      "path": "node_modules/react-native-vector-icons/Fonts/Ionicons.ttf",
+      "sha1": "86e07c3d974eb09099e6e5a9b3b8310303cf0feb"
+    },
+    {
+      "path": "node_modules/react-native-vector-icons/Fonts/MaterialCommunityIcons.ttf",
+      "sha1": "4c2a838b00dbb5e8bb1b368fce0de534e8eb241c"
+    },
+    {
+      "path": "node_modules/react-native-vector-icons/Fonts/MaterialIcons.ttf",
+      "sha1": "7e02c3f005532ff4d24148567c84089756a7848a"
+    },
+    {
+      "path": "node_modules/react-native-vector-icons/Fonts/Octicons.ttf",
+      "sha1": "56acefc0731f35ee23b195b1c8cb5fa94a0db97b"
+    },
+    {
+      "path": "node_modules/react-native-vector-icons/Fonts/SimpleLineIcons.ttf",
+      "sha1": "9ffb81a5a11112e292f2cc323e98486bad597599"
+    },
+    {
+      "path": "node_modules/react-native-vector-icons/Fonts/Zocial.ttf",
+      "sha1": "6a48a962b06cc3acbdfd61df0d9a34744eea5e8d"
+    }
+  ]
 }

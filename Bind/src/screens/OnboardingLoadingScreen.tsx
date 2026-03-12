@@ -1,15 +1,18 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { View, Animated } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { View, Animated, Easing } from 'react-native';
 import LottieView from 'lottie-react-native';
+
+const AnimatedLottieView = Animated.createAnimatedComponent(LottieView);
 import { useTheme, textSize, fontFamily } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { useAuth } from '../context/AuthContext';
 import { initDefaultPresets, activatePreset } from '../services/cardApi';
+import ScreenTransition from '../components/ScreenTransition';
+import type { ScreenTransitionRef } from '../components/ScreenTransition';
 
+// Minimum time the loading screen is shown
 const MIN_DURATION = 2600;
 const TEXT_SWITCH_AT = 1300;
-// Speed ramps from 1.0 down to this floor as loading approaches completion
-const SPEED_FLOOR = 0.15;
 
 const PRESET_NAME_MAP: Record<string, string> = {
   social_media: 'Social Media',
@@ -28,21 +31,36 @@ export default function OnboardingLoadingScreen() {
     setSharedPresets,
   } = useAuth();
 
+  const transitionRef = useRef<ScreenTransitionRef>(null);
   const buildOpacity = useRef(new Animated.Value(1)).current;
   const loadOpacity = useRef(new Animated.Value(0)).current;
-  const [animSpeed, setAnimSpeed] = useState(1);
+  const animProgress = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     console.log('[ONBOARDING-LOADING] mounted — choice:', onboardingChoice, '| email:', userEmail);
     const startTime = Date.now();
+    let workDone = false;
+    let animDone = false;
 
-    // Gradually slow the animation from 1.0 → SPEED_FLOOR over MIN_DURATION
-    const speedInterval = setInterval(() => {
-      const progress = Math.min((Date.now() - startTime) / MIN_DURATION, 1);
-      // Ease-in curve so it slows most noticeably near the end
-      const eased = progress * progress;
-      setAnimSpeed(1 - eased * (1 - SPEED_FLOOR));
-    }, 80);
+    const onReady = async () => {
+      console.log('[ONBOARDING-LOADING] animating out before transitioning');
+      await transitionRef.current?.animateOut('left');
+      console.log('[ONBOARDING-LOADING] calling handleOnboardingComplete:', onboardingChoice);
+      handleOnboardingComplete(onboardingChoice ?? 'none');
+    };
+
+    // Animate hourglass from 0→1 over MIN_DURATION
+    // Uses easeInOut so sand starts/stops smoothly
+    Animated.timing(animProgress, {
+      toValue: 1,
+      duration: MIN_DURATION,
+      easing: Easing.inOut(Easing.quad),
+      useNativeDriver: false,
+    }).start(() => {
+      animDone = true;
+      console.log('[ONBOARDING-LOADING] hourglass animation complete');
+      if (workDone) onReady();
+    });
 
     // Switch text label halfway through
     const textTimer = setTimeout(() => {
@@ -84,48 +102,42 @@ export default function OnboardingLoadingScreen() {
       }
 
       const elapsed = Date.now() - startTime;
-      const remaining = Math.max(0, MIN_DURATION - elapsed);
-      console.log('[ONBOARDING-LOADING] work done in', elapsed, 'ms — waiting', remaining, 'ms more');
-
-      setTimeout(() => {
-        clearInterval(speedInterval);
-        console.log('[ONBOARDING-LOADING] calling handleOnboardingComplete:', onboardingChoice);
-        handleOnboardingComplete(onboardingChoice ?? 'none');
-      }, remaining);
+      console.log('[ONBOARDING-LOADING] work done in', elapsed, 'ms');
+      workDone = true;
+      if (animDone) onReady();
     };
 
     doWork();
 
     return () => {
       clearTimeout(textTimer);
-      clearInterval(speedInterval);
     };
   }, []);
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }}>
-      <LottieView
-        source={require('../frontassets/Orange colour loading.json')}
-        autoPlay
-        loop
-        speed={animSpeed}
-        resizeMode="contain"
-        style={{ width: s(120), height: s(120) }}
-      />
-      <View style={{ marginTop: s(20), height: s(24), alignItems: 'center' }}>
-        <Animated.Text
-          style={{ position: 'absolute', opacity: buildOpacity, color: colors.textSecondary }}
-          className={`${textSize.small} ${fontFamily.regular}`}
-        >
-          Building Preset...
-        </Animated.Text>
-        <Animated.Text
-          style={{ position: 'absolute', opacity: loadOpacity, color: colors.textSecondary }}
-          className={`${textSize.small} ${fontFamily.regular}`}
-        >
-          Loading App...
-        </Animated.Text>
+    <ScreenTransition ref={transitionRef} from="right">
+      <View style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }}>
+        <AnimatedLottieView
+          source={require('../frontassets/Orange colour loading.json')}
+          progress={animProgress as any}
+          resizeMode="contain"
+          style={{ width: s(120), height: s(120) }}
+        />
+        <View style={{ marginTop: s(20), height: s(24), alignItems: 'center' }}>
+          <Animated.Text
+            style={{ position: 'absolute', opacity: buildOpacity, color: colors.textSecondary }}
+            className={`${textSize.small} ${fontFamily.regular}`}
+          >
+            Building Preset...
+          </Animated.Text>
+          <Animated.Text
+            style={{ position: 'absolute', opacity: loadOpacity, color: colors.textSecondary }}
+            className={`${textSize.small} ${fontFamily.regular}`}
+          >
+            Loading App...
+          </Animated.Text>
+        </View>
       </View>
-    </View>
+    </ScreenTransition>
   );
 }
