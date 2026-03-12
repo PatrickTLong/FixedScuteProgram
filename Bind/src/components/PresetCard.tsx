@@ -86,10 +86,6 @@ export interface Preset {
   alertNotifyEnabled?: boolean;
   alertEmail?: string;
   alertPhone?: string;
-  // Section collapse state
-  timeBlocksExpanded?: boolean;
-  advancedExpanded?: boolean;
-  strictnessExpanded?: boolean;
 }
 
 interface PresetCardProps {
@@ -354,6 +350,7 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, onExpire
             <Text style={{ color: isDimmed ? colors.textMuted : colors.text, flexShrink: 1 }} className={`${textSize.large} ${fontFamily.semibold}`}>
               {preset.name}
             </Text>
+            {/* FAVORITE BADGE - hidden for now, keep for future
             <Pressable
               onPress={onStarToggle}
               hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
@@ -361,6 +358,7 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, onExpire
             >
               <PinIcon size={s(iconSize.sm)} color={starred ? '#a78bfa' : colors.textMuted} />
             </Pressable>
+            */}
             {preset.strictMode && (
               <View style={{ marginLeft: s(6) }}>
                 <SkullIcon size={s(iconSize.sm)} color={colors.textSecondary} />

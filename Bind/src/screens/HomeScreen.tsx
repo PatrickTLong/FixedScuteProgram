@@ -1370,6 +1370,7 @@ function HomeScreen() {
       <Modal
         visible={scheduledPresetsModalVisible}
         transparent
+        statusBarTranslucent
         animationType="fade"
         onRequestClose={() => setScheduledPresetsModalVisible(false)}
       >

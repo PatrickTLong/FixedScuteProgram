@@ -25,6 +25,7 @@ function AppSelectionInfoModal({ visible, onClose }: AppSelectionInfoModalProps)
     <Modal
       visible={visible}
       transparent
+      statusBarTranslucent
       animationType="fade"
       onRequestClose={handleConfirm}
     >

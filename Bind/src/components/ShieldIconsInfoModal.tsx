@@ -36,6 +36,7 @@ function ShieldIconsInfoModal({ visible, onClose }: ShieldIconsInfoModalProps) {
     <Modal
       visible={visible}
       transparent
+      statusBarTranslucent
       animationType="fade"
       onRequestClose={handleClose}
     >

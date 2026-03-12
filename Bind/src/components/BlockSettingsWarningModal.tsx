@@ -30,6 +30,7 @@ function BlockSettingsWarningModal({ visible, onConfirm, onCancel }: BlockSettin
     <Modal
       visible={visible}
       transparent
+      statusBarTranslucent
       animationType="fade"
       onRequestClose={handleCancel}
     >

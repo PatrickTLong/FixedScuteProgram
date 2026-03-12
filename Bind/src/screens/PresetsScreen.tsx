@@ -784,16 +784,16 @@ function PresetsScreen() {
   const starredIdsRef = useRef(starredIds);
   starredIdsRef.current = starredIds;
 
-  // Sort presets: starred first, then original order
-  const sortedPresets = React.useMemo(() => {
-    return [...presets].sort((a, b) => {
-      const aStarred = starredIds.has(a.id);
-      const bStarred = starredIds.has(b.id);
-      if (aStarred && !bStarred) return -1;
-      if (!aStarred && bStarred) return 1;
-      return 0;
-    });
-  }, [presets, starredIds]);
+  // FAVORITE SORTING - disabled for now, keep for future
+  // const sortedPresets = React.useMemo(() => {
+  //   return [...presets].sort((a, b) => {
+  //     const aStarred = starredIds.has(a.id);
+  //     const bStarred = starredIds.has(b.id);
+  //     if (aStarred && !bStarred) return -1;
+  //     if (!aStarred && bStarred) return 1;
+  //     return 0;
+  //   });
+  // }, [presets, starredIds]);
 
   const renderPresetItem = useCallback(({ item: preset }: { item: Preset }) => {
     // For scheduled presets, use preset.isActive directly
@@ -809,8 +809,9 @@ function PresetsScreen() {
         onToggle={(value) => handleTogglePresetRef.current(preset, value)}
         disabled={isDisabled}
         onExpired={() => handleExpiredPresetRef.current(preset)}
-        starred={starredIdsRef.current.has(preset.id)}
-        onStarToggle={() => handleStarToggleRef.current(preset.id)}
+        // FAVORITE BADGE - disabled for now, keep for future
+        // starred={starredIdsRef.current.has(preset.id)}
+        // onStarToggle={() => handleStarToggleRef.current(preset.id)}
       />
     );
   }, [isDisabled]);
@@ -869,7 +870,7 @@ function PresetsScreen() {
       {/* Presets List */}
       <FlatList
         className="flex-1"
-        data={sortedPresets}
+        data={presets}
         renderItem={renderPresetItem}
         keyExtractor={keyExtractor}
         ListEmptyComponent={ListEmptyComponent}

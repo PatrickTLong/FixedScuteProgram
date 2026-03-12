@@ -501,6 +501,7 @@ function StatsScreen() {
       <Modal
         visible={expandedVisible}
         transparent
+        statusBarTranslucent
         animationType="fade"
         onRequestClose={() => setExpandedVisible(false)}
       >

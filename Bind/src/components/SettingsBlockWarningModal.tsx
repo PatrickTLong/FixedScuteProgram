@@ -33,6 +33,7 @@ function SettingsBlockWarningModal({ visible, onClose }: SettingsBlockWarningMod
     <Modal
       visible={visible}
       transparent
+      statusBarTranslucent
       animationType="fade"
       onRequestClose={handleCancel}
     >

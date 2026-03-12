@@ -25,6 +25,7 @@ function ExcludedAppsInfoModal({ visible, onClose }: ExcludedAppsInfoModalProps)
     <Modal
       visible={visible}
       transparent
+      statusBarTranslucent
       animationType="fade"
       onRequestClose={handleClose}
     >

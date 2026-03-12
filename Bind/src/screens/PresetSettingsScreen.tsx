@@ -680,8 +680,8 @@ function PresetSettingsScreen() {
 
   // Section collapse state
   const [timeBlocksExpanded, setTimeBlocksExpanded] = useState(true);
-  const [advancedExpanded, setAdvancedExpanded] = useState(true);
-  const [strictnessExpanded, setStrictnessExpanded] = useState(true);
+  const [advancedExpanded, setAdvancedExpanded] = useState(false);
+  const [strictnessExpanded, setStrictnessExpanded] = useState(false);
 
   // Refs
   const mainScrollRef = useRef<ScrollView>(null);
@@ -713,9 +713,6 @@ function PresetSettingsScreen() {
   const alertEmailRef = useRef(alertEmail);
   const alertPhoneRef = useRef(alertPhone);
   const skipOverlayRef = useRef(skipOverlay);
-  const timeBlocksExpandedRef = useRef(timeBlocksExpanded);
-  const advancedExpandedRef = useRef(advancedExpanded);
-  const strictnessExpandedRef = useRef(strictnessExpanded);
 
   // Keep refs in sync with state
   blockSettingsRef.current = blockSettings;
@@ -744,9 +741,6 @@ function PresetSettingsScreen() {
   customBlockedTextRef.current = customBlockedText;
   customOverlayImageRef.current = customOverlayImage;
   skipOverlayRef.current = skipOverlay;
-  timeBlocksExpandedRef.current = timeBlocksExpanded;
-  advancedExpandedRef.current = advancedExpanded;
-  strictnessExpandedRef.current = strictnessExpanded;
 
   // ============ Reinitialize from editingPreset each time screen gains focus ============
   // Restores from saved finalSettingsState if returning from EditPresetApps (back-and-forward),
@@ -783,9 +777,9 @@ function PresetSettingsScreen() {
         setAlertEmail(savedState.alertEmail ?? '');
         setAlertPhone(savedState.alertPhone ?? '');
         setSkipOverlay(savedState.skipOverlay ?? false);
-        setTimeBlocksExpanded(savedState.timeBlocksExpanded ?? true);
-        setAdvancedExpanded(savedState.advancedExpanded ?? true);
-        setStrictnessExpanded(savedState.strictnessExpanded ?? true);
+        setTimeBlocksExpanded(true);
+        setStrictnessExpanded(!!(savedState.strictMode || savedState.allowEmergencyTapout));
+        setAdvancedExpanded(!!(savedState.alertNotifyEnabled || savedState.skipOverlay || savedState.customBlockedText || savedState.customOverlayImage));
         console.log('[OVERLAY] Restored from savedState — text:', savedState.customBlockedText, 'image:', savedState.customOverlayImage);
       } else {
         const editingPreset = getEditingPreset();
@@ -816,9 +810,9 @@ function PresetSettingsScreen() {
           setAlertEmail(editingPreset.alertEmail ?? '');
           setAlertPhone(editingPreset.alertPhone ?? '');
           setSkipOverlay(editingPreset.skipOverlay ?? false);
-          setTimeBlocksExpanded(editingPreset.timeBlocksExpanded ?? true);
-          setAdvancedExpanded(editingPreset.advancedExpanded ?? true);
-          setStrictnessExpanded(editingPreset.strictnessExpanded ?? true);
+          setTimeBlocksExpanded(true);
+          setStrictnessExpanded(!!(editingPreset.strictMode || editingPreset.allowEmergencyTapout));
+          setAdvancedExpanded(!!(editingPreset.alertNotifyEnabled || editingPreset.skipOverlay || editingPreset.customBlockedText || editingPreset.customOverlayImage || editingPreset.customRedirectUrl));
           console.log('[OVERLAY] Restored from editingPreset — text:', editingPreset.customBlockedText, 'image:', editingPreset.customOverlayImage);
         } else {
           // New preset defaults
@@ -913,9 +907,6 @@ function PresetSettingsScreen() {
           alertEmail: alertEmailRef.current,
           alertPhone: alertPhoneRef.current,
           skipOverlay: skipOverlayRef.current,
-          timeBlocksExpanded: timeBlocksExpandedRef.current,
-          advancedExpanded: advancedExpandedRef.current,
-          strictnessExpanded: strictnessExpandedRef.current,
         });
       };
     }, [getEditingPreset, getFinalSettingsState, setFinalSettingsState, getDatePickerResult, setDatePickerResult])
@@ -1089,9 +1080,6 @@ function PresetSettingsScreen() {
       alertEmail: alertNotifyEnabled && alertEmail.trim() ? alertEmail.trim() : undefined,
       alertPhone: alertNotifyEnabled && alertPhone.trim() ? alertPhone.trim() : undefined,
       skipOverlay,
-      timeBlocksExpanded,
-      advancedExpanded,
-      strictnessExpanded,
     };
 
     console.log('[OVERLAY] Saving preset — overlayEnabled:', customOverlayEnabled, 'text:', newPreset.customBlockedText, 'image:', newPreset.customOverlayImage);
@@ -1102,7 +1090,7 @@ function PresetSettingsScreen() {
     setPresetSettingsParams(null);
     navigation.navigate({ name: 'Presets' } as any);
     onSave(newPreset);
-  }, [name, canSave, getEditingPreset, getExistingPresets, installedSelectedApps, blockedWebsites, blockSettings, noTimeLimit, timerDays, timerHours, timerMinutes, timerSeconds, targetDate, onSave, allowEmergencyTapout, strictMode, isScheduled, scheduleStartDate, scheduleEndDate, isRecurring, recurringValue, recurringUnit, navigation, setFinalSettingsState, customBlockedText, customOverlayImage, customOverlayEnabled, customRedirectEnabled, customRedirectUrl, alertNotifyEnabled, alertEmail, alertPhone]);
+  }, [name, canSave, getEditingPreset, getExistingPresets, installedSelectedApps, blockedWebsites, blockSettings, noTimeLimit, timerDays, timerHours, timerMinutes, timerSeconds, targetDate, onSave, allowEmergencyTapout, strictMode, isScheduled, scheduleStartDate, scheduleEndDate, isRecurring, recurringValue, recurringUnit, navigation, setFinalSettingsState, customBlockedText, customOverlayImage, customOverlayEnabled, customRedirectEnabled, customRedirectUrl, alertNotifyEnabled, alertEmail, alertPhone, skipOverlay]);
 
 
   // ============ Render ============

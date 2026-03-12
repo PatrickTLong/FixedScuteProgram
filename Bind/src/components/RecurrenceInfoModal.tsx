@@ -25,6 +25,7 @@ function RecurrenceInfoModal({ visible, onClose }: RecurrenceInfoModalProps) {
     <Modal
       visible={visible}
       transparent
+      statusBarTranslucent
       animationType="fade"
       onRequestClose={handleClose}
     >

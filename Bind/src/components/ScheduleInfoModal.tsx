@@ -25,6 +25,7 @@ function ScheduleInfoModal({ visible, onClose }: ScheduleInfoModalProps) {
     <Modal
       visible={visible}
       transparent
+      statusBarTranslucent
       animationType="fade"
       onRequestClose={handleClose}
     >

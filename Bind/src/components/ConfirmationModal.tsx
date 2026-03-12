@@ -40,6 +40,7 @@ function ConfirmationModal({
     <Modal
       visible={visible}
       transparent
+      statusBarTranslucent
       animationType="fade"
       onRequestClose={onCancel}
     >

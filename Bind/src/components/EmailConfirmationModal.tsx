@@ -42,6 +42,7 @@ function EmailConfirmationModal({ visible, userEmail, onConfirm, onCancel }: Ema
     <Modal
       visible={visible}
       transparent
+      statusBarTranslucent
       animationType="fade"
       onRequestClose={handleCancel}
     >

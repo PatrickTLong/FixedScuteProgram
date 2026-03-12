@@ -29,6 +29,7 @@ function TapoutWarningModal({ visible, onClose }: TapoutWarningModalProps) {
     <Modal
       visible={visible}
       transparent
+      statusBarTranslucent
       animationType="fade"
       onRequestClose={handleCancel}
     >

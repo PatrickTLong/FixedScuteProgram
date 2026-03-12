@@ -30,6 +30,7 @@ function StrictModeWarningModal({ visible, onConfirm, onCancel }: StrictModeWarn
     <Modal
       visible={visible}
       transparent
+      statusBarTranslucent
       animationType="fade"
       onRequestClose={handleCancel}
     >

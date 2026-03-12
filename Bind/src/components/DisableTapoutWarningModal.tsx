@@ -30,6 +30,7 @@ function DisableTapoutWarningModal({ visible, onConfirm, onCancel }: DisableTapo
     <Modal
       visible={visible}
       transparent
+      statusBarTranslucent
       animationType="fade"
       onRequestClose={handleCancel}
     >

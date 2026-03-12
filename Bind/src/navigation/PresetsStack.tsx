@@ -38,9 +38,6 @@ export interface FinalSettingsState {
   customBlockedText: string;
   customOverlayImage: string;
   skipOverlay: boolean;
-  timeBlocksExpanded: boolean;
-  advancedExpanded: boolean;
-  strictnessExpanded: boolean;
 }
 
 // Params passed to the DatePicker screen
