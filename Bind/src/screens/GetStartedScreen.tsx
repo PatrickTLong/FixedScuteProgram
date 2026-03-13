@@ -13,7 +13,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import BackButton from '../components/BackButton';
-import ProgressBar from '../components/ProgressBar';
 import InfoModal from '../components/InfoModal';
 import OTPInput from '../components/OTPInput';
 import GoogleSignInBtn from '../components/GoogleSignInButton';
@@ -216,10 +215,6 @@ function GetStartedScreen() {
         </View>
       )}
 
-      {/* Progress Dots */}
-      {showBackButton && (
-        <ProgressBar currentStep={step === 'form' ? 1 : 3} totalSteps={3} />
-      )}
 
       <ScreenTransition ref={transitionRef}>
       <KeyboardAvoidingView

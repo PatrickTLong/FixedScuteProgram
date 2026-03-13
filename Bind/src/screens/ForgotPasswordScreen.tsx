@@ -12,7 +12,6 @@ import LottieView from 'lottie-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import BackButton from '../components/BackButton';
-import ProgressBar from '../components/ProgressBar';
 import InfoModal from '../components/InfoModal';
 import OTPInput from '../components/OTPInput';
 import HeaderIconButton from '../components/HeaderIconButton';
@@ -212,8 +211,6 @@ function ForgotPasswordScreen() {
         <BackButton onPress={handleBack} />
       </View>
 
-      {/* Progress Dots */}
-      <ProgressBar currentStep={step === 'email' ? 2 : 3} totalSteps={3} />
 
       <ScreenTransition ref={transitionRef} from="down">
       <KeyboardAvoidingView

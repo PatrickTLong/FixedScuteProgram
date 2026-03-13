@@ -243,7 +243,7 @@ function LandingScreen() {
                       ))}
                     </Svg>
                   </View>
-                  <Text style={{ color: '#000000' }} className={`${textSize.small} ${fontFamily.semibold}`}>
+                  <Text style={{ color: colors.bg }} className={`${textSize.small} ${fontFamily.semibold}`}>
                     Continue with Google
                   </Text>
                 </View>
@@ -256,7 +256,7 @@ function LandingScreen() {
                       speed={1.75}
                       style={{ width: s(100), height: s(44) }}
                       colorFilters={[
-                        { keypath: '**.Fill 1', color: '#000000' },
+                        { keypath: '**.Fill 1', color: colors.bg },
                       ]}
                     />
                   </View>
@@ -277,11 +277,11 @@ function LandingScreen() {
               >
                 <View className="flex-row items-center justify-center">
                   <View className="mr-3">
-                    <Svg width={20} height={20} viewBox="0 0 24 24" fill="#000000">
+                    <Svg width={20} height={20} viewBox="0 0 24 24" fill={colors.bg}>
                       <Path d={APPLE_LOGO_PATH} />
                     </Svg>
                   </View>
-                  <Text style={{ color: '#000000' }} className={`${textSize.small} ${fontFamily.semibold}`}>
+                  <Text style={{ color: colors.bg }} className={`${textSize.small} ${fontFamily.semibold}`}>
                     Continue with Apple
                   </Text>
                 </View>
@@ -301,11 +301,11 @@ function LandingScreen() {
               >
                 <View className="flex-row items-center justify-center">
                   <View className="mr-3">
-                    <Svg width={20} height={20} viewBox="0 0 256 256" fill="#000000">
+                    <Svg width={20} height={20} viewBox="0 0 256 256" fill={colors.bg}>
                       <Path d={ENVELOPE_PATH} />
                     </Svg>
                   </View>
-                  <Text style={{ color: '#000000' }} className={`${textSize.small} ${fontFamily.semibold}`}>
+                  <Text style={{ color: colors.bg }} className={`${textSize.small} ${fontFamily.semibold}`}>
                     Continue with Email / SMS
                   </Text>
                 </View>

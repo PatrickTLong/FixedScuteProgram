@@ -188,7 +188,7 @@ export default function OnboardingScreen() {
                   className={`${radius.full} ${pill} items-center justify-center`}
                 >
                   <View className="flex-row items-center justify-center">
-                    <Text style={{ color: '#000000' }} className={`${textSize.small} ${fontFamily.semibold}`}>
+                    <Text style={{ color: colors.bg }} className={`${textSize.small} ${fontFamily.semibold}`}>
                       Social Media Apps/Sites
                     </Text>
                   </View>
@@ -204,7 +204,7 @@ export default function OnboardingScreen() {
                   className={`${radius.full} ${pill} items-center justify-center`}
                 >
                   <View className="flex-row items-center justify-center">
-                    <Text style={{ color: '#000000' }} className={`${textSize.small} ${fontFamily.semibold}`}>
+                    <Text style={{ color: colors.bg }} className={`${textSize.small} ${fontFamily.semibold}`}>
                       XXX Sites
                     </Text>
                   </View>
@@ -220,7 +220,7 @@ export default function OnboardingScreen() {
                   className={`${radius.full} ${pill} items-center justify-center`}
                 >
                   <View className="flex-row items-center justify-center">
-                    <Text style={{ color: '#000000' }} className={`${textSize.small} ${fontFamily.semibold}`}>
+                    <Text style={{ color: colors.bg }} className={`${textSize.small} ${fontFamily.semibold}`}>
                       Both of these
                     </Text>
                   </View>
@@ -236,7 +236,7 @@ export default function OnboardingScreen() {
                   className={`${radius.full} ${pill} items-center justify-center`}
                 >
                   <View className="flex-row items-center justify-center">
-                    <Text style={{ color: '#000000' }} className={`${textSize.small} ${fontFamily.semibold}`}>
+                    <Text style={{ color: colors.bg }} className={`${textSize.small} ${fontFamily.semibold}`}>
                       None of these
                     </Text>
                   </View>
