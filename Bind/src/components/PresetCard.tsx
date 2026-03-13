@@ -196,7 +196,9 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, onExpire
     hasCalledExpired.current = false;
   }, [preset.id, preset.targetDate, preset.scheduleStartDate, preset.scheduleEndDate]);
 
-  const isExpired = status === 'expired';
+  // Derive isExpired synchronously from current props (not async status state)
+  // so the toggle snaps to gray instantly on tapout/deactivation, matching normal expiry behavior
+  const isExpired = getExpirationStatus() === 'expired';
   const isLockedActive = sharedIsLocked && isActive;
   const isDimmed = isExpired || isLockedActive;
 

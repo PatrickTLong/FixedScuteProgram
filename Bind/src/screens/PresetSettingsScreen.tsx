@@ -1463,17 +1463,19 @@ function PresetSettingsScreen() {
                 animate={!skipSwitchAnimation}
                 onValueChange={(value: boolean) => {
                   setTimerEnabled(value);
-                  InteractionManager.runAfterInteractions(() => {
-                    if (value) {
-                      setDateEnabled(false);
+                  if (value) {
+                    setDateEnabled(false);
+                    InteractionManager.runAfterInteractions(() => {
                       setTargetDate(null);
-                    } else {
+                    });
+                  } else {
+                    InteractionManager.runAfterInteractions(() => {
                       setTimerDays(0);
                       setTimerHours(0);
                       setTimerMinutes(0);
                       setTimerSeconds(0);
-                    }
-                  });
+                    });
+                  }
                 }}
               />
             </View>
@@ -1577,17 +1579,19 @@ function PresetSettingsScreen() {
                 animate={!skipSwitchAnimation}
                 onValueChange={(value: boolean) => {
                   setDateEnabled(value);
-                  InteractionManager.runAfterInteractions(() => {
-                    if (value) {
-                      setTimerEnabled(false);
+                  if (value) {
+                    setTimerEnabled(false);
+                    InteractionManager.runAfterInteractions(() => {
                       setTimerDays(0);
                       setTimerHours(0);
                       setTimerMinutes(0);
                       setTimerSeconds(0);
-                    } else {
+                    });
+                  } else {
+                    InteractionManager.runAfterInteractions(() => {
                       setTargetDate(null);
-                    }
-                  });
+                    });
+                  }
                 }}
               />
             </View>
