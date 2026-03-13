@@ -33,7 +33,6 @@ function AnimatedSwitch({
   trackColorTrue = colors.green,
   size = 'medium',
   animate = true,
-  hideIcons = false,
 }: AnimatedSwitchProps) {
   const { s } = useResponsive();
 
@@ -155,7 +154,6 @@ function AnimatedSwitch({
           width: trackWidth,
           height: trackHeight,
           borderRadius: trackHeight / 2,
-          opacity: disabled ? 0.5 : 1,
           ...shadow.card,
         }}
       >
@@ -166,7 +164,7 @@ function AnimatedSwitch({
             width: trackWidth,
             height: trackHeight,
             borderRadius: trackHeight / 2,
-            backgroundColor: effectiveTrackColorFalse,
+            backgroundColor: disabled ? '#3a3a3c' : effectiveTrackColorFalse,
           }}
         />
         {/* On-state track (top layer, opacity animated natively) */}
@@ -176,7 +174,7 @@ function AnimatedSwitch({
             width: trackWidth,
             height: trackHeight,
             borderRadius: trackHeight / 2,
-            backgroundColor: trackColorTrue,
+            backgroundColor: disabled ? '#2d6e3f' : trackColorTrue,
             opacity: trackOpacity,
           }}
         />
@@ -209,7 +207,7 @@ function AnimatedSwitch({
               width: thumbSize,
               height: thumbSize,
               borderRadius: thumbSize / 2,
-              backgroundColor: '#FFFFFF',
+              backgroundColor: disabled ? '#b0b0b0' : '#FFFFFF',
               shadowColor: disabled ? 'transparent' : '#000',
               shadowOffset: { width: 0, height: 2 },
               shadowOpacity: disabled ? 0 : 0.2,
@@ -223,14 +221,14 @@ function AnimatedSwitch({
               <Svg width={iconSize} height={iconSize} viewBox="0 0 256 256" fill="none">
                 <Path
                   d="M243.31,90.91l-128.4,128.4a16,16,0,0,1-22.62,0l-71.62-72a16,16,0,0,1,0-22.61l20-20a16,16,0,0,1,22.58,0L104,144.22l96.76-95.57a16,16,0,0,1,22.59,0l19.95,19.54A16,16,0,0,1,243.31,90.91Z"
-                  fill={colors.green}
+                  fill={disabled ? '#2d6e3f' : colors.green}
                 />
               </Svg>
             ) : (
               <Svg width={iconSize * 2} height={iconSize * 2} viewBox="0 -960 960 960" fill="none">
                 <Path
                   d="m336-280-56-56 144-144-144-143 56-56 144 144 143-144 56 56-144 143 144 144-56 56-143-144-144 144Z"
-                  fill="#48484a"
+                  fill={disabled ? '#888' : '#48484a'}
                 />
               </Svg>
             )}
