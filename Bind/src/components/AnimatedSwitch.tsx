@@ -51,7 +51,8 @@ function AnimatedSwitch({
   const trackOpacity = useRef(new Animated.Value(value ? 1 : 0)).current;
   const pulseProgress = useRef(new Animated.Value(0)).current; // JS-driven (flash)
   const thumbScale = useRef(new Animated.Value(1)).current;
-  const pressedRef = useRef(false);
+  const mountedRef = useRef(false);
+  const manualPressRef = useRef(false);
 
   // Reset pulse when screen loses focus so it doesn't freeze mid-animation
   useEffect(() => {
@@ -65,8 +66,14 @@ function AnimatedSwitch({
   useEffect(() => {
     const toValue = value ? 1 : 0;
 
-    // Only animate if the user manually pressed the toggle
-    if (pressedRef.current && animate) {
+    // Skip animation on initial mount (values already initialized correctly)
+    if (!mountedRef.current) {
+      mountedRef.current = true;
+      return;
+    }
+
+    if (animate) {
+      // Animate all value changes (manual press or programmatic deactivation)
       Animated.parallel([
         Animated.spring(thumbProgress, {
           toValue,
@@ -84,16 +91,18 @@ function AnimatedSwitch({
         }),
       ]).start();
 
-      // Flash pulse on manual press
-      pressedRef.current = false;
-      pulseProgress.setValue(1);
-      Animated.timing(pulseProgress, {
-        toValue: 0,
-        duration: 160,
-        useNativeDriver: true,
-      }).start();
+      // Flash pulse only on manual press
+      if (manualPressRef.current) {
+        manualPressRef.current = false;
+        pulseProgress.setValue(1);
+        Animated.timing(pulseProgress, {
+          toValue: 0,
+          duration: 160,
+          useNativeDriver: true,
+        }).start();
+      }
     } else {
-      // Programmatic change — snap instantly, no animation
+      // animate=false — snap instantly (e.g. expiry)
       thumbProgress.setValue(toValue);
       trackOpacity.setValue(toValue);
     }
@@ -124,7 +133,7 @@ function AnimatedSwitch({
   const handlePress = useCallback(() => {
     if (!disabled) {
       if (haptics.toggle.enabled) triggerHaptic(haptics.toggle.type);
-      pressedRef.current = true;
+      manualPressRef.current = true;
       onValueChange(!value);
     }
   }, [disabled, onValueChange, value]);
