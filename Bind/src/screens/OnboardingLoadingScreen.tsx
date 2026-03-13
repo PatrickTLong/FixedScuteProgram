@@ -66,6 +66,7 @@ export default function OnboardingLoadingScreen() {
 
           if (matchingPreset) {
             console.log('[ONBOARDING-LOADING] activating preset locally:', matchingPreset.name, '| id:', matchingPreset.id);
+            console.log(`[LOCAL-STATE] onboarding — AsyncStorage.setItem('active_preset_id', '${matchingPreset.id}') for "${matchingPreset.name}"`);
             await AsyncStorage.setItem('active_preset_id', matchingPreset.id);
             invalidateUserCaches(userEmail);
             await refreshAll(true);

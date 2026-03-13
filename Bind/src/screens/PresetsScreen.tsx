@@ -30,7 +30,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { MainStackParamList } from '../navigation/types';
 import { usePresetSave } from '../navigation/PresetsStack';
-import { useAuth } from '../context/AuthContext';
+import { useAuth, addScheduledId, removeScheduledId } from '../context/AuthContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const STARRED_PRESETS_KEY = '@starred_presets';
@@ -303,6 +303,8 @@ function PresetsScreen() {
     setPresets(prev => prev.map(p =>
       p.id === preset.id ? { ...p, isActive: true } : p
     ));
+    // Persist scheduled active state to AsyncStorage
+    addScheduledId(preset.id);
 
     // Save in background - revert on error
     const presetToSave = { ...preset, isActive: true };
@@ -322,6 +324,7 @@ function PresetsScreen() {
         setPresets(prev => prev.map(p =>
           p.id === preset.id ? { ...p, isActive: false } : p
         ));
+        removeScheduledId(preset.id);
         showModal('Connection Error', 'Could not save changes. Please check your connection.');
       }
     });
@@ -463,6 +466,7 @@ function PresetsScreen() {
           ...p,
           isActive: p.isScheduled ? p.isActive : p.id === preset.id,
         })));
+        console.log(`[LOCAL-STATE] toggle ON — AsyncStorage.setItem('active_preset_id', '${preset.id}') for "${preset.name}"`);
         AsyncStorage.setItem('active_preset_id', preset.id);
         invalidateUserCaches(userEmail_safe);
       }
@@ -474,6 +478,8 @@ function PresetsScreen() {
         setPresets(prev => prev.map(p =>
           p.id === preset.id ? { ...p, isActive: false } : p
         ));
+        // Remove from AsyncStorage scheduled IDs
+        removeScheduledId(preset.id);
 
         // Save in background - revert on error
         const presetToSave = { ...preset, isActive: false };
@@ -493,6 +499,7 @@ function PresetsScreen() {
             setPresets(prev => prev.map(p =>
               p.id === preset.id ? { ...p, isActive: true } : p
             ));
+            addScheduledId(preset.id);
             showModal('Connection Error', 'Could not save changes. Please check your connection.');
           }
         });
@@ -505,6 +512,7 @@ function PresetsScreen() {
           ...p,
           isActive: p.isScheduled ? p.isActive : false,
         })));
+        console.log(`[LOCAL-STATE] toggle OFF — AsyncStorage.removeItem('active_preset_id') for "${preset.name}"`);
         AsyncStorage.removeItem('active_preset_id');
         invalidateUserCaches(userEmail_safe);
       }
@@ -537,8 +545,13 @@ function PresetsScreen() {
     setPresets(updatedPresets);
 
     if (wasActiveNonScheduled) {
+      console.log(`[LOCAL-STATE] deletePreset — deleting active preset "${presetToDelete.name}", AsyncStorage.removeItem('active_preset_id')`);
       setActivePresetId(null);
       AsyncStorage.removeItem('active_preset_id');
+    }
+    if (wasScheduled && presetToDelete.isActive) {
+      console.log(`[LOCAL-STATE] deletePreset — deleting active scheduled preset "${presetToDelete.name}", removing from active_scheduled_ids`);
+      removeScheduledId(presetId);
     }
 
     // Close modal immediately for responsive feel
@@ -611,6 +624,7 @@ function PresetsScreen() {
           )) {
             console.log(`[PRESETS] handleSavePreset — OVERLAP DETECTED with "${other.name}" — auto-deactivating edited preset`);
             presetToSave = { ...presetToSave, isActive: false };
+            removeScheduledId(presetToSave.id);
             break;
           }
         }
@@ -693,6 +707,7 @@ function PresetsScreen() {
         p.id === preset.id ? { ...p, isActive: false } : p
       );
       setPresets(updatedPresets);
+      removeScheduledId(preset.id);
       // Save to backend
       const presetToSave = { ...preset, isActive: false };
       savePreset(userEmail_safe, presetToSave).then(async () => {
@@ -710,6 +725,7 @@ function PresetsScreen() {
         console.log(`[PRESETS] handleExpiredPreset — NOTE: ${activeScheduled.length} scheduled preset(s) remain active after expiration: [${activeScheduled.map(p => `"${p.name}"`).join(', ')}]`);
       }
       // isActive is device-local — just update local state
+      console.log(`[LOCAL-STATE] handleExpiredPreset — non-scheduled preset "${preset.name}" expired, AsyncStorage.removeItem('active_preset_id')`);
       setActivePresetId(null);
       setPresets(prev => prev.map(p => ({
         ...p,

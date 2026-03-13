@@ -25,6 +25,42 @@ import type { RootStackParamList } from '../navigation/types';
 
 const { BlockingModule, PermissionsModule, ScheduleModule, UsageStatsModule } = NativeModules;
 
+// Helpers to manage active scheduled preset IDs in AsyncStorage (JSON array)
+export async function addScheduledId(id: string) {
+  try {
+    const json = await AsyncStorage.getItem('active_scheduled_ids');
+    const ids: string[] = json ? JSON.parse(json) : [];
+    if (!ids.includes(id)) {
+      ids.push(id);
+      await AsyncStorage.setItem('active_scheduled_ids', JSON.stringify(ids));
+      console.log(`[LOCAL-STATE] addScheduledId — added "${id}", now=[${ids.join(',')}]`);
+    }
+  } catch (e) {
+    console.log(`[LOCAL-STATE] addScheduledId — ERROR:`, e);
+  }
+}
+
+export async function removeScheduledId(id: string) {
+  try {
+    const json = await AsyncStorage.getItem('active_scheduled_ids');
+    const ids: string[] = json ? JSON.parse(json) : [];
+    const filtered = ids.filter(i => i !== id);
+    await AsyncStorage.setItem('active_scheduled_ids', JSON.stringify(filtered));
+    console.log(`[LOCAL-STATE] removeScheduledId — removed "${id}", now=[${filtered.join(',')}]`);
+  } catch (e) {
+    console.log(`[LOCAL-STATE] removeScheduledId — ERROR:`, e);
+  }
+}
+
+export async function clearAllScheduledIds() {
+  try {
+    await AsyncStorage.removeItem('active_scheduled_ids');
+    console.log(`[LOCAL-STATE] clearAllScheduledIds — cleared`);
+  } catch (e) {
+    console.log(`[LOCAL-STATE] clearAllScheduledIds — ERROR:`, e);
+  }
+}
+
 interface AppUsage {
   packageName: string;
   appName: string;
@@ -200,13 +236,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const refreshPresets = useCallback(async (skipCache = false): Promise<Preset[]> => {
     if (!userEmail) return [];
     const presets = await getPresets(userEmail, skipCache);
-    // isActive is device-local — hydrate from AsyncStorage (toggle state) or native (blocking state)
+    // isActive is fully device-local — hydrate from AsyncStorage for both scheduled and non-scheduled
     try {
-      const storedActiveId = await AsyncStorage.getItem('active_preset_id');
-      if (storedActiveId) {
-        presets.forEach(p => { p.isActive = p.id === storedActiveId; });
-      }
-    } catch {}
+      const [storedActiveId, storedScheduledJson] = await Promise.all([
+        AsyncStorage.getItem('active_preset_id'),
+        AsyncStorage.getItem('active_scheduled_ids'),
+      ]);
+      const scheduledIds: Set<string> = new Set(storedScheduledJson ? JSON.parse(storedScheduledJson) : []);
+      console.log(`[LOCAL-STATE] refreshPresets — AsyncStorage active_preset_id=${storedActiveId ?? 'null'}, active_scheduled_ids=[${[...scheduledIds].join(',')}]`);
+      presets.forEach(p => {
+        if (p.isScheduled) {
+          p.isActive = scheduledIds.has(p.id);
+        } else {
+          p.isActive = storedActiveId ? p.id === storedActiveId : false;
+        }
+      });
+      const activeCount = presets.filter(p => p.isActive).length;
+      console.log(`[LOCAL-STATE] refreshPresets — hydrated ${activeCount} active preset(s)`);
+    } catch (e) {
+      console.log(`[LOCAL-STATE] refreshPresets — ERROR reading AsyncStorage:`, e);
+    }
     setSharedPresets(presets);
     setSharedPresetsLoaded(true);
     return presets;
@@ -214,7 +263,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const refreshLockStatus = useCallback(async (): Promise<LockStatus> => {
     const defaultStatus: LockStatus = { isLocked: false, lockStartedAt: null, lockEndsAt: null };
-    if (!userEmail || !BlockingModule?.getSessionInfo) return defaultStatus;
+    if (!userEmail || !BlockingModule?.getSessionInfo) {
+      console.log(`[LOCAL-STATE] refreshLockStatus — skipped (userEmail=${!!userEmail}, hasGetSessionInfo=${!!BlockingModule?.getSessionInfo})`);
+      return defaultStatus;
+    }
     try {
       const info = await BlockingModule.getSessionInfo();
       const status: LockStatus = {
@@ -222,9 +274,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         lockStartedAt: info.lockStartedAt ?? null,
         lockEndsAt: info.lockEndsAt ?? null,
       };
+      console.log(`[LOCAL-STATE] refreshLockStatus — native SharedPreferences: isBlocking=${status.isLocked}, lockStartedAt=${status.lockStartedAt}, lockEndsAt=${status.lockEndsAt}, activePresetId=${info.activePresetId ?? 'null'}`);
       setSharedLockStatus(status);
       return status;
-    } catch {
+    } catch (e) {
+      console.log(`[LOCAL-STATE] refreshLockStatus — ERROR reading native getSessionInfo:`, e);
       return defaultStatus;
     }
   }, [userEmail]);
@@ -262,17 +316,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             lockStartedAt: info.lockStartedAt ?? null,
             lockEndsAt: info.lockEndsAt ?? null,
           };
+          console.log(`[LOCAL-STATE] refreshAll — native lock: isBlocking=${lockStatus.isLocked}, lockEndsAt=${lockStatus.lockEndsAt}, activePresetId=${info.activePresetId ?? 'null'}`);
         }
-      } catch {
-        // Native call failed — use default (unlocked)
+      } catch (e) {
+        console.log(`[LOCAL-STATE] refreshAll — ERROR reading native getSessionInfo:`, e);
       }
-      // isActive is device-local — hydrate from AsyncStorage
+      // isActive is fully device-local — hydrate from AsyncStorage for both scheduled and non-scheduled
       try {
-        const storedActiveId = await AsyncStorage.getItem('active_preset_id');
-        if (storedActiveId) {
-          presets.forEach(p => { p.isActive = p.id === storedActiveId; });
-        }
-      } catch {}
+        const [storedActiveId, storedScheduledJson] = await Promise.all([
+          AsyncStorage.getItem('active_preset_id'),
+          AsyncStorage.getItem('active_scheduled_ids'),
+        ]);
+        const scheduledIds: Set<string> = new Set(storedScheduledJson ? JSON.parse(storedScheduledJson) : []);
+        console.log(`[LOCAL-STATE] refreshAll — AsyncStorage active_preset_id=${storedActiveId ?? 'null'}, active_scheduled_ids=[${[...scheduledIds].join(',')}]`);
+        presets.forEach(p => {
+          if (p.isScheduled) {
+            p.isActive = scheduledIds.has(p.id);
+          } else {
+            p.isActive = storedActiveId ? p.id === storedActiveId : false;
+          }
+        });
+        const activeCount = presets.filter(p => p.isActive).length;
+        console.log(`[LOCAL-STATE] refreshAll — hydrated ${activeCount} active preset(s)`);
+      } catch (e) {
+        console.log(`[LOCAL-STATE] refreshAll — ERROR reading AsyncStorage:`, e);
+      }
       setSharedPresets(presets);
       setSharedPresetsLoaded(true);
       // NOTE: Lock status is NOT set here — callers (loadStats) handle it after
@@ -305,12 +373,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setEmergencyTapoutModalVisible(false);
 
         if (BlockingModule) {
+          console.log(`[LOCAL-STATE] AuthContext tapout — calling native forceUnlock`);
           await BlockingModule.forceUnlock();
+          console.log(`[LOCAL-STATE] AuthContext tapout — native forceUnlock complete`);
         }
 
         if (activePresetForTapout) {
+          console.log(`[LOCAL-STATE] AuthContext tapout — deactivating preset "${activePresetForTapout.name}" (id: ${activePresetForTapout.id}), setting isActive=false`);
           const deactivatedPreset = { ...activePresetForTapout, isActive: false };
           await savePreset(userEmail, deactivatedPreset);
+
+          // Update AsyncStorage
+          if (activePresetForTapout.isScheduled) {
+            removeScheduledId(activePresetForTapout.id);
+          } else {
+            AsyncStorage.removeItem('active_preset_id');
+          }
 
           if (activePresetForTapout.isScheduled && ScheduleModule) {
             try {
@@ -554,6 +632,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setSharedPresets([]);
     setSharedPresetsLoaded(false);
     await AsyncStorage.removeItem('user_email');
+    await AsyncStorage.removeItem('active_preset_id');
+    await clearAllScheduledIds();
     await clearAuthToken();
     setUserEmail('');
     setAuthState('auth');
@@ -571,6 +651,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       // Clear caches, then re-fetch so shared state has fresh data before spinner dismisses
       invalidateUserCaches(userEmail);
+      await AsyncStorage.removeItem('active_preset_id');
+      await clearAllScheduledIds();
       await refreshPresets(true);
       setSharedLockStatus({ isLocked: false, lockStartedAt: null, lockEndsAt: null });
       return { success: true };
@@ -723,14 +805,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const membership = await getMembershipStatus(userEmail, true);
       if (membership.trialExpired && !membership.isMember) {
         try {
+          console.log(`[LOCAL-STATE] trial check — trial expired, forceUnlock + deactivating all presets`);
           if (BlockingModule) await BlockingModule.forceUnlock();
           await ScheduleModule?.saveScheduledPresets('[]');
           invalidateUserCaches(userEmail);
         } catch (e) {
-          // Best effort cleanup
+          console.log(`[LOCAL-STATE] trial check — ERROR during cleanup:`, e);
         }
         setSharedLockStatus({ isLocked: false, lockStartedAt: null, lockEndsAt: null });
         setSharedPresets(prev => prev.map(p => ({ ...p, isActive: false })));
+        AsyncStorage.removeItem('active_preset_id');
+        clearAllScheduledIds();
+        console.log(`[LOCAL-STATE] trial check — all presets set isActive=false, lockStatus reset`);
         setAuthState('membership');
       }
     } catch (error) {
@@ -775,6 +861,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (msUntilExpiry <= 0) {
           console.log('[TRIAL-TIMER] Already expired — triggering immediately');
           try {
+            console.log(`[LOCAL-STATE] trial timer (immediate) — forceUnlock + deactivating all presets`);
             if (BlockingModule) await BlockingModule.forceUnlock();
             await ScheduleModule?.saveScheduledPresets('[]');
             invalidateUserCaches(userEmail);
@@ -783,6 +870,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
           setSharedLockStatus({ isLocked: false, lockStartedAt: null, lockEndsAt: null });
           setSharedPresets(prev => prev.map(p => ({ ...p, isActive: false })));
+          AsyncStorage.removeItem('active_preset_id');
+          clearAllScheduledIds();
+          console.log(`[LOCAL-STATE] trial timer (immediate) — all presets isActive=false, lockStatus reset`);
           setAuthState('membership');
           return;
         }
@@ -791,6 +881,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         expiryTimeout = setTimeout(async () => {
           console.log('[TRIAL-TIMER] ⏰ TIMER FIRED — trial expired, showing membership screen');
           try {
+            console.log(`[LOCAL-STATE] trial timer (delayed) — forceUnlock + deactivating all presets`);
             if (BlockingModule) await BlockingModule.forceUnlock();
             await ScheduleModule?.saveScheduledPresets('[]');
             invalidateUserCaches(userEmail);
@@ -799,6 +890,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
           setSharedLockStatus({ isLocked: false, lockStartedAt: null, lockEndsAt: null });
           setSharedPresets(prev => prev.map(p => ({ ...p, isActive: false })));
+          AsyncStorage.removeItem('active_preset_id');
+          clearAllScheduledIds();
+          console.log(`[LOCAL-STATE] trial timer (delayed) — all presets isActive=false, lockStatus reset`);
           setAuthState('membership');
         }, msUntilExpiry);
       } catch (error) {
@@ -859,15 +953,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (expiredPresets.length > 0) {
+        console.log(`[LOCAL-STATE] expiration check — ${expiredPresets.length} preset(s) expired: [${expiredPresets.map(p => `"${p.name}" (${p.isScheduled ? 'scheduled' : 'non-scheduled'})`).join(', ')}]`);
         // Update sharedPresets to mark expired ones as inactive
         setSharedPresets(prev => prev.map(p =>
           expiredPresets.some(exp => exp.id === p.id) ? { ...p, isActive: false } : p
         ));
         // Invalidate cache so getPresets() returns fresh data
         invalidateUserCaches(userEmail);
+        // Update AsyncStorage for expired presets
+        expiredPresets.forEach(p => {
+          if (p.isScheduled) {
+            removeScheduledId(p.id);
+          }
+        });
+        const hasExpiredNonScheduled = expiredPresets.some(p => !p.isScheduled);
+        if (hasExpiredNonScheduled) {
+          AsyncStorage.removeItem('active_preset_id');
+        }
         // Save to backend for each expired preset
         expiredPresets.forEach(p => {
-          savePreset(userEmail, { ...p, isActive: false }).catch(() => {});
+          console.log(`[LOCAL-STATE] expiration check — saving isActive=false for "${p.name}" (id: ${p.id}) to backend`);
+          savePreset(userEmail, { ...p, isActive: false }).catch((e) => {
+            console.log(`[LOCAL-STATE] expiration check — ERROR saving expired preset "${p.name}":`, e);
+          });
         });
       }
     };

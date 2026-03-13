@@ -27,7 +27,7 @@ import { Preset, useEmergencyTapout, savePreset, invalidateUserCaches, getAuthTo
 import { API_URL } from '../config/api';
 import { useTheme , textSize, fontFamily, radius, shadow, iconSize } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
-import { useAuth } from '../context/AuthContext';
+import { useAuth, removeScheduledId } from '../context/AuthContext';
 
 
 
@@ -216,6 +216,7 @@ function HomeScreen() {
       setSharedLockStatus({ isLocked: true, lockStartedAt: new Date().toISOString(), lockEndsAt: lockEndsAtDate ?? null });
       setCurrentPreset(preset.name);
       setActivePreset(preset);
+      console.log(`[LOCAL-STATE] activateScheduledPreset — AsyncStorage.setItem('active_preset_id', '${preset.id}') for "${preset.name}"`);
       AsyncStorage.setItem('active_preset_id', preset.id);
 
       // Call native blocking module — but only if native isn't already blocking
@@ -256,7 +257,9 @@ function HomeScreen() {
           };
           console.log('[OVERLAY] Scheduled startBlocking — customBlockedText:', blockingConfig.customBlockedText || '(none)', 'customOverlayImage:', blockingConfig.customOverlayImage || '(none)');
           console.log('[SCHED-DEBUG] Calling BlockingModule.startBlocking:', JSON.stringify(blockingConfig));
+          console.log(`[LOCAL-STATE] activateScheduledPreset — native startBlocking for "${preset.name}" (lockEndTimeMs=${lockEndTimeMs}, strictMode=${blockingConfig.strictMode})`);
           await BlockingModule.startBlocking(blockingConfig);
+          console.log(`[LOCAL-STATE] activateScheduledPreset — native startBlocking complete, SharedPreferences now has session data`);
           console.log('[SCHED-DEBUG] BlockingModule.startBlocking completed');
         }
       } else {
@@ -368,6 +371,7 @@ function HomeScreen() {
             // For timer presets (no targetDate), keep it selected so user can re-lock easily.
             if (active && active.targetDate && new Date(active.targetDate) <= now) {
               console.log(`[SCHED-DEBUG] loadStats: AUTO-UNLOCK — dated preset "${active.name}" target date passed, clearing preset`);
+              console.log(`[LOCAL-STATE] loadStats AUTO-UNLOCK — AsyncStorage.removeItem('active_preset_id') for expired dated preset "${active.name}"`);
               setCurrentPreset(null);
               setActivePreset(null);
               AsyncStorage.removeItem('active_preset_id');
@@ -409,6 +413,7 @@ function HomeScreen() {
           // Only update if there's a meaningful difference (>2s to avoid rounding issues)
           if (expectedDurationMs > 0 && Math.abs(expectedEndMs - currentEndMs) > 2000) {
             console.log(`[TIMER-RECONCILE] Preset timer changed — updating session end time: ${new Date(currentEndMs).toISOString()} → ${new Date(expectedEndMs).toISOString()}`);
+            console.log(`[LOCAL-STATE] timer reconcile — native updateSessionEndTime(${expectedEndMs}) for "${activeForReconcile.name}", diff=${Math.round((expectedEndMs - currentEndMs) / 1000)}s`);
             await BlockingModule.updateSessionEndTime(expectedEndMs);
             lockStatus = { ...lockStatus, lockEndsAt: new Date(expectedEndMs).toISOString() };
           }
@@ -509,10 +514,12 @@ function HomeScreen() {
         setTapoutStatus(tapoutStatus ? { ...tapoutStatus, remaining: result.remaining, nextRefillDate: result.nextRefillDate } : null);
         if (isScheduledPreset) {
           console.log(`[UNLOCK-DEBUG] emergencyTapout: tapping out of SCHEDULED preset "${activePreset?.name}" (id: ${presetIdToKeep}) — clearing UI state and deactivating`);
+          console.log(`[LOCAL-STATE] emergencyTapout — AsyncStorage.removeItem('active_preset_id') for scheduled preset tapout`);
           setCurrentPreset(null);
           setActivePreset(null);
           AsyncStorage.removeItem('active_preset_id');
           if (presetIdToKeep) {
+            removeScheduledId(presetIdToKeep);
             setSharedPresets(prev => prev.map(p =>
               p.id === presetIdToKeep ? { ...p, isActive: false } : p
             ));
@@ -638,6 +645,7 @@ function HomeScreen() {
       p.isActive && !p.isScheduled &&
       !(p.targetDate && !isLocked && new Date(p.targetDate) <= now)
     );
+    console.log(`[LOCAL-STATE] HomeScreen sync effect — active non-scheduled: ${active ? `"${active.name}" (id: ${active.id})` : 'none'}, isLocked=${isLocked}, totalPresets=${sharedPresets.length}`);
     if (active) {
       setCurrentPreset(active.name);
       setActivePreset(active);
@@ -685,6 +693,7 @@ function HomeScreen() {
         // no frame where "Not Locked" shows but the preset name still lingers.
         const expiredPreset = activePresetRef.current;
         if (expiredPreset?.targetDate && new Date(expiredPreset.targetDate) <= new Date()) {
+          console.log(`[LOCAL-STATE] handleTimerExpired — dated preset "${expiredPreset.name}" expired, AsyncStorage.removeItem('active_preset_id')`);
           setCurrentPreset(null);
           setActivePreset(null);
           AsyncStorage.removeItem('active_preset_id');
@@ -903,14 +912,18 @@ function HomeScreen() {
       setElapsedTime(null);
       setSharedLockStatus({ isLocked: false, lockStartedAt: null, lockEndsAt: null });
       if (isScheduledPreset) {
+        console.log(`[LOCAL-STATE] slideUnlock — scheduled preset "${activePreset?.name}", AsyncStorage.removeItem('active_preset_id'), setting isActive=false`);
         setCurrentPreset(null);
         setActivePreset(null);
         AsyncStorage.removeItem('active_preset_id');
         if (presetIdToKeep) {
+          removeScheduledId(presetIdToKeep);
           setSharedPresets(prev => prev.map(p =>
             p.id === presetIdToKeep ? { ...p, isActive: false } : p
           ));
         }
+      } else {
+        console.log(`[LOCAL-STATE] slideUnlock — non-scheduled preset "${activePreset?.name}", keeping active_preset_id in AsyncStorage (preset stays toggled ON)`);
       }
 
       // Fire-and-forget: native unlock + backend sync
@@ -1219,23 +1232,16 @@ function HomeScreen() {
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: s(8) }}>
           {/* Notification Permission Toggle */}
           <HeaderIconButton onPress={openNotificationSettings}>
-            {notificationsEnabled ? (
-              <Svg width={s(iconSize.headerNav)} height={s(iconSize.headerNav)} viewBox="0 0 24 24" fill="#FFFFFF">
-                <Path d="M5.85 3.5a.75.75 0 0 0-1.117-1 9.719 9.719 0 0 0-2.348 4.876.75.75 0 0 0 1.479.248A8.219 8.219 0 0 1 5.85 3.5ZM19.267 2.5a.75.75 0 1 0-1.118 1 8.22 8.22 0 0 1 1.987 4.124.75.75 0 0 0 1.48-.248A9.72 9.72 0 0 0 19.266 2.5Z" />
-                <Path fillRule="evenodd" clipRule="evenodd" d="M12 2.25A6.75 6.75 0 0 0 5.25 9v.75a8.217 8.217 0 0 1-2.119 5.52.75.75 0 0 0 .298 1.206c1.544.57 3.16.99 4.831 1.243a3.75 3.75 0 1 0 7.48 0 24.583 24.583 0 0 0 4.83-1.244.75.75 0 0 0 .298-1.205 8.217 8.217 0 0 1-2.118-5.52V9A6.75 6.75 0 0 0 12 2.25ZM9.75 18c0-.034 0-.067.002-.1a25.05 25.05 0 0 0 4.496 0l.002.1a2.25 2.25 0 1 1-4.5 0Z" />
-              </Svg>
-            ) : (
-              <Svg width={s(iconSize.headerNav)} height={s(iconSize.headerNav)} viewBox="0 0 24 24" fill={colors.textMuted}>
-                <Path d="M3.53 2.47a.75.75 0 0 0-1.06 1.06l18 18a.75.75 0 1 0 1.06-1.06l-18-18ZM20.57 16.476c-.223.082-.448.161-.674.238L7.319 4.137A6.75 6.75 0 0 1 18.75 9v.75c0 2.123.8 4.057 2.118 5.52a.75.75 0 0 1-.297 1.206Z" />
-                <Path fillRule="evenodd" clipRule="evenodd" d="M5.25 9c0-.184.007-.366.022-.546l10.384 10.384a3.751 3.751 0 0 1-7.396-1.119 24.585 24.585 0 0 1-4.831-1.244.75.75 0 0 1-.298-1.205A8.217 8.217 0 0 0 5.25 9.75V9Zm4.502 8.9a2.25 2.25 0 1 0 4.496 0 25.057 25.057 0 0 1-4.496 0Z" />
-              </Svg>
-            )}
+            <Svg width={s(iconSize.headerNav)} height={s(iconSize.headerNav)} viewBox="0 0 24 24" fill={notificationsEnabled ? '#FFFFFF' : colors.textMuted}>
+              <Path d="M14.89 11.57a3 3 0 0 1 5.22 0l0.53 1a0.25 0.25 0 0 0 0.44 0A7.54 7.54 0 0 0 22 9c0 -5 -4.93 -9 -11 -9S0 4 0 9a8.06 8.06 0 0 0 2.66 5.85L1 19.33a0.48 0.48 0 0 0 0.13 0.53 0.48 0.48 0 0 0 0.53 0.1l5.83 -2.43A13.27 13.27 0 0 0 11 18l0.39 0a0.23 0.23 0 0 0 0.21 -0.13Z" />
+              <Path d="M18.78 12.27a1.45 1.45 0 0 0 -2.56 0l-5.06 9.64A1.43 1.43 0 0 0 12.44 24h10.12a1.43 1.43 0 0 0 1.28 -2.09Zm-1.28 3a0.76 0.76 0 0 1 0.75 0.75v2.5a0.75 0.75 0 0 1 -1.5 0V16a0.76 0.76 0 0 1 0.75 -0.75Zm0 7a1 1 0 1 1 1 -1 1 1 0 0 1 -1 0.98Z" />
+            </Svg>
           </HeaderIconButton>
 
           {/* Widget Bubble Toggle */}
           <HeaderIconButton onPress={toggleWidgetBubble}>
             <Svg width={s(iconSize.headerNav)} height={s(iconSize.headerNav)} viewBox="0 0 24 24" fill={widgetBubbleDisabled ? colors.textMuted : '#FFFFFF'}>
-              <Path d="M12 2C6.49 2 2 6.49 2 12s4.49 10 10 10 10-4.49 10-10S17.51 2 12 2M8.5 8c.83 0 1.5.67 1.5 1.5S9.33 11 8.5 11 7 10.33 7 9.5 7.67 8 8.5 8M7 16l2.5-3 1.5 1.5 3-3.5 3 5z" />
+              <Path d="M18.89 2.86A9.65 9.65 0 0 0 12 0a9.75 9.75 0 0 0 -2.36 19.21l1.66 4.31a0.75 0.75 0 0 0 1.4 0l1.66 -4.31a9.78 9.78 0 0 0 7.39 -9.46 9.67 9.67 0 0 0 -2.86 -6.89Zm-10.5 9.21a0.75 0.75 0 1 1 1.36 -0.63 2.69 2.69 0 0 0 4.88 0 0.75 0.75 0 1 1 1.36 0.63 4.19 4.19 0 0 1 -7.6 0Zm-0.12 -3.91a0.73 0.73 0 0 1 -0.64 0.37A0.75 0.75 0 0 1 7 7.4a2.32 2.32 0 0 1 4 0 0.75 0.75 0 0 1 -1.3 0.76 0.82 0.82 0 0 0 -1.11 -0.29 0.89 0.89 0 0 0 -0.32 0.29Zm7.54 -0.29a0.81 0.81 0 0 0 -1.1 0.29 0.75 0.75 0 0 1 -1.3 -0.76 2.32 2.32 0 0 1 4 0 0.75 0.75 0 0 1 -1.3 0.76 0.81 0.81 0 0 0 -0.3 -0.29Z" />
             </Svg>
           </HeaderIconButton>
 
