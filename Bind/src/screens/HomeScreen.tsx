@@ -216,6 +216,7 @@ function HomeScreen() {
       setSharedLockStatus({ isLocked: true, lockStartedAt: new Date().toISOString(), lockEndsAt: lockEndsAtDate ?? null });
       setCurrentPreset(preset.name);
       setActivePreset(preset);
+      AsyncStorage.setItem('active_preset_id', preset.id);
 
       // Call native blocking module — but only if native isn't already blocking
       // (ScheduledPresetReceiver may have already started the session natively while the app was closed)
@@ -369,6 +370,7 @@ function HomeScreen() {
               console.log(`[SCHED-DEBUG] loadStats: AUTO-UNLOCK — dated preset "${active.name}" target date passed, clearing preset`);
               setCurrentPreset(null);
               setActivePreset(null);
+              AsyncStorage.removeItem('active_preset_id');
             } else if (active) {
               console.log(`[SCHED-DEBUG] loadStats: AUTO-UNLOCK — timer preset "${active.name}" kept selected (can re-lock)`);
               setCurrentPreset(active.name);
@@ -509,6 +511,7 @@ function HomeScreen() {
           console.log(`[UNLOCK-DEBUG] emergencyTapout: tapping out of SCHEDULED preset "${activePreset?.name}" (id: ${presetIdToKeep}) — clearing UI state and deactivating`);
           setCurrentPreset(null);
           setActivePreset(null);
+          AsyncStorage.removeItem('active_preset_id');
           if (presetIdToKeep) {
             setSharedPresets(prev => prev.map(p =>
               p.id === presetIdToKeep ? { ...p, isActive: false } : p
@@ -684,6 +687,7 @@ function HomeScreen() {
         if (expiredPreset?.targetDate && new Date(expiredPreset.targetDate) <= new Date()) {
           setCurrentPreset(null);
           setActivePreset(null);
+          AsyncStorage.removeItem('active_preset_id');
           setSharedPresets(prev => prev.map(p =>
             p.id === expiredPreset.id ? { ...p, isActive: false } : p
           ));
@@ -901,6 +905,7 @@ function HomeScreen() {
       if (isScheduledPreset) {
         setCurrentPreset(null);
         setActivePreset(null);
+        AsyncStorage.removeItem('active_preset_id');
         if (presetIdToKeep) {
           setSharedPresets(prev => prev.map(p =>
             p.id === presetIdToKeep ? { ...p, isActive: false } : p

@@ -5,6 +5,7 @@ import ScreenTransition from '../components/ScreenTransition';
 import type { ScreenTransitionRef } from '../components/ScreenTransition';
 import { useTheme, textSize, fontFamily } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '../context/AuthContext';
 import { initDefaultPresets, invalidateUserCaches } from '../services/cardApi';
 
@@ -65,6 +66,7 @@ export default function OnboardingLoadingScreen() {
 
           if (matchingPreset) {
             console.log('[ONBOARDING-LOADING] activating preset locally:', matchingPreset.name, '| id:', matchingPreset.id);
+            await AsyncStorage.setItem('active_preset_id', matchingPreset.id);
             invalidateUserCaches(userEmail);
             await refreshAll(true);
             console.log('[ONBOARDING-LOADING] final refreshAll complete — cache up-to-date');

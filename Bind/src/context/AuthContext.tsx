@@ -200,14 +200,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const refreshPresets = useCallback(async (skipCache = false): Promise<Preset[]> => {
     if (!userEmail) return [];
     const presets = await getPresets(userEmail, skipCache);
-    // isActive is device-local — hydrate from native SharedPreferences
+    // isActive is device-local — hydrate from AsyncStorage (toggle state) or native (blocking state)
     try {
-      if (BlockingModule?.getSessionInfo) {
-        const info = await BlockingModule.getSessionInfo();
-        const nativeActiveId = info.activePresetId ?? null;
-        if (nativeActiveId) {
-          presets.forEach(p => { p.isActive = p.id === nativeActiveId; });
-        }
+      const storedActiveId = await AsyncStorage.getItem('active_preset_id');
+      if (storedActiveId) {
+        presets.forEach(p => { p.isActive = p.id === storedActiveId; });
       }
     } catch {}
     setSharedPresets(presets);
@@ -265,15 +262,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             lockStartedAt: info.lockStartedAt ?? null,
             lockEndsAt: info.lockEndsAt ?? null,
           };
-          // isActive is device-local — hydrate from native SharedPreferences
-          const nativeActiveId = info.activePresetId ?? null;
-          if (nativeActiveId) {
-            presets.forEach(p => { p.isActive = p.id === nativeActiveId; });
-          }
         }
       } catch {
         // Native call failed — use default (unlocked)
       }
+      // isActive is device-local — hydrate from AsyncStorage
+      try {
+        const storedActiveId = await AsyncStorage.getItem('active_preset_id');
+        if (storedActiveId) {
+          presets.forEach(p => { p.isActive = p.id === storedActiveId; });
+        }
+      } catch {}
       setSharedPresets(presets);
       setSharedPresetsLoaded(true);
       // NOTE: Lock status is NOT set here — callers (loadStats) handle it after

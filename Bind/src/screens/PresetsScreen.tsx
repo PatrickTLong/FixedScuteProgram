@@ -463,8 +463,7 @@ function PresetsScreen() {
           ...p,
           isActive: p.isScheduled ? p.isActive : p.id === preset.id,
         })));
-
-        // isActive is device-local — just invalidate cache for other screens
+        AsyncStorage.setItem('active_preset_id', preset.id);
         invalidateUserCaches(userEmail_safe);
       }
     } else {
@@ -506,8 +505,7 @@ function PresetsScreen() {
           ...p,
           isActive: p.isScheduled ? p.isActive : false,
         })));
-
-        // isActive is device-local — just invalidate cache
+        AsyncStorage.removeItem('active_preset_id');
         invalidateUserCaches(userEmail_safe);
       }
     }
@@ -540,6 +538,7 @@ function PresetsScreen() {
 
     if (wasActiveNonScheduled) {
       setActivePresetId(null);
+      AsyncStorage.removeItem('active_preset_id');
     }
 
     // Close modal immediately for responsive feel
@@ -716,6 +715,7 @@ function PresetsScreen() {
         ...p,
         isActive: p.isScheduled ? p.isActive : false,
       })));
+      AsyncStorage.removeItem('active_preset_id');
     } else {
       console.log(`[PRESETS] handleExpiredPreset — preset "${preset.name}" expired but is not the active preset (activePresetId: ${activePresetId}) — no action taken`);
     }
