@@ -392,34 +392,7 @@ export async function deletePreset(email: string, presetId: string): Promise<{ s
   }
 }
 
-/**
- * Activate a preset (deactivates others and saves settings to user_cards)
- */
-export async function activatePreset(email: string, presetId: string | null): Promise<{ success: boolean; error?: string }> {
-  const normalizedEmail = email.toLowerCase();
-
-  try {
-    const headers = await getAuthHeaders();
-    const response = await fetch(`${API_URL}/api/presets/activate`, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({ presetId }),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      return { success: false, error: data.error };
-    }
-
-    // Invalidate caches - activation changes presets and user card data
-    invalidateCache(`presets:${normalizedEmail}`);
-    invalidateCache(`userCardData:${normalizedEmail}`);
-    return { success: true };
-  } catch (error) {
-    return { success: false, error: 'Network error' };
-  }
-}
+// NOTE: activatePreset removed — isActive is now device-local via native SharedPreferences
 
 /**
  * Initialize default presets for a new user
@@ -464,33 +437,7 @@ export async function initDefaultPresets(email: string, choice: string): Promise
   });
 }
 
-/**
- * Deactivate all active presets for a user (used on logout)
- */
-export async function deactivateAllPresets(email: string): Promise<{ success: boolean; error?: string }> {
-  const normalizedEmail = email.toLowerCase();
-
-  try {
-    const headers = await getAuthHeaders();
-    const response = await fetch(`${API_URL}/api/presets/deactivate-all`, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({}),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      return { success: false, error: data.error };
-    }
-
-    // Invalidate presets cache
-    invalidateCache(`presets:${normalizedEmail}`);
-    return { success: true };
-  } catch (error) {
-    return { success: false, error: 'Network error' };
-  }
-}
+// NOTE: deactivateAllPresets removed — isActive is now device-local
 
 /**
  * Reset all presets to defaults (deletes all and recreates default presets)
@@ -766,10 +713,8 @@ export default {
   getPresets,
   savePreset,
   deletePreset,
-  activatePreset,
   initDefaultPresets,
   resetPresets,
-  deactivateAllPresets,
   updatePresetSchedule,
   // Lock status type (lock state is now device-local via BlockingModule)
   // Emergency tapout functions

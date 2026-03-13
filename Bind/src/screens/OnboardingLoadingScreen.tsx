@@ -6,7 +6,7 @@ import type { ScreenTransitionRef } from '../components/ScreenTransition';
 import { useTheme, textSize, fontFamily } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
 import { useAuth } from '../context/AuthContext';
-import { initDefaultPresets, activatePreset, invalidateUserCaches } from '../services/cardApi';
+import { initDefaultPresets, invalidateUserCaches } from '../services/cardApi';
 
 const TEXT_SWITCH_AT = 2000;
 
@@ -64,9 +64,7 @@ export default function OnboardingLoadingScreen() {
           const matchingPreset = freshPresets.find(p => p.name === targetName);
 
           if (matchingPreset) {
-            console.log('[ONBOARDING-LOADING] activating preset:', matchingPreset.name, '| id:', matchingPreset.id);
-            await activatePreset(userEmail, matchingPreset.id);
-            console.log('[ONBOARDING-LOADING] activatePreset confirmed by backend');
+            console.log('[ONBOARDING-LOADING] activating preset locally:', matchingPreset.name, '| id:', matchingPreset.id);
             invalidateUserCaches(userEmail);
             await refreshAll(true);
             console.log('[ONBOARDING-LOADING] final refreshAll complete — cache up-to-date');

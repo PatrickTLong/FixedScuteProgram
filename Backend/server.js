@@ -1222,7 +1222,7 @@ app.get('/api/presets', authenticateToken, async (req, res) => {
       timerSeconds: p.timer_seconds || 0,
       noTimeLimit: p.no_time_limit,
       blockSettings: p.block_settings,
-      isActive: p.is_active,
+      isActive: false,
       isDefault: p.is_default,
       targetDate: p.target_date || null,
       // Emergency tapout feature (per-preset toggle)
@@ -1296,7 +1296,6 @@ app.post('/api/presets', authenticateToken, async (req, res) => {
       timer_seconds: preset.timerSeconds || 0,
       no_time_limit: preset.noTimeLimit ?? true,
       block_settings: preset.blockSettings || false,
-      is_active: preset.isActive || false,
       is_default: preset.isDefault || false,
       target_date: preset.targetDate || null,
       // Emergency tapout feature (per-preset toggle)
@@ -1451,85 +1450,7 @@ app.delete('/api/presets', authenticateToken, async (req, res) => {
   }
 });
 
-// POST /api/presets/activate - Activate a non-scheduled preset (PROTECTED)
-app.post('/api/presets/activate', authenticateToken, async (req, res) => {
-  const { presetId } = req.body;
-  const normalizedEmail = req.userEmail; // Get email from verified token
-
-  try {
-    // Only deactivate NON-SCHEDULED presets for this user
-    // Scheduled presets manage their own is_active state independently
-    await supabase
-      .from('user_presets')
-      .update({ is_active: false })
-      .eq('email', normalizedEmail)
-      .or('is_scheduled.is.null,is_scheduled.eq.false');
-
-    // If presetId is provided, activate that preset
-    if (presetId) {
-      const { error } = await supabase
-        .from('user_presets')
-        .update({ is_active: true })
-        .eq('email', normalizedEmail)
-        .eq('preset_id', presetId);
-
-      if (error) {
-        console.error('Error activating preset:', error);
-        return res.status(500).json({ error: 'Failed to activate preset' });
-      }
-
-      // Get the preset data to save to user_cards settings
-      const { data: preset } = await supabase
-        .from('user_presets')
-        .select('*')
-        .eq('email', normalizedEmail)
-        .eq('preset_id', presetId)
-        .single();
-
-      if (preset) {
-        // Save preset settings to user_cards
-        const settings = {
-          mode: preset.mode,
-          selectedApps: preset.selected_apps || [],
-          blockedWebsites: preset.blocked_websites || [],
-          timerDays: preset.timer_days,
-          timerHours: preset.timer_hours,
-          timerMinutes: preset.timer_minutes,
-          timerSeconds: preset.timer_seconds || 0,
-          blockSettings: preset.block_settings,
-          noTimeLimit: preset.no_time_limit,
-          targetDate: preset.target_date || null,
-          // Emergency tapout feature (per-preset toggle)
-          allowEmergencyTapout: preset.allow_emergency_tapout || false,
-          // Scheduling feature
-          isScheduled: preset.is_scheduled || false,
-          scheduleStartDate: preset.schedule_start_date || null,
-          scheduleEndDate: preset.schedule_end_date || null,
-        };
-
-        await supabase
-          .from('user_cards')
-          .update({ settings })
-          .eq('email', normalizedEmail);
-
-        console.log(`Preset activated and settings saved: ${presetId} for ${normalizedEmail}`);
-      }
-    } else {
-      // Clear settings when deactivating all presets
-      await supabase
-        .from('user_cards')
-        .update({ settings: null })
-        .eq('email', normalizedEmail);
-
-      console.log(`All presets deactivated for ${normalizedEmail}`);
-    }
-
-    res.json({ success: true });
-  } catch (error) {
-    console.error('Activate preset error:', error);
-    res.status(500).json({ error: 'Failed to activate preset' });
-  }
-});
+// NOTE: /api/presets/activate removed — isActive is now device-local via native SharedPreferences
 
 // POST /api/presets/init-defaults - Initialize default presets for a user (PROTECTED)
 app.post('/api/presets/init-defaults', authenticateToken, async (req, res) => {
@@ -1547,29 +1468,7 @@ app.post('/api/presets/init-defaults', authenticateToken, async (req, res) => {
   }
 });
 
-// POST /api/presets/deactivate-all - Deactivate all active presets for a user (used on logout) (PROTECTED)
-app.post('/api/presets/deactivate-all', authenticateToken, async (req, res) => {
-  const normalizedEmail = req.userEmail;
-
-  try {
-    const { error } = await supabase
-      .from('user_presets')
-      .update({ is_active: false })
-      .eq('email', normalizedEmail)
-      .eq('is_active', true);
-
-    if (error) {
-      console.error('Error deactivating presets:', error);
-      return res.status(500).json({ error: 'Failed to deactivate presets' });
-    }
-
-    console.log(`All active presets deactivated for ${normalizedEmail}`);
-    res.json({ success: true });
-  } catch (error) {
-    console.error('Deactivate all presets error:', error);
-    res.status(500).json({ error: 'Failed to deactivate presets' });
-  }
-});
+// NOTE: /api/presets/deactivate-all removed — isActive is now device-local
 
 // POST /api/presets/reset - Delete all presets and recreate defaults (PROTECTED)
 app.post('/api/presets/reset', authenticateToken, async (req, res) => {
@@ -1901,35 +1800,8 @@ app.post('/api/emergency-tapout/use', authenticateToken, async (req, res) => {
       return res.status(500).json({ error: 'Failed to use emergency tapout' });
     }
 
-    // Deactivate the preset that was using emergency tapout
-    // This prevents scheduled/timed presets from immediately re-activating
-    if (presetId) {
-      const { error: presetError } = await supabase
-        .from('user_presets')
-        .update({ is_active: false })
-        .eq('email', normalizedEmail)
-        .eq('preset_id', presetId);
-
-      if (presetError) {
-        console.error('Error deactivating preset after emergency tapout:', presetError);
-        // Don't fail the request, the main operation succeeded
-      } else {
-        console.log(`Preset ${presetId} deactivated after emergency tapout`);
-      }
-    } else {
-      // If no specific preset ID provided, deactivate all active presets for this user
-      const { error: presetError } = await supabase
-        .from('user_presets')
-        .update({ is_active: false })
-        .eq('email', normalizedEmail)
-        .eq('is_active', true);
-
-      if (presetError) {
-        console.error('Error deactivating presets after emergency tapout:', presetError);
-      } else {
-        console.log(`All active presets deactivated for ${normalizedEmail} after emergency tapout`);
-      }
-    }
+    // NOTE: is_active deactivation removed — isActive is now device-local
+    console.log(`Emergency tapout processed for ${normalizedEmail} (preset: ${presetId || 'all'})`);
 
     if (skipTapoutDecrement) {
       console.log(`Slide unlock (no tapout decrement) for ${normalizedEmail}`);
@@ -2072,7 +1944,6 @@ async function createDefaultPresetsForUser(email, choice = 'social_media') {
       timer_seconds: 0,
       no_time_limit: true,
       block_settings: false,
-      is_active: false,
       is_default: false,
       target_date: null,
       allow_emergency_tapout: true,
@@ -2136,7 +2007,6 @@ async function createDefaultPresetsForUser(email, choice = 'social_media') {
       timer_seconds: 0,
       no_time_limit: true,
       block_settings: false,
-      is_active: false,
       is_default: false,
       target_date: null,
       allow_emergency_tapout: true,
@@ -2163,7 +2033,6 @@ async function createDefaultPresetsForUser(email, choice = 'social_media') {
       timer_seconds: 0,
       no_time_limit: true,
       block_settings: false,
-      is_active: false,
       is_default: false,
       target_date: null,
       allow_emergency_tapout: true,

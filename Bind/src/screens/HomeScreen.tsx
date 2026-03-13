@@ -23,7 +23,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import BlockNowButton from '../components/BlockNowButton';
 import InfoModal from '../components/InfoModal';
 import EmergencyTapoutModal from '../components/EmergencyTapoutModal';
-import { Preset, useEmergencyTapout, activatePreset, savePreset, invalidateUserCaches, getAuthToken } from '../services/cardApi';
+import { Preset, useEmergencyTapout, savePreset, invalidateUserCaches, getAuthToken } from '../services/cardApi';
 import { API_URL } from '../config/api';
 import { useTheme , textSize, fontFamily, radius, shadow, iconSize } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
@@ -209,10 +209,6 @@ function HomeScreen() {
     activatingPresetRef.current = preset.id;
 
     try {
-      // Activate the preset in database
-      console.log('[SCHED-DEBUG] Calling activatePreset in DB...');
-      await activatePreset(email, preset.id);
-
       // Use scheduleEndDate as the lock end time
       const lockEndsAtDate = preset.scheduleEndDate;
 
@@ -539,9 +535,6 @@ function HomeScreen() {
                 await savePreset(email, { ...presetToDeactivate, isActive: false });
                 console.log('[UNLOCK-DEBUG] emergencyTapout: scheduled preset deactivated in backend');
               }
-            } else if (presetIdToKeep) {
-              console.log(`[UNLOCK-DEBUG] emergencyTapout: re-activating non-scheduled preset "${activePreset?.name}" in backend`);
-              await activatePreset(email, presetIdToKeep);
             }
             invalidateUserCaches(email);
             console.log('[UNLOCK-DEBUG] emergencyTapout: backend sync complete');
@@ -926,10 +919,6 @@ function HomeScreen() {
           if (isScheduledPreset) {
             console.log('[UNBLOCKING] slideUnlock: calling useEmergencyTapout for scheduled...');
             await useEmergencyTapout(email, presetIdToKeep, true);
-          } else {
-            if (presetIdToKeep) {
-              await activatePreset(email, presetIdToKeep);
-            }
           }
           invalidateUserCaches(email);
           console.log('[UNBLOCKING] slideUnlock: backend sync complete — fully unblocked');

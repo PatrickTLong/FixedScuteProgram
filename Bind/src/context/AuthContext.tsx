@@ -7,7 +7,6 @@ import {
   getPresets,
   getEmergencyTapoutStatus,
   resetPresets,
-  deactivateAllPresets,
   useEmergencyTapout,
   savePreset,
   Preset,
@@ -201,6 +200,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const refreshPresets = useCallback(async (skipCache = false): Promise<Preset[]> => {
     if (!userEmail) return [];
     const presets = await getPresets(userEmail, skipCache);
+    // isActive is device-local — hydrate from native SharedPreferences
+    try {
+      if (BlockingModule?.getSessionInfo) {
+        const info = await BlockingModule.getSessionInfo();
+        const nativeActiveId = info.activePresetId ?? null;
+        if (nativeActiveId) {
+          presets.forEach(p => { p.isActive = p.id === nativeActiveId; });
+        }
+      }
+    } catch {}
     setSharedPresets(presets);
     setSharedPresetsLoaded(true);
     return presets;
@@ -256,6 +265,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             lockStartedAt: info.lockStartedAt ?? null,
             lockEndsAt: info.lockEndsAt ?? null,
           };
+          // isActive is device-local — hydrate from native SharedPreferences
+          const nativeActiveId = info.activePresetId ?? null;
+          if (nativeActiveId) {
+            presets.forEach(p => { p.isActive = p.id === nativeActiveId; });
+          }
         }
       } catch {
         // Native call failed — use default (unlocked)
@@ -369,7 +383,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             try {
               const membership = await getMembershipStatus(email, true);
               if (membership.trialExpired && !membership.isMember) {
-                await deactivateAllPresets(email);
                 await ScheduleModule?.saveScheduledPresets('[]');
                 setAuthState('membership');
                 setIsInitializing(false);
@@ -426,7 +439,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           try {
             const membership = await getMembershipStatus(email, true);
             if (membership.trialExpired && !membership.isMember) {
-              await deactivateAllPresets(email);
               await ScheduleModule?.saveScheduledPresets('[]');
               setAuthState('membership');
               return;
@@ -463,7 +475,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           try {
             const membership = await getMembershipStatus(userEmail, true);
             if (membership.trialExpired && !membership.isMember) {
-              await deactivateAllPresets(userEmail);
               await ScheduleModule?.saveScheduledPresets('[]');
               setAuthState('membership');
               return;
@@ -495,7 +506,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const membership = await getMembershipStatus(userEmail, true);
       if (membership.trialExpired && !membership.isMember) {
-        await deactivateAllPresets(userEmail);
         await ScheduleModule?.saveScheduledPresets('[]');
         setAuthState('membership');
       }
@@ -516,7 +526,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         const membership = await getMembershipStatus(userEmail, true);
         if (membership.trialExpired && !membership.isMember) {
-          await deactivateAllPresets(userEmail);
           await ScheduleModule?.saveScheduledPresets('[]');
           setAuthState('membership');
         }
@@ -539,7 +548,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         if (BlockingModule) await BlockingModule.forceUnlock();
       } catch (e) {}
-      await deactivateAllPresets(userEmail);
       await ScheduleModule?.saveScheduledPresets('[]');
       invalidateUserCaches(userEmail);
     }
@@ -717,7 +725,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (membership.trialExpired && !membership.isMember) {
         try {
           if (BlockingModule) await BlockingModule.forceUnlock();
-          await deactivateAllPresets(userEmail);
           await ScheduleModule?.saveScheduledPresets('[]');
           invalidateUserCaches(userEmail);
         } catch (e) {
@@ -770,7 +777,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           console.log('[TRIAL-TIMER] Already expired — triggering immediately');
           try {
             if (BlockingModule) await BlockingModule.forceUnlock();
-            await deactivateAllPresets(userEmail);
             await ScheduleModule?.saveScheduledPresets('[]');
             invalidateUserCaches(userEmail);
           } catch (e) {
@@ -787,7 +793,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           console.log('[TRIAL-TIMER] ⏰ TIMER FIRED — trial expired, showing membership screen');
           try {
             if (BlockingModule) await BlockingModule.forceUnlock();
-            await deactivateAllPresets(userEmail);
             await ScheduleModule?.saveScheduledPresets('[]');
             invalidateUserCaches(userEmail);
           } catch (e) {

@@ -422,6 +422,13 @@ class BlockingModule(reactContext: ReactApplicationContext) :
 
             map.putBoolean("noTimeLimit", noTimeLimit && isSessionValid)
 
+            val activePresetId = sessionPrefs.getString("active_preset_id", null)
+            if (activePresetId != null) {
+                map.putString("activePresetId", activePresetId)
+            } else {
+                map.putNull("activePresetId")
+            }
+
             promise.resolve(map)
         } catch (e: Exception) {
             Log.e(TAG, "Error getting session info", e)

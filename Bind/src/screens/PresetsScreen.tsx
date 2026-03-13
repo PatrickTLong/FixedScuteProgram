@@ -21,7 +21,6 @@ import ConfirmationModal from '../components/ConfirmationModal';
 import {
   savePreset,
   deletePreset as deletePresetApi,
-  activatePreset,
   invalidateUserCaches,
 } from '../services/cardApi';
 import { useTheme , textSize, fontFamily, radius, shadow, iconSize, haptics } from '../context/ThemeContext';
@@ -465,23 +464,8 @@ function PresetsScreen() {
           isActive: p.isScheduled ? p.isActive : p.id === preset.id,
         })));
 
-        // Save in background
-        activatePreset(userEmail_safe, preset.id).then(async result => {
-          if (result.success) {
-            console.log(`[PRESETS] handleTogglePreset — activatePreset API SUCCESS for "${preset.name}"`);
-            // Invalidate cache so other screens get fresh data
-            invalidateUserCaches(userEmail_safe);
-          } else {
-            console.log(`[PRESETS] handleTogglePreset — activatePreset API FAILED for "${preset.name}", reverting`);
-            // Revert on error
-            setActivePresetId(null);
-            setPresets(prev => prev.map(p => ({
-              ...p,
-              isActive: p.isScheduled ? p.isActive : false,
-            })));
-            showModal('Connection Error', 'Could not save changes. Please check your connection.');
-          }
-        });
+        // isActive is device-local — just invalidate cache for other screens
+        invalidateUserCaches(userEmail_safe);
       }
     } else {
       // Deactivate
@@ -523,24 +507,8 @@ function PresetsScreen() {
           isActive: p.isScheduled ? p.isActive : false,
         })));
 
-        // Save in background
-        console.log('[PRESETS] handleTogglePreset — calling activatePreset(null) to deactivate all non-scheduled presets');
-        activatePreset(userEmail_safe, null).then(result => {
-          if (result.success) {
-            console.log('[PRESETS] handleTogglePreset — deactivate non-scheduled preset API SUCCESS');
-            // Invalidate cache so other screens get fresh data
-            invalidateUserCaches(userEmail_safe);
-          } else {
-            console.log(`[PRESETS] handleTogglePreset — deactivate non-scheduled preset API FAILED, reverting "${preset.name}" to active`);
-            // Revert on error - re-activate this preset
-            setActivePresetId(preset.id);
-            setPresets(prev => prev.map(p => ({
-              ...p,
-              isActive: p.isScheduled ? p.isActive : p.id === preset.id,
-            })));
-            showModal('Connection Error', 'Could not save changes. Please check your connection.');
-          }
-        });
+        // isActive is device-local — just invalidate cache
+        invalidateUserCaches(userEmail_safe);
       }
     }
   }, [userEmail_safe, syncScheduledPresetsToNative, presets, sharedIsLocked, showModal]);
@@ -581,11 +549,6 @@ function PresetsScreen() {
     // Delete in background - revert on error
     deletePresetApi(userEmail_safe, presetId).then(async result => {
       if (result.success) {
-        // If deleting an active non-scheduled preset, clear active
-        if (wasActiveNonScheduled) {
-          await activatePreset(userEmail_safe, null);
-        }
-
         // If deleting a scheduled preset, sync to native
         if (wasScheduled) {
           await syncScheduledPresetsToNative(updatedPresets);
@@ -684,10 +647,6 @@ function PresetsScreen() {
         console.log(`[PRESETS] handleSavePreset — save API SUCCESS for "${presetToSave.name}"`);
         invalidateUserCaches(userEmail_safe);
 
-        if (isEditing && presetToSave.isActive && !presetToSave.isScheduled) {
-          console.log(`[PRESETS] handleSavePreset — re-activating edited active non-scheduled preset "${presetToSave.name}"`);
-          await activatePreset(userEmail_safe, presetToSave.id);
-        }
 
         const latestPresets = isEditing
           ? previousPresets.map(p => (p.id === presetToSave.id ? presetToSave : p))
@@ -751,18 +710,12 @@ function PresetsScreen() {
       if (activeScheduled.length > 0) {
         console.log(`[PRESETS] handleExpiredPreset — NOTE: ${activeScheduled.length} scheduled preset(s) remain active after expiration: [${activeScheduled.map(p => `"${p.name}"`).join(', ')}]`);
       }
-      const result = await activatePreset(userEmail_safe, null);
-      if (result.success) {
-        console.log(`[PRESETS] handleExpiredPreset — deactivation API SUCCESS for "${preset.name}"`);
-        setActivePresetId(null);
-        // Only set non-scheduled presets to inactive, preserve scheduled preset states
-        setPresets(prev => prev.map(p => ({
-          ...p,
-          isActive: p.isScheduled ? p.isActive : false,
-        })));
-      } else {
-        console.log(`[PRESETS] handleExpiredPreset — deactivation API FAILED for "${preset.name}"`);
-      }
+      // isActive is device-local — just update local state
+      setActivePresetId(null);
+      setPresets(prev => prev.map(p => ({
+        ...p,
+        isActive: p.isScheduled ? p.isActive : false,
+      })));
     } else {
       console.log(`[PRESETS] handleExpiredPreset — preset "${preset.name}" expired but is not the active preset (activePresetId: ${activePresetId}) — no action taken`);
     }
