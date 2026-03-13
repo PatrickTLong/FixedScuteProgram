@@ -292,7 +292,7 @@ function HomeScreen() {
     };
     try {
       // Fetch all data via AuthContext (single source of truth)
-      const { presets, lockStatus, tapoutStatus: tapout } = await refreshAll(skipCache);
+      let { presets, lockStatus, tapoutStatus: tapout } = await refreshAll(skipCache);
 
       // Find active scheduled presets (sorted by start date) - only non-expired ones for the list
       const activeScheduled = presets
@@ -395,6 +395,28 @@ function HomeScreen() {
       // If we're locked, check if there's a scheduled preset that was blocking (even if expired)
       // This keeps the preset showing until user unlocks
       console.log('[SCHED-DEBUG] loadStats: lock status path', { isLocked: lockStatus.isLocked, lockEndsAt: lockStatus.lockEndsAt, activePresetName: active?.name, activeScheduledCount: activeScheduled.length });
+      // TIMER RECONCILIATION: If locked, check if the active preset's timer config
+      // has changed (e.g. admin edited duration) and update the native session end time
+      if (lockStatus.isLocked && lockStatus.lockStartedAt && BlockingModule?.updateSessionEndTime) {
+        const activeForReconcile = presets.find((p: Preset) => p.isActive && !p.isScheduled);
+        if (activeForReconcile && !activeForReconcile.noTimeLimit && !activeForReconcile.targetDate) {
+          const startMs = new Date(lockStatus.lockStartedAt).getTime();
+          const expectedDurationMs =
+            (activeForReconcile.timerDays || 0) * 86400000 +
+            (activeForReconcile.timerHours || 0) * 3600000 +
+            (activeForReconcile.timerMinutes || 0) * 60000 +
+            (activeForReconcile.timerSeconds || 0) * 1000;
+          const expectedEndMs = startMs + expectedDurationMs;
+          const currentEndMs = lockStatus.lockEndsAt ? new Date(lockStatus.lockEndsAt).getTime() : 0;
+          // Only update if there's a meaningful difference (>2s to avoid rounding issues)
+          if (expectedDurationMs > 0 && Math.abs(expectedEndMs - currentEndMs) > 2000) {
+            console.log(`[TIMER-RECONCILE] Preset timer changed — updating session end time: ${new Date(currentEndMs).toISOString()} → ${new Date(expectedEndMs).toISOString()}`);
+            await BlockingModule.updateSessionEndTime(expectedEndMs);
+            lockStatus = { ...lockStatus, lockEndsAt: new Date(expectedEndMs).toISOString() };
+          }
+        }
+      }
+
       if (lockStatus.isLocked) {
         // First check for a currently active scheduled preset
         const currentlyBlockingScheduled = activeScheduled.find((p: Preset) => {

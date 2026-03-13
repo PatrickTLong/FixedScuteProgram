@@ -430,6 +430,33 @@ class BlockingModule(reactContext: ReactApplicationContext) :
     }
 
     /**
+     * Update the running session's end time (e.g. when an admin changes the preset timer mid-session).
+     * Recalculates session_end_time from session_start_time + new duration.
+     */
+    @ReactMethod
+    fun updateSessionEndTime(newEndTimeMs: Double, promise: Promise) {
+        try {
+            val sessionPrefs = reactApplicationContext.getSharedPreferences(
+                UninstallBlockerService.PREFS_NAME, Context.MODE_PRIVATE
+            )
+            val isActive = sessionPrefs.getBoolean(UninstallBlockerService.KEY_SESSION_ACTIVE, false)
+            if (!isActive) {
+                promise.resolve(false)
+                return
+            }
+            sessionPrefs.edit()
+                .putLong(UninstallBlockerService.KEY_SESSION_END_TIME, newEndTimeMs.toLong())
+                .putBoolean("no_time_limit", false)
+                .apply()
+            Log.d(TAG, "[UPDATE-END-TIME] Session end time updated to ${newEndTimeMs.toLong()}")
+            promise.resolve(true)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error updating session end time", e)
+            promise.reject("ERROR", "Failed to update session end time: ${e.message}")
+        }
+    }
+
+    /**
      * Force unlock - clears native SharedPreferences and stops blocking service.
      * This bypasses the timer check - use for testing/debug or when DB says unlocked.
      */
