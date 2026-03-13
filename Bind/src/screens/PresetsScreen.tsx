@@ -96,7 +96,9 @@ function PresetsScreen() {
   const presets = sharedPresets;
   const setPresets = setSharedPresets;
 
-  const [activePresetId, setActivePresetId] = useState<string | null>(null);
+  const [activePresetId, setActivePresetId] = useState<string | null>(
+    () => presets.find(p => !p.isScheduled && p.isActive)?.id ?? null
+  );
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [presetToDelete, setPresetToDelete] = useState<Preset | null>(null);
   const hasCache = sharedPresetsLoaded && sharedIsLocked !== undefined;
