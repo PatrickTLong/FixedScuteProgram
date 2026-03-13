@@ -67,7 +67,8 @@ function AnimatedSwitch({
   useEffect(() => {
     const toValue = value ? 1 : 0;
 
-    if (animate) {
+    // Only animate if the user manually pressed the toggle
+    if (pressedRef.current && animate) {
       Animated.parallel([
         Animated.spring(thumbProgress, {
           toValue,
@@ -84,13 +85,8 @@ function AnimatedSwitch({
           useNativeDriver: true,
         }),
       ]).start();
-    } else {
-      thumbProgress.setValue(toValue);
-      trackOpacity.setValue(toValue);
-    }
 
-    // Only flash on manual press, not programmatic changes
-    if (pressedRef.current) {
+      // Flash pulse on manual press
       pressedRef.current = false;
       pulseProgress.setValue(1);
       Animated.timing(pulseProgress, {
@@ -98,6 +94,10 @@ function AnimatedSwitch({
         duration: 160,
         useNativeDriver: true,
       }).start();
+    } else {
+      // Programmatic change — snap instantly, no animation
+      thumbProgress.setValue(toValue);
+      trackOpacity.setValue(toValue);
     }
   }, [value, thumbProgress, trackOpacity, pulseProgress, animate]);
 
@@ -228,10 +228,10 @@ function AnimatedSwitch({
                 />
               </Svg>
             ) : (
-              <Svg width={iconSize * 1.8} height={iconSize * 1.8} viewBox="0 -960 960 960" fill="none">
+              <Svg width={iconSize * 2} height={iconSize * 2} viewBox="0 -960 960 960" fill="none">
                 <Path
                   d="m336-280-56-56 144-144-144-143 56-56 144 144 143-144 56 56-144 143 144 144-56 56-143-144-144 144Z"
-                  fill="#9ca3af"
+                  fill="#48484a"
                 />
               </Svg>
             ))}

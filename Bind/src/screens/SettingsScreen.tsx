@@ -116,7 +116,7 @@ const SettingsRow = memo(({
       disabled={!onPress}
       android_ripple={{ color: 'rgba(255,255,255,0.15)', borderless: false, foreground: true, radius: -1 }}
     >
-      <View style={{ paddingVertical: s(buttonPadding.standard + 4), paddingHorizontal: s(buttonPadding.standard + 4) }} className="flex-row items-center">
+      <View style={{ paddingVertical: s(18), paddingHorizontal: s(20) }} className="flex-row items-center">
         <View className="mr-4">{icon}</View>
         <Text style={{ color: labelColor }} className={`flex-1 ${textSize.small} ${fontFamily.regular}`}>{label}</Text>
         {value && (
@@ -396,7 +396,7 @@ function SettingsScreen() {
               onPress={() => { if (haptics.settingsRow.enabled) triggerHaptic(haptics.settingsRow.type); setMembershipModalVisible(true); }}
               android_ripple={{ color: 'rgba(255,255,255,0.15)', borderless: false, foreground: true, radius: -1 }}
             >
-              <View style={{ paddingVertical: s(buttonPadding.standard + 4), paddingHorizontal: s(buttonPadding.standard + 4) }} className="flex-row items-center">
+              <View style={{ paddingVertical: s(18), paddingHorizontal: s(20) }} className="flex-row items-center">
                 <View className="mr-4"><MembershipIcon color={colors.textSecondary} /></View>
                 <View className="flex-1">
                   <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular}`}>Membership</Text>
@@ -439,7 +439,7 @@ function SettingsScreen() {
         <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, overflow: 'hidden', ...shadow.card }} className={`${radius['2xl']} mb-6`}>
           {/* Header Row */}
           <View
-            style={{ paddingVertical: s(buttonPadding.standard + 4), paddingHorizontal: s(buttonPadding.standard + 4) }}
+            style={{ paddingVertical: s(18), paddingHorizontal: s(20) }}
             className="flex-row items-center"
           >
             <View className="mr-4">
@@ -474,7 +474,7 @@ function SettingsScreen() {
           {tapoutStatus && getTimeUntilRefill() && (
             <>
             <View style={{ height: 1, backgroundColor: colors.divider }} />
-            <View style={{ paddingVertical: s(buttonPadding.standard + 4), paddingHorizontal: s(buttonPadding.standard + 4) }} className="flex-row items-center justify-between">
+            <View style={{ paddingVertical: s(18), paddingHorizontal: s(20) }} className="flex-row items-center justify-between">
               <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular}`}>Next Refill</Text>
               <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
                 {getTimeUntilRefill()}
