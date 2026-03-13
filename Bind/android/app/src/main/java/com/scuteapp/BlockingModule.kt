@@ -13,6 +13,8 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.ReadableArray
+import com.facebook.react.bridge.Arguments
+import com.facebook.react.bridge.WritableMap
 
 /**
  * Native module for starting/stopping blocking sessions from React Native.
@@ -380,6 +382,50 @@ class BlockingModule(reactContext: ReactApplicationContext) :
         } catch (e: Exception) {
             Log.e(TAG, "Error getting remaining time", e)
             promise.reject("ERROR", "Failed to get remaining time: ${e.message}")
+        }
+    }
+
+    /**
+     * Get full session info from SharedPreferences.
+     * Returns { isBlocking, startTime (ISO), endTime (ISO or null), noTimeLimit } so the
+     * JS side can restore sharedLockStatus after an app kill without hitting the backend.
+     */
+    @ReactMethod
+    fun getSessionInfo(promise: Promise) {
+        try {
+            val sessionPrefs = reactApplicationContext.getSharedPreferences(
+                UninstallBlockerService.PREFS_NAME,
+                Context.MODE_PRIVATE
+            )
+
+            val isActive = sessionPrefs.getBoolean(UninstallBlockerService.KEY_SESSION_ACTIVE, false)
+            val endTime = sessionPrefs.getLong(UninstallBlockerService.KEY_SESSION_END_TIME, 0)
+            val startTime = sessionPrefs.getLong("session_start_time", 0)
+            val noTimeLimit = sessionPrefs.getBoolean("no_time_limit", false)
+
+            val isSessionValid = isActive && (noTimeLimit || System.currentTimeMillis() <= endTime)
+
+            val map: WritableMap = Arguments.createMap()
+            map.putBoolean("isBlocking", isSessionValid)
+
+            if (isSessionValid && startTime > 0) {
+                map.putString("lockStartedAt", java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", java.util.Locale.US).apply { timeZone = java.util.TimeZone.getTimeZone("UTC") }.format(java.util.Date(startTime)))
+            } else {
+                map.putNull("lockStartedAt")
+            }
+
+            if (isSessionValid && !noTimeLimit && endTime > 0) {
+                map.putString("lockEndsAt", java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", java.util.Locale.US).apply { timeZone = java.util.TimeZone.getTimeZone("UTC") }.format(java.util.Date(endTime)))
+            } else {
+                map.putNull("lockEndsAt")
+            }
+
+            map.putBoolean("noTimeLimit", noTimeLimit && isSessionValid)
+
+            promise.resolve(map)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting session info", e)
+            promise.reject("ERROR", "Failed to get session info: ${e.message}")
         }
     }
 

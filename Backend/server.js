@@ -1679,69 +1679,9 @@ app.delete('/api/overlay-image', authenticateToken, async (req, res) => {
 // ============ LOCK STATUS ENDPOINTS ============
 // (overlay preset endpoints removed)
 
-// ============ LOCK STATUS ENDPOINTS ============
-
-// POST /api/lock-status - Update user's lock status (PROTECTED)
-app.post('/api/lock-status', authenticateToken, async (req, res) => {
-  const { isLocked, lockEndsAt } = req.body;
-  const normalizedEmail = req.userEmail; // Get email from verified token
-
-  try {
-    const updateData = {
-      is_locked: isLocked,
-    };
-
-    if (isLocked) {
-      updateData.lock_started_at = new Date().toISOString();
-      updateData.lock_ends_at = lockEndsAt || null;
-    } else {
-      updateData.lock_started_at = null;
-      updateData.lock_ends_at = null;
-    }
-
-    const { error } = await supabase
-      .from('user_cards')
-      .update(updateData)
-      .eq('email', normalizedEmail);
-
-    if (error) {
-      console.error('Error updating lock status:', error);
-      return res.status(500).json({ error: 'Failed to update lock status' });
-    }
-
-    console.log(`Lock status updated for ${normalizedEmail}: isLocked=${isLocked}`);
-    res.json({ success: true });
-  } catch (error) {
-    console.error('Lock status error:', error);
-    res.status(500).json({ error: 'Failed to update lock status' });
-  }
-});
-
-// GET /api/lock-status - Get user's lock status (PROTECTED)
-app.get('/api/lock-status', authenticateToken, async (req, res) => {
-  const normalizedEmail = req.userEmail; // Get email from verified token
-
-  try {
-    const { data, error } = await supabase
-      .from('user_cards')
-      .select('is_locked, lock_started_at, lock_ends_at')
-      .eq('email', normalizedEmail)
-      .single();
-
-    if (error || !data) {
-      return res.json({ isLocked: false, lockStartedAt: null, lockEndsAt: null });
-    }
-
-    res.json({
-      isLocked: data.is_locked || false,
-      lockStartedAt: data.lock_started_at,
-      lockEndsAt: data.lock_ends_at,
-    });
-  } catch (error) {
-    console.error('Get lock status error:', error);
-    res.status(500).json({ error: 'Failed to get lock status' });
-  }
-});
+// ============ LOCK STATUS ENDPOINTS (REMOVED) ============
+// Lock status is now fully device-local (native SharedPreferences).
+// The /api/lock-status endpoints have been removed.
 
 // GET /api/emergency-tapout - Get user's emergency tapout status (PROTECTED)
 // Gradual refill system: +1 tapout every 2 weeks until back to 3
@@ -1939,11 +1879,8 @@ app.post('/api/emergency-tapout/use', authenticateToken, async (req, res) => {
       }
     }
 
-    // Build update object - always unlock
+    // Build update object
     const updateObj = {
-      is_locked: false,
-      lock_started_at: null,
-      lock_ends_at: null,
       settings: null, // Clear active settings
     };
 

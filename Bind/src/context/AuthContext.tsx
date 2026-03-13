@@ -4,9 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createNavigationContainerRef } from '@react-navigation/native';
 import {
   deleteAccount,
-  updateLockStatus,
   getPresets,
-  getLockStatus,
   getEmergencyTapoutStatus,
   resetPresets,
   deactivateAllPresets,
@@ -208,11 +206,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return presets;
   }, [userEmail]);
 
-  const refreshLockStatus = useCallback(async (skipCache = false): Promise<LockStatus> => {
-    if (!userEmail) return { isLocked: false, lockStartedAt: null, lockEndsAt: null };
-    const status = await getLockStatus(userEmail, skipCache);
-    setSharedLockStatus(status);
-    return status;
+  const refreshLockStatus = useCallback(async (): Promise<LockStatus> => {
+    const defaultStatus: LockStatus = { isLocked: false, lockStartedAt: null, lockEndsAt: null };
+    if (!userEmail || !BlockingModule?.getSessionInfo) return defaultStatus;
+    try {
+      const info = await BlockingModule.getSessionInfo();
+      const status: LockStatus = {
+        isLocked: info.isBlocking ?? false,
+        lockStartedAt: info.lockStartedAt ?? null,
+        lockEndsAt: info.lockEndsAt ?? null,
+      };
+      setSharedLockStatus(status);
+      return status;
+    } catch {
+      return defaultStatus;
+    }
   }, [userEmail]);
 
   const refreshTapoutStatus = useCallback(async (skipCache = false): Promise<EmergencyTapoutStatus> => {
@@ -233,11 +241,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     refreshInProgressRef.current = true;
     try {
-      const [presets, lockStatus, tapout] = await Promise.all([
+      // Lock status is now device-local — read from native BlockingModule
+      const defaultLockStatus: LockStatus = { isLocked: false, lockStartedAt: null, lockEndsAt: null };
+      const [presets, tapout] = await Promise.all([
         getPresets(userEmail, skipCache),
-        getLockStatus(userEmail, skipCache),
         getEmergencyTapoutStatus(userEmail, skipCache),
       ]);
+      let lockStatus = defaultLockStatus;
+      try {
+        if (BlockingModule?.getSessionInfo) {
+          const info = await BlockingModule.getSessionInfo();
+          lockStatus = {
+            isLocked: info.isBlocking ?? false,
+            lockStartedAt: info.lockStartedAt ?? null,
+            lockEndsAt: info.lockEndsAt ?? null,
+          };
+        }
+      } catch {
+        // Native call failed — use default (unlocked)
+      }
       setSharedPresets(presets);
       setSharedPresetsLoaded(true);
       // NOTE: Lock status is NOT set here — callers (loadStats) handle it after
@@ -286,7 +308,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         }
 
-        await updateLockStatus(userEmail, false, null);
         invalidateUserCaches(userEmail);
         // Update shared presets to reflect deactivation
         if (activePresetForTapout) {
@@ -488,8 +509,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const handleOnboardingComplete = useCallback((choice: 'social_media' | 'xxx' | 'both' | 'none') => {
     setOnboardingChoice(choice);
-    // If user picked a preset, show loading screen; otherwise go straight to main
-    setAuthState(choice !== 'none' ? 'onboarding_loading' : 'main');
+    // Always show loading screen (fetches app state / builds preset)
+    setAuthState('onboarding_loading');
     // Check membership in background
     (async () => {
       try {
@@ -519,7 +540,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (BlockingModule) await BlockingModule.forceUnlock();
       } catch (e) {}
       await deactivateAllPresets(userEmail);
-      await updateLockStatus(userEmail, false, null);
       await ScheduleModule?.saveScheduledPresets('[]');
       invalidateUserCaches(userEmail);
     }
@@ -538,7 +558,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (BlockingModule) await BlockingModule.forceUnlock();
       } catch (e) {}
       await ScheduleModule?.saveScheduledPresets('[]');
-      await updateLockStatus(userEmail, false, null);
       const presetsResult = await resetPresets(userEmail);
       if (!presetsResult.success) {
         return { success: false, error: presetsResult.error || 'Failed to reset presets' };
@@ -559,7 +578,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (BlockingModule) await BlockingModule.forceUnlock();
       } catch (e) {}
       await ScheduleModule?.saveScheduledPresets('[]');
-      await updateLockStatus(userEmail, false, null);
       const result = await deleteAccount(userEmail);
       if (!result.success) {
         return { success: false, error: result.error || 'Failed to delete account' };
@@ -700,7 +718,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         try {
           if (BlockingModule) await BlockingModule.forceUnlock();
           await deactivateAllPresets(userEmail);
-          await updateLockStatus(userEmail, false, null);
           await ScheduleModule?.saveScheduledPresets('[]');
           invalidateUserCaches(userEmail);
         } catch (e) {
@@ -754,7 +771,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           try {
             if (BlockingModule) await BlockingModule.forceUnlock();
             await deactivateAllPresets(userEmail);
-            await updateLockStatus(userEmail, false, null);
             await ScheduleModule?.saveScheduledPresets('[]');
             invalidateUserCaches(userEmail);
           } catch (e) {
@@ -772,7 +788,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           try {
             if (BlockingModule) await BlockingModule.forceUnlock();
             await deactivateAllPresets(userEmail);
-            await updateLockStatus(userEmail, false, null);
             await ScheduleModule?.saveScheduledPresets('[]');
             invalidateUserCaches(userEmail);
           } catch (e) {

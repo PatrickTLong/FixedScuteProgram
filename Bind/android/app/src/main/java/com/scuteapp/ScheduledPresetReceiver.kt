@@ -276,8 +276,8 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
     }
 
     /**
-     * Call backend API to deactivate the current no-time-limit preset and clear lock status.
-     * Mirrors the JS logic: activatePreset(email, null) + updateLockStatus(email, false, null)
+     * Call backend API to deactivate the current no-time-limit preset.
+     * Mirrors the JS logic: activatePreset(email, null)
      */
     private fun deactivateNoTimeLimitPresetBackend(context: Context) {
         thread {
@@ -313,31 +313,7 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
                     Log.e(TAG, "[BACKEND] Error deactivating preset", e)
                 }
 
-                // 2. Clear lock status: POST /api/lock-status { isLocked: false, lockEndsAt: null }
-                try {
-                    val lockUrl = URL("$apiBaseUrl/api/lock-status")
-                    val lockConn = lockUrl.openConnection() as HttpURLConnection
-                    lockConn.requestMethod = "POST"
-                    lockConn.setRequestProperty("Content-Type", "application/json")
-                    lockConn.setRequestProperty("Authorization", "Bearer $token")
-                    lockConn.doOutput = true
-                    lockConn.connectTimeout = 10000
-                    lockConn.readTimeout = 10000
-
-                    val lockBody = JSONObject().apply {
-                        put("isLocked", false)
-                        put("lockEndsAt", JSONObject.NULL)
-                    }
-                    lockConn.outputStream.use { os ->
-                        os.write(lockBody.toString().toByteArray(Charsets.UTF_8))
-                    }
-
-                    val lockCode = lockConn.responseCode
-                    Log.d(TAG, "[BACKEND] Clear lock status response: $lockCode")
-                    lockConn.disconnect()
-                } catch (e: Exception) {
-                    Log.e(TAG, "[BACKEND] Error clearing lock status", e)
-                }
+                // Lock status is now device-local — no backend call needed
 
             } catch (e: Exception) {
                 Log.e(TAG, "[BACKEND] Error in deactivateNoTimeLimitPresetBackend", e)
@@ -345,49 +321,7 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
         }
     }
 
-    /**
-     * Update backend lock status when a scheduled preset activates/deactivates natively.
-     * This keeps the backend in sync so the foreground service's sync check doesn't
-     * incorrectly kill the session.
-     */
-    private fun updateBackendLockStatus(context: Context, isLocked: Boolean, lockEndsAt: String?) {
-        thread {
-            try {
-                val token = getAuthTokenFromAsyncStorage(context)
-                if (token == null) {
-                    Log.e(TAG, "[BACKEND] No auth token, cannot update lock status")
-                    return@thread
-                }
-
-                val lockUrl = URL("${BuildConfig.API_URL}/api/lock-status")
-                val lockConn = lockUrl.openConnection() as HttpURLConnection
-                lockConn.requestMethod = "POST"
-                lockConn.setRequestProperty("Content-Type", "application/json")
-                lockConn.setRequestProperty("Authorization", "Bearer $token")
-                lockConn.doOutput = true
-                lockConn.connectTimeout = 10000
-                lockConn.readTimeout = 10000
-
-                val lockBody = JSONObject().apply {
-                    put("isLocked", isLocked)
-                    if (lockEndsAt != null) {
-                        put("lockEndsAt", lockEndsAt)
-                    } else {
-                        put("lockEndsAt", JSONObject.NULL)
-                    }
-                }
-                lockConn.outputStream.use { os ->
-                    os.write(lockBody.toString().toByteArray(Charsets.UTF_8))
-                }
-
-                val lockCode = lockConn.responseCode
-                Log.d(TAG, "[BACKEND] Update lock status (isLocked=$isLocked, lockEndsAt=$lockEndsAt) response: $lockCode")
-                lockConn.disconnect()
-            } catch (e: Exception) {
-                Log.e(TAG, "[BACKEND] Error updating lock status", e)
-            }
-        }
-    }
+    // updateBackendLockStatus removed — lock status is now fully device-local
 
     /**
      * Deactivate a preset in the backend by saving it with isActive=false.
@@ -873,9 +807,7 @@ class ScheduledPresetReceiver : BroadcastReceiver() {
                 Log.d(TAG, "[ACTIVATE] No end alarm needed (endDate=$endDate, noTimeLimit=$noTimeLimit)")
             }
 
-            // Update backend lock status so the sync check doesn't kill this session
-            Log.d(TAG, "[ACTIVATE] Updating backend lock status...")
-            updateBackendLockStatus(context, true, endDate)
+            // Lock status is now device-local — no backend sync needed
 
             Log.d(TAG, "[ACTIVATE] ========== SCHEDULED PRESET ACTIVATED: \"${targetPreset.optString("name")}\" ==========")
 

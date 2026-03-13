@@ -23,7 +23,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import BlockNowButton from '../components/BlockNowButton';
 import InfoModal from '../components/InfoModal';
 import EmergencyTapoutModal from '../components/EmergencyTapoutModal';
-import { updateLockStatus, Preset, useEmergencyTapout, activatePreset, savePreset, invalidateUserCaches, getAuthToken } from '../services/cardApi';
+import { Preset, useEmergencyTapout, activatePreset, savePreset, invalidateUserCaches, getAuthToken } from '../services/cardApi';
 import { API_URL } from '../config/api';
 import { useTheme , textSize, fontFamily, radius, shadow, iconSize } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
@@ -41,7 +41,7 @@ const AlarmIcon = ({ size = 12, color = '#FFFFFF' }: { size?: number; color?: st
 
 
 function HomeScreen() {
-  const { userEmail: email, refreshTrigger, sharedPresets, setSharedPresets, sharedPresetsLoaded, sharedLockStatus, setSharedLockStatus, tapoutStatus, setTapoutStatus, refreshAll, prefetchStats, onboardingChoice, navigationRef } = useAuth();
+  const { userEmail: email, refreshTrigger, sharedPresets, setSharedPresets, sharedPresetsLoaded, sharedLockStatus, setSharedLockStatus, tapoutStatus, setTapoutStatus, refreshAll, prefetchStats, onboardingChoice } = useAuth();
   const { colors } = useTheme();
   const { s } = useResponsive();
   const insets = useSafeAreaInsets();
@@ -216,10 +216,6 @@ function HomeScreen() {
       // Use scheduleEndDate as the lock end time
       const lockEndsAtDate = preset.scheduleEndDate;
 
-      // Update lock status in database
-      console.log('[SCHED-DEBUG] Calling updateLockStatus...', { lockEndsAtDate });
-      await updateLockStatus(email, true, lockEndsAtDate);
-
       console.log('[SCHED-DEBUG] Setting shared lock status and active preset state');
       setSharedLockStatus({ isLocked: true, lockStartedAt: new Date().toISOString(), lockEndsAt: lockEndsAtDate ?? null });
       setCurrentPreset(preset.name);
@@ -333,7 +329,6 @@ function HomeScreen() {
           } else {
             console.log('[SCHED-DEBUG] loadStats: no active non-scheduled preset found to deactivate');
           }
-          await updateLockStatus(email, false, null);
           invalidateUserCaches(email);
           console.log('[SCHED-DEBUG] loadStats: override complete — lock cleared, caches invalidated, now activating scheduled preset');
         }
@@ -366,7 +361,6 @@ function HomeScreen() {
           console.log(`[SCHED-DEBUG] loadStats: AUTO-UNLOCK — timed lock expired (lockEndsAt: ${lockStatus.lockEndsAt}), auto-unlocking`);
           // Lock has expired - auto-unlock but keep preset active
           try {
-            await updateLockStatus(email, false, null);
             if (BlockingModule) {
               await BlockingModule.forceUnlock();
             }
@@ -515,7 +509,6 @@ function HomeScreen() {
               await BlockingModule.forceUnlock();
               console.log('[UNLOCK-DEBUG] emergencyTapout: forceUnlock complete');
             }
-            await updateLockStatus(email, false, null);
             if (isScheduledPreset && presetIdToKeep) {
               // Deactivate only this scheduled preset, not all presets
               console.log(`[UNLOCK-DEBUG] emergencyTapout: deactivating ONLY scheduled preset "${activePreset?.name}" via savePreset — other scheduled presets preserved`);
@@ -687,8 +680,7 @@ function HomeScreen() {
       // Fire-and-forget: native unlock + backend sync (always runs)
       (async () => {
         try {
-          console.log('[UNLOCK-DEBUG] timerExpired: calling updateLockStatus + forceUnlock...');
-          await updateLockStatus(email, false, null);
+          console.log('[UNLOCK-DEBUG] timerExpired: calling forceUnlock...');
           if (BlockingModule) {
             await BlockingModule.forceUnlock();
           }
@@ -913,8 +905,6 @@ function HomeScreen() {
             console.log('[UNBLOCKING] slideUnlock: calling useEmergencyTapout for scheduled...');
             await useEmergencyTapout(email, presetIdToKeep, true);
           } else {
-            console.log('[UNBLOCKING] slideUnlock: calling updateLockStatus(false)...');
-            await updateLockStatus(email, false, null);
             if (presetIdToKeep) {
               await activatePreset(email, presetIdToKeep);
             }
@@ -934,19 +924,13 @@ function HomeScreen() {
     }
   }, [email, showModal, activePreset]);
 
-  // Onboarding: handle preset choice and show block hint
-  // Onboarding: navigate to EditPresetApps for 'none' choice
+  // Onboarding: mark handled once data is loaded (navigation for 'none' is handled by MainTabNavigator initialRouteName)
   useEffect(() => {
     if (!onboardingChoice || onboardingHandledRef.current) return;
-
     if (onboardingChoice === 'none') {
-      if (!navigationRef.isReady()) return;
       onboardingHandledRef.current = true;
-      console.log('[ONBOARDING] choice=none — navigating to EditPresetApps');
-      (navigationRef as any).navigate('MainTabs', { screen: 'EditPresetApps' });
       return;
     }
-
     // For preset choices, activation was done in OnboardingLoadingScreen — nothing more to do
     if (!sharedPresetsLoaded || loading) return;
     onboardingHandledRef.current = true;
@@ -1082,9 +1066,7 @@ function HomeScreen() {
             }
           }
 
-          console.log('[BLOCKING] Permission check passed, calling updateLockStatus...');
-          await updateLockStatus(email, true, calculatedLockEndsAt);
-          console.log('[BLOCKING] updateLockStatus done, calling BlockingModule.startBlocking...');
+          console.log('[BLOCKING] Permission check passed, calling BlockingModule.startBlocking...');
 
           if (BlockingModule) {
             const lockEndTimeMs = calculatedLockEndsAt

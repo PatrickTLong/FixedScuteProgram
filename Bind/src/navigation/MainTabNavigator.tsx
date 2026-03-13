@@ -10,13 +10,17 @@ import PresetSettingsScreen from '../screens/PresetSettingsScreen';
 
 import DatePickerScreen from '../screens/DatePickerScreen';
 import BottomTabBar from '../components/BottomTabBar';
+import { useAuth } from '../context/AuthContext';
 import type { MainTabParamList } from './types';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
 export default function MainTabNavigator() {
+  const { onboardingChoice } = useAuth();
+
   return (
     <Tab.Navigator
+      initialRouteName={onboardingChoice === 'none' ? 'EditPresetApps' : 'Home'}
       tabBar={(props) => <BottomTabBar {...props} />}
       screenOptions={{
         headerShown: false,

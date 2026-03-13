@@ -106,7 +106,7 @@ class UninstallBlockerService : Service() {
     private val syncCheckRunnable = object : Runnable {
         override fun run() {
             if (checkSessionExpiry()) return  // Session ended, service stopping
-            checkBackendLockStatus()
+            // Backend lock status check removed — lock state is fully device-local
             syncHandler.postDelayed(this, SYNC_CHECK_INTERVAL_MS)
         }
     }
@@ -545,65 +545,7 @@ class UninstallBlockerService : Service() {
         return true
     }
 
-    /**
-     * Check backend lock status and stop service if backend says not locked.
-     * Runs on a background thread to avoid blocking the main thread.
-     */
-    private fun checkBackendLockStatus() {
-        // Skip backend sync for scheduled presets — the local device is authoritative
-        // for natively-activated scheduled presets. The backend may not know about them
-        // yet and would incorrectly return isLocked=false, killing the session.
-        val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        val isScheduledPreset = prefs.getBoolean("is_scheduled_preset", false)
-        if (isScheduledPreset) {
-            Log.d(TAG, "[BACKEND-SYNC] Skipping — scheduled preset is active (local state is authoritative)")
-            return
-        }
-
-        thread {
-            try {
-                val token = getAuthTokenFromAsyncStorage() ?: return@thread
-
-                val apiUrl = "${BuildConfig.API_URL}/api/lock-status"
-                val url = URL(apiUrl)
-                val connection = url.openConnection() as HttpURLConnection
-                connection.requestMethod = "GET"
-                connection.setRequestProperty("Authorization", "Bearer $token")
-                connection.connectTimeout = 5000
-                connection.readTimeout = 5000
-
-                val responseCode = connection.responseCode
-                if (responseCode == HttpURLConnection.HTTP_OK) {
-                    val responseBody = connection.inputStream.bufferedReader().readText()
-                    val json = JSONObject(responseBody)
-                    val isLocked = json.optBoolean("isLocked", true)
-
-                    if (!isLocked) {
-                        Log.d(TAG, "[BACKEND-SYNC] Backend says not locked - clearing session and stopping service")
-                        val syncPrefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-                        syncPrefs.edit()
-                            .putBoolean(KEY_SESSION_ACTIVE, false)
-                            .putStringSet(KEY_BLOCKED_APPS, emptySet())
-                            .putStringSet("blocked_websites", emptySet())
-                            .remove("active_preset_id")
-                            .remove("active_preset_name")
-                            .remove("is_scheduled_preset")
-                            .remove("no_time_limit")
-                            .apply()
-
-                        // Stop on main thread
-                        syncHandler.post { stopSelf() }
-                    } else {
-                        Log.d(TAG, "[BACKEND-SYNC] Backend confirms locked — session intact")
-                    }
-                }
-                connection.disconnect()
-            } catch (e: Exception) {
-                // Silently skip on any error - don't stop service due to transient network issues
-                Log.d(TAG, "[BACKEND-SYNC] Check failed (will retry): ${e.message}")
-            }
-        }
-    }
+    // checkBackendLockStatus removed — lock status is now fully device-local
 
     private fun getAuthTokenFromAsyncStorage(): String? {
         var db: SQLiteDatabase? = null

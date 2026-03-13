@@ -100,14 +100,6 @@ export function invalidateUserCaches(email: string): void {
   invalidateCache(`tapoutStatus:${normalizedEmail}`);
 }
 
-/**
- * Synchronously get cached lock status - returns null if not cached
- * Use this for instant UI rendering without async delay
- */
-export function getCachedLockStatus(email: string): { isLocked: boolean; lockEndsAt: string | null; lockStartedAt: string | null } | null {
-  const normalizedEmail = email.toLowerCase();
-  return getCached(`lockStatus:${normalizedEmail}`);
-}
 
 /**
  * Synchronously get cached tapout status - returns null if not cached
@@ -528,84 +520,14 @@ export async function resetPresets(email: string): Promise<{ success: boolean; e
   }
 }
 
-// ============ Lock Status Functions ============
+// ============ Lock Status ============
+// Lock status is now fully device-local (native SharedPreferences via BlockingModule).
+// Use BlockingModule.getSessionInfo() to read lock state.
 
 export interface LockStatus {
   isLocked: boolean;
   lockStartedAt: string | null;
   lockEndsAt: string | null;
-}
-
-/**
- * Update user's lock status
- */
-export async function updateLockStatus(
-  email: string,
-  isLocked: boolean,
-  lockEndsAt?: string | null
-): Promise<{ success: boolean; error?: string }> {
-  const normalizedEmail = email.toLowerCase();
-
-  try {
-    const headers = await getAuthHeaders();
-    const response = await fetch(`${API_URL}/api/lock-status`, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({ isLocked, lockEndsAt }),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      return { success: false, error: data.error };
-    }
-
-    // Invalidate lock status cache
-    invalidateCache(`lockStatus:${normalizedEmail}`);
-    return { success: true };
-  } catch (error) {
-    return { success: false, error: 'Network error' };
-  }
-}
-
-/**
- * Get user's lock status (cached + deduplicated)
- */
-export async function getLockStatus(email: string, skipCache = false): Promise<LockStatus> {
-  const normalizedEmail = email.toLowerCase();
-  const cacheKey = `lockStatus:${normalizedEmail}`;
-
-  // Check in-memory cache first
-  if (!skipCache) {
-    const cached = getCached<LockStatus>(cacheKey);
-    if (cached) {
-      return cached;
-    }
-  }
-
-  // Use deduplication to prevent multiple simultaneous requests
-  return deduplicatedRequest(cacheKey, async () => {
-    try {
-      const headers = await getAuthHeaders();
-      const response = await fetch(`${API_URL}/api/lock-status`, { headers });
-      const data = await response.json();
-
-      if (!response.ok || data.error) {
-        return { isLocked: false, lockStartedAt: null, lockEndsAt: null };
-      }
-
-      const result: LockStatus = {
-        isLocked: data.isLocked || false,
-        lockStartedAt: data.lockStartedAt,
-        lockEndsAt: data.lockEndsAt,
-      };
-
-      setCache(cacheKey, result);
-      return result;
-    } catch (error) {
-      return { isLocked: false, lockStartedAt: null, lockEndsAt: null };
-    }
-  });
 }
 
 // Emergency Tapout Types
@@ -849,9 +771,7 @@ export default {
   resetPresets,
   deactivateAllPresets,
   updatePresetSchedule,
-  // Lock status functions
-  updateLockStatus,
-  getLockStatus,
+  // Lock status type (lock state is now device-local via BlockingModule)
   // Emergency tapout functions
   getEmergencyTapoutStatus,
   setEmergencyTapoutEnabled,

@@ -29,6 +29,8 @@ export default function OnboardingLoadingScreen() {
   const loadOpacity = useRef(new Animated.Value(0)).current;
   const transitionRef = useRef<ScreenTransitionRef>(null);
 
+  const isNone = onboardingChoice === 'none';
+
   useEffect(() => {
     console.log('[ONBOARDING-LOADING] mounted — choice:', onboardingChoice, '| email:', userEmail);
     const startTime = Date.now();
@@ -106,7 +108,7 @@ export default function OnboardingLoadingScreen() {
             style={{ position: 'absolute', opacity: buildOpacity, color: colors.textSecondary }}
             className={`${textSize.small} ${fontFamily.regular}`}
           >
-            Building Preset...
+            {isNone ? 'Setting Up...' : 'Building Preset...'}
           </Animated.Text>
           <Animated.Text
             style={{ position: 'absolute', opacity: loadOpacity, color: colors.textSecondary }}
