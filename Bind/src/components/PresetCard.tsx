@@ -5,7 +5,7 @@ import {
   Pressable,
   TouchableOpacity,
 } from 'react-native';
-import { AlarmIcon, XCircleIcon } from 'phosphor-react-native';
+import { AlarmIcon } from 'phosphor-react-native';
 import Svg, { Path } from 'react-native-svg';
 
 const SkullIcon = ({ size = 16, color = '#FFFFFF' }: { size?: number; color?: string }) => (
@@ -400,16 +400,12 @@ function PresetCard({ preset, isActive, onPress, onLongPress, onToggle, onExpire
 
         {/* Toggle Switch */}
         <View style={{ alignItems: 'center' }}>
-          {sharedIsLocked && !disabled && !isExpired && (
-            <XCircleIcon size={iconSize.xs} color={colors.red} weight="fill" style={{ position: 'absolute', top: s(-20), zIndex: 1 }} />
-          )}
           <AnimatedSwitch
             size="small"
             value={isActive && !isExpired}
             onValueChange={handleToggle}
             disabled={disabled || isExpired || sharedIsLocked}
             animate={!isExpired}
-            hideIcons={sharedIsLocked && !disabled && !isExpired}
           />
           {/* Invisible overlay catches taps on disabled toggle when locked to show modal */}
           {sharedIsLocked && !disabled && !isExpired && (

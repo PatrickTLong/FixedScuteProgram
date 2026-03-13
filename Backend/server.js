@@ -7,6 +7,7 @@ const jwt = require('jsonwebtoken');
 const { createClient } = require('@supabase/supabase-js');
 
 const path = require('path');
+const cron = require('node-cron');
 const multer = require('multer');
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } }); // 5MB max
@@ -2162,6 +2163,53 @@ app.post('/api/preset-alert', authenticateToken, async (req, res) => {
 // Health check
 app.get('/', (req, res) => {
   res.json({ status: 'Scute API is running', database: supabaseUrl ? 'Supabase connected' : 'No database' });
+});
+
+// ============ TAPOUT REFILL CRON ============
+// Runs every hour — refills +1 tapout for users whose refill date has passed
+cron.schedule('0 * * * *', async () => {
+  console.log('[TAPOUT CRON] Running tapout refill check...');
+  try {
+    const now = new Date().toISOString();
+
+    // Find all users due for a refill
+    const { data: dueUsers, error } = await supabase
+      .from('user_cards')
+      .select('email, emergency_tapout_remaining, emergency_tapout_next_refill')
+      .lt('emergency_tapout_next_refill', now)
+      .lt('emergency_tapout_remaining', 3);
+
+    if (error) {
+      console.error('[TAPOUT CRON] Query error:', error);
+      return;
+    }
+
+    if (!dueUsers || dueUsers.length === 0) {
+      console.log('[TAPOUT CRON] No users due for refill.');
+      return;
+    }
+
+    console.log(`[TAPOUT CRON] ${dueUsers.length} user(s) due for refill.`);
+
+    for (const user of dueUsers) {
+      const newRemaining = Math.min((user.emergency_tapout_remaining ?? 0) + 1, 3);
+      const nextRefill = newRemaining < 3
+        ? new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString() // 2 more weeks
+        : null;
+
+      await supabase
+        .from('user_cards')
+        .update({
+          emergency_tapout_remaining: newRemaining,
+          emergency_tapout_next_refill: nextRefill,
+        })
+        .eq('email', user.email);
+
+      console.log(`[TAPOUT CRON] Refilled ${user.email}: ${user.emergency_tapout_remaining} -> ${newRemaining}, next=${nextRefill ?? 'none'}`);
+    }
+  } catch (err) {
+    console.error('[TAPOUT CRON] Error:', err);
+  }
 });
 
 app.listen(PORT, () => {
