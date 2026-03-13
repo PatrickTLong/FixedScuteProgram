@@ -64,10 +64,17 @@ function AnimatedSwitch({
     }
   }, [isFocused, pulseProgress, thumbScale]);
 
+  const isFirstRender = useRef(true);
+
   useEffect(() => {
     const toValue = value ? 1 : 0;
 
-    if (animate) {
+    if (isFirstRender.current) {
+      // Snap to correct position on mount — no animation
+      isFirstRender.current = false;
+      thumbProgress.setValue(toValue);
+      trackOpacity.setValue(toValue);
+    } else if (animate) {
       Animated.parallel([
         Animated.spring(thumbProgress, {
           toValue,

@@ -46,8 +46,12 @@ function HomeScreen() {
   const { s } = useResponsive();
   const insets = useSafeAreaInsets();
   const isFocused = useIsFocused();
-  const [currentPreset, setCurrentPreset] = useState<string | null>(null);
-  const [activePreset, setActivePreset] = useState<Preset | null>(null);
+  // Derive initial active preset from shared state so there's no flash on mount
+  const initialActive = sharedPresetsLoaded
+    ? sharedPresets.find(p => p.isActive && !p.isScheduled) ?? null
+    : null;
+  const [currentPreset, setCurrentPreset] = useState<string | null>(initialActive?.name ?? null);
+  const [activePreset, setActivePreset] = useState<Preset | null>(initialActive);
   const [scheduledPresets, setScheduledPresets] = useState<Preset[]>([]);
   // Derived from shared lock status (single source of truth in AuthContext)
   const isLocked = sharedLockStatus.isLocked;
