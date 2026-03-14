@@ -12,14 +12,14 @@ import {
 import SlideUpModal from '../components/SlideUpModal';
 import HourglassLoader from '../components/HourglassLoader';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Svg, { Path, G } from 'react-native-svg';
-import { IdentificationCardIcon, CheckCircleIcon, HeartStraightBreakIcon } from 'phosphor-react-native';
+import Svg, { Path } from 'react-native-svg';
+import { CheckCircleIcon } from 'phosphor-react-native';
 import ReplyArrowIcon from '../components/ReplyArrowIcon';
 import ConfirmationModal from '../components/ConfirmationModal';
 import HeaderIconButton from '../components/HeaderIconButton';
 import MembershipContent from '../components/MembershipContent';
 import { getMembershipStatus, MembershipStatus, getCachedMembershipStatus } from '../services/cardApi';
-import { useTheme , textSize, fontFamily, radius, shadow, iconSize, buttonPadding, haptics } from '../context/ThemeContext';
+import { useTheme, colors as themeColors, textSize, fontFamily, radius, shadow, iconSize, buttonPadding, haptics } from '../context/ThemeContext';
 import { triggerHaptic } from '../utils/haptics';
 import { useResponsive } from '../utils/responsive';
 import { useAuth } from '../context/AuthContext';
@@ -28,24 +28,20 @@ import { useAuth } from '../context/AuthContext';
 
 // Icons
 const MailIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
-  <IdentificationCardIcon size={iconSize.forTabs} color={color} weight="fill" />
+  <Svg width={iconSize.forTabs} height={iconSize.forTabs} viewBox="0 0 256 256" fill={color}>
+    <Path d="M200,24H56A16,16,0,0,0,40,40V216a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V40A16,16,0,0,0,200,24ZM96,48h64a8,8,0,0,1,0,16H96a8,8,0,0,1,0-16Zm84.81,150.4a8,8,0,0,1-11.21-1.6,52,52,0,0,0-83.2,0,8,8,0,1,1-12.8-9.6A67.88,67.88,0,0,1,101,165.51a40,40,0,1,1,53.94,0A67.88,67.88,0,0,1,182.4,187.2,8,8,0,0,1,180.81,198.4ZM152,136a24,24,0,1,1-24-24A24,24,0,0,1,152,136Z" />
+  </Svg>
 );
 
 const MembershipIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
-  <Svg width={iconSize.forTabs} height={iconSize.forTabs} viewBox="0 0 24 24" fill={color}>
-    <Path d="M5.49 22a2 2 0 0 1 -1.87 -1.34l-0.55 -1.52a0.27 0.27 0 0 0 -0.14 -0.14 0.26 0.26 0 0 0 -0.21 0 5.72 5.72 0 0 1 -2.22 0.5 0.49 0.49 0 0 0 -0.48 0.37 0.5 0.5 0 0 0 0.22 0.56l2.11 1.26 -0.8 1.59a0.51 0.51 0 0 0 0 0.48A0.52 0.52 0 0 0 2 24c0.48 0 4.16 0 4.88 -2a0.27 0.27 0 0 0 -0.08 -0.28 0.26 0.26 0 0 0 -0.29 0 2 2 0 0 1 -1.02 0.28Z" />
-    <Path d="M23.5 19.5a5.72 5.72 0 0 1 -2.22 -0.5 0.26 0.26 0 0 0 -0.21 0 0.27 0.27 0 0 0 -0.14 0.14l-0.55 1.52A2 2 0 0 1 18.61 22a2 2 0 0 1 -1.13 -0.28 0.25 0.25 0 0 0 -0.36 0.3c0.7 2 4.4 2 4.88 2a0.52 0.52 0 0 0 0.43 -0.24 0.51 0.51 0 0 0 0 -0.48l-0.8 -1.59 2.11 -1.26a0.5 0.5 0 0 0 0.22 -0.56 0.49 0.49 0 0 0 -0.46 -0.39Z" />
-    <Path d="M18.05 20.22a0.51 0.51 0 0 0 0.45 0.28 0.5 0.5 0 0 0 0.47 -0.33l1.72 -4.73a1.49 1.49 0 0 0 -0.69 -1.82 16.6 16.6 0 0 0 -8 -2.12 16.6 16.6 0 0 0 -8 2.12 1.49 1.49 0 0 0 -0.67 1.82L5 20.17a0.5 0.5 0 0 0 0.44 0.33 0.52 0.52 0 0 0 0.56 -0.27c0 -0.11 1.4 -2.73 6 -2.73s6 2.62 6.05 2.72Z" />
-    <Path d="M5.72 11.32a0.86 0.86 0 0 0 0.28 -1l-0.47 -1.24a0.25 0.25 0 0 1 0.07 -0.28l1 -0.81A0.86 0.86 0 0 0 6 6.47H4.88a0.24 0.24 0 0 1 -0.23 -0.17l-0.39 -1.2a0.85 0.85 0 0 0 -1.63 0l-0.39 1.2a0.25 0.25 0 0 1 -0.24 0.17H0.86A0.87 0.87 0 0 0 0.05 7a0.88 0.88 0 0 0 0.26 1l1 0.81a0.24 0.24 0 0 1 0.08 0.28l-0.5 1.25a0.84 0.84 0 0 0 0.28 1 0.86 0.86 0 0 0 1 0l1.11 -0.79a0.23 0.23 0 0 1 0.29 0l1.11 0.79a0.86 0.86 0 0 0 1.04 -0.02Z" />
-    <Path d="M9.47 5.25a0.26 0.26 0 0 1 0.08 0.28l-0.64 1.7a0.95 0.95 0 0 0 1.44 1.1l1.5 -1.07a0.26 0.26 0 0 1 0.29 0l1.5 1.07a0.93 0.93 0 0 0 1.12 0 1 1 0 0 0 0.32 -1.09l-0.64 -1.7a0.24 0.24 0 0 1 0.07 -0.28l1.33 -1.11a0.95 0.95 0 0 0 -0.61 -1.67h-1.57a0.25 0.25 0 0 1 -0.24 -0.18L12.89 0.66A0.92 0.92 0 0 0 12 0a0.94 0.94 0 0 0 -0.9 0.66l-0.53 1.63a0.23 0.23 0 0 1 -0.23 0.18H8.75a0.94 0.94 0 0 0 -0.6 1.67Z" />
-    <Path d="m19.3 11.34 1.11 -0.79a0.23 0.23 0 0 1 0.29 0l1.11 0.79a0.86 0.86 0 0 0 1 0 0.84 0.84 0 0 0 0.28 -1l-0.47 -1.26a0.25 0.25 0 0 1 0.07 -0.28l1 -0.81a0.86 0.86 0 0 0 -0.55 -1.52H22a0.25 0.25 0 0 1 -0.24 -0.17l-0.39 -1.2a0.85 0.85 0 0 0 -1.63 0l-0.39 1.2a0.24 0.24 0 0 1 -0.23 0.17H18A0.86 0.86 0 0 0 17.42 8l1 0.81a0.25 0.25 0 0 1 0.07 0.28L18 10.34a0.86 0.86 0 0 0 1.3 1Z" />
+  <Svg width={iconSize.forTabs} height={iconSize.forTabs} viewBox="0 0 256 256" fill={color}>
+    <Path d="M232,64H208V48a8,8,0,0,0-8-8H56a8,8,0,0,0-8,8V64H24A16,16,0,0,0,8,80V96a40,40,0,0,0,40,40h3.65A80.13,80.13,0,0,0,120,191.61V216H96a8,8,0,0,0,0,16h64a8,8,0,0,0,0-16H136V191.58c31.94-3.23,58.44-25.64,68.08-55.58H208a40,40,0,0,0,40-40V80A16,16,0,0,0,232,64ZM48,120A24,24,0,0,1,24,96V80H48v32q0,4,.39,8ZM232,96a24,24,0,0,1-24,24h-.5a81.81,81.81,0,0,0,.5-8.9V80h24Z" />
   </Svg>
 );
 
 const LogoutIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
-  <Svg width={iconSize.forTabs} height={iconSize.forTabs} viewBox="0 0 24 24" fill={color}>
-    <Path d="M17.51 18.5a1 1 0 0 0 -1 1v0.5a0.5 0.5 0 0 1 -0.5 0.5h-5.5A0.5 0.5 0 0 1 10 20V4a0.5 0.5 0 0 1 0.5 -0.5H16a0.5 0.5 0 0 1 0.5 0.5v1a1 1 0 0 0 2 0V2.5a1 1 0 0 0 -1 -1H10v-1a0.51 0.51 0 0 0 -0.18 -0.39A0.53 0.53 0 0 0 9.4 0l-9 2a0.5 0.5 0 0 0 -0.4 0.5v19a0.5 0.5 0 0 0 0.4 0.5l9 2a0.51 0.51 0 0 0 0.6 -0.5v-1h7.5a1 1 0 0 0 1 -1v-2a1 1 0 0 0 -0.99 -1Zm-10 -6A1.5 1.5 0 1 1 6 11a1.5 1.5 0 0 1 1.51 1.5Z" />
-    <Path d="M22.49 11h-4.12V9.25a1 1 0 0 0 -0.53 -0.88 1 1 0 0 0 -1 0.05l-4.87 3.25a1 1 0 0 0 0 1.66l4.87 3.25a1 1 0 0 0 1.56 -0.83V14h4.12a1.5 1.5 0 0 0 0 -3Z" />
+  <Svg width={iconSize.forTabs} height={iconSize.forTabs} viewBox="0 0 256 256" fill={color}>
+    <Path d="M200,24H56A16,16,0,0,0,40,40V216a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V40A16,16,0,0,0,200,24Zm-40,80h40v24H160Zm-48,40h88v24H112Zm88,72H56V184H200v32Z" />
   </Svg>
 );
 
@@ -69,29 +65,27 @@ const MessageIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
 );
 
 const BugIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
-  <Svg width={iconSize.forTabs} height={iconSize.forTabs} viewBox="0 0 24 24" fill={color}>
-    <Path d="M23.09 8.4a0.73 0.73 0 0 0 -0.83 0.5 2.78 2.78 0 0 1 -1.18 1.47 1.37 1.37 0 0 1 -1.17 0C18 9.6 18 6.78 18 6.75v-0.69a0.5 0.5 0 0 1 0.32 -0.46 3.73 3.73 0 0 1 2.45 0 1 1 0 1 0 0.58 -1.91 5.52 5.52 0 0 0 -4.64 0.52 9.83 9.83 0 0 0 -3.07 3.37A8.52 8.52 0 0 0 8.19 6C3.53 6 0.28 9.45 0.28 14.38 0.28 16.15 0.7 17 1.51 17H2l-0.3 1.48a0.23 0.23 0 0 1 -0.2 0.15 1 1 0 0 0 0 2 2.17 2.17 0 0 0 2.14 -1.71L4 17.43a0.49 0.49 0 0 1 0.47 -0.43h2a0.49 0.49 0 0 1 0.38 0.17 0.49 0.49 0 0 1 0.12 0.4l-0.13 0.93a0.1 0.1 0 0 1 -0.1 0.08 1 1 0 0 0 0 2 2.12 2.12 0 0 0 2.08 -1.8L9 17.47a0.49 0.49 0 0 1 0.52 -0.47h5.73a0.49 0.49 0 0 1 0.48 0.39l0.33 1.48a2.18 2.18 0 0 0 2.14 1.71 1 1 0 0 0 0 -2 0.23 0.23 0 0 1 -0.19 -0.15l-0.19 -0.83a0.48 0.48 0 0 1 0.1 -0.42 0.49 0.49 0 0 1 0.39 -0.19h0.83c2.86 0 4.57 -1.84 4.57 -3.61V9.14a0.75 0.75 0 0 0 -0.62 -0.74Zm-19 3.81a0.74 0.74 0 0 1 -0.41 -1 4.57 4.57 0 0 1 4 -2.86 0.75 0.75 0 0 1 0 1.5 3.12 3.12 0 0 0 -2.61 1.95 0.75 0.75 0 0 1 -0.98 0.41Zm14.35 1a1 1 0 1 1 -1 1 0.94 0.94 0 0 1 1 -1.02Z" />
+  <Svg width={iconSize.forTabs} height={iconSize.forTabs} viewBox="0 0 256 256" fill={color}>
+    <Path d="M224,120H208V104h16a8,8,0,0,1,0,16ZM32,104a8,8,0,0,0,0,16H48V104Zm176,56c0,2.7-.14,5.37-.4,8H224a8,8,0,0,1,0,16H204.32a80,80,0,0,1-152.64,0H32a8,8,0,0,1,0-16H48.4c-.26-2.63-.4-5.3-.4-8v-8H32a8,8,0,0,1,0-16H48V120H208v16h16a8,8,0,0,1,0,16H208Zm-72-16a8,8,0,0,0-16,0v64a8,8,0,0,0,16,0ZM69.84,57.15A79.76,79.76,0,0,0,48.4,104H207.6a79.76,79.76,0,0,0-21.44-46.85l19.5-19.49a8,8,0,0,0-11.32-11.32l-20.29,20.3a79.74,79.74,0,0,0-92.1,0L61.66,26.34A8,8,0,0,0,50.34,37.66Z" />
   </Svg>
 );
 
 const ShieldIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
-  <Svg width={iconSize.forTabs} height={iconSize.forTabs} viewBox="0 0 24 24" fill="none">
-    <G>
-      <Path d="M12.83 18.5v-3a2.49 2.49 0 0 1 1.69 -2.36L16 12.6v-2.18a1.85 1.85 0 0 0 -1.84 -1.85H14V6.24a6 6 0 1 0 -11.92 0v2.33H2a1.84 1.84 0 0 0 -1.8 1.85v9.4A1.84 1.84 0 0 0 2 21.66h11.63a6.59 6.59 0 0 1 -0.8 -3.16ZM4.62 6.24a3.46 3.46 0 1 1 6.92 0v2.33H4.62ZM10.14 13a2.06 2.06 0 1 1 -2.06 -2.05A2.06 2.06 0 0 1 10.14 13Zm1.29 6.13a0.6 0.6 0 0 1 -0.46 0.22H5.2a0.59 0.59 0 0 1 -0.58 -0.71 3.54 3.54 0 0 1 6.93 0 0.62 0.62 0 0 1 -0.12 0.46Z" fill={color} strokeWidth={1} />
-      <Path d="m23.32 14.52 -3.83 -1.31a1 1 0 0 0 -0.65 0L15 14.52a1 1 0 0 0 -0.68 0.94v3a5.47 5.47 0 0 0 3.34 4.92l1.08 0.49a1 1 0 0 0 0.83 0l1.08 -0.49A5.47 5.47 0 0 0 24 18.5v-3a1 1 0 0 0 -0.68 -0.98Zm-1.22 2.33 -2.91 3.63a0.75 0.75 0 0 1 -1.11 0.06l-1.45 -1.45a0.74 0.74 0 0 1 0 -1.06 0.75 0.75 0 0 1 1.06 0l0.86 0.86 2.38 -3a0.75 0.75 0 0 1 1.17 0.94Z" fill={color} strokeWidth={1} />
-    </G>
+  <Svg width={iconSize.forTabs} height={iconSize.forTabs} viewBox="0 0 256 256" fill={color}>
+    <Path d="M224,120a40,40,0,0,1-40-40,8,8,0,0,0-8-8,40,40,0,0,1-40-40,8,8,0,0,0-8-8A104,104,0,1,0,232,128,8,8,0,0,0,224,120ZM75.51,99.51a12,12,0,1,1,0,17A12,12,0,0,1,75.51,99.51Zm25,73a12,12,0,1,1,0-17A12,12,0,0,1,100.49,172.49Zm23-40a12,12,0,1,1,17,0A12,12,0,0,1,123.51,132.49Zm41,48a12,12,0,1,1,0-17A12,12,0,0,1,164.49,180.49Z" />
   </Svg>
 );
 
 const FileTextIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
-  <Svg width={iconSize.forTabs} height={iconSize.forTabs} viewBox="0 0 24 24" fill="none">
-    <Path d="M6.89498 1.80127c0.65075 0.00007 1.2752 0.25859 1.73535 0.71875 0.36116 0.3613 0.59553 0.82439 0.68067 1.32129l9.8076 -0.10059c1.1124 -0.01139 2.0204 0.88753 2.0205 2v0.82617H7.95846c-1.85286 0 -3.46319 1.27255 -3.8916 3.0752L1.99264 18.3706c-0.12746 0.5371 0.20413 1.0763 0.74121 1.2041 0.53719 0.1276 1.07628 -0.2051 1.2041 -0.7422l2.07422 -8.7275c0.21419 -0.90137 1.01984 -1.53811 1.94629 -1.53811H21.4672l0.1407 0.00391c0.3277 0.0187 0.649 0.10265 0.9443 0.24805 0.3374 0.16612 0.6321 0.40796 0.8613 0.70605 0.2292 0.29817 0.3871 0.6459 0.461 1.0147 0.0723 0.3616 0.0605 0.7347 -0.0313 1.0917l0.001 0.001 -2.1318 8.7246c-0.0017 0.0065 -0.0042 0.0131 -0.0059 0.0196 -0.1392 0.5226 -0.4471 0.9849 -0.876 1.3144 -0.4287 0.3294 -0.9544 0.5078 -1.4951 0.5078H2.51217c-0.04352 0 -0.08771 -0.0021 -0.13086 -0.0078 -0.63064 -0.0829 -1.21097 -0.39 -1.63379 -0.8652 -0.422777 -0.4753 -0.6600255 -1.0876 -0.6689449 -1.7236V4.25537c0 -0.65077 0.2586359 -1.27515 0.7187499 -1.73535 0.460225 -0.46022 1.084505 -0.71875 1.735355 -0.71875z" fill={color} strokeWidth={1} />
+  <Svg width={iconSize.forTabs} height={iconSize.forTabs} viewBox="0 0 256 256" fill={color}>
+    <Path d="M213.66,82.34l-56-56A8,8,0,0,0,152,24H56A16,16,0,0,0,40,40V216a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V88A8,8,0,0,0,213.66,82.34Zm-104,88a8,8,0,0,1-11.32,11.32l-24-24a8,8,0,0,1,0-11.32l24-24a8,8,0,0,1,11.32,11.32L91.31,152Zm72-12.68-24,24a8,8,0,0,1-11.32-11.32L164.69,152l-18.35-18.34a8,8,0,0,1,11.32-11.32l24,24A8,8,0,0,1,181.66,157.66ZM152,88V44l44,44Z" />
   </Svg>
 );
 
 interface SettingsRowProps {
   icon: React.ReactNode;
   label: string;
+  description?: string;
   value?: string;
   onPress?: () => void;
   labelColor?: string;
@@ -104,6 +98,7 @@ interface SettingsRowProps {
 const SettingsRow = memo(({
   icon,
   label,
+  description,
   value,
   onPress,
   labelColor,
@@ -118,12 +113,21 @@ const SettingsRow = memo(({
       disabled={!onPress}
       android_ripple={{ color: 'rgba(255,255,255,0.15)', borderless: false, foreground: true, radius: -1 }}
     >
-      <View style={{ paddingVertical: s(18), paddingHorizontal: s(20) }} className="flex-row items-center">
-        <View className="mr-4">{icon}</View>
-        <Text style={{ color: labelColor }} className={`flex-1 ${textSize.small} ${fontFamily.regular}`}>{label}</Text>
-        {value && (
-          <Text style={{ color: valueColor }} className={`${textSize.small} ${fontFamily.regular} mr-2`}>{value}</Text>
-        )}
+      <View style={{ paddingHorizontal: s(buttonPadding.standard + 4) }} className="flex-row items-center">
+        <View style={{ backgroundColor: themeColors.cardLight, width: s(46), height: s(46), borderRadius: s(23), marginRight: s(16) }} className="items-center justify-center">{icon}</View>
+        <View className="flex-1">
+          <View style={{ paddingVertical: s(buttonPadding.standard + 4) }} className="flex-row items-center">
+            <View className="flex-1">
+              <Text style={{ color: labelColor }} className={`${textSize.small} ${fontFamily.regular}`}>{label}</Text>
+              {description && (
+                <Text style={{ color: themeColors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-0.5`}>{description}</Text>
+              )}
+            </View>
+            {value && (
+              <Text style={{ color: valueColor }} className={`${textSize.small} ${fontFamily.regular} ml-2`}>{value}</Text>
+            )}
+          </View>
+        </View>
       </View>
     </Pressable>
     {!isLast && (
@@ -376,7 +380,7 @@ function SettingsScreen() {
 
       <ScrollView
         className="flex-1"
-        contentContainerStyle={{ flexGrow: 1, paddingHorizontal: s(16), paddingTop: s(16), paddingBottom: s(32) }}
+        contentContainerStyle={{ flexGrow: 1, paddingHorizontal: s(16), paddingTop: s(8), paddingBottom: s(32) }}
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.text]} progressBackgroundColor={colors.card} />}
       >
@@ -384,10 +388,11 @@ function SettingsScreen() {
         <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold} tracking-wider mb-2`}>
           Account
         </Text>
-        <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, overflow: 'hidden', ...shadow.card }} className={`${radius['2xl']} mb-6`}>
+        <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, overflow: 'hidden', ...shadow.card }} className={`${radius['2xl']} mb-4`}>
           <SettingsRow
             icon={mailIcon}
             label={email}
+            description="Signed in"
             labelColor={colors.text}
             borderColor={colors.divider}
             s={s}
@@ -398,23 +403,25 @@ function SettingsScreen() {
               onPress={() => { if (haptics.settingsRow.enabled) triggerHaptic(haptics.settingsRow.type); setMembershipModalVisible(true); }}
               android_ripple={{ color: 'rgba(255,255,255,0.15)', borderless: false, foreground: true, radius: -1 }}
             >
-              <View style={{ paddingVertical: s(18), paddingHorizontal: s(20) }} className="flex-row items-center">
-                <View className="mr-4"><MembershipIcon color={colors.textSecondary} /></View>
+              <View style={{ paddingHorizontal: s(buttonPadding.standard + 4) }} className="flex-row items-center">
+                <View style={{ backgroundColor: colors.cardLight, width: s(46), height: s(46), borderRadius: s(23), marginRight: s(16) }} className="items-center justify-center"><MembershipIcon color={colors.text} /></View>
                 <View className="flex-1">
-                  <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular}`}>Membership</Text>
-                  {membershipStatus?.isMember ? (
-                    <Text style={{ color: colors.green }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-0.5`}>
-                      Active Member
-                    </Text>
-                  ) : getTrialTimeRemaining() ? (
-                    <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-0.5`}>
-                      Trial ends in {getTrialTimeRemaining()}
-                    </Text>
-                  ) : (
-                    <Text style={{ color: colors.red }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-0.5`}>
-                      Trial expired
-                    </Text>
-                  )}
+                  <View style={{ paddingVertical: s(buttonPadding.standard + 4) }}>
+                    <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular}`}>Membership</Text>
+                    {membershipStatus?.isMember ? (
+                      <Text style={{ color: colors.green }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-0.5`}>
+                        Active Member
+                      </Text>
+                    ) : getTrialTimeRemaining() ? (
+                      <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-0.5`}>
+                        Trial ends in {getTrialTimeRemaining()}
+                      </Text>
+                    ) : (
+                      <Text style={{ color: colors.red }} className={`${textSize.extraSmall} ${fontFamily.regular} mt-0.5`}>
+                        Trial expired
+                      </Text>
+                    )}
+                  </View>
                 </View>
               </View>
             </Pressable>
@@ -424,10 +431,10 @@ function SettingsScreen() {
             <SettingsRow
               icon={logoutIcon}
               label="Log Out"
+              description="Sign out of your account"
               onPress={isDisabled ? undefined : () => setLogoutModalVisible(true)}
               labelColor={colors.text}
               borderColor={colors.divider}
-
               isLast
               s={s}
             />
@@ -438,25 +445,21 @@ function SettingsScreen() {
         <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold} tracking-wider mb-2`}>
           Emergency Tapout
         </Text>
-        <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, overflow: 'hidden', ...shadow.card }} className={`${radius['2xl']} mb-6`}>
+        <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, overflow: 'hidden', ...shadow.card }} className={`${radius['2xl']} mb-4`}>
           {/* Header Row */}
           <View
             style={{ paddingVertical: s(18), paddingHorizontal: s(20) }}
             className="flex-row items-center"
           >
-            <View className="mr-4">
+            <View style={{ backgroundColor: themeColors.cardLight, width: s(46), height: s(46), borderRadius: s(23), marginRight: s(16) }} className="items-center justify-center">
               {tapoutsRemaining === 0 ? (
-                <HeartStraightBreakIcon size={tapoutIconSize} color={colors.textMuted} weight="fill" />
-              ) : tapoutsRemaining >= 3 ? (
-                <Animated.View style={{ transform: [{ scale: heartBeat }], opacity: heartBeat.interpolate({ inputRange: [1, 1.15], outputRange: [1, 0.85], extrapolate: 'clamp' }) }}>
-                  <Svg width={tapoutIconSize} height={tapoutIconSize} viewBox="0 -960 960 960" fill={colors.red}>
-                    <Path d="M595-468h-230q0 170 115 170t115-170ZM272.5-652.5Q243-625 231-577l58 14q6-26 20-41.5t31-15.5q17 0 31 15.5t20 41.5l58-14q-12-48-41.5-75.5T340-680q-38 0-67.5 27.5Zm280 0Q523-625 511-577l58 14q6-26 20-41.5t31-15.5q17 0 31 15.5t20 41.5l58-14q-12-48-41.5-75.5T620-680q-38 0-67.5 27.5ZM480-120l-58-50q-101-88-167-152T150-437q-39-51-54.5-94T80-620q0-94 63-157t157-63q52 0 99 22t81 62q34-40 81-62t99-22q94 0 157 63t63 157q0 46-15.5 89T810-437q-39 51-105 115T538-170l-58 50Z" />
-                  </Svg>
-                </Animated.View>
+                <Svg width={iconSize.forTabs} height={iconSize.forTabs} viewBox="0 0 640 640" fill={colors.textMuted}>
+                  <Path d="M197.1 96C214.4 96 231.3 99.4 247 105.7L301.8 190.9L226.4 266.3C224.9 267.8 224 269.9 224.1 272.1C224.2 274.3 225.1 276.3 226.7 277.8L338.7 381.8C341.6 384.5 346.1 384.7 349.2 382.1C352.3 379.5 353 375.1 350.9 371.7L290.5 273.6L381.2 198C383.8 195.9 384.7 192.3 383.6 189.2L360.4 124.6C383.6 106.3 412.6 96 442.9 96C516.4 96 576 155.6 576 229.1L576 231.7C576 343.9 436.1 474.2 363.1 529.9C350.7 539.3 335.5 544 320 544C304.5 544 289.2 539.4 276.9 529.9C203.9 474.2 64 343.9 64 231.7L64 229.1C64 155.6 123.6 96 197.1 96z" />
+                </Svg>
               ) : (
                 <Animated.View style={{ transform: [{ scale: heartBeat }], opacity: heartBeat.interpolate({ inputRange: [1, 1.15], outputRange: [1, 0.85], extrapolate: 'clamp' }) }}>
-                  <Svg width={tapoutIconSize} height={tapoutIconSize} viewBox="0 -960 960 960" fill={colors.red}>
-                    <Path d="M595-468h-230q0 170 115 170t115-170ZM272.5-652.5Q243-625 231-577l58 14q6-26 20-41.5t31-15.5q17 0 31 15.5t20 41.5l58-14q-12-48-41.5-75.5T340-680q-38 0-67.5 27.5Zm280 0Q523-625 511-577l58 14q6-26 20-41.5t31-15.5q17 0 31 15.5t20 41.5l58-14q-12-48-41.5-75.5T620-680q-38 0-67.5 27.5ZM480-120l-58-50q-101-88-167-152T150-437q-39-51-54.5-94T80-620q0-94 63-157t157-63q52 0 99 22t81 62q34-40 81-62t99-22q94 0 157 63t63 157q0 46-15.5 89T810-437q-39 51-105 115T538-170l-58 50Z" />
+                  <Svg width={iconSize.forTabs} height={iconSize.forTabs} viewBox="0 0 640 640" fill={colors.red}>
+                    <Path d="M273 151.1L288 171.8L303 151.1C328 116.5 368.2 96 410.9 96C484.4 96 544 155.6 544 229.1L544 231.7C544 249.3 540.6 267.3 534.5 285.4C512.7 276.8 488.9 272 464 272C358 272 272 358 272 464C272 492.5 278.2 519.6 289.4 544C288.9 544 288.5 544 288 544C272.5 544 257.2 539.4 244.9 529.9C171.9 474.2 32 343.9 32 231.7L32 229.1C32 155.6 91.6 96 165.1 96C207.8 96 248 116.5 273 151.1zM320 464C320 384.5 384.5 320 464 320C543.5 320 608 384.5 608 464C608 543.5 543.5 608 464 608C384.5 608 320 543.5 320 464zM497.4 387C491.6 382.8 483.6 383 478 387.5L398 451.5C392.7 455.7 390.6 462.9 392.9 469.3C395.2 475.7 401.2 480 408 480L440.9 480L425 522.4C422.5 529.1 424.8 536.7 430.6 541C436.4 545.3 444.4 545 450 540.5L530 476.5C535.3 472.3 537.4 465.1 535.1 458.7C532.8 452.3 526.8 448 520 448L487.1 448L503 405.6C505.5 398.9 503.2 391.3 497.4 387z" />
                   </Svg>
                 </Animated.View>
               )}
@@ -494,44 +497,44 @@ function SettingsScreen() {
           <SettingsRow
             icon={messageIcon}
             label="Contact Support"
+            description="Get help from our team"
             onPress={handleContactSupport}
             labelColor={colors.text}
             borderColor={colors.divider}
-
             s={s}
           />
           <SettingsRow
             icon={bugIcon}
             label="Bug Report"
+            description="Report an issue"
             onPress={handleBugReport}
             labelColor={colors.text}
             borderColor={colors.divider}
-
             s={s}
           />
           <SettingsRow
             icon={shieldIcon}
             label="Privacy Policy"
+            description="How we handle your data"
             onPress={() => setPrivacyModalVisible(true)}
             labelColor={colors.text}
             borderColor={colors.divider}
-
             s={s}
           />
           <SettingsRow
             icon={fileTextIcon}
             label="Terms of Service"
+            description="Usage terms and conditions"
             onPress={() => setTermsModalVisible(true)}
             labelColor={colors.text}
             borderColor={colors.divider}
-
             isLast
             s={s}
           />
         </View>
 
         {/* DATA Section */}
-        <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold} tracking-wider mb-2 mt-6`}>
+        <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold} tracking-wider mb-2 mt-4`}>
           Data
         </Text>
         {resetError && (
@@ -549,19 +552,19 @@ function SettingsScreen() {
             <SettingsRow
               icon={refreshIcon}
               label="Reset Account"
+              description="Clear all presets and data"
               onPress={isDisabled ? undefined : () => setResetModalVisible(true)}
               labelColor={colors.text}
               borderColor={colors.divider}
-
               s={s}
             />
             <SettingsRow
               icon={trashIcon}
               label="Delete Account"
+              description="Permanently remove your account"
               onPress={isDisabled ? undefined : () => { setDeleteStep(1); setDeleteModalVisible(true); }}
               labelColor={colors.yellow}
               borderColor={colors.divider}
-
               isLast
               s={s}
             />
