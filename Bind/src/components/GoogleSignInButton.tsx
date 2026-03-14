@@ -126,7 +126,7 @@ function GoogleSignInBtn({ onSuccess, onError, disabled, light, noShadow }: Prop
         overflow: 'hidden',
         ...(noShadow ? {} : shadow.card),
       }}
-      className={`${pill} items-center justify-center`}
+      className="px-5 h-10 items-center justify-center"
     >
       <View style={{ opacity: loading ? 0 : 1 }} className="flex-row items-center justify-center">
         <View className="mr-3">

@@ -1847,7 +1847,7 @@ function PresetSettingsScreen() {
                   onFocus={() => setAlertEmailFocused(true)}
                   onBlur={() => setAlertEmailFocused(false)}
                   style={{ flex: 1, color: colors.text, marginLeft: s(8) }}
-                  className={`${textSize.small} ${fontFamily.regular}`}
+                  className={`${textSize.extraSmall} ${fontFamily.regular}`}
                 />
               </View>
               <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.semibold} mb-1`}>
@@ -1868,7 +1868,7 @@ function PresetSettingsScreen() {
                   onFocus={() => setAlertPhoneFocused(true)}
                   onBlur={() => setAlertPhoneFocused(false)}
                   style={{ flex: 1, color: colors.text }}
-                  className={`${textSize.small} ${fontFamily.regular}`}
+                  className={`${textSize.extraSmall} ${fontFamily.regular}`}
                 />
               </View>
             </View>
@@ -1983,7 +1983,7 @@ function PresetSettingsScreen() {
                   onFocus={() => setBlockedMessageFocused(true)}
                   onBlur={() => setBlockedMessageFocused(false)}
                   style={{ flex: 1, color: colors.text, marginLeft: s(8) }}
-                  className={`${textSize.small} ${fontFamily.regular}`}
+                  className={`${textSize.extraSmall} ${fontFamily.regular}`}
                 />
               </View>
 
@@ -2190,7 +2190,7 @@ function PresetSettingsScreen() {
                   onFocus={() => setRedirectUrlFocused(true)}
                   onBlur={() => setRedirectUrlFocused(false)}
                   style={{ flex: 1, color: colors.text, marginLeft: s(8) }}
-                  className={`${textSize.small} ${fontFamily.regular}`}
+                  className={`${textSize.extraSmall} ${fontFamily.regular}`}
                 />
               </View>
             </View>

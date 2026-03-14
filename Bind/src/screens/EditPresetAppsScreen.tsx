@@ -553,7 +553,7 @@ function EditPresetAppsScreen() {
               onFocus={() => setNameFocused(true)}
               onBlur={() => setNameFocused(false)}
               style={{ color: colors.text, flex: 1, marginLeft: s(8), paddingVertical: 0, includeFontPadding: false, textAlignVertical: 'center' }}
-              className={`${textSize.small} ${fontFamily.semibold}`}
+              className={`${textSize.extraSmall} ${fontFamily.semibold}`}
             />
             <Text style={{ color: colors.textMuted, marginLeft: s(8) }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>
               {name.length}/50
@@ -639,7 +639,7 @@ function EditPresetAppsScreen() {
                       onFocus={() => setSearchFocused(true)}
                       onBlur={() => setSearchFocused(false)}
                       style={{ color: colors.text, flex: 1, marginLeft: s(8), paddingVertical: 0, includeFontPadding: false, textAlignVertical: 'center' }}
-                      className={`${textSize.small} ${fontFamily.semibold}`}
+                      className={`${textSize.extraSmall} ${fontFamily.semibold}`}
                     />
                   </View>
                 </View>
@@ -735,7 +735,7 @@ function EditPresetAppsScreen() {
                     onFocus={() => setWebsiteFocused(true)}
                     onBlur={() => setWebsiteFocused(false)}
                     style={{ color: colors.text, flex: 1, marginLeft: s(8), paddingVertical: 0, includeFontPadding: false, textAlignVertical: 'center' }}
-                    className={`${textSize.small} ${fontFamily.semibold}`}
+                    className={`${textSize.extraSmall} ${fontFamily.semibold}`}
                   />
                 </View>
                 <HeaderIconButton onPress={addWebsite}>

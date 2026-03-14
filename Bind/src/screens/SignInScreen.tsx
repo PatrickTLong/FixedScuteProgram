@@ -266,7 +266,7 @@ function SignInScreen() {
                       onFocus={() => setEmailFocused(true)}
                       onBlur={() => setEmailFocused(false)}
                       style={{ flex: 1, color: colors.text, paddingVertical: 0, includeFontPadding: false, textAlignVertical: 'center' }}
-                      className={`${textSize.small} ${fontFamily.regular}`}
+                      className={`${textSize.extraSmall} ${fontFamily.regular}`}
                     />
                   </View>
                 </View>
@@ -289,7 +289,7 @@ function SignInScreen() {
                       onFocus={() => setPasswordFocused(true)}
                       onBlur={() => setPasswordFocused(false)}
                       style={{ flex: 1, color: colors.text, paddingVertical: 0, includeFontPadding: false, textAlignVertical: 'center' }}
-                      className={`${textSize.small} ${fontFamily.regular}`}
+                      className={`${textSize.extraSmall} ${fontFamily.regular}`}
                     />
                     <View style={{ justifyContent: 'center', alignItems: 'center', paddingHorizontal: s(8), height: '100%' }}>
                       <HeaderIconButton onPress={() => setShowPassword(!showPassword)}>
@@ -414,7 +414,7 @@ function SignInScreen() {
                     overflow: 'hidden',
                     ...shadow.card,
                   }}
-                  className={`${pill} items-center justify-center`}
+                  className="px-5 h-10 items-center justify-center"
                 >
                   <View className="flex-row items-center justify-center">
                     <View className="mr-3">
@@ -451,7 +451,7 @@ function SignInScreen() {
                     overflow: 'hidden',
                     ...shadow.card,
                   }}
-                  className={`${pill} items-center justify-center`}
+                  className="px-5 h-10 items-center justify-center"
                 >
                   <View className="flex-row items-center justify-center">
                     <Text style={{ fontSize: 20, marginRight: s(10) }}>🇺🇸</Text>

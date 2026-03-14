@@ -235,7 +235,7 @@ function ForgotPasswordScreen() {
                       onFocus={() => setEmailFocused(true)}
                       onBlur={() => setEmailFocused(false)}
                       style={{ flex: 1, color: colors.text, paddingVertical: 0, includeFontPadding: false, textAlignVertical: 'center' }}
-                      className={`${textSize.small} ${fontFamily.regular}`}
+                      className={`${textSize.extraSmall} ${fontFamily.regular}`}
                     />
                   </View>
                 </View>
@@ -302,7 +302,7 @@ function ForgotPasswordScreen() {
                       onFocus={() => setNewPasswordFocused(true)}
                       onBlur={() => setNewPasswordFocused(false)}
                       style={{ flex: 1, color: colors.text, paddingVertical: 0, includeFontPadding: false, textAlignVertical: 'center' }}
-                      className={`${textSize.small} ${fontFamily.regular}`}
+                      className={`${textSize.extraSmall} ${fontFamily.regular}`}
                     />
                     <View style={{ justifyContent: 'center', alignItems: 'center', paddingHorizontal: s(8), height: '100%' }}>
                       <HeaderIconButton onPress={() => setShowNewPassword(!showNewPassword)}>
@@ -329,7 +329,7 @@ function ForgotPasswordScreen() {
                       onFocus={() => setConfirmPasswordFocused(true)}
                       onBlur={() => setConfirmPasswordFocused(false)}
                       style={{ flex: 1, color: colors.text, paddingVertical: 0, includeFontPadding: false, textAlignVertical: 'center' }}
-                      className={`${textSize.small} ${fontFamily.regular}`}
+                      className={`${textSize.extraSmall} ${fontFamily.regular}`}
                     />
                     <View style={{ justifyContent: 'center', alignItems: 'center', paddingHorizontal: s(8), height: '100%' }}>
                       <HeaderIconButton onPress={() => setShowConfirmPassword(!showConfirmPassword)}>

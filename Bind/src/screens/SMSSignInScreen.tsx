@@ -210,7 +210,7 @@ function SMSSignInScreen() {
                         onFocus={() => setPhoneFocused(true)}
                         onBlur={() => setPhoneFocused(false)}
                         style={{ flex: 1, color: colors.text, paddingVertical: 0, includeFontPadding: false, textAlignVertical: 'center' }}
-                        className={`${textSize.small} ${fontFamily.regular}`}
+                        className={`${textSize.extraSmall} ${fontFamily.regular}`}
                       />
                     </View>
                   </View>
