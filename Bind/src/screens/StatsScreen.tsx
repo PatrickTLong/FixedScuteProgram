@@ -9,17 +9,15 @@ import {
   Platform,
   Image,
   ScrollView,
-  Modal,
+  FlatList,
   Pressable,
   RefreshControl,
 } from 'react-native';
 import LottieView from 'lottie-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowsOutIcon, ArrowsInIcon } from 'phosphor-react-native';
 import Svg, { Path } from 'react-native-svg';
-import { useTheme, textSize, fontFamily, radius, shadow, buttonPadding, iconSize, pill } from '../context/ThemeContext';
+import { useTheme, textSize, fontFamily, radius, shadow, iconSize, pill } from '../context/ThemeContext';
 import { useResponsive } from '../utils/responsive';
-import HeaderIconButton from '../components/HeaderIconButton';
 import { useAuth } from '../context/AuthContext';
 
 const { UsageStatsModule } = NativeModules;
@@ -60,8 +58,7 @@ const PERIOD_EMPTY: Record<StatsPeriod, string> = {
 };
 
 const BAR_CHART_HEIGHT = 340;
-const TOP_APPS_COUNT = 5;
-const EXPANDED_APPS_COUNT = 25;
+const MIN_USAGE_MS = 60000; // 1 minute — hide apps at or below this
 
 const SpinningRefresh = memo(({ size, color }: { size: number; color: string }) => {
   const spin = useRef(new Animated.Value(0)).current;
@@ -92,14 +89,9 @@ const SpinningRefresh = memo(({ size, color }: { size: number; color: string }) 
   );
 });
 
-const ExpandIcon = ({ size = iconSize.sm, color = '#FFFFFF' }: { size?: number; color?: string }) => (
-  <ArrowsOutIcon size={size} color={color} weight="fill" />
-);
-
-const AnimatedBar = memo(({ percentage, color, delay, barWidth, maxHeight, label, time, mutedColor, icon, s, animationKey, glintKey }: {
+const AnimatedBar = memo(({ percentage, color, barWidth, maxHeight, label, time, mutedColor, icon, s }: {
   percentage: number;
   color: string;
-  delay: number;
   barWidth: number;
   maxHeight: number;
   label: string;
@@ -107,76 +99,22 @@ const AnimatedBar = memo(({ percentage, color, delay, barWidth, maxHeight, label
   mutedColor: string;
   icon?: string;
   s: (size: number) => number;
-  animationKey: number;
-  glintKey?: number;
 }) => {
   const iconSz = barWidth * 0.6;
   const fontSize = barWidth * 0.24;
-  // Reserve space for icon + time so bar doesn't overflow
   const headerSpace = (icon ? iconSz + s(6) : 0) + fontSize + s(6);
   const barMaxHeight = maxHeight - headerSpace;
 
+  const targetHeight = (percentage / 100) * barMaxHeight;
   const heightAnim = useRef(new Animated.Value(0)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
-  const glintAnim = useRef(new Animated.Value(0)).current;
-  const isMounted = useRef(true);
-  const hasGrown = useRef(false);
-
   useEffect(() => {
-    isMounted.current = true;
-    hasGrown.current = false;
-
-    const timeout = setTimeout(() => {
-      if (!isMounted.current) return;
-      heightAnim.setValue(0);
-      opacityAnim.setValue(0);
-      Animated.parallel([
-        Animated.spring(heightAnim, {
-          toValue: (percentage / 100) * barMaxHeight,
-          delay,
-          useNativeDriver: false,
-          tension: 50,
-          friction: 8,
-        }),
-        Animated.timing(opacityAnim, {
-          toValue: 1,
-          duration: 400,
-          delay,
-          useNativeDriver: false,
-        }),
-      ]).start(() => { hasGrown.current = true; });
-    }, 50);
-
-    return () => {
-      isMounted.current = false;
-      clearTimeout(timeout);
-    };
-  }, [percentage, delay, barMaxHeight, heightAnim, opacityAnim, animationKey]);
-
-  // Glint triggered by parent on each refresh spin
-  useEffect(() => {
-    if (glintKey === undefined || glintKey === 0 || !hasGrown.current) return;
-    glintAnim.setValue(0);
-    Animated.timing(glintAnim, {
-      toValue: 1,
-      duration: 800,
-      easing: Easing.inOut(Easing.ease),
-      useNativeDriver: false,
-    }).start();
-  }, [glintKey, glintAnim]);
-
-  const glintTranslate = glintAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [barMaxHeight, -barMaxHeight * 0.3],
-  });
-
-  const glintOpacity = glintAnim.interpolate({
-    inputRange: [0, 0.3, 0.7, 1],
-    outputRange: [0, 0.6, 0.6, 0],
-  });
+    heightAnim.setValue(targetHeight);
+    opacityAnim.setValue(1);
+  }, [percentage, targetHeight, heightAnim, opacityAnim]);
 
   return (
-    <View style={{ alignItems: 'center', flex: 1 }}>
+    <View style={{ alignItems: 'center' }}>
       <View style={{ height: maxHeight, justifyContent: 'flex-end' }}>
         <Animated.View style={{ alignItems: 'center', opacity: opacityAnim }}>
           {icon ? (
@@ -198,7 +136,6 @@ const AnimatedBar = memo(({ percentage, color, delay, barWidth, maxHeight, label
               overflow: 'hidden',
             }}
           >
-            {/* Highlight strip for depth */}
             <View
               style={{
                 position: 'absolute',
@@ -211,40 +148,6 @@ const AnimatedBar = memo(({ percentage, color, delay, barWidth, maxHeight, label
                 borderBottomLeftRadius: barWidth * 0.12,
               }}
             />
-            {/* Glint sweep */}
-            {glintKey !== undefined && (
-              <Animated.View
-                style={{
-                  position: 'absolute',
-                  left: 0,
-                  right: 0,
-                  height: barMaxHeight * 0.25,
-                  transform: [{ translateY: glintTranslate }],
-                  opacity: glintOpacity,
-                }}
-              >
-                <View style={{
-                  width: 0,
-                  height: 0,
-                  borderLeftWidth: barWidth * 0.6,
-                  borderBottomWidth: barMaxHeight * 0.06,
-                  borderLeftColor: 'transparent',
-                  borderBottomColor: 'rgba(255,255,255,0.4)',
-                }} />
-                <View style={{
-                  flex: 1,
-                  backgroundColor: 'rgba(255,255,255,0.4)',
-                }} />
-                <View style={{
-                  width: 0,
-                  height: 0,
-                  borderRightWidth: barWidth * 0.6,
-                  borderTopWidth: barMaxHeight * 0.06,
-                  borderRightColor: 'transparent',
-                  borderTopColor: 'rgba(255,255,255,0.4)',
-                }} />
-              </Animated.View>
-            )}
           </Animated.View>
         </Animated.View>
       </View>
@@ -280,99 +183,124 @@ function StatsScreen() {
   const { colors } = useTheme();
   const { s } = useResponsive();
   const insets = useSafeAreaInsets();
-  const { sharedIsLocked, sharedStats, setSharedStats } = useAuth();
+  const { sharedStats, setSharedStats } = useAuth();
 
   const [activePeriod, setActivePeriod] = useState<StatsPeriod>('month');
-  // If HomeScreen already prefetched month stats, skip spinner
   const hasCache = sharedStats.month !== null;
   const [loading, setLoading] = useState(!hasCache);
-  const [totalScreenTime, setTotalScreenTime] = useState(sharedStats.month?.screenTime ?? 0);
-  const [appUsages, setAppUsages] = useState<AppUsage[]>(sharedStats.month?.appUsages ?? []);
-  const [animationKey, setAnimationKey] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
-  const [expandedVisible, setExpandedVisible] = useState(false);
-  const [expandedAnimKey, setExpandedAnimKey] = useState(0);
-  const [glintKey, setGlintKey] = useState(0);
+  const flatListRef = useRef<FlatList<AppUsage>>(null);
+  const scrollX = useRef(new Animated.Value(0)).current;
 
-  // Glint synced to refresh spin interval
+  // Local per-period cache so switching tabs is instant (no remount)
+  type PeriodData = { screenTime: number; appUsages: AppUsage[] };
+  const [periodCache, setPeriodCache] = useState<Record<StatsPeriod, PeriodData | null>>({
+    today: sharedStats.today ?? null,
+    week: sharedStats.week ?? null,
+    month: sharedStats.month ?? null,
+  });
+
+  // Reset scroll position when period changes
   useEffect(() => {
-    const interval = setInterval(() => {
-      setGlintKey(prev => prev + 1);
-    }, 800);
-    return () => clearInterval(interval);
-  }, []);
+    scrollX.setValue(0);
+    flatListRef.current?.scrollToOffset({ offset: 0, animated: false });
+  }, [activePeriod, scrollX]);
 
-
-  // Use a ref to avoid re-creating loadStats when sharedStats changes
   const sharedStatsRef = useRef(sharedStats);
   sharedStatsRef.current = sharedStats;
+  const periodCacheRef = useRef(periodCache);
+  periodCacheRef.current = periodCache;
 
-  const loadStats = useCallback(async (useCache = false) => {
-    if (Platform.OS !== 'android' || !UsageStatsModule) {
-      setLoading(false);
-      return;
-    }
+  const loadPeriod = useCallback(async (period: StatsPeriod, skipCache = false) => {
+    if (Platform.OS !== 'android' || !UsageStatsModule) return;
 
-    // Use cached data if available for this period (only on initial mount)
-    if (useCache) {
-      const cached = sharedStatsRef.current[activePeriod];
+    // Use local or shared cache if available
+    if (!skipCache) {
+      const cached = periodCacheRef.current[period] ?? sharedStatsRef.current[period];
       if (cached) {
-        setTotalScreenTime(cached.screenTime);
-        setAppUsages(cached.appUsages);
-        setAnimationKey(prev => prev + 1);
-        setLoading(false);
+        setPeriodCache(prev => ({ ...prev, [period]: cached }));
         return;
       }
     }
 
     try {
       const [screenTime, apps] = await Promise.all([
-        UsageStatsModule.getScreenTime(activePeriod),
-        UsageStatsModule.getAllAppsUsage(activePeriod),
+        UsageStatsModule.getScreenTime(period),
+        UsageStatsModule.getAllAppsUsage(period),
       ]);
-
-      setTotalScreenTime(screenTime);
-      setAppUsages(apps || []);
-      setAnimationKey(prev => prev + 1);
-      // Write back to shared cache
-      setSharedStats(prev => ({
-        ...prev,
-        [activePeriod]: { screenTime, appUsages: apps || [] },
-      }));
+      const data = { screenTime, appUsages: apps || [] };
+      setPeriodCache(prev => ({ ...prev, [period]: data }));
+      setSharedStats(prev => ({ ...prev, [period]: data }));
     } catch {
       // Usage stats unavailable
-    } finally {
-      setLoading(false);
     }
-  }, [activePeriod, setSharedStats]);
+  }, [setSharedStats]);
 
-  // Load on mount — use cache if available
+  // Load all periods on mount so switching is instant
   useEffect(() => {
-    loadStats(true);
-  }, [loadStats]);
+    const loadAll = async () => {
+      await Promise.all([
+        loadPeriod('month'),
+        loadPeriod('week'),
+        loadPeriod('today'),
+      ]);
+      setLoading(false);
+    };
+    loadAll();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  // Refresh data and replay animation when app comes to foreground
+  // Refresh current period when app comes to foreground
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextAppState) => {
       if (nextAppState === 'active') {
-        loadStats();
+        loadPeriod(activePeriod, true);
       }
     });
     return () => subscription.remove();
-  }, [activePeriod]);
+  }, [activePeriod, loadPeriod]);
 
-  // Top 5 apps for bar chart
-  const topApps = appUsages.slice(0, TOP_APPS_COUNT);
-  const maxAppTime = topApps.length > 0 ? topApps[0].timeInForeground : 0;
+  // Current period's data from cache
+  const currentData = periodCache[activePeriod];
+  const displayTotal = currentData?.screenTime ?? 0;
+  const filteredApps = (currentData?.appUsages ?? []).filter(app => app.timeInForeground > MIN_USAGE_MS);
+  const maxAppTime = filteredApps.length > 0 ? filteredApps[0].timeInForeground : 0;
 
-  const displayTotal = totalScreenTime;
+  const barWidth = s(44);
+  const barItemWidth = barWidth * 1.5 + s(8);
+  const getItemLayout = useCallback((_: any, index: number) => ({
+    length: barItemWidth,
+    offset: barItemWidth * index,
+    index,
+  }), [barItemWidth]);
 
-  // Pull-to-refresh handler
+  const renderBar = useCallback(({ item, index }: { item: AppUsage; index: number }) => {
+    const percentage = (item.timeInForeground / maxAppTime) * 100;
+    return (
+      <View style={{ width: barItemWidth }}>
+        <AnimatedBar
+          percentage={percentage}
+          color={APP_COLORS[index % APP_COLORS.length]}
+          barWidth={barWidth}
+          maxHeight={s(BAR_CHART_HEIGHT)}
+          label={item.appName}
+          time={formatTime(item.timeInForeground)}
+          mutedColor={colors.textMuted}
+          icon={item.icon}
+          s={s}
+        />
+      </View>
+    );
+  }, [maxAppTime, barItemWidth, barWidth, s, colors.textMuted]);
+
+  const barKeyExtractor = useCallback((item: AppUsage) => item.packageName, []);
+
+  // Pull-to-refresh — force reload current period
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await loadStats();
+    await loadPeriod(activePeriod, true);
     setRefreshing(false);
-  }, [loadStats]);
+  }, [activePeriod, loadPeriod]);
 
   if (loading) {
     return (
@@ -437,19 +365,10 @@ function StatsScreen() {
 
         {/* SCREEN TIME Card */}
         <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }} className={`${radius['2xl']} mb-6 p-4`}>
-          <View className="flex-row items-center justify-between mb-3">
+          <View className="mb-3">
             <Text style={{ color: colors.textMuted }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>
               {PERIOD_LABELS[activePeriod]}
             </Text>
-            {topApps.length > 0 && (
-              <HeaderIconButton
-                onPress={() => { setExpandedVisible(true); setExpandedAnimKey(prev => prev + 1); }}
-                className=""
-                style={{ marginRight: -8 }}
-              >
-                <ExpandIcon size={s(iconSize.forTabs)} color={colors.text} />
-              </HeaderIconButton>
-            )}
           </View>
 
           {/* Total time */}
@@ -462,30 +381,28 @@ function StatsScreen() {
 
           <View style={{ height: 1, backgroundColor: colors.divider, marginBottom: s(12), marginHorizontal: -s(16) }} />
 
-          {/* Vertical bar chart */}
-          {topApps.length > 0 && maxAppTime > 0 ? (
-            <View style={{ flexDirection: 'row', alignItems: 'flex-end', paddingTop: s(8) }}>
-              {topApps.map((app, index) => {
-                const percentage = (app.timeInForeground / maxAppTime) * 100;
-                return (
-                  <AnimatedBar
-                    key={`${app.packageName}-${animationKey}`}
-                    percentage={percentage}
-                    color={APP_COLORS[index % APP_COLORS.length]}
-                    delay={index * 120}
-                    barWidth={s(44)}
-                    maxHeight={s(BAR_CHART_HEIGHT)}
-                    label={app.appName}
-                    time={formatTime(app.timeInForeground)}
-                    mutedColor={colors.textMuted}
-                    icon={app.icon}
-                    s={s}
-                    animationKey={animationKey}
-                    glintKey={glintKey}
-                  />
-                );
-              })}
-            </View>
+          {/* Horizontal scrolling bar chart */}
+          {filteredApps.length > 0 && maxAppTime > 0 ? (
+            <>
+              <FlatList
+                ref={flatListRef}
+                data={filteredApps}
+                keyExtractor={barKeyExtractor}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                getItemLayout={getItemLayout}
+                windowSize={5}
+                maxToRenderPerBatch={10}
+                initialNumToRender={6}
+                renderItem={renderBar}
+                contentContainerStyle={{ alignItems: 'flex-end', paddingTop: s(8) }}
+                onScroll={Animated.event(
+                  [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+                  { useNativeDriver: false }
+                )}
+                scrollEventThrottle={16}
+              />
+            </>
           ) : (
             <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular} text-center py-4`}>
               {PERIOD_EMPTY[activePeriod]}
@@ -501,64 +418,6 @@ function StatsScreen() {
           </View>
         )}
         </ScrollView>
-
-      {/* Expanded Top Apps Modal */}
-      <Modal
-        visible={expandedVisible}
-        transparent
-        statusBarTranslucent
-        animationType="fade"
-        onRequestClose={() => setExpandedVisible(false)}
-      >
-        <View className="flex-1 bg-black/70 justify-center items-center px-4">
-          <View
-            style={{
-              backgroundColor: colors.card,
-              ...shadow.modal,
-              maxHeight: '85%',
-            }}
-            className={`w-full ${radius['2xl']} overflow-hidden`}
-          >
-            {/* Minimize button */}
-            <View style={{ position: 'absolute', top: s(16), right: s(16), zIndex: 1 }}>
-              <HeaderIconButton
-                onPress={() => setExpandedVisible(false)}
-                className="p-3"
-              >
-                <ArrowsInIcon size={s(iconSize.headerNav)} color="#FFFFFF" weight="fill" />
-              </HeaderIconButton>
-            </View>
-
-            {/* Horizontal scrolling bar chart */}
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ padding: s(16), paddingTop: s(48), alignItems: 'flex-end' }}
-            >
-              {appUsages.slice(0, EXPANDED_APPS_COUNT).map((app, index) => {
-                const maxTime = appUsages[0]?.timeInForeground || 1;
-                const percentage = (app.timeInForeground / maxTime) * 100;
-                return (
-                  <AnimatedBar
-                    key={`expanded-${app.packageName}-${expandedAnimKey}`}
-                    percentage={percentage}
-                    color={APP_COLORS[index % APP_COLORS.length]}
-                    delay={index * 80}
-                    barWidth={s(32)}
-                    maxHeight={s(BAR_CHART_HEIGHT)}
-                    label={app.appName}
-                    time={formatTime(app.timeInForeground)}
-                    mutedColor={colors.textMuted}
-                    icon={app.icon}
-                    s={s}
-                    animationKey={expandedAnimKey}
-                  />
-                );
-              })}
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
 
     </View>
   );
