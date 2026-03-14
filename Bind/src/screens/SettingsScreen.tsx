@@ -12,8 +12,8 @@ import {
 import SlideUpModal from '../components/SlideUpModal';
 import HourglassLoader from '../components/HourglassLoader';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Svg, { Path } from 'react-native-svg';
-import { IdentificationCardIcon, FolderOpenIcon, CheckCircleIcon, HeartStraightBreakIcon } from 'phosphor-react-native';
+import Svg, { Path, G } from 'react-native-svg';
+import { IdentificationCardIcon, CheckCircleIcon, HeartStraightBreakIcon } from 'phosphor-react-native';
 import ReplyArrowIcon from '../components/ReplyArrowIcon';
 import ConfirmationModal from '../components/ConfirmationModal';
 import HeaderIconButton from '../components/HeaderIconButton';
@@ -51,8 +51,7 @@ const LogoutIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
 
 const RefreshIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
   <Svg width={iconSize.forTabs} height={iconSize.forTabs} viewBox="0 0 24 24" fill={color}>
-    <Path d="M6.18 6.17a8.22 8.22 0 0 1 8.35 -2 1.25 1.25 0 1 0 0.76 -2.38A10.75 10.75 0 0 0 2.05 16a0.25 0.25 0 0 1 -0.1 0.3l-1.4 0.93a1 1 0 0 0 -0.43 1 1 1 0 0 0 0.78 0.79l4.41 0.98 0.2 0a1 1 0 0 0 0.55 -0.17 1 1 0 0 0 0.43 -0.63l0.91 -4.41a1 1 0 0 0 -0.42 -1 1 1 0 0 0 -1.11 0l-1.34 0.88a0.29 0.29 0 0 1 -0.22 0 0.28 0.28 0 0 1 -0.16 -0.16 8.28 8.28 0 0 1 2.03 -8.34Z" />
-    <Path d="M23.88 5.83a1 1 0 0 0 -0.76 -0.8L18.73 4a1 1 0 0 0 -1.2 0.75l-1 4.38a1 1 0 0 0 0.4 1 1 1 0 0 0 0.58 0.19 0.94 0.94 0 0 0 0.53 -0.16l1.44 -0.9a0.29 0.29 0 0 1 0.22 0 0.28 0.28 0 0 1 0.16 0.16A8.25 8.25 0 0 1 9.57 19.88a1.25 1.25 0 0 0 -1.57 0.83 1.24 1.24 0 0 0 0.82 1.56 10.6 10.6 0 0 0 3.19 0.48A10.75 10.75 0 0 0 22 8a0.27 0.27 0 0 1 0.1 -0.31l1.35 -0.84a1 1 0 0 0 0.43 -1.02Z" />
+    <Path d="M18.13 17.13c-.15.18-.31.36-.48.52-.73.74-1.59 1.31-2.54 1.71-1.97.83-4.26.83-6.23 0-.95-.4-1.81-.98-2.54-1.72a7.8 7.8 0 0 1-1.71-2.54c-.42-.99-.63-2.03-.63-3.11H2c0 1.35.26 2.66.79 3.89.5 1.19 1.23 2.26 2.14 3.18s1.99 1.64 3.18 2.14c1.23.52 2.54.79 3.89.79s2.66-.26 3.89-.79c1.19-.5 2.26-1.23 3.18-2.14.17-.17.32-.35.48-.52L22 20.99v-6h-6l2.13 2.13Zm.94-12.2a9.9 9.9 0 0 0-3.18-2.14 10.12 10.12 0 0 0-7.79 0c-1.19.5-2.26 1.23-3.18 2.14-.17.17-.32.35-.48.52L1.99 3v6h6L5.86 6.87c.15-.18.31-.36.48-.52.73-.74 1.59-1.31 2.54-1.71 1.97-.83 4.26-.83 6.23 0 .95.4 1.81.98 2.54 1.72.74.73 1.31 1.59 1.71 2.54.42.99.63 2.03.63 3.11h2c0-1.35-.26-2.66-.79-3.89-.5-1.19-1.23-2.26-2.14-3.18Z" />
   </Svg>
 );
 
@@ -76,15 +75,18 @@ const BugIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
 );
 
 const ShieldIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
-  <Svg width={iconSize.forTabs} height={iconSize.forTabs} viewBox="0 0 24 24" fill={color}>
-    <Path d="M2.49 3.5a3.5 3.5 0 1 0 7 0 3.5 3.5 0 1 0 -7 0" />
-    <Path d="M9.5 13.46a3 3 0 0 1 1.58 -2.67A6.06 6.06 0 0 0 6 8a6 6 0 0 0 -6 5.33 1 1 0 0 0 0.26 0.82 1.05 1.05 0 0 0 0.78 0.35H9.5Z" />
-    <Path d="M23.07 12a16.45 16.45 0 0 0 -5.59 -1 16 16 0 0 0 -5.55 1 1.54 1.54 0 0 0 -0.93 1.46v3.39a7.7 7.7 0 0 0 5.19 6.8l0.55 0.21a1.91 1.91 0 0 0 0.74 0.14 1.83 1.83 0 0 0 0.73 -0.14l0.56 -0.21c3.08 -1.17 5.23 -4 5.23 -6.8v-3.39a1.54 1.54 0 0 0 -0.93 -1.46ZM21 15l-2.84 3.79a1.49 1.49 0 0 1 -2.24 0.16l-1.47 -1.47a0.75 0.75 0 1 1 1.06 -1.06L17 17.84l2.82 -3.79A0.75 0.75 0 1 1 21 15Z" />
+  <Svg width={iconSize.forTabs} height={iconSize.forTabs} viewBox="0 0 24 24" fill="none">
+    <G>
+      <Path d="M12.83 18.5v-3a2.49 2.49 0 0 1 1.69 -2.36L16 12.6v-2.18a1.85 1.85 0 0 0 -1.84 -1.85H14V6.24a6 6 0 1 0 -11.92 0v2.33H2a1.84 1.84 0 0 0 -1.8 1.85v9.4A1.84 1.84 0 0 0 2 21.66h11.63a6.59 6.59 0 0 1 -0.8 -3.16ZM4.62 6.24a3.46 3.46 0 1 1 6.92 0v2.33H4.62ZM10.14 13a2.06 2.06 0 1 1 -2.06 -2.05A2.06 2.06 0 0 1 10.14 13Zm1.29 6.13a0.6 0.6 0 0 1 -0.46 0.22H5.2a0.59 0.59 0 0 1 -0.58 -0.71 3.54 3.54 0 0 1 6.93 0 0.62 0.62 0 0 1 -0.12 0.46Z" fill={color} strokeWidth={1} />
+      <Path d="m23.32 14.52 -3.83 -1.31a1 1 0 0 0 -0.65 0L15 14.52a1 1 0 0 0 -0.68 0.94v3a5.47 5.47 0 0 0 3.34 4.92l1.08 0.49a1 1 0 0 0 0.83 0l1.08 -0.49A5.47 5.47 0 0 0 24 18.5v-3a1 1 0 0 0 -0.68 -0.98Zm-1.22 2.33 -2.91 3.63a0.75 0.75 0 0 1 -1.11 0.06l-1.45 -1.45a0.74 0.74 0 0 1 0 -1.06 0.75 0.75 0 0 1 1.06 0l0.86 0.86 2.38 -3a0.75 0.75 0 0 1 1.17 0.94Z" fill={color} strokeWidth={1} />
+    </G>
   </Svg>
 );
 
 const FileTextIcon = ({ color = '#FFFFFF' }: { color?: string }) => (
-  <FolderOpenIcon size={iconSize.forTabs} color={color} weight="fill" />
+  <Svg width={iconSize.forTabs} height={iconSize.forTabs} viewBox="0 0 24 24" fill="none">
+    <Path d="M6.89498 1.80127c0.65075 0.00007 1.2752 0.25859 1.73535 0.71875 0.36116 0.3613 0.59553 0.82439 0.68067 1.32129l9.8076 -0.10059c1.1124 -0.01139 2.0204 0.88753 2.0205 2v0.82617H7.95846c-1.85286 0 -3.46319 1.27255 -3.8916 3.0752L1.99264 18.3706c-0.12746 0.5371 0.20413 1.0763 0.74121 1.2041 0.53719 0.1276 1.07628 -0.2051 1.2041 -0.7422l2.07422 -8.7275c0.21419 -0.90137 1.01984 -1.53811 1.94629 -1.53811H21.4672l0.1407 0.00391c0.3277 0.0187 0.649 0.10265 0.9443 0.24805 0.3374 0.16612 0.6321 0.40796 0.8613 0.70605 0.2292 0.29817 0.3871 0.6459 0.461 1.0147 0.0723 0.3616 0.0605 0.7347 -0.0313 1.0917l0.001 0.001 -2.1318 8.7246c-0.0017 0.0065 -0.0042 0.0131 -0.0059 0.0196 -0.1392 0.5226 -0.4471 0.9849 -0.876 1.3144 -0.4287 0.3294 -0.9544 0.5078 -1.4951 0.5078H2.51217c-0.04352 0 -0.08771 -0.0021 -0.13086 -0.0078 -0.63064 -0.0829 -1.21097 -0.39 -1.63379 -0.8652 -0.422777 -0.4753 -0.6600255 -1.0876 -0.6689449 -1.7236V4.25537c0 -0.65077 0.2586359 -1.27515 0.7187499 -1.73535 0.460225 -0.46022 1.084505 -0.71875 1.735355 -0.71875z" fill={color} strokeWidth={1} />
+  </Svg>
 );
 
 interface SettingsRowProps {
@@ -340,14 +342,14 @@ function SettingsScreen() {
   const isDisabled = !lockChecked || sharedIsLocked === true;
 
   // Memoize icon JSX so SettingsRow memo isn't defeated by new element references
-  const mailIcon = useMemo(() => <MailIcon color={colors.textSecondary} />, [colors.textSecondary]);
-  const membershipIcon = useMemo(() => <MembershipIcon color={colors.textSecondary} />, [colors.textSecondary]);
-  const logoutIcon = useMemo(() => <LogoutIcon color={colors.textSecondary} />, [colors.textSecondary]);
-  const messageIcon = useMemo(() => <MessageIcon color={colors.textSecondary} />, [colors.textSecondary]);
-  const bugIcon = useMemo(() => <BugIcon color={colors.textSecondary} />, [colors.textSecondary]);
-  const shieldIcon = useMemo(() => <ShieldIcon color={colors.textSecondary} />, [colors.textSecondary]);
-  const fileTextIcon = useMemo(() => <FileTextIcon color={colors.textSecondary} />, [colors.textSecondary]);
-  const refreshIcon = useMemo(() => <RefreshIcon color={colors.textSecondary} />, [colors.textSecondary]);
+  const mailIcon = useMemo(() => <MailIcon color={colors.text} />, [colors.text]);
+  const membershipIcon = useMemo(() => <MembershipIcon color={colors.text} />, [colors.text]);
+  const logoutIcon = useMemo(() => <LogoutIcon color={colors.text} />, [colors.text]);
+  const messageIcon = useMemo(() => <MessageIcon color={colors.text} />, [colors.text]);
+  const bugIcon = useMemo(() => <BugIcon color={colors.text} />, [colors.text]);
+  const shieldIcon = useMemo(() => <ShieldIcon color={colors.text} />, [colors.text]);
+  const fileTextIcon = useMemo(() => <FileTextIcon color={colors.text} />, [colors.text]);
+  const refreshIcon = useMemo(() => <RefreshIcon color={colors.text} />, [colors.text]);
   const trashIcon = useMemo(() => <TrashIcon color={colors.yellow} />, [colors.yellow]);
 
   // Show full-screen loading only for destructive actions (reset/delete/logout)

@@ -3,7 +3,6 @@ import {
   Text,
   View,
   TouchableOpacity,
-  Pressable,
   KeyboardAvoidingView,
   ScrollView,
   TextInput,
@@ -36,24 +35,6 @@ const CloseEyesIcon = ({ size = 24, color = '#FFFFFF' }: { size?: number; color?
   </Svg>
 );
 
-const SendEmailIcon = ({ size = 24, color = '#FFFFFF' }: { size?: number; color?: string }) => (
-  <Svg viewBox="0 0 24 24" width={size} height={size}>
-    <Path d="M12 2a5 5 0 1 0 0 10 5 5 0 1 0 0-10M4 22h16c.55 0 1-.45 1-1v-1c0-3.86-3.14-7-7-7h-4c-3.86 0-7 3.14-7 7v1c0 .55.45 1 1 1" fill={color} />
-  </Svg>
-);
-
-const LoginKeyIcon = ({ size = 24, color = '#FFFFFF' }: { size?: number; color?: string }) => (
-  <Svg viewBox="0 0 256 256" width={size} height={size}>
-    <Path d="M208,80H176V56a48,48,0,0,0-96,0V80H48A16,16,0,0,0,32,96V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V96A16,16,0,0,0,208,80Zm-72,78.63V184a8,8,0,0,1-16,0V158.63a24,24,0,1,1,16,0ZM160,80H96V56a32,32,0,0,1,64,0Z" fill={color} />
-  </Svg>
-);
-
-const AsteriskIcon = ({ size = 24, color = '#FFFFFF' }: { size?: number; color?: string }) => (
-  <Svg viewBox="-4 -4 32 32" width={size} height={size}>
-    <Path d="M23.5 10.5a1 1 0 0 0 -1 -1h-5.74a0.23 0.23 0 0 1 -0.21 -0.13 0.23 0.23 0 0 1 0 -0.25l2.86 -5a1 1 0 0 0 -0.36 -1.36l-2.6 -1.5a1 1 0 0 0 -1.37 0.36l-2.86 5a0.25 0.25 0 0 1 -0.44 0l-2.86 -5a1 1 0 0 0 -1.37 -0.36L5 2.79a1 1 0 0 0 -0.36 1.36l2.86 5a0.23 0.23 0 0 1 0 0.25 0.23 0.23 0 0 1 -0.21 0.13H1.5a1 1 0 0 0 -1 1v3a1 1 0 0 0 1 1h5.74a0.24 0.24 0 0 1 0.21 0.12 0.23 0.23 0 0 1 0 0.25l-2.86 5A1 1 0 0 0 5 21.21l2.6 1.5a1 1 0 0 0 1.37 -0.37l2.86 -5a0.26 0.26 0 0 1 0.44 0l2.86 5a1 1 0 0 0 1.37 0.37l2.6 -1.5a1 1 0 0 0 0.36 -1.37l-2.86 -5a0.23 0.23 0 0 1 0 -0.25 0.24 0.24 0 0 1 0.21 -0.12h5.69a1 1 0 0 0 1 -1Z" fill={color} />
-  </Svg>
-);
-
 function ForgotPasswordScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
   const transitionRef = useRef<ScreenTransitionRef>(null);
@@ -78,6 +59,9 @@ function ForgotPasswordScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalTitle, setModalTitle] = useState('');
   const [modalMessage, setModalMessage] = useState('');
+  const [emailFocused, setEmailFocused] = useState(false);
+  const [newPasswordFocused, setNewPasswordFocused] = useState(false);
+  const [confirmPasswordFocused, setConfirmPasswordFocused] = useState(false);
 
   // Animated step transition helper
   const changeStep = useCallback(async (
@@ -219,37 +203,38 @@ function ForgotPasswordScreen() {
       >
         <ScrollView
           keyboardShouldPersistTaps="handled"
-          contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingBottom: s(80) }}
+          contentContainerStyle={{ flexGrow: 1, paddingTop: '25%' }}
           className="flex-1"
           showsVerticalScrollIndicator={false}
         >
-          <View className="px-6">
+          <View className="px-6 pt-12">
             {step === 'email' && (
               <>
-                <Text style={{ color: colors.text }} className={`${textSize['2xLarge']} ${fontFamily.bold} text-center mb-4`}>
+                <Text style={{ color: colors.text }} className={`${textSize['2xLarge']} ${fontFamily.bold} text-center mb-2`}>
                   Reset Password
                 </Text>
 
-                <Text style={{ color: colors.textSecondary }} className={`text-center ${textSize.small} ${fontFamily.regular} mb-10`}>
-                  Enter your email or phone number and we'll send you a code to reset your password.
+                <Text style={{ color: colors.textSecondary }} className={`text-center ${textSize.small} ${fontFamily.regular} mb-6`}>
+                  Enter your email and we'll send you a code to reset your password.
                 </Text>
 
-                <View className="mb-8 mt-8">
-                  <Text style={{ color: colors.text, position: 'absolute', top: s(-30), left: s(8) }} className={`${textSize.small} ${fontFamily.regular}`}>
-                    Email or Phone
+                <View className="mt-3 mb-6">
+                  <Text style={{ color: colors.text, marginBottom: s(6), marginLeft: s(8) }} className={`${textSize.small} ${fontFamily.regular}`}>
+                    Email
                   </Text>
-                  <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }} className={`${radius.full} ${pill} flex-row items-center`}>
-                    <SendEmailIcon size={s(iconSize.md)} color={colors.textSecondary} />
+                  <View style={{ backgroundColor: emailFocused ? colors.cardDark : colors.card, borderWidth: 1, borderColor: emailFocused ? colors.cardDark : colors.border, paddingLeft: s(12), ...shadow.card }} className={`${radius.full} ${pill} flex-row items-center`}>
                     <TextInput
                       value={email}
                       onChangeText={setEmail}
-                      placeholder="Enter your email or phone"
+                      placeholder="Enter your email"
                       placeholderTextColor={colors.textSecondary}
                       keyboardType="default"
                       autoCapitalize="none"
                       autoCorrect={false}
                       editable={!loading}
-                      style={{ flex: 1, color: colors.text, marginLeft: s(8), paddingVertical: 0, includeFontPadding: false, textAlignVertical: 'center' }}
+                      onFocus={() => setEmailFocused(true)}
+                      onBlur={() => setEmailFocused(false)}
+                      style={{ flex: 1, color: colors.text, paddingVertical: 0, includeFontPadding: false, textAlignVertical: 'center' }}
                       className={`${textSize.small} ${fontFamily.regular}`}
                     />
                   </View>
@@ -259,7 +244,7 @@ function ForgotPasswordScreen() {
 
             {step === 'code' && (
               <>
-                <Text style={{ color: colors.text }} className={`${textSize['2xLarge']} ${fontFamily.bold} text-center mb-4`}>
+                <Text style={{ color: colors.text }} className={`${textSize['2xLarge']} ${fontFamily.bold} text-center mb-2`}>
                   Enter Code
                 </Text>
 
@@ -292,23 +277,19 @@ function ForgotPasswordScreen() {
 
             {step === 'password' && (
               <>
-                <Text style={{ color: colors.text }} className={`${textSize['2xLarge']} ${fontFamily.bold} text-center mb-4`}>
+                <Text style={{ color: colors.text }} className={`${textSize['2xLarge']} ${fontFamily.bold} text-center mb-2`}>
                   New Password
                 </Text>
 
-                <Text style={{ color: colors.textSecondary }} className={`text-center ${textSize.small} ${fontFamily.regular} mb-10`}>
+                <Text style={{ color: colors.textSecondary }} className={`text-center ${textSize.small} ${fontFamily.regular} mb-6`}>
                   Create a new password for your account.
                 </Text>
 
-                <View className="mb-4 mt-8">
-                  <View style={{ position: 'absolute', top: s(-30), left: s(8), flexDirection: 'row', alignItems: 'center', gap: s(4) }}>
-                    <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular}`}>
-                      New Password
-                    </Text>
-                    <AsteriskIcon size={s(10)} color={colors.red} />
-                  </View>
-                  <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, paddingRight: 0, ...shadow.card }} className={`${radius.full} ${pill} flex-row items-center`}>
-                    <LoginKeyIcon size={s(iconSize.md)} color={colors.textSecondary} />
+                <View className="mt-3">
+                  <Text style={{ color: colors.text, marginBottom: s(6), marginLeft: s(8) }} className={`${textSize.small} ${fontFamily.regular}`}>
+                    New Password
+                  </Text>
+                  <View style={{ backgroundColor: newPasswordFocused ? colors.cardDark : colors.card, borderWidth: 1, borderColor: newPasswordFocused ? colors.cardDark : colors.border, paddingRight: 0, paddingLeft: s(12), ...shadow.card }} className={`${radius.full} ${pill} flex-row items-center`}>
                     <TextInput
                       value={newPassword}
                       onChangeText={setNewPassword}
@@ -318,7 +299,9 @@ function ForgotPasswordScreen() {
                       autoCapitalize="none"
                       autoCorrect={false}
                       editable={!loading}
-                      style={{ flex: 1, color: colors.text, marginLeft: s(8), paddingVertical: 0, includeFontPadding: false, textAlignVertical: 'center' }}
+                      onFocus={() => setNewPasswordFocused(true)}
+                      onBlur={() => setNewPasswordFocused(false)}
+                      style={{ flex: 1, color: colors.text, paddingVertical: 0, includeFontPadding: false, textAlignVertical: 'center' }}
                       className={`${textSize.small} ${fontFamily.regular}`}
                     />
                     <View style={{ justifyContent: 'center', alignItems: 'center', paddingHorizontal: s(8), height: '100%' }}>
@@ -329,15 +312,11 @@ function ForgotPasswordScreen() {
                   </View>
                 </View>
 
-                <View className="mb-8 mt-8">
-                  <View style={{ position: 'absolute', top: s(-30), left: s(8), flexDirection: 'row', alignItems: 'center', gap: s(4) }}>
-                    <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular}`}>
-                      Confirm New Password
-                    </Text>
-                    <AsteriskIcon size={s(10)} color={colors.red} />
-                  </View>
-                  <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, paddingRight: 0, ...shadow.card }} className={`${radius.full} ${pill} flex-row items-center`}>
-                    <LoginKeyIcon size={s(iconSize.md)} color={colors.textSecondary} />
+                <View className="mt-4 mb-6">
+                  <Text style={{ color: colors.text, marginBottom: s(6), marginLeft: s(8) }} className={`${textSize.small} ${fontFamily.regular}`}>
+                    Confirm New Password
+                  </Text>
+                  <View style={{ backgroundColor: confirmPasswordFocused ? colors.cardDark : colors.card, borderWidth: 1, borderColor: confirmPasswordFocused ? colors.cardDark : colors.border, paddingRight: 0, paddingLeft: s(12), ...shadow.card }} className={`${radius.full} ${pill} flex-row items-center`}>
                     <TextInput
                       value={confirmPassword}
                       onChangeText={setConfirmPassword}
@@ -347,7 +326,9 @@ function ForgotPasswordScreen() {
                       autoCapitalize="none"
                       autoCorrect={false}
                       editable={!loading}
-                      style={{ flex: 1, color: colors.text, marginLeft: s(8), paddingVertical: 0, includeFontPadding: false, textAlignVertical: 'center' }}
+                      onFocus={() => setConfirmPasswordFocused(true)}
+                      onBlur={() => setConfirmPasswordFocused(false)}
+                      style={{ flex: 1, color: colors.text, paddingVertical: 0, includeFontPadding: false, textAlignVertical: 'center' }}
                       className={`${textSize.small} ${fontFamily.regular}`}
                     />
                     <View style={{ justifyContent: 'center', alignItems: 'center', paddingHorizontal: s(8), height: '100%' }}>
@@ -359,9 +340,9 @@ function ForgotPasswordScreen() {
                 </View>
               </>
             )}
+
             {/* Action Button */}
-            <View className="mt-4" />
-            <Pressable
+            <TouchableOpacity
               onPress={() => {
                 step === 'email'
                   ? handleSendCode()
@@ -370,9 +351,9 @@ function ForgotPasswordScreen() {
                   : handleResetPassword();
               }}
               disabled={loading}
-              android_ripple={{ color: 'rgba(0,0,0,0.15)', borderless: false, foreground: true, radius: -1 }}
-              style={{ backgroundColor: colors.text, borderWidth: 1, borderColor: colors.border, borderRadius: 9999, overflow: 'hidden', ...shadow.card, position: 'relative' }}
-              className={`${pill} items-center justify-center mb-4`}
+              activeOpacity={0.8}
+              style={{ backgroundColor: colors.text, borderWidth: 1, borderColor: colors.border, ...shadow.card, position: 'relative' }}
+              className={`${radius.full} ${pill} items-center justify-center mb-2`}
             >
               <Text style={{ color: colors.bg, opacity: loading ? 0 : 1 }} className={`${textSize.small} ${fontFamily.semibold}`}>
                 {step === 'email'
@@ -395,7 +376,7 @@ function ForgotPasswordScreen() {
                   />
                 </View>
               )}
-            </Pressable>
+            </TouchableOpacity>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

@@ -121,6 +121,7 @@ export const haptics = {
 export const colors = {
   bg: '#28282B',
   card: '#363639',
+  cardDark: '#2e2e31',
   cardLight: '#424245',
   border: "#3a3a3d",//'#3a3a3d'
   divider: '#454548',

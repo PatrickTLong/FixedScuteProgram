@@ -19,7 +19,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Svg, { Path, G } from 'react-native-svg';
 import { XCircleIcon, CheckCircleIcon, ImageIcon, ImageSquareIcon, AndroidLogoIcon, InfoIcon as PhosphorInfoIcon, ArticleNyTimesIcon, HeartStraightBreakIcon } from 'phosphor-react-native';
-import SettingsCogIcon from '../components/SettingsCogIcon';
 import ReplyArrowIcon from '../components/ReplyArrowIcon';
 import { launchImageLibrary } from 'react-native-image-picker';
 import LottieView from 'lottie-react-native';
@@ -654,6 +653,10 @@ function PresetSettingsScreen() {
   const [alertNotifyEnabled, setAlertNotifyEnabled] = useState(false);
   const [alertEmail, setAlertEmail] = useState('');
   const [alertPhone, setAlertPhone] = useState('');
+  const [alertEmailFocused, setAlertEmailFocused] = useState(false);
+  const [alertPhoneFocused, setAlertPhoneFocused] = useState(false);
+  const [blockedMessageFocused, setBlockedMessageFocused] = useState(false);
+  const [redirectUrlFocused, setRedirectUrlFocused] = useState(false);
 
   // Section collapse state (all expanded by default)
 
@@ -1646,7 +1649,9 @@ function PresetSettingsScreen() {
         <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight, paddingVertical: s(4) }}>
           <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
             <View style={{ maxWidth: '75%' }} className="flex-row items-center">
-              <SettingsCogIcon size={s(iconSize.toggleRow)} color={colors.textSecondary} weight="fill" style={{ marginRight: s(14) }} />
+              <Svg width={s(iconSize.toggleRow)} height={s(iconSize.toggleRow)} viewBox="0 0 24 24" fill={colors.textSecondary} style={{ marginRight: s(14) }}>
+                <Path d="m22.42 9.76 -1.26 -0.45a1.37 1.37 0 0 1 -0.79 -1.88L21 6.21a2.37 2.37 0 0 0 -3.16 -3.16l-1.22 0.58a1.38 1.38 0 0 1 -1.88 -0.79l-0.45 -1.26a2.38 2.38 0 0 0 -4.48 0l-0.5 1.26a1.38 1.38 0 0 1 -1.88 0.79l-1.22 -0.58a2.37 2.37 0 0 0 -3.16 3.16l0.58 1.22a1.37 1.37 0 0 1 -0.79 1.88l-1.26 0.45a2.38 2.38 0 0 0 0 4.48l1.26 0.45a1.37 1.37 0 0 1 0.79 1.88l-0.58 1.22A2.37 2.37 0 0 0 6.21 21l1.22 -0.58a1.38 1.38 0 0 1 1.88 0.79l0.45 1.26a2.38 2.38 0 0 0 4.48 0l0.45 -1.26a1.38 1.38 0 0 1 1.88 -0.79l1.22 0.58A2.37 2.37 0 0 0 21 17.79l-0.58 -1.22a1.37 1.37 0 0 1 0.79 -1.88l1.26 -0.45a2.38 2.38 0 0 0 0 -4.48Zm-8.34 5a3.25 3.25 0 0 1 -2.91 0.81 1.92 1.92 0 0 1 -0.68 -0.37 0.49 0.49 0 0 1 -0.09 -0.68 6.82 6.82 0 0 1 2.84 -2.47 0.5 0.5 0 0 0 -0.33 -0.95c-2.11 0.75 -4 3.55 -4.95 5.57A0.5 0.5 0 0 1 7 16.3a17.13 17.13 0 0 1 1.76 -3 0.5 0.5 0 0 0 0 -0.56 2.17 2.17 0 0 1 -0.34 -1.43 2.75 2.75 0 0 1 1.62 -2 7.11 7.11 0 0 1 2.35 -0.61A6.53 6.53 0 0 0 15.1 8a0.5 0.5 0 0 1 0.43 0 0.49 0.49 0 0 1 0.3 0.31 7.3 7.3 0 0 1 -1.75 6.48Z" />
+              </Svg>
               <View className="flex-1">
                 <View className="flex-row items-center">
                   <Text style={{ color: colors.text }} className={`${textSize.base} ${fontFamily.semibold}`}>Block Settings App</Text>
@@ -1820,9 +1825,13 @@ function PresetSettingsScreen() {
               <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.semibold} mb-1`}>
                 Alert Email
               </Text>
-              <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card, marginBottom: s(10) }} className={`${radius.full} ${pill} flex-row items-center`}>
-                <Svg width={s(iconSize.md)} height={s(iconSize.md)} viewBox="0 0 256 256" fill={colors.textSecondary}>
-                  <Path d="M224,48H32a8,8,0,0,0-8,8V192a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A8,8,0,0,0,224,48Zm-96,85.15L52.57,64H203.43ZM98.71,128,40,181.81V74.19Zm11.84,10.85,12,11.05a8,8,0,0,0,10.82,0l12-11.05,58,53.15H52.57ZM157.29,128,216,74.18V181.82Z" />
+              <View style={{ backgroundColor: alertEmailFocused ? colors.cardDark : colors.card, borderWidth: 1, borderColor: alertEmailFocused ? colors.cardDark : colors.border, paddingLeft: s(12), ...shadow.card, marginBottom: s(10) }} className={`${radius.full} ${pill} flex-row items-center`}>
+                <Svg width={s(iconSize.md)} height={s(iconSize.md)} viewBox="0 0 24 24" fill={colors.textSecondary}>
+                  <Path d="M4 7H1a1 1 0 0 0 0 2h3a1 1 0 0 0 0 -2Z" />
+                  <Path d="M3 11H1a1 1 0 0 0 0 2h2a1 1 0 0 0 0 -2Z" />
+                  <Path d="M2.25 15H1a1 1 0 0 0 0 2h1.25a1 1 0 0 0 0 -2Z" />
+                  <Path d="M23.93 7.37a0.15 0.15 0 0 0 -0.15 0l-8.32 7.31a2.39 2.39 0 0 1 -1.55 0.61 1.73 1.73 0 0 1 -1.36 -0.61L6.42 7.4a0.14 0.14 0 0 0 -0.15 0 0.21 0.21 0 0 0 -0.1 0.13l-1.43 9A1.25 1.25 0 0 0 6 18h15a1.8 1.8 0 0 0 1.72 -1.5l1.28 -9a0.12 0.12 0 0 0 -0.07 -0.13Z" />
+                  <Path d="M13.46 13.92a0.94 0.94 0 0 0 1.32 0l8.28 -7.27a0.41 0.41 0 0 0 0.14 -0.38C23.15 6 22.83 6 22.73 6H7.89a0.56 0.56 0 0 0 -0.55 0.27 0.33 0.33 0 0 0 0 0.38Z" />
                 </Svg>
                 <TextInput
                   value={alertEmail}
@@ -1833,6 +1842,8 @@ function PresetSettingsScreen() {
                   autoCorrect={false}
                   keyboardType="email-address"
                   maxLength={254}
+                  onFocus={() => setAlertEmailFocused(true)}
+                  onBlur={() => setAlertEmailFocused(false)}
                   style={{ flex: 1, color: colors.text, marginLeft: s(8) }}
                   className={`${textSize.small} ${fontFamily.regular}`}
                 />
@@ -1840,20 +1851,21 @@ function PresetSettingsScreen() {
               <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.semibold} mb-1`}>
                 Alert Phone (SMS)
               </Text>
-              <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }} className={`${radius.full} ${pill} flex-row items-center`}>
-                <Svg width={s(iconSize.md)} height={s(iconSize.md)} viewBox="0 0 256 256" fill={colors.textSecondary}>
-                  <Path d="M222.37,158.46l-47.11-21.11-.13-.06a16,16,0,0,0-15.17,1.4,8.12,8.12,0,0,0-.75.56L134.87,160c-15.42-7.49-31.34-23.29-38.83-38.51l20.78-24.71c.2-.25.39-.5.57-.77a16,16,0,0,0,1.32-15.06l0-.12L97.54,33.64a16,16,0,0,0-16.62-9.52A56.26,56.26,0,0,0,32,80c0,79.4,64.6,144,144,144a56.26,56.26,0,0,0,55.88-48.92A16,16,0,0,0,222.37,158.46Z" />
-                </Svg>
+              <View style={{ backgroundColor: alertPhoneFocused ? colors.cardDark : colors.card, borderWidth: 1, borderColor: alertPhoneFocused ? colors.cardDark : colors.border, paddingLeft: s(12), ...shadow.card }} className={`${radius.full} ${pill} flex-row items-center`}>
+                <Text style={{ fontSize: 18, marginRight: s(6) }}>🇺🇸</Text>
+                <Text style={{ color: colors.text, marginRight: s(4) }} className={`${textSize.small} ${fontFamily.regular}`}>+1</Text>
                 <TextInput
                   value={alertPhone}
                   onChangeText={setAlertPhone}
-                  placeholder="e.g. +12125551234"
+                  placeholder="(555) 555-5555"
                   placeholderTextColor={colors.textSecondary}
                   autoCapitalize="none"
                   autoCorrect={false}
                   keyboardType="phone-pad"
                   maxLength={20}
-                  style={{ flex: 1, color: colors.text, marginLeft: s(8) }}
+                  onFocus={() => setAlertPhoneFocused(true)}
+                  onBlur={() => setAlertPhoneFocused(false)}
+                  style={{ flex: 1, color: colors.text }}
                   className={`${textSize.small} ${fontFamily.regular}`}
                 />
               </View>
@@ -1872,8 +1884,9 @@ function PresetSettingsScreen() {
           <View style={{ borderBottomWidth: 1, borderBottomColor: colors.dividerLight, paddingVertical: s(4) }}>
             <View style={{ paddingVertical: s(buttonPadding.standard) }} className="flex-row items-center justify-between px-6">
               <View style={{ maxWidth: '75%' }} className="flex-row items-center">
-                <Svg width={s(iconSize.toggleRow)} height={s(iconSize.toggleRow)} viewBox="0 0 256 256" fill={colors.textSecondary} style={{ marginRight: s(14) }}>
-                  <Path d="M208,40V216a8,8,0,0,1-16,0V146.77L72.43,221.55A15.95,15.95,0,0,1,48,208.12V47.88A15.95,15.95,0,0,1,72.43,34.45L192,109.23V40a8,8,0,0,1,16,0Z" />
+                <Svg width={s(iconSize.toggleRow)} height={s(iconSize.toggleRow)} viewBox="0 0 24 24" fill={colors.textSecondary} style={{ marginRight: s(14) }}>
+                  <Path d="m19.85 12.71 -0.94 1.21a2 2 0 0 1 -1.6 0.77 2 2 0 0 1 -1.58 -0.81l-0.91 -1.23 -0.32 0a0.77 0.77 0 0 1 0.25 0.56v6.5a0.75 0.75 0 0 1 -1.5 0v-6.5a0.75 0.75 0 0 1 0.13 -0.42h-0.09l-0.25 0a2 2 0 0 1 -2 -2.3l0.22 -1.51 -1.21 -0.94L10 8H4.5A4.51 4.51 0 0 0 0 12.5v7A4.51 4.51 0 0 0 4.5 24h11a4.51 4.51 0 0 0 4.5 -4.5v-6.77Zm-8.51 4.86 -4.61 2.3A1.2 1.2 0 0 1 5 18.8v-4.6a1.2 1.2 0 0 1 1.73 -1.08l4.61 2.31a1.2 1.2 0 0 1 0 2.14Z" />
+                  <Path d="M23.81 6.27 22.13 5a0.49 0.49 0 0 1 -0.13 -0.5l0.31 -2.09a0.5 0.5 0 0 0 -0.19 -0.41 0.47 0.47 0 0 0 -0.42 -0.15l-2.1 0.26a0.46 0.46 0 0 1 -0.46 -0.2L17.88 0.2a0.52 0.52 0 0 0 -0.4 -0.2 0.51 0.51 0 0 0 -0.4 0.19l-1.3 1.68a0.49 0.49 0 0 1 -0.47 0.18l-2.09 -0.31a0.53 0.53 0 0 0 -0.43 0.14 0.5 0.5 0 0 0 -0.14 0.42l0.26 2.1a0.48 0.48 0 0 1 -0.2 0.46L11 6.12a0.52 0.52 0 0 0 -0.2 0.4 0.51 0.51 0 0 0 0.19 0.4l1.68 1.3a0.49 0.49 0 0 1 0.18 0.47l-0.31 2.09a0.53 0.53 0 0 0 0.14 0.43 0.5 0.5 0 0 0 0.42 0.14l2.1 -0.26a0.48 0.48 0 0 1 0.46 0.2L16.93 13a0.52 0.52 0 0 0 0.4 0.2 0.51 0.51 0 0 0 0.4 -0.19L19 11.32a0.49 0.49 0 0 1 0.47 -0.18l2.09 0.31a0.5 0.5 0 0 0 0.42 -0.14 0.47 0.47 0 0 0 0.15 -0.42l-0.26 -2.1a0.46 0.46 0 0 1 0.2 -0.46l1.7 -1.26a0.52 0.52 0 0 0 0.2 -0.4 0.51 0.51 0 0 0 -0.16 -0.4ZM16.66 4.2a0.75 0.75 0 1 1 1.5 0v2a0.75 0.75 0 0 1 -1.5 0Zm0.76 5.85a1 1 0 1 1 1 -1 1 1 0 0 1 -1 1Z" />
                 </Svg>
                 <View className="flex-1">
                   <View className="flex-row items-center">
@@ -1954,7 +1967,7 @@ function PresetSettingsScreen() {
               <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold} mb-3`}>
                 Blocked Message
               </Text>
-              <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }} className={`${radius.full} ${pill} flex-row items-center`}>
+              <View style={{ backgroundColor: blockedMessageFocused ? colors.cardDark : colors.card, borderWidth: 1, borderColor: blockedMessageFocused ? colors.cardDark : colors.border, paddingLeft: s(12), ...shadow.card }} className={`${radius.full} ${pill} flex-row items-center`}>
                 <ArticleNyTimesIcon size={s(iconSize.md)} color={colors.textSecondary} weight="fill" />
                 <TextInput
                   value={customBlockedText}
@@ -1965,6 +1978,8 @@ function PresetSettingsScreen() {
                   placeholder="e.g. Get back to work."
                   placeholderTextColor={colors.textSecondary}
                   maxLength={200}
+                  onFocus={() => setBlockedMessageFocused(true)}
+                  onBlur={() => setBlockedMessageFocused(false)}
                   style={{ flex: 1, color: colors.text, marginLeft: s(8) }}
                   className={`${textSize.small} ${fontFamily.regular}`}
                 />
@@ -2159,7 +2174,7 @@ function PresetSettingsScreen() {
               <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.semibold} mb-3`}>
                 Redirect URL
               </Text>
-              <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }} className={`${radius.full} ${pill} flex-row items-center`}>
+              <View style={{ backgroundColor: redirectUrlFocused ? colors.cardDark : colors.card, borderWidth: 1, borderColor: redirectUrlFocused ? colors.cardDark : colors.border, paddingLeft: s(12), ...shadow.card }} className={`${radius.full} ${pill} flex-row items-center`}>
                 <GlobeIcon size={s(iconSize.md)} color={colors.textSecondary} />
                 <TextInput
                   value={customRedirectUrl}
@@ -2170,6 +2185,8 @@ function PresetSettingsScreen() {
                   autoCorrect={false}
                   keyboardType="url"
                   maxLength={500}
+                  onFocus={() => setRedirectUrlFocused(true)}
+                  onBlur={() => setRedirectUrlFocused(false)}
                   style={{ flex: 1, color: colors.text, marginLeft: s(8) }}
                   className={`${textSize.small} ${fontFamily.regular}`}
                 />

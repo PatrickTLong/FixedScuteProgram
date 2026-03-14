@@ -7,6 +7,7 @@ export type AuthStackParamList = {
   GetStarted: undefined;
   SignIn: undefined;
   ForgotPassword: undefined;
+  SMSSignIn: undefined;
 };
 
 // Post-auth onboarding screens (no back gestures)

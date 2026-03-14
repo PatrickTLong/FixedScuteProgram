@@ -17,7 +17,8 @@ import InfoModal from '../components/InfoModal';
 import OTPInput from '../components/OTPInput';
 import GoogleSignInBtn from '../components/GoogleSignInButton';
 import HeaderIconButton from '../components/HeaderIconButton';
-import { useTheme , textSize, fontFamily, radius, shadow, iconSize, pill } from '../context/ThemeContext';
+import { useTheme , textSize, fontFamily, radius, shadow, iconSize, pill, haptics } from '../context/ThemeContext';
+import { triggerHaptic } from '../utils/haptics';
 import { useResponsive } from '../utils/responsive';
 import { useAuth } from '../context/AuthContext';
 import ScreenTransition from '../components/ScreenTransition';
@@ -42,7 +43,7 @@ const CloseEyesIcon = ({ size = 24, color = '#FFFFFF' }: { size?: number; color?
 
 const SendEmailIcon = ({ size = 24, color = '#FFFFFF' }: { size?: number; color?: string }) => (
   <Svg viewBox="0 0 24 24" width={size} height={size}>
-    <Path d="M12 2a5 5 0 1 0 0 10 5 5 0 1 0 0-10M4 22h16c.55 0 1-.45 1-1v-1c0-3.86-3.14-7-7-7h-4c-3.86 0-7 3.14-7 7v1c0 .55.45 1 1 1" fill={color} />
+    <Path d="M23.61 0.23a1.05 1.05 0 0 0 -1.14 -0.11L0.83 11.65A1.54 1.54 0 0 0 1 14.44l3.26 1.38a0.69 0.69 0 0 0 0 0.25l2.5 6.74a1.82 1.82 0 0 0 2.93 0.72l3.4 -3.76a0.26 0.26 0 0 1 0.29 -0.06l3.15 1.34a1.63 1.63 0 0 0 1.3 0 1.53 1.53 0 0 0 0.83 -1L24 1.3a1 1 0 0 0 -0.39 -1.07ZM5.84 16.05 15.53 8a0.23 0.23 0 0 1 0.34 0 0.22 0.22 0 0 1 0 0.33l-7.22 8.86a0.75 0.75 0 0 0 -0.16 0.35l-0.63 3.95Z" fill={color} />
   </Svg>
 );
 
@@ -51,6 +52,12 @@ const LoginKeyIcon = ({ size = 24, color = '#FFFFFF' }: { size?: number; color?:
     <Path d="M208,80H176V56a48,48,0,0,0-96,0V80H48A16,16,0,0,0,32,96V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V96A16,16,0,0,0,208,80Zm-72,78.63V184a8,8,0,0,1-16,0V158.63a24,24,0,1,1,16,0ZM160,80H96V56a32,32,0,0,1,64,0Z" fill={color} />
   </Svg>
 );
+
+const APPLE_LOGO_PATH =
+  'M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z';
+
+const PHONE_ICON_PATH =
+  'M231.88,175.08A56.26,56.26,0,0,1,176,224C96.6,224,32,159.4,32,80A56.26,56.26,0,0,1,80.92,24.12a16,16,0,0,1,16.62,9.52l21.12,47.15,0,.12A16,16,0,0,1,117.39,96c-.18.27-.37.52-.57.77L96,121.45c7.49,15.22,23.41,31,38.83,38.51l24.34-20.71a8.12,8.12,0,0,1,.75-.56,16,16,0,0,1,15.17-1.4l.13.06,47.11,21.11A16,16,0,0,1,231.88,175.08Z';
 
 const AsteriskIcon = ({ size = 24, color = '#FFFFFF' }: { size?: number; color?: string }) => (
   <Svg viewBox="-4 -4 32 32" width={size} height={size}>
@@ -89,6 +96,8 @@ function SignInScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalTitle, setModalTitle] = useState('');
   const [modalMessage, setModalMessage] = useState('');
+  const [emailFocused, setEmailFocused] = useState(false);
+  const [passwordFocused, setPasswordFocused] = useState(false);
 
   const changeStep = useCallback(async (
     newStep: 'credentials' | 'code',
@@ -227,7 +236,7 @@ function SignInScreen() {
       >
         <ScrollView
           keyboardShouldPersistTaps="handled"
-          contentContainerStyle={{ flexGrow: 1, paddingTop: '25%' }}
+          contentContainerStyle={{ flexGrow: 1, paddingTop: '20%' }}
           className="flex-1"
           showsVerticalScrollIndicator={false}
         >
@@ -235,42 +244,39 @@ function SignInScreen() {
             {step === 'credentials' ? (
               <>
                 {/* Title */}
-                <Text style={{ color: colors.text }} className={`${textSize['2xLarge']} ${fontFamily.bold} text-center mb-10`}>
+                <Text style={{ color: colors.text }} className={`${textSize['2xLarge']} ${fontFamily.bold} text-center mb-2`}>
                   Welcome Back
                 </Text>
 
-                {/* Email or Phone Input */}
-                <View className="mb-4 mt-8">
-                  <Text style={{ color: colors.text, position: 'absolute', top: s(-30), left: s(8) }} className={`${textSize.small} ${fontFamily.regular}`}>
-                    Email or Phone
+                {/* Email Input */}
+                <View className="mt-3">
+                  <Text style={{ color: colors.text, marginBottom: s(6), marginLeft: s(8) }} className={`${textSize.small} ${fontFamily.regular}`}>
+                    Email
                   </Text>
-                  <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }} className={`${radius.full} ${pill} flex-row items-center`}>
-                    <SendEmailIcon size={s(iconSize.md)} color={colors.textSecondary} />
+                  <View style={{ backgroundColor: emailFocused ? colors.cardDark : colors.card, borderWidth: 1, borderColor: emailFocused ? colors.cardDark : colors.border, paddingLeft: s(12), ...shadow.card }} className={`${radius.full} ${pill} flex-row items-center`}>
                     <TextInput
                       value={email}
                       onChangeText={setEmail}
-                      placeholder="Enter your email or phone"
+                      placeholder="Enter your email"
                       placeholderTextColor={colors.textSecondary}
                       keyboardType="default"
                       autoCapitalize="none"
                       autoCorrect={false}
                       editable={!loading}
-                      style={{ flex: 1, color: colors.text, marginLeft: s(8), paddingVertical: 0, includeFontPadding: false, textAlignVertical: 'center' }}
+                      onFocus={() => setEmailFocused(true)}
+                      onBlur={() => setEmailFocused(false)}
+                      style={{ flex: 1, color: colors.text, paddingVertical: 0, includeFontPadding: false, textAlignVertical: 'center' }}
                       className={`${textSize.small} ${fontFamily.regular}`}
                     />
                   </View>
                 </View>
 
                 {/* Password Input */}
-                <View className="mb-8 mt-8">
-                  <View style={{ position: 'absolute', top: s(-30), left: s(8), flexDirection: 'row', alignItems: 'center', gap: s(4) }}>
-                    <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular}`}>
-                      Password
-                    </Text>
-                    <AsteriskIcon size={s(10)} color={colors.red} />
-                  </View>
-                  <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, paddingRight: 0, ...shadow.card }} className={`${radius.full} ${pill} flex-row items-center`}>
-                    <LoginKeyIcon size={s(iconSize.md)} color={colors.textSecondary} />
+                <View className="mt-4 mb-6">
+                  <Text style={{ color: colors.text, marginBottom: s(6), marginLeft: s(8) }} className={`${textSize.small} ${fontFamily.regular}`}>
+                    Password
+                  </Text>
+                  <View style={{ backgroundColor: passwordFocused ? colors.cardDark : colors.card, borderWidth: 1, borderColor: passwordFocused ? colors.cardDark : colors.border, paddingRight: 0, paddingLeft: s(12), ...shadow.card }} className={`${radius.full} ${pill} flex-row items-center`}>
                     <TextInput
                       value={password}
                       onChangeText={setPassword}
@@ -280,7 +286,9 @@ function SignInScreen() {
                       autoCapitalize="none"
                       autoCorrect={false}
                       editable={!loading}
-                      style={{ flex: 1, color: colors.text, marginLeft: s(8), paddingVertical: 0, includeFontPadding: false, textAlignVertical: 'center' }}
+                      onFocus={() => setPasswordFocused(true)}
+                      onBlur={() => setPasswordFocused(false)}
+                      style={{ flex: 1, color: colors.text, paddingVertical: 0, includeFontPadding: false, textAlignVertical: 'center' }}
                       className={`${textSize.small} ${fontFamily.regular}`}
                     />
                     <View style={{ justifyContent: 'center', alignItems: 'center', paddingHorizontal: s(8), height: '100%' }}>
@@ -295,8 +303,8 @@ function SignInScreen() {
                     activeOpacity={0.7}
                     style={{ alignSelf: 'flex-end', marginTop: s(8) }}
                   >
-                    <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular}`}>
-                      Forgot Password?
+                    <Text style={{ color: colors.text, textDecorationLine: 'underline' }} className={`${textSize.small} ${fontFamily.regular}`}>
+                      Trouble logging in?
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -337,14 +345,13 @@ function SignInScreen() {
               </>
             )}
 
-            {/* Action Button */}
-            <View className="mt-2" />
-            <Pressable
+            {/* Action Button - Sign In / Verify */}
+            <TouchableOpacity
               onPress={() => { step === 'credentials' ? handleSignIn() : handleVerifyCode(); }}
               disabled={loading}
-              android_ripple={{ color: 'rgba(0,0,0,0.15)', borderless: false, foreground: true, radius: -1 }}
-              style={{ backgroundColor: colors.text, borderWidth: 1, borderColor: colors.border, borderRadius: 9999, overflow: 'hidden', ...shadow.card, position: 'relative' }}
-              className={`${pill} items-center justify-center mb-4`}
+              activeOpacity={0.8}
+              style={{ backgroundColor: colors.text, borderWidth: 1, borderColor: colors.border, ...shadow.card, position: 'relative' }}
+              className={`${radius.full} ${pill} items-center justify-center mb-2`}
             >
               <Text style={{ color: colors.bg, opacity: loading ? 0 : 1 }} className={`${textSize.small} ${fontFamily.semibold}`}>
                 {step === 'credentials' ? 'Sign In' : 'Verify'}
@@ -363,11 +370,22 @@ function SignInScreen() {
                   />
                 </View>
               )}
-            </Pressable>
+            </TouchableOpacity>
+
+            {/* Or divider - only show on credentials step */}
+            {step === 'credentials' && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: s(4), marginBottom: s(10) }}>
+                <View style={{ flex: 1, height: 1, backgroundColor: colors.divider }} />
+                <Text style={{ color: colors.textMuted, marginHorizontal: s(12) }} className={`${textSize.small} ${fontFamily.regular}`}>
+                  or
+                </Text>
+                <View style={{ flex: 1, height: 1, backgroundColor: colors.divider }} />
+              </View>
+            )}
 
             {/* Google Sign In - only show on credentials step */}
             {step === 'credentials' && (
-              <View className="mt-2">
+              <View>
                 <GoogleSignInBtn
                   onSuccess={onSuccess}
                   onError={(error) => showModal('Google Sign-In Error', error)}
@@ -376,7 +394,76 @@ function SignInScreen() {
               </View>
             )}
 
-            {/* Hidden "Already have an account" placeholder for layout consistency */}
+            {/* Apple Sign In - only show on credentials step */}
+            {step === 'credentials' && (
+              <View className="mt-3">
+                <Pressable
+                  onPress={() => {
+                    if (haptics.landingTap.enabled) {
+                      triggerHaptic(haptics.landingTap.type);
+                    }
+                    showModal('Coming Soon', 'Apple Sign-In is coming soon.');
+                  }}
+                  disabled={loading}
+                  android_ripple={{ color: 'rgba(255,255,255,0.15)', borderless: false, foreground: true, radius: -1 }}
+                  style={{
+                    backgroundColor: colors.card,
+                    borderWidth: 1,
+                    borderColor: colors.border,
+                    borderRadius: 9999,
+                    overflow: 'hidden',
+                    ...shadow.card,
+                  }}
+                  className={`${pill} items-center justify-center`}
+                >
+                  <View className="flex-row items-center justify-center">
+                    <View className="mr-3">
+                      <Svg width={20} height={20} viewBox="0 0 24 24" fill={colors.text}>
+                        <Path d={APPLE_LOGO_PATH} />
+                      </Svg>
+                    </View>
+                    <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
+                      Continue with Apple
+                    </Text>
+                  </View>
+                </Pressable>
+              </View>
+            )}
+
+            {/* SMS Sign In - only show on credentials step */}
+            {step === 'credentials' && (
+              <View className="mt-3">
+                <Pressable
+                  onPress={async () => {
+                    if (haptics.landingTap.enabled) {
+                      triggerHaptic(haptics.landingTap.type);
+                    }
+                    await transitionRef.current?.animateOut('up');
+                    navigation.navigate('SMSSignIn');
+                  }}
+                  disabled={loading}
+                  android_ripple={{ color: 'rgba(255,255,255,0.15)', borderless: false, foreground: true, radius: -1 }}
+                  style={{
+                    backgroundColor: colors.card,
+                    borderWidth: 1,
+                    borderColor: colors.border,
+                    borderRadius: 9999,
+                    overflow: 'hidden',
+                    ...shadow.card,
+                  }}
+                  className={`${pill} items-center justify-center`}
+                >
+                  <View className="flex-row items-center justify-center">
+                    <Text style={{ fontSize: 20, marginRight: s(10) }}>🇺🇸</Text>
+                    <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
+                      Continue with SMS
+                    </Text>
+                  </View>
+                </Pressable>
+              </View>
+            )}
+
+            {/* Hidden placeholder for layout consistency */}
             {step === 'credentials' && (
               <View
                 style={{ opacity: 0 }}

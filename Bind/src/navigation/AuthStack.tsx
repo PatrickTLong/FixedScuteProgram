@@ -3,6 +3,7 @@ import LandingScreen from '../screens/LandingScreen';
 import GetStartedScreen from '../screens/GetStartedScreen';
 import SignInScreen from '../screens/SignInScreen';
 import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
+import SMSSignInScreen from '../screens/SMSSignInScreen';
 import { colors } from '../context/ThemeContext';
 import type { AuthStackParamList } from './types';
 
@@ -22,6 +23,7 @@ export default function AuthStack() {
       <Stack.Screen name="GetStarted" component={GetStartedScreen} />
       <Stack.Screen name="SignIn" component={SignInScreen} />
       <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+      <Stack.Screen name="SMSSignIn" component={SMSSignInScreen} />
     </Stack.Navigator>
   );
 }

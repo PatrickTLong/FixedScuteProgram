@@ -71,11 +71,11 @@ function HomeScreen() {
   // Scheduled presets expandable modal
   const [scheduledPresetsModalVisible, setScheduledPresetsModalVisible] = useState(false);
 
-  // Notification permission state
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  // Notification permission state (default false to avoid white flash before async check)
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
 
-  // Widget bubble disabled toggle
-  const [widgetBubbleDisabled, setWidgetBubbleDisabled] = useState(false);
+  // Widget bubble disabled toggle (default true to avoid white flash before async check)
+  const [widgetBubbleDisabled, setWidgetBubbleDisabled] = useState(true);
 
   // Onboarding block hint overlay
   const onboardingHandledRef = useRef(false);

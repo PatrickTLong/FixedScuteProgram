@@ -289,6 +289,9 @@ function EditPresetAppsScreen() {
   const [installedApps, setInstalledApps] = useState<InstalledApp[]>([]);
   const [loadingApps, setLoadingApps] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [nameFocused, setNameFocused] = useState(false);
+  const [searchFocused, setSearchFocused] = useState(false);
+  const [websiteFocused, setWebsiteFocused] = useState(false);
   const [iosSelectedAppsCount, setIosSelectedAppsCount] = useState(0);
   const [excludedAppsInfoVisible, setExcludedAppsInfoVisible] = useState(false);
   const [svgKey, setSvgKey] = useState(0);
@@ -537,7 +540,7 @@ function EditPresetAppsScreen() {
         {/* Preset Name Input */}
         <View className="px-6 py-4">
           <View
-            style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
+            style={{ backgroundColor: nameFocused ? colors.cardDark : colors.card, borderWidth: 1, borderColor: nameFocused ? colors.cardDark : colors.border, paddingLeft: s(12), ...shadow.card }}
             className={`${radius.full} ${pill} flex-row items-center`}
           >
             <MagicWandIcon size={s(iconSize.headerNav)} color={colors.textSecondary} weight="fill" />
@@ -547,6 +550,8 @@ function EditPresetAppsScreen() {
               value={name}
               onChangeText={setName}
               maxLength={50}
+              onFocus={() => setNameFocused(true)}
+              onBlur={() => setNameFocused(false)}
               style={{ color: colors.text, flex: 1, marginLeft: s(8), paddingVertical: 0, includeFontPadding: false, textAlignVertical: 'center' }}
               className={`${textSize.small} ${fontFamily.semibold}`}
             />
@@ -622,7 +627,7 @@ function EditPresetAppsScreen() {
                 {/* Search */}
                 <View className="px-6 mb-4">
                   <View
-                    style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card }}
+                    style={{ backgroundColor: searchFocused ? colors.cardDark : colors.card, borderWidth: 1, borderColor: searchFocused ? colors.cardDark : colors.border, paddingLeft: s(12), ...shadow.card }}
                     className={`${radius.full} ${pill} flex-row items-center`}
                   >
                     <SearchIcon size={s(iconSize.headerNav)} color={colors.textSecondary} />
@@ -631,6 +636,8 @@ function EditPresetAppsScreen() {
                       placeholderTextColor={colors.textSecondary}
                       value={searchQuery}
                       onChangeText={setSearchQuery}
+                      onFocus={() => setSearchFocused(true)}
+                      onBlur={() => setSearchFocused(false)}
                       style={{ color: colors.text, flex: 1, marginLeft: s(8), paddingVertical: 0, includeFontPadding: false, textAlignVertical: 'center' }}
                       className={`${textSize.small} ${fontFamily.semibold}`}
                     />
@@ -714,7 +721,7 @@ function EditPresetAppsScreen() {
               {/* Website Input */}
               <View className="flex-row items-center mb-4">
                 <View
-                  style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadow.card, flex: 1 }}
+                  style={{ backgroundColor: websiteFocused ? colors.cardDark : colors.card, borderWidth: 1, borderColor: websiteFocused ? colors.cardDark : colors.border, paddingLeft: s(12), ...shadow.card, flex: 1 }}
                   className={`${radius.full} ${pill} flex-row items-center mr-2`}
                 >
                   <CursorClickIcon size={s(iconSize.md)} color={colors.textSecondary} weight="fill" />
@@ -725,6 +732,8 @@ function EditPresetAppsScreen() {
                     onChangeText={setWebsiteInput}
                     autoCapitalize="none"
                     keyboardType="url"
+                    onFocus={() => setWebsiteFocused(true)}
+                    onBlur={() => setWebsiteFocused(false)}
                     style={{ color: colors.text, flex: 1, marginLeft: s(8), paddingVertical: 0, includeFontPadding: false, textAlignVertical: 'center' }}
                     className={`${textSize.small} ${fontFamily.semibold}`}
                   />
