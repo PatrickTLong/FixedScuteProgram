@@ -298,7 +298,7 @@ function GetStartedScreen() {
                     style={{ alignSelf: 'flex-end', marginTop: s(8), opacity: 0 }}
                     pointerEvents="none"
                   >
-                    <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.regular}`}>
+                    <Text style={{ color: colors.text }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>
                       Trouble logging in?
                     </Text>
                   </View>
@@ -449,7 +449,14 @@ function GetStartedScreen() {
                   className="px-5 h-10 items-center justify-center"
                 >
                   <View className="flex-row items-center justify-center">
-                    <Text style={{ fontSize: 20, marginRight: s(10) }}>🇺🇸</Text>
+                    <View style={{ marginRight: s(10) }}>
+                      <Svg width={20} height={20} viewBox="0 0 24 24">
+                        <Path d="M19.5 0h-15A4.51 4.51 0 0 0 0 4.5v15A4.51 4.51 0 0 0 4.5 24h15a4.51 4.51 0 0 0 4.5 -4.5v-15A4.51 4.51 0 0 0 19.5 0Zm0.75 15.42a2.79 2.79 0 0 1 -2.78 2.79H8.2a2.79 2.79 0 0 1 -2.79 -2.79V9.17L3.9 7.46a1 1 0 0 1 -0.16 -1.08 1 1 0 0 1 0.91 -0.59h12.82a2.79 2.79 0 0 1 2.78 2.79Z" fill={colors.text} />
+                        <Path d="M16.59 9.59H9.08a0.75 0.75 0 0 1 0 -1.5h7.51a0.75 0.75 0 0 1 0 1.5Z" fill={colors.text} />
+                        <Path d="M16.59 12.75H9.08a0.75 0.75 0 1 1 0 -1.5h7.51a0.75 0.75 0 0 1 0 1.5Z" fill={colors.text} />
+                        <Path d="M13.67 15.91H9.08a0.75 0.75 0 0 1 0 -1.5h4.59a0.75 0.75 0 0 1 0 1.5Z" fill={colors.text} />
+                      </Svg>
+                    </View>
                     <Text style={{ color: colors.text }} className={`${textSize.small} ${fontFamily.semibold}`}>
                       Continue with SMS
                     </Text>
@@ -465,7 +472,7 @@ function GetStartedScreen() {
                 activeOpacity={0.7}
                 className="items-center py-2 mt-4"
               >
-                <Text style={{ color: colors.textSecondary }} className={`${textSize.small} ${fontFamily.regular}`}>
+                <Text style={{ color: colors.textSecondary }} className={`${textSize.extraSmall} ${fontFamily.regular}`}>
                   Already have an account?{' '}
                   <Text style={{ color: colors.text, textDecorationLine: 'underline' }} className={`${fontFamily.semibold}`}>Sign In</Text>
                 </Text>
