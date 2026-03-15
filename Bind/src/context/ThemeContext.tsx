@@ -69,25 +69,13 @@ export const pill = 'px-5 h-12' as const;
 // Shadow style objects
 export const shadow = {
   card: {
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 6,//6
+    boxShadow: '0px 3px 5px rgba(0, 0, 0, 0.255)',
   },
   modal: {
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.4,
-    shadowRadius: 10,
-    elevation: 10,//10
+    boxShadow: '0px 5px 9px rgba(0, 0, 0, 0.34)',
   },
   tabBar: {
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 8,//8
+    boxShadow: '0px -3px 5px rgba(0, 0, 0, 0.255)',
   },
 } as const;
 
@@ -123,7 +111,7 @@ export const colors = {
   card: '#363639',
   cardDark: '#2e2e31',
   cardLight: '#424245',
-  border: "#3a3a3d",//'#3a3a3d'
+  border: "transparent",//'#3a3a3d'
   divider: '#454548',
   dividerLight: '#3a3a3d',
   text: '#ffffff',
